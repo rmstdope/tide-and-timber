@@ -16,7 +16,7 @@ func after_test() -> void:
 
 func _pad(button: JoyButton, pressed: bool) -> void:
 	var e := InputEventJoypadButton.new()
-	e.device = 0
+	e.device = 7
 	e.button_index = button
 	e.pressed = pressed
 	Input.parse_input_event(e)
