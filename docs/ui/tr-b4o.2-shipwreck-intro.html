@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Shipwreck intro — agreed</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>:root{--bg:#f7efe0;--ink:#2b2230;--dim:#7a6b5e;--card:#fffaf0}
+@media (prefers-color-scheme:dark){:root{--bg:#17151c;--ink:#efe6d6;--dim:#a79a8c;--card:#221f29}}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}
+h1{font-size:22px;margin:0 0 4px}.lede{color:var(--dim);max-width:70ch;margin:0 0 20px}
+h2{font-size:16px;margin:28px 0 8px}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+figure{margin:0;background:var(--card);border-radius:8px;padding:8px}
+svg.px{width:100%;height:auto;display:block;image-rendering:pixelated;border-radius:3px}
+figcaption{font-size:13px;padding:6px 2px 0}figcaption b{display:block}figcaption span{color:var(--dim)}
+.cost{background:var(--card);border-left:4px solid #d9ae62;padding:8px 12px;max-width:70ch;border-radius:4px}
+</style><script>// Tiny pixel-scene painter for the shipwreck drawings. Every frame is a 320x180 SVG, drawn in whole pixels.
+const P = {
+  night:'#1d2440', storm:'#2e3a5c', cloud:'#4a5478', cloudHi:'#6b7396', sea:'#24506b', seaDeep:'#173a52',
+  foam:'#d8e6e8', lightning:'#fff4c2', wood:'#8a5a34', woodDk:'#5c3a22', sail:'#e9dcc0', sand:'#f0cf8a',
+  sandDk:'#d9ae62', wet:'#c49a5a', shallow:'#4fa3a5', dawn:'#f6a85c', dawnHi:'#ffd58a', sky:'#8fc6d8',
+  skin:'#e0a172', shirt:'#b8462e', pants:'#3d4f6e', hair:'#4a2c1a', black:'#0c0d14', text:'#fff6e0', grass:'#6a9a3e', palm:'#3f7a3a'
+};
+const r=(x,y,w,h,c,o='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}" ${o}/>`;
+function svg(inner, cls=''){return `<svg class="px ${cls}" viewBox="0 0 320 180" shape-rendering="crispEdges">${inner}</svg>`}
+function rain(n=90,seed=3){let s='',v=seed;for(let i=0;i<n;i++){v=(v*9301+49297)%233280;const x=Math.floor(v/233280*330);v=(v*9301+49297)%233280;const y=Math.floor(v/233280*180);s+=r(x,y,1,5,'#9fb0d0','opacity=".55"')}return s}
+function waves(top,big=false){let s=r(0,top,320,180-top,P.sea)+r(0,top+30,320,180,P.seaDeep);for(let x=0;x<320;x+=big?40:24){const h=big?10:5;s+=r(x,top-h,big?26:14,h,P.sea)+r(x+4,top-h,big?14:8,2,P.foam)}return s}
+function ship(x,y,tilt=0,broken=false){const t=`transform="rotate(${tilt} ${x+30} ${y+20})"`;return `<g ${t}>${r(x,y+18,60,10,P.wood)+r(x+6,y+28,48,4,P.woodDk)+r(x+28,y-22,3,40,P.woodDk)+(broken?r(x+31,y-22,16,8,P.sail):r(x+31,y-18,22,30,P.sail))+r(x+44,y+12,3,6,P.shirt)}</g>`}
+function clouds(light=false){return r(0,0,320,40,light?P.cloudHi:P.cloud)+r(20,36,90,10,P.cloud)+r(160,34,120,12,P.cloud)+r(60,44,40,6,P.cloud)}
+function bolt(x){return r(x,40,3,20,P.lightning)+r(x-4,58,4,3,P.lightning)+r(x-6,60,3,24,P.lightning)}
+function man(x,y,pose='stand'){if(pose==='lying')return r(x,y,14,5,P.shirt)+r(x+14,y,5,5,P.skin)+r(x+14,y,5,2,P.hair)+r(x-8,y+1,8,4,P.pants);
+  if(pose==='sit')return r(x,y+6,8,6,P.shirt)+r(x+1,y,6,6,P.skin)+r(x+1,y,6,2,P.hair)+r(x-2,y+12,12,3,P.pants);
+  return r(x+1,y,6,6,P.skin)+r(x+1,y,6,2,P.hair)+r(x,y+6,8,7,P.shirt)+r(x+1,y+13,2,5,P.pants)+r(x+5,y+13,2,5,P.pants)}
+function beachTop(dawn=true){let s=r(0,0,320,180,P.sand);s+=r(0,0,320,34,P.shallow)+r(0,34,320,6,P.foam)+r(0,40,320,8,P.wet);
+  for(let x=0;x<320;x+=16)for(let y=48;y<180;y+=16)if((x*7+y*3)%5===0)s+=r(x+5,y+6,3,2,P.sandDk);
+  s+=r(0,150,320,30,P.grass)+r(30,138,10,16,P.woodDk)+r(20,128,30,12,P.palm)+r(250,140,10,14,P.woodDk)+r(240,130,30,12,P.palm);
+  s+=r(90,52,18,4,P.wood)+r(210,60,12,3,P.wood)+r(150,44,22,6,P.woodDk);
+  if(dawn)s+=r(0,0,320,180,P.dawn,'opacity=".18"');return s}
+function caption(t,y=160){return r(0,y-12,320,24,P.black,'opacity=".75"')+`<text x="160" y="${y+3}" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="7" fill="${P.text}">${t}</text>`}
+function skipHint(label,fill){let s=r(236,164,80,12,P.black,'opacity=".6"');if(fill!=null){s+=`<circle cx="245" cy="170" r="4" fill="none" stroke="#6b7396" stroke-width="2"/>`;s+=`<path d="M245 166 A4 4 0 ${fill>.5?1:0} 1 ${245+4*Math.sin(fill*6.283)} ${170-4*Math.cos(fill*6.283)}" fill="none" stroke="${P.dawnHi}" stroke-width="2"/>`}
+  return s+`<text x="${fill!=null?253:276}" y="173" ${fill!=null?'':'text-anchor="middle"'} font-family="'Press Start 2P',monospace" font-size="5" fill="${P.text}">${label}</text>`}
+function black(o=1){return r(0,0,320,180,P.black,`opacity="${o}"`)}
+function white(o=1){return r(0,0,320,180,'#fff8e8',`opacity="${o}"`)}
+function frames(list){return `<div class="strip">${list.map(([s,t,n])=>`<figure>${s}<figcaption><b>${t}</b>${n?`<span>${n}</span>`:''}</figcaption></figure>`).join('')}</div>`}
+</script></head><body>
+<h1>Shipwreck intro — agreed</h1><p class="lede">The chosen shape: three storybook pictures and a black beat in his own voice, paced by the player, hold to skip, Esc pauses, and he gets himself up on the beach.</p><div id="d"></div>
+<script>document.getElementById('d').innerHTML=(function(){const b=beachTop();return '<h2>Watched through</h2>'+frames([
+[svg(black()),'New Game → black','short fade']
+,[svg(clouds()+waves(120)+ship(120,86)+rain(40)+caption('Three weeks out of port.')+`<text x="304" y="164" font-size="7" fill="#ffd58a">▼</text>`),'Picture 1','tap/click or ~6 s → next']
+,[svg(clouds()+waves(110,true)+ship(120,74,-14)+rain(120)+bolt(230)+caption('Then the storm found us.')+`<text x="304" y="164" font-size="7" fill="#ffd58a">▼</text>`),'Picture 2','']
+,[svg(clouds(true)+waves(100,true)+ship(130,70,35,true)+rain(140)+white(.35)+caption('The mast gave way.')+`<text x="304" y="164" font-size="7" fill="#ffd58a">▼</text>`),'Picture 3','']
+,[svg(black()+caption('...',96)),'Black · waves heard','tap/click or ~6 s']
+,[svg(b+man(150,90,'lying')+black(.6)),'Fade up on the beach','he lies face-down']
+,[svg(b+man(150,86,'sit')),'He sits up','no control yet']
+,[svg(b+man(150,82)+caption('WASD or arrows · Move',168)),'Standing — control','hint fades after a few steps']
+])+'<h2>Skipping</h2>'+frames([
+[svg(clouds()+waves(110,true)+ship(120,74,-14)+rain(120)+bolt(230)+caption('Then the storm found us.')+`<text x="304" y="164" font-size="7" fill="#ffd58a">▼</text>`+skipHint('Hold to skip',.4)),'Holding Space, Enter or mouse button','hint appears on first press; ring drains if released']
+,[svg(clouds()+waves(110,true)+ship(120,74,-14)+rain(120)+bolt(230)+caption('Then the storm found us.')+`<text x="304" y="164" font-size="7" fill="#ffd58a">▼</text>`+skipHint('Hold to skip',1)),'Ring full (~1 s)','short fade, then the beach waking above']
+])+'<h2>Esc pauses</h2>'+frames([
+[svg(clouds()+waves(110,true)+ship(120,74,-14)+rain(120)+bolt(230)+caption('Then the storm found us.')+black(.5)+r(100,60,120,60,P.black)+`<text x="160" y="78" text-anchor="middle" font-family="Press Start 2P" font-size="7" fill="#fff6e0">Paused</text><text x="160" y="96" text-anchor="middle" font-family="Press Start 2P" font-size="6" fill="#ffd58a">▶ Resume</text><text x="160" y="108" text-anchor="middle" font-family="Press Start 2P" font-size="6" fill="#fff6e0">Skip story</text>`),'Esc','Resume / Skip story; Esc again resumes']
+])})();</script></body></html>
