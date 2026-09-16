@@ -1,0 +1,73 @@
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gate-full:
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_ANALYTICS: 1
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          submodules: false
+
+      - name: Install Godot
+        run: brew install --cask godot
+
+      - name: Godot version
+        id: godot
+        run: |
+          set -euo pipefail
+          raw="$(godot --headless --version | head -n 1)"
+          echo "godot --headless --version: $raw"
+          [[ $raw =~ ^([0-9]+\.[0-9]+(\.[0-9]+)?\.stable) ]]
+          echo "templates=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore export templates
+        uses: actions/cache@v6
+        with:
+          path: ~/Library/Application Support/Godot/export_templates/${{ steps.godot.outputs.templates }}
+          key: godot-export-templates-${{ steps.godot.outputs.templates }}-${{ runner.os }}
+
+      - name: Shell suites
+        run: |
+          set -euo pipefail
+          for suite in scripts/tests/*-test.sh; do
+            echo "::group::$suite"
+            bash "$suite"
+            echo "::endgroup::"
+          done
+
+      - name: gate-full
+        run: scripts/gate-full
+
+      - name: Upload macOS export
+        uses: actions/upload-artifact@v7
+        with:
+          name: tide-and-timber-macos
+          path: build/macos/tide-and-timber.zip
+          if-no-files-found: error
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
+
+      - name: Upload Windows export
+        uses: actions/upload-artifact@v7
+        with:
+          name: tide-and-timber-windows
+          path: build/windows/
+          if-no-files-found: error
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
