@@ -114,3 +114,16 @@ func test_input_during_fade_is_ignored() -> void:
 	assert_highlighted("NewGame")
 	await await_millis(1300)
 	assert_array(calls).is_equal(["new_game"])
+
+func test_waves_move() -> void:
+	var waves := screen.get_node("%Waves").get_children()
+	var recorded: Array[float] = []
+	for wave: Control in waves:
+		recorded.append(wave.position.x)
+	await runner.simulate_frames(30, 25)
+	var any_moved := false
+	for i in waves.size():
+		var drift: float = (waves[i] as Control).position.x - recorded[i]
+		any_moved = any_moved or drift != 0.0
+		assert_float(absf(drift)).is_less_equal(TitleScreen.WAVE_AMPLITUDE_PX)
+	assert_bool(any_moved).is_true()
