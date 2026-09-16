@@ -114,6 +114,14 @@ func test_red_over_driftwood() -> void:
 	await _choose_lean_to_at(Vector2i(88, 11), F.DOWN)
 	assert_bool(_n("Ghost").ok).is_false()
 
+func test_red_over_the_spring_base() -> void:
+	await _choose_lean_to_at(Vector2i(96, 10), F.RIGHT)
+	assert_bool(_n("Ghost").ok).is_false()
+
+func test_red_over_a_boulder() -> void:
+	await _choose_lean_to_at(Vector2i(62, 12), F.UP)
+	assert_bool(_n("Ghost").ok).is_false()
+
 func test_red_in_the_water() -> void:
 	await _choose_lean_to_at(Vector2i(92, 14), F.DOWN)
 	assert_bool(_n("Ghost").ok).is_false()

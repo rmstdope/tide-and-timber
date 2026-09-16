@@ -53,6 +53,8 @@ func test_prop_cells_cover_palms_rocks_boulders() -> void:
 		assert_bool(p.has(c)).override_failure_message("missing %s" % c).is_true()
 	assert_bool(p.has(Vector2i(62, 11))).is_false()
 	assert_bool(p.has(Vector2i(60, 10))).is_false()
+	for c in [Vector2i(95, 9), Vector2i(96, 9), Vector2i(97, 9)]:
+		assert_bool(p.has(c)).override_failure_message("spring base missing %s" % c).is_true()
 
 func test_ground_ok() -> void:
 	assert_bool(BuildSite.is_ground_ok(Vector2i(92, 11))).is_true()
