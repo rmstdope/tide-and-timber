@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset=utf-8><title>Continue — agreed</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=common.css><script src=scene.js></script></head><body><script>
+const M=menu([{t:'Continue',sel:1,sub:'DAY 4'},{t:'New Game'},{t:'Quit'}],212);
+const N=menu([{t:'Continue',sub:'DAY 4'},{t:'New Game',sel:1},{t:'Quit'}],212);
+const NS=menu([{t:'New Game',sel:1},{t:'Quit'}],240);
+const over=s=>box(['Wash up on a new island?','Everything you built will be lost to the sea.'],['Keep my island','Start over'],s);
+page('Continue from the title screen — agreed','Each picture is the title screen at 2x the game\'s 320x180 base. Scene art, colours and fonts are indicative, not final art.',[
+['1. No save',scene(NS),'Exactly the two planks of today; New Game highlighted.'],
+['2. A save exists',scene(M),'Continue on top, the saved day beneath it, highlighted on opening.'],
+['3. Continue pressed',black('<div style="color:#555;font-size:12px;position:absolute;left:220px;top:170px">fade to black…</div>'),'About a second; input ignored. Then the game fades up at 06:00 of the saved day, where he stood. Nothing is said.'],
+['4. In the game',`<div class="screen" style="background:#6fb46a"><div style="position:absolute;right:12px;top:10px;font-size:10px;color:#fff4d6;text-shadow:2px 2px 0 #3a2418">DAY 4 06:00</div><div style="position:absolute;left:310px;top:170px;width:16px;height:24px;background:#3a5fa8"></div></div>`,'Play resumes at once.'],
+['5. New Game with a save',scene(N+over(0)),'Keep my island highlighted. Esc / B = Keep my island.'],
+['6. Keep my island',scene(N),'Box closes; highlight back on New Game; nothing changed.'],
+['7. Start over',scene(N+over(1))+'',"Fades like New Game, then the shipwreck. The old save stays until the new game's DAY 2 06:00 save replaces it."],
+['8. Quit on the new DAY 1, reopen',scene(M),'Continue still brings back the old island.'],
+['9. Save can\'t be opened',scene(N+box(['The tide has blurred this journal.','Your saved island couldn\'t be opened.'],['OK'],0)),'Opens instead of the fade. OK / Enter / Esc / B closes; highlight moves to New Game; the save is left untouched.']]);
+</script></body></html>

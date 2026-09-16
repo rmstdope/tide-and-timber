@@ -1,0 +1,29 @@
+body{margin:0;background:#1b1420;color:#f4e3c1;font-family:"Press Start 2P",monospace;padding:16px}
+h1.page{font-family:system-ui;font-size:18px;color:#f4e3c1}
+p.note{font-family:system-ui;font-size:14px;max-width:960px;color:#d9c7a3}
+.wrap{display:flex;flex-wrap:wrap;gap:24px}
+.cap{font-family:system-ui;font-size:13px;margin:6px 0 0;color:#d9c7a3;max-width:640px}
+.screen{width:640px;height:360px;position:relative;overflow:hidden;image-rendering:pixelated;border:4px solid #0d0a10}
+.sky{position:absolute;inset:0;background:linear-gradient(#f28c5b 0,#f6b26b 38%,#ffd89a 55%,#3e8fb0 55%,#2c6d91 100%)}
+.sun{position:absolute;width:64px;height:64px;background:#ffe9a8;left:288px;top:140px;box-shadow:0 0 0 8px #ffd27a55}
+.wave{position:absolute;height:4px;background:#8fd3e8;opacity:.8}
+.beach{position:absolute;left:0;right:0;bottom:0;height:70px;background:#e9c27f;border-top:8px solid #f3d99c}
+.palm{position:absolute;width:12px;height:110px;background:#7a4a2a;bottom:60px}
+.palm:after{content:"";position:absolute;width:80px;height:24px;background:#3f8a3a;left:-34px;top:-12px;box-shadow:0 8px 0 #2f6e2d}
+.wreck{position:absolute;width:90px;height:26px;background:#5a3a24;top:190px;left:470px;transform:skewX(-20deg)}
+.logo{position:absolute;font-size:34px;line-height:1.2;color:#fff4d6;text-shadow:4px 4px 0 #6b2e1f,-2px -2px 0 #6b2e1f,2px -2px 0 #6b2e1f,-2px 2px 0 #6b2e1f}
+.logo small{display:block;font-size:12px;color:#ffe2a8;text-shadow:2px 2px 0 #6b2e1f}
+.menu{position:absolute;font-size:14px}
+.menu div{padding:8px 16px;margin:6px 0;color:#fff4d6;text-shadow:2px 2px 0 #3a2418}
+.plank{background:#8a5a34;border:4px solid #4f301b;box-shadow:inset 0 -4px 0 #6d4527}
+.plank.sel{background:#c98a4a;border-color:#fff1c9}
+.arrow.sel:before{content:"▶ ";color:#ffe27a}
+.arrow{padding-left:32px!important}
+.arrow.sel{padding-left:4px!important}
+.foot{position:absolute;bottom:8px;right:12px;font-size:8px;color:#5a3a24}
+.dim{position:absolute;inset:0;background:#0d0a1099}
+.box{position:absolute;left:170px;top:110px;width:300px;padding:16px;background:#8a5a34;border:4px solid #fff1c9;font-size:12px;text-align:center;line-height:1.8}
+.box .row{display:flex;justify-content:center;gap:16px;margin-top:12px}
+.box .row span{padding:6px 12px;border:4px solid #4f301b;background:#6d4527}
+.box .row span.sel{border-color:#fff1c9;background:#c98a4a}
+.cursor{position:absolute;width:0;height:0;border-left:10px solid #fff;border-bottom:14px solid transparent}
