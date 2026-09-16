@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# The project's launch_desktop: imports this checkout headlessly, then opens the game with godot from
+# PATH, blocking until the window closes and exiting with Godot's exit code. Takes no arguments.
+set -euo pipefail
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+godot="${RUN_GODOT:-godot}"
+
+if [ "$#" -gt 0 ]; then
+  echo "run: usage: scripts/run (takes no arguments)" >&2
+  exit 2
+fi
+
+if ! command -v "$godot" >/dev/null 2>&1; then
+  echo "run: no Godot at $godot; run brew install --cask godot" >&2
+  exit 1
+fi
+
+echo "run: importing" >&2
+if "$godot" --headless --path "$repo" --import; then
+  :
+else
+  n=$?
+  echo "run: import failed (exit $n)" >&2
+  exit 1
+fi
+
+echo "run: launching $repo" >&2
+exec "$godot" --path "$repo"
