@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 3 · How does he get coconuts?', 'The beach never refills, so every coconut counts. Colours and figures are placeholders.');
+let r = option('Option A — Take them from the palm', 'Standing at a palm with coconuts, the prompt says “Take” and one coconut goes from the palm to the bar. The palm shows how many are left. A picked palm has no prompt.');
+let g = screen(r, 'At a palm with 2 coconuts.'); beach(g); palm(g, 160, 90, 2); man(g, 166, 74, 'left'); prompt(g, 160, 40, 'E', 'Take'); hotbar(g, [['wood',3]], 8);
+r = option('Option B — Shake the palm, then pick them up', 'Pressing at a palm shakes it (“Shake”). All its coconuts drop on the sand around it, and each is picked up separately. Two steps, and a nice moment.');
+g = screen(r, 'At a palm.'); beach(g); palm(g, 160, 90, 2); man(g, 166, 74, 'left'); prompt(g, 160, 40, 'E', 'Shake'); hotbar(g, [['wood',3]], 8);
+g = screen(r, 'After shaking: coconuts on the sand.'); beach(g); palm(g, 160, 90, 0); coconut(g, 146, 94); coconut(g, 176, 96); man(g, 166, 74, 'left'); hotbar(g, [['wood',3]], 8);
+r = option('Option C — Only fallen coconuts, lying under palms', 'Coconuts are already on the sand under some palms and are picked up like driftwood. The palms can’t be used. The simplest; the palms are only scenery.');
+g = screen(r, 'Coconuts lying under a palm.'); beach(g); palm(g, 160, 90, 0); coconut(g, 146, 94); coconut(g, 176, 96); man(g, 128, 88, 'right'); hotbar(g, [['wood',3]], 8);
+</script></body></html>

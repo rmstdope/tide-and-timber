@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 2 · With no thirst, what does drinking at the spring do?', 'You chose no needs yet and drinking on the spot, so for now drinking fills nothing. These are the ways to still make the spring matter. Colours and figures are placeholders.');
+function at(g){ beach(g); spring(g, 140, 50); man(g, 148, 70, 'up'); hotbar(g, [['wood',4],['coconut',2]], 8); }
+let r = option('Option A — A small moment, nothing more', 'He kneels and drinks for a moment and a short line rises: “Fresh water.” Nothing is counted. Thirst can make it matter later.');
+let g = screen(r, 'After pressing E at the spring.'); at(g); text(g, 'Fresh water.', 152, 36, C.hi, 6, 'center');
+r = option('Option B — Finding it is remembered', 'The first drink shows “Found fresh water!”, which is remembered as something he has found. Later drinks show the short line from A. Whoever builds the night can check whether he found water.');
+g = screen(r, 'First drink.'); at(g); plank(g, 100, 8, 104, 14); text(g, 'Found fresh water!', 152, 12, C.hi, 6, 'center');
+g = screen(r, 'Any later drink.'); at(g); text(g, 'Fresh water.', 152, 36, C.hi, 6, 'center');
+r = option('Option C — Change it: fill a shell and carry water after all', 'Goes back on the earlier answer: water becomes a thing in the bar, like wood and food, so “gathers water” is literal. Needs a shell to fill (see round 1 water.html, option B).');
+g = screen(r, 'At the spring with a shell.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up');
+plank(g, 132, 36, 36, 13); keycap(g, 'E', 135, 38); text(g, 'Fill', 146, 40, C.paper, 6); hotbar(g, [['wood',4],['coconut',2],['water',1]], 8);
+</script></body></html>

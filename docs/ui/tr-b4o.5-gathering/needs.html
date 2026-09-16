@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 1 · Does he get thirsty and hungry?', 'This decides what water and food are for. Colours and figures are placeholders.');
+function scene(g){ beach(g); spring(g, 40, 50); palm(g, 250, 80); man(g, 150, 86); }
+let r = option('Option A — No needs yet; they are just things he carries', 'Water, coconuts and shellfish go into the bar and are counted. Nothing runs down and nothing is shown for thirst or hunger. Simplest; water and food only matter later (for example by counting towards getting through the night).');
+let g = screen(r, 'The bar only. Water is carried in a coconut shell.'); scene(g); hotbar(g, [['wood',4],['water',1],['coconut',2]], 8);
+r = option('Option B — Two small meters: thirst and hunger', 'Two short bars (drop = water, apple = food) sit above the item bar and slowly empty over a day. Drinking at the spring or eating from the bar fills them. Gives water and food a clear purpose on the first day; adds something else to watch.');
+g = screen(r, 'Meters above the item bar.'); scene(g); hotbar(g, [['wood',4],['water',1],['coconut',2]], 8);
+const x0 = 88; rect(g, x0, 146, 6, 6, C.blue); rect(g, x0+8, 147, 50, 4, '#00000088'); rect(g, x0+8, 147, 32, 4, C.blue);
+rect(g, x0+80, 146, 6, 6, C.red); rect(g, x0+88, 147, 50, 4, '#00000088'); rect(g, x0+88, 147, 18, 4, C.green);
+r = option('Option C — One meter: energy', 'A single short bar that slowly empties; eating and drinking both fill it. One thing to watch instead of two; water and food become interchangeable.');
+g = screen(r, 'One meter above the item bar.'); scene(g); hotbar(g, [['wood',4],['water',1],['coconut',2]], 8);
+rect(g, 128, 146, 6, 6, C.hi); rect(g, 136, 147, 60, 4, '#00000088'); rect(g, 136, 147, 38, 4, C.hi);
+</script></body></html>

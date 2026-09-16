@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 1 · What does the small on-screen bar look like?', 'The same moment in each: he has 6 driftwood, 2 coconuts and 3 shellfish. Colours and figures are placeholders.');
+function scene(g){ beach(g); palm(g, 90, 80, 1); driftwood(g, 220, 110); shellfish(g, 60, 126); man(g, 150, 86); }
+let r = option('Option A — A row of slots along the bottom', 'A wooden bar of 8 slots, centred at the bottom, always shown. Each kind of thing takes one slot with a count. Familiar from farming games; room to grow when tools arrive.');
+let g = screen(r, 'Always on screen.'); scene(g); hotbar(g, [['wood',6],['coconut',2],['shellfish',3]], 8);
+r = option('Option B — Counters in a corner', 'A small plank in the top-left corner with one icon and a number per kind of thing he has; nothing shown for what he has none of. Takes the least room; no slots to choose between.');
+g = screen(r, 'Top-left, grows as new kinds are found.'); scene(g);
+plank(g, 4, 4, 34, 44);
+[['wood',6],['coconut',2],['shellfish',3]].forEach(([k,n],i)=>{ ICON[k](g, 8, 8+i*13); text(g, String(n), 22, 10+i*13, C.paper, 6); });
+r = option('Option C — Bottom slots that tuck away', 'Like A, but the bar slides out of sight after a few seconds of nothing new, and slides back up whenever something is picked up or a key (Tab) is pressed. The cleanest beach; the player cannot glance at what they have.');
+g = screen(r, 'Walking with nothing new: the bar is tucked away.'); scene(g);
+g = screen(r, 'Just picked up a coconut: the bar slides up for a few seconds.'); scene(g); hotbar(g, [['wood',6],['coconut',2],['shellfish',3]], 8, 1);
+</script></body></html>

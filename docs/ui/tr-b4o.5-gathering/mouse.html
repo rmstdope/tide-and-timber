@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 2 · Which keys, and does the mouse work?', 'You chose walk up and press. The prompt must say which key. Colours and figures are placeholders.');
+function cursor(g,x,y){ rect(g,x,y,1,9,C.ink); for(let i=1;i<6;i++){ rect(g,x+i,y+i,1,1,C.ink); rect(g,x+1,y+i,i-1||0,1,'#fff'); } rect(g,x+1,y+6,4,1,C.ink); }
+function at(g){ beach(g); palm(g, 90, 80); driftwood(g, 160, 96); man(g, 142, 86, 'right'); hotbar(g, [['wood',3]], 8); }
+let r = option('Option A — E, or click on it', 'E picks up what he is standing next to. Clicking the thing with the mouse does the same, but only when he is already next to it. Clicking far away does nothing.');
+let g = screen(r, 'Prompt: E, and a click works too.'); at(g); plank(g, 150, 76, 38, 13); keycap(g, 'E', 153, 78); text(g, 'Take', 164, 80, C.paper, 6); cursor(g, 166, 98);
+r = option('Option B — E or Space, keyboard only', 'Both E and Space pick up; the prompt shows E. The mouse is not used on the beach.');
+g = screen(r, 'Prompt: E.'); at(g); plank(g, 150, 76, 38, 13); keycap(g, 'E', 153, 78); text(g, 'Take', 164, 80, C.paper, 6);
+r = option('Option C — Click on it from anywhere: he walks there', 'Clicking a piece of driftwood makes him walk to it and pick it up; E still works when next to it. The most mouse-friendly; he now also moves by mouse, which nothing else does yet.');
+g = screen(r, 'Clicked from a distance: he walks there, a small marker on the target.'); beach(g); palm(g, 90, 80); driftwood(g, 220, 110); man(g, 120, 70, 'right');
+rect(g, 218, 104, 18, 1, C.hi); rect(g, 218, 118, 18, 1, C.hi); cursor(g, 226, 112); hotbar(g, [['wood',3]], 8);
+</script></body></html>
