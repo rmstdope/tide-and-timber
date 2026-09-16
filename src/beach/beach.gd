@@ -1,7 +1,7 @@
 class_name Beach
 extends Node2D
 ## The long beach: ground, props and the spring, the man, the loose camera, and what he carries with its bar.
-## Handles no input itself, so Esc does nothing.
+## Handles no input itself (clicks go to %ClickWalker), so Esc does nothing.
 
 const TILES := preload("res://assets/beach/tiles.png")
 const ROCK := preload("res://src/beach/props/rock.tscn")
@@ -14,6 +14,7 @@ const PUFF := preload("res://src/beach/marks/puff.tscn")
 const RIPPLE := preload("res://src/beach/marks/ripple.tscn")
 
 var inventory := Inventory.new()
+var walk_grid: WalkGrid
 
 func _ready() -> void:
 	%Ground.tile_set = BeachTileSet.build(TILES)
@@ -38,6 +39,21 @@ func _ready() -> void:
 	%ItemBar.bind(inventory)
 	%Interactor.setup(%Player, inventory, %Prompt)
 	inventory.added.connect(_on_added)
+	walk_grid = WalkGrid.new(BeachLayout.MAP_SIZE, func(t: Vector2i) -> bool: return BeachLayout.is_solid(BeachLayout.kind_at(t)))
+	%ClickWalker.setup(%Player, %Interactor, walk_grid, %Decor, _obstacles)
+
+## The base boxes of the solid props in %World.
+func _obstacles() -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	for body in %World.get_children():
+		if not body is StaticBody2D:
+			continue
+		for child in body.get_children():
+			var shape_node := child as CollisionShape2D
+			if shape_node and shape_node.shape is RectangleShape2D:
+				var size: Vector2 = (shape_node.shape as RectangleShape2D).size
+				rects.append(Rect2(shape_node.global_position - size / 2, size))
+	return rects
 
 func _on_added(kind: Item.Kind, amount: int) -> void:
 	RisingLine.show_over(%Player, Item.gain_line(kind, amount))

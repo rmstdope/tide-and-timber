@@ -16,6 +16,7 @@ var running := false                    # Shift held this tick
 var wading := false                     # his feet were on wadeable ground at the start of this tick
 var is_wading_at: Callable = func(_at: Vector2) -> bool: return false   # set by the scene that owns the ground
 var _trail_clock := 0.0                 # s until the next mark may be emitted
+var auto_direction := Vector2.ZERO      # set each tick by a click-walk; used only while no move key is held
 
 func _ready() -> void:
 	%Sprite.sprite_frames = ManFrames.build(SHEET)
@@ -26,6 +27,8 @@ func _physics_process(delta: float) -> void:
 		return
 	var dir := Walk.direction(Input.is_action_pressed(&"move_left"), Input.is_action_pressed(&"move_right"),
 		Input.is_action_pressed(&"move_up"), Input.is_action_pressed(&"move_down"))
+	if dir == Vector2.ZERO:
+		dir = auto_direction
 	running = Input.is_action_pressed(RUN_ACTION)
 	# Sampled before the move: a tick crossing the foam line uses the pace of where it began.
 	wading = is_wading_at.call(global_position)
