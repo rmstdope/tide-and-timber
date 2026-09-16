@@ -133,3 +133,14 @@ func test_click_thing_not_usable_walks_like_sand() -> void:
 	assert_float(player.global_position.distance_to(Vector2(1592, 212))).is_less_equal(2.0)
 	assert_bool(_all_empty()).is_true()
 	assert_str(_line_text()).is_equal("")
+
+func test_goal_gone_before_arrival_shows_nothing() -> void:
+	await _click(Vector2(1416, 220))
+	assert_bool(walker.is_walking()).is_true()
+	var wood := beach.get_node("%Decor").get_children().filter(func(n: Node) -> bool:
+		return n.scene_file_path.ends_with("driftwood.tscn") and (n as Node2D).position == D)[0] as Node
+	wood.queue_free()
+	await assert_signal(walker).wait_until(4000).is_emitted("arrived")
+	await assert_signal(walker).wait_until(200).is_not_emitted("cant_reach")
+	assert_str(_line_text()).is_equal("")
+	assert_int(inventory.count(Item.Kind.DRIFTWOOD)).is_equal(0)

@@ -127,11 +127,13 @@ func _arrive() -> void:
 	var goal := _goal
 	var short := _short
 	cancel()
-	if goal and is_instance_valid(goal) and not goal.is_gone() \
-			and player.global_position.distance_to(goal.global_position) <= Reach.DISTANCE:
+	var still_there := goal != null and is_instance_valid(goal) and not goal.is_gone() \
+			and goal.can_use(interactor.inventory)
+	if still_there and player.global_position.distance_to(goal.global_position) <= Reach.DISTANCE:
 		_face(goal)
 		interactor.try_use(goal)
-	elif short or goal != null:
+	elif short or still_there:
+		# A thing taken or used up on the way shows nothing.
 		RisingLine.show_over(player, CANT_REACH)
 		cant_reach.emit()
 	arrived.emit()
