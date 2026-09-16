@@ -13,6 +13,13 @@ const SPRING := preload("res://src/beach/props/spring.tscn")
 const PUFF := preload("res://src/beach/marks/puff.tscn")
 const RIPPLE := preload("res://src/beach/marks/ripple.tscn")
 
+## The props that are taken for good, by the id a save uses, with their scene and layout cells.
+const TAKEABLE := {
+	"driftwood": {"scene": DRIFTWOOD, "cells": BeachLayout.DRIFTWOOD},
+	"shellfish": {"scene": SHELLFISH, "cells": BeachLayout.SHELLFISH},
+}
+const CELL_META := &"cell"
+
 var inventory := Inventory.new()
 var walk_grid: WalkGrid
 
@@ -68,6 +75,7 @@ func _place(scene: PackedScene, cells: Array[Vector2i], parent: Node) -> Array[N
 	for cell in cells:
 		var prop := scene.instantiate() as Node2D
 		prop.position = BeachLayout.cell_base(cell)
+		prop.set_meta(CELL_META, cell)
 		parent.add_child(prop)
 		placed.append(prop)
 	return placed
@@ -77,3 +85,47 @@ func _on_trail_mark(kind: StringName, at: Vector2) -> void:
 	var mark := (PUFF if kind == &"puff" else RIPPLE).instantiate() as Node2D
 	mark.position = at
 	%Decor.add_child(mark)
+
+## The beach as it is now.
+func capture() -> SaveData:
+	var data := SaveData.new()
+	data.player_position = %Player.global_position
+	data.player_facing = %Player.facing
+	data.inventory_slots = inventory.to_slots()
+	for id: String in TAKEABLE:
+		var cells: Array[Vector2i] = []
+		for cell: Vector2i in TAKEABLE[id]["cells"]:
+			if _live_prop(id, cell) == null:
+				cells.append(cell)
+		data.taken[id] = cells
+	return data
+
+## Puts `data` back: the man's place and facing, the bar, and the taken props removed.
+## Returns false and changes nothing when the inventory is refused, a prop id is not in TAKEABLE,
+## or a cell is not one of that prop's layout cells.
+func restore(data: SaveData) -> bool:
+	for id: String in data.taken:
+		if not TAKEABLE.has(id):
+			return false
+		for cell: Vector2i in data.taken[id]:
+			if not (TAKEABLE[id]["cells"] as Array).has(cell):
+				return false
+	if not inventory.restore(data.inventory_slots):
+		return false
+	for id: String in data.taken:
+		for cell: Vector2i in data.taken[id]:
+			var prop := _live_prop(id, cell)
+			if prop:
+				prop.queue_free()
+	%Player.global_position = data.player_position
+	%Player.facing = data.player_facing
+	%Player.velocity = Vector2.ZERO
+	%Camera.snap_to_target()
+	return true
+
+func _live_prop(id: String, cell: Vector2i) -> Node:
+	var path: String = (TAKEABLE[id]["scene"] as PackedScene).resource_path
+	for prop in %Decor.get_children():
+		if prop.scene_file_path == path and prop.get_meta(CELL_META, null) == cell and not prop.is_queued_for_deletion():
+			return prop
+	return null
