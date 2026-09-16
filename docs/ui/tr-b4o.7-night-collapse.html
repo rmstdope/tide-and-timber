@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Collapsing at night</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>:root{--bg:#f7efe0;--ink:#2b2230;--dim:#7a6b5e;--card:#fffaf0}
+@media (prefers-color-scheme:dark){:root{--bg:#17151c;--ink:#efe6d6;--dim:#a79a8c;--card:#221f29}}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}
+h1{font-size:22px;margin:0 0 4px}.lede{color:var(--dim);max-width:75ch;margin:0 0 20px}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+figure{margin:0;background:var(--card);border-radius:8px;padding:8px}
+svg.px{width:100%;height:auto;display:block;image-rendering:pixelated;border-radius:3px}
+figcaption{font-size:13px;padding:6px 2px 0}figcaption b{display:block}figcaption span{color:var(--dim)}
+text{font-family:'Press Start 2P',monospace}
+h2{font-size:17px;margin:40px 0 4px;padding-top:12px;border-top:2px solid #d9ae62}</style></head><body>
+<h1>Collapsing at night — agreed</h1>
+<p class="lede">From 21:00 to 05:00 he must stay in his camp's firelight. Stepping out brings frost and a line; about 5 seconds outside and he collapses. He falls, the screen goes black with his line, and he wakes at 06:00 beside his lean-to (or where he first woke), having lost half of each kind he carried, shown on a card that fades by itself. Each picture is the game's 320×180 screen; art, colours and positions are indicative.</p>
+<h2>Before night</h2><div class="strip" id="s1"></div>
+<h2>Night: the firelight</h2><div class="strip" id="s2"></div>
+<h2>The collapse</h2><div class="strip" id="s3"></div>
+<h2>Morning</h2><div class="strip" id="s4"></div>
+<script>
+
+const P={sand:'#f0cf8a',sandDk:'#d9ae62',wet:'#c49a5a',shallow:'#6fc3c0',deep:'#2f6f9a',foam:'#eef6f4',jungle:'#3f7a3a',jungleDk:'#2c5a2a',woodDk:'#5c3a22',wood:'#8a5a34',woodLt:'#b98452',skin:'#e0a172',shirt:'#b8462e',pants:'#3d4f6e',hair:'#4a2c1a',text:'#fff6e0',rock:'#8d8a86',fire:'#ff9a2a',fireY:'#ffe06a',red:'#e0503a',ok:'#8fd06a'};
+const r=(x,y,w,h,c,o='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}" ${o}/>`;
+const t=(x,y,s,sz=6,c=P.text,a='start')=>`<text x="${x}" y="${y}" font-size="${sz}" fill="${c}" text-anchor="${a}">${s}</text>`;
+const svg=i=>`<svg class="px" viewBox="0 0 320 180" shape-rendering="crispEdges">${i}</svg>`;
+function beach(){let s=r(0,0,320,180,P.sand)+r(0,0,320,30,P.jungle);
+ for(let x=0;x<320;x+=12)s+=r(x,26,8,8,P.jungleDk);
+ s+=r(0,138,320,6,P.wet)+r(0,144,320,4,P.foam)+r(0,148,320,16,P.shallow)+r(0,164,320,16,P.deep);
+ for(let x=0;x<320;x+=16)for(let y=40;y<136;y+=16)if((x*7+y*3)%5===0)s+=r(x+5,y+6,3,2,P.sandDk);
+ s+=r(20,60,12,9,P.rock)+r(282,96,14,10,P.rock)+r(240,44,18,3,P.wood)+r(60,120,14,3,P.wood);return s}
+function man(x,y,face='down'){return r(x,y,8,7,P.skin)+r(x,y,8,2,P.hair)+r(x-1,y+7,10,8,P.shirt)+r(x,y+15,3,6,P.pants)+r(x+5,y+15,3,6,P.pants)}
+function leanto(x,y,o=''){return `<g ${o}>`+r(x,y+24,40,4,P.woodDk)+`<polygon points="${x},${y+26} ${x+34},${y} ${x+40},${y+2} ${x+8},${y+28}" fill="${P.wood}"/>`+[4,12,20,28].map(i=>r(x+i,y+22-i*0.7,6,2,P.woodLt)).join('')+r(x+34,y,3,28,P.woodDk)+'</g>'}
+function fire(x,y,lit=true,o=''){let s=`<g ${o}>`+r(x,y+8,14,3,P.woodDk)+r(x+2,y+6,10,3,P.wood);
+ if(lit)s+=`<circle cx="${x+7}" cy="${y+6}" r="26" fill="#ffc060" opacity=".18"/>`+`<polygon points="${x+2},${y+7} ${x+7},${y-6} ${x+12},${y+7}" fill="${P.fire}"/><polygon points="${x+5},${y+7} ${x+7},${y} ${x+9},${y+7}" fill="${P.fireY}"/>`;
+ return s+'</g>'}
+function ghost(inner,okay){return `<g opacity=".55">${inner}</g>`+`<g opacity=".25">${r(0,0,0,0,'#000')}</g>`}
+function plank(x,y,w,h){return r(x,y,w,h,P.woodDk)+r(x+1,y+1,w-2,h-2,P.wood)}
+function bar(n){let s=plank(110,160,100,16);for(let i=0;i<5;i++){s+=r(114+i*19,163,16,10,P.woodDk);}
+ s+=r(117,167,10,2,P.woodLt)+r(119,165,6,2,P.wood)+t(130,172,n,5,P.text,'end');return s}
+function hint(x,y,w,s){return r(x,y,w,12,'#000','opacity=".55"')+t(x+w/2,y+8.5,s,5,P.text,'middle')}
+function fig(title,sub,inner){return `<figure>${svg(inner)}<figcaption><b>${title}</b><span>${sub}</span></figcaption></figure>`}
+function clock(s){return plank(6,4,50,16)+t(31,14.5,s,5,P.text,'middle')}
+function black(o){return r(0,0,320,180,'#000',`opacity="${o}"`)}
+function list(x,y,items,sel){let h=16+items.length*13;let s=plank(x,y,98,h)+t(x+49,y+10,'BUILD',6,P.text,'middle');
+ items.forEach((it,i)=>{const yy=y+14+i*13;if(i===sel)s+=r(x+3,yy,92,11,P.woodLt);const c=it[2]?P.text:'#c9b79c';s+=t(x+6,yy+8,it[0],5,c)+t(x+92,yy+8,it[1],5,c,'end')});return s}
+function night(){return r(0,0,320,180,'#101a40','opacity=".55"')}
+function ash(x,y){return r(x,y+8,14,3,'#6a625c')+r(x+3,y+6,8,2,'#8a827a')}
+function line(w){return r(40,150,240,16,'#000','opacity=".45"')+t(160,161,w,6,P.text,'middle')}
+function wlist(x,y,w,title,items,sel){let h=16+items.length*13;let s=plank(x,y,w,h)+t(x+w/2,y+10,title,6,P.text,'middle');
+ items.forEach((it,i)=>{const yy=y+14+i*13;if(i===sel)s+=r(x+3,yy,w-6,11,P.woodLt);const c=it[2]?P.text:'#c9b79c';s+=t(x+6,yy+8,it[0],5,c)+t(x+w-6,yy+8,it[1],5,c,'end')});return s}
+function ptr(x,y){return `<polygon points="${x},${y} ${x},${y+9} ${x+3},${y+7} ${x+6},${y+11} ${x+7},${y+10} ${x+5},${y+6} ${x+8},${y+6}" fill="#fff" stroke="#000" stroke-width=".6"/>`}
+
+const put=(id,a)=>document.getElementById(id).innerHTML=a.join('');
+function slotbar(items){let s=plank(88,160,144,17);for(let i=0;i<8;i++){s+=r(91+i*17.6,163,15,11,P.woodDk);}
+ items.forEach((it,i)=>{const x=91+i*17.6;s+=r(x+3,166,9,4,it[1])+t(x+14,173,it[0],4,P.text,'end')});return s}
+const W='#b98452',SH='#e8d7c0',CO='#7a5230',FW='#6fc3e8',ES='#d8c7a8';
+function dial(day,time){return plank(6,4,44,30)+t(28,12,day,4.5,P.text,'middle')+t(28,30,time,5,P.text,'middle')+`<path d="M16 24 A12 8 0 0 1 40 24" stroke="${P.woodLt}" fill="none"/>`}
+function glow(cx,cy,rr=30){return `<circle cx="${cx}" cy="${cy}" r="${rr}" fill="#ffc060" opacity=".25"/>`}
+function camp(){return leanto(146,98)+fire(196,112)}
+function fallen(x,y){return r(x-4,y+14,8,7,P.skin)+r(x-4,y+14,2,7,P.hair)+r(x+4,y+13,12,8,P.shirt)+r(x+16,y+15,10,3,P.pants)+r(x+16,y+19,10,2,P.pants)}
+function kneel(x,y){return r(x,y+6,8,7,P.skin)+r(x,y+6,8,2,P.hair)+r(x-1,y+13,10,8,P.shirt)+r(x-1,y+21,10,3,P.pants)}
+function frost(o){return `<defs><radialGradient id="fr${o}"><stop offset="55%" stop-color="#cfe6ff" stop-opacity="0"/><stop offset="100%" stop-color="#cfe6ff" stop-opacity="${o}"/></radialGradient></defs><rect width="320" height="180" fill="url(#fr${o})"/>`}
+function card(lines,w=200){const h=20+lines.length*12;const x=160-w/2,y=90-h/2;let s=plank(x,y,w,h);lines.forEach((l,i)=>s+=t(160,y+14+i*12,l[0],l[1]||5,l[2]||P.text,'middle'));return s}
+function rise(x,y,s){return t(x,y,s,5,'#fff6e0','middle')}
+const inv=slotbar([['9',W],['3',SH],['2',CO],['1',FW]]);
+const inv2=slotbar([['5',W],['2',SH],['1',CO],['1',FW]]);
+put('s1',[
+fig('20:30, away from camp','One line, only if he is not in camp. Not said if he is.',beach()+man(60,70)+night()+dial('DAY 1','20:30')+inv+line('Getting cold. I need that fire.')),
+fig('21:00, in camp','Safe while inside the firelight. Nothing is shown.',beach()+camp()+man(176,92)+night()+glow(203,118,44)+dial('DAY 1','21:00')+inv)]);
+put('s2',[
+fig('Stepped out of the light','Frost grows in from the edges; his line. About 5 seconds.',beach()+camp()+man(250,96)+night()+glow(203,118,44)+frost(.7)+dial('DAY 2','02:10')+inv+line("I can't stay out here.")),
+fig('Back inside in time','Frost melts away; nothing lost. Stepping out again starts the 5 seconds afresh.',beach()+camp()+man(226,96)+night()+glow(203,118,44)+frost(.2)+dial('DAY 2','02:10')+inv),
+fig('No camp at 21:00','Away from any lit fire at 21:00: the frost starts then, same 5 seconds.',beach()+man(60,70)+night()+frost(.5)+dial('DAY 1','21:00')+inv+line("I can't stay out here."))]);
+put('s3',[
+fig('1. He falls','About 2 seconds: sways, kneels, falls. Input ignored.',beach()+kneel(100,70)+night()+frost(.9)+dial('DAY 1','21:00')+inv),
+fig('2. His line on black','About 3 seconds.',black(1)+t(160,92,'So cold... just... rest a moment...',6,P.text,'middle'))]);
+const cd=card([['DAY 2',6],['The night took:',5,'#e8d7c0'],['4 Driftwood'],['1 Shellfish'],['1 Coconut']],150);
+put('s4',[
+fig('06:00 beside the lean-to','The card shows about 4 seconds while he gets up, then fades by itself. Play is not held.',beach()+leanto(146,98)+ash(196,112)+man(172,84)+dial('DAY 2','06:00')+inv2+cd),
+fig('06:00, no lean-to','He wakes where he first woke on the beach.',beach()+man(150,84)+dial('DAY 2','06:00')+inv2+cd),
+fig('Nothing to lose','Carrying nothing, or only ones: the card still shows.',beach()+man(150,84)+dial('DAY 2','06:00')+slotbar([['1',CO]])+card([['DAY 2',6],['I made it through.',5]],150))]);
+</script></body></html>
