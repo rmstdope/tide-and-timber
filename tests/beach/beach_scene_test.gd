@@ -20,8 +20,11 @@ func _place(cell: Vector2i) -> void:
 func _animation() -> StringName:
 	return (player.get_node("%Sprite") as AnimatedSprite2D).animation
 
+func _from(parent: Node, suffix: String) -> Array[Node]:
+	return parent.get_children().filter(func(n: Node) -> bool: return n.scene_file_path.ends_with(suffix))
+
 func _count(parent: Node, suffix: String) -> int:
-	return parent.get_children().filter(func(n: Node) -> bool: return n.scene_file_path.ends_with(suffix)).size()
+	return _from(parent, suffix).size()
 
 func test_wakes_in_the_middle_facing_down_still() -> void:
 	assert_vector(player.global_position).is_equal(Vector2(1480, 184))
@@ -191,7 +194,7 @@ func _sprite() -> AnimatedSprite2D:
 	return player.get_node("%Sprite") as AnimatedSprite2D
 
 func _marks(suffix: String) -> Array[Node]:
-	return beach.get_node("%Decor").get_children().filter(func(n: Node) -> bool: return n.scene_file_path.ends_with(suffix))
+	return _from(beach.get_node("%Decor"), suffix)
 
 func test_shift_runs_at_double_pace_with_puffs() -> void:
 	_place(Vector2i(92, 12))
@@ -215,11 +218,14 @@ func test_letting_go_of_shift_walks() -> void:
 	runner.simulate_action_press("move_right")
 	await await_millis(300)
 	var x0 := player.global_position.x
+	var before := _marks("puff.tscn")
+	assert_array(before).is_not_empty()
 	runner.simulate_action_release("run")
 	await await_millis(300)
 	assert_vector(player.velocity).is_equal_approx(Vector2(48, 0), Vector2(0.01, 0.01))
 	assert_float(_sprite().speed_scale).is_equal(1.0)
 	for puff: Node2D in _marks("puff.tscn"):
+		assert_bool(before.has(puff)).override_failure_message("a puff appeared after letting go").is_true()
 		assert_float(puff.position.x).is_less(x0)
 	runner.simulate_action_release("move_right")
 
