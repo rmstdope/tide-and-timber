@@ -8,8 +8,15 @@ func test_one_key_is_a_unit_axis() -> void:
 	assert_vector(Walk.direction(Vector2(0, -1))).is_equal(Vector2(0, -1))
 
 func test_opposite_keys_cancel() -> void:
-	assert_vector(Walk.direction(Vector2(0, 0))).is_equal(Vector2.ZERO)
-	assert_vector(Walk.direction(Vector2(0, 1))).is_equal(Vector2(0, 1))
+	var held: Array[StringName] = [&"move_left", &"move_right"]
+	for a in held:
+		Input.action_press(a)
+	assert_vector(Walk.direction(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))).is_equal(Vector2.ZERO)
+	Input.action_press(&"move_down")
+	held.append(&"move_down")
+	assert_vector(Walk.direction(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))).is_equal(Vector2(0, 1))
+	for a in held:
+		Input.action_release(a)
 
 func test_diagonal_is_no_faster() -> void:
 	var dir := Walk.direction(Vector2(1, -1).normalized())

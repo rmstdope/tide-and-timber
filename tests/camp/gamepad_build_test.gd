@@ -128,3 +128,20 @@ func test_disconnect_with_list_open_changes_nothing() -> void:
 	await runner.await_input_processed()
 	assert_int(builder.mode).is_equal(M.LIST)
 	assert_bool((_n("BuildList") as Control).visible).is_true()
+
+func test_disconnect_while_placing_stops_the_outline() -> void:
+	await _to_placing()
+	assert_int(builder.mode).is_equal(M.PLACING)
+	await _stick(JOY_AXIS_LEFT_X, 1.0)
+	await await_millis(100)
+	Input.joy_connection_changed.emit(0, false)
+	await runner.await_input_processed()
+	assert_bool(Input.is_action_pressed(&"move_right")).is_false()
+	await await_millis(50)
+	var at := player.global_position
+	var ghost_x := (_n("Ghost") as Node2D).position.x
+	await await_millis(600)
+	assert_vector(player.global_position).is_equal(at)
+	assert_float((_n("Ghost") as Node2D).position.x).is_equal(ghost_x)
+	assert_int(builder.mode).is_equal(M.PLACING)
+	await _stick(JOY_AXIS_LEFT_X, 0.0)

@@ -94,3 +94,14 @@ func test_disconnect_while_paused_stays_paused() -> void:
 func test_connect_does_not_pause() -> void:
 	await _disconnect(true)
 	assert_int(intro.story.phase).is_equal(P.PLAYING)
+
+func test_a_released_while_space_held_keeps_the_hold() -> void:
+	runner.simulate_key_press(KEY_SPACE)
+	await runner.await_input_processed()
+	intro.tick(0.3)
+	await _pad(JOY_BUTTON_A, true)
+	await _pad(JOY_BUTTON_A, false)
+	intro.tick(0.3)
+	assert_float(_node("SkipRing").progress).is_greater(0.4)
+	runner.simulate_key_release(KEY_SPACE)
+	await runner.await_input_processed()
