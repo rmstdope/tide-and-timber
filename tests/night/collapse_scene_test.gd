@@ -139,3 +139,30 @@ func test_interactor_frozen_while_down_and_back_after() -> void:
 	assert_int(beach.get_node("%Interactor").process_mode).is_equal(Node.PROCESS_MODE_DISABLED)
 	night.tick(100.0)
 	assert_int(beach.get_node("%Interactor").process_mode).is_equal(Node.PROCESS_MODE_INHERIT)
+
+func _walker() -> ClickWalker:
+	return beach.get_node("%ClickWalker") as ClickWalker
+
+func test_collapse_cancels_a_click_walk() -> void:
+	_out_of_light()
+	(beach.get_node("%Camera") as LooseCamera).snap_to_target()
+	_walker().click_at(player.global_position + Vector2(-80, 0))
+	assert_bool(_walker().is_walking()).is_true()
+	_at(1300.0)
+	night.tick(0.0)
+	night.tick(4.5)
+	night.tick(0.5)
+	assert_bool(_walker().is_walking()).is_false()
+	assert_vector(player.auto_direction).is_equal(Vector2.ZERO)
+
+func test_click_during_collapse_is_swallowed() -> void:
+	_collapse_now()
+	(beach.get_node("%Camera") as LooseCamera).snap_to_target()
+	var world := player.global_position + Vector2(-40, 0)
+	var screen := player.get_viewport().get_final_transform() * player.get_canvas_transform() * world
+	runner.simulate_mouse_move(screen)
+	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	await runner.await_input_processed()
+	assert_bool(_walker().is_walking()).is_false()
+	night.tick(100.0)
+	assert_bool(_walker().is_walking()).is_false()

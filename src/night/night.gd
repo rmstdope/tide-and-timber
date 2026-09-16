@@ -83,6 +83,7 @@ func _start_collapse() -> void:
 	_interactor_mode = interactor.process_mode
 	interactor.process_mode = PROCESS_MODE_DISABLED
 	beach.get_node("%Prompt").hide()
+	(beach.get_node("%ClickWalker") as ClickWalker).cancel()
 	_pending = ""
 	line = SunsetLine.new()
 	collapse = Collapse.new()
