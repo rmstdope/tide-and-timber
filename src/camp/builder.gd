@@ -97,8 +97,8 @@ func try_place() -> bool:
 	%Prompt.hide()
 	fade = BuildFade.new()
 	fade.went_black.connect(_on_went_black.bind(cells, placing))
-	fade.black_ended.connect(_on_black_ended)
-	fade.finished.connect(_on_finished)
+	fade.black_ended.connect(_on_black_ended.bind(placing))
+	fade.finished.connect(_on_finished.bind(placing))
 	_crossed_sunset = false
 	_refresh_cover()
 	return true
@@ -211,22 +211,22 @@ func _on_went_black(cells: Array[Vector2i], thing: BuildMenu.Thing) -> void:
 		%World.add_child(fire)
 	%BuildSound.set_audible(true)
 
-func _on_black_ended() -> void:
+func _on_black_ended(thing: BuildMenu.Thing) -> void:
 	%BuildSound.set_audible(false)
 	if day_night:
 		_crossed_sunset = day_night.add_minutes(30.0)
-	if placing == BuildMenu.Thing.FIRE and day_night:
+	if thing == BuildMenu.Thing.FIRE and day_night:
 		fire.out_at = FireLife.out_at(day_night.clock.total_minutes)
 	_check_burn_out()
 
-func _on_finished() -> void:
+func _on_finished(thing: BuildMenu.Thing) -> void:
 	fade = null
 	mode = Mode.CLOSED
 	_freeze_only([])
 	_refresh_cover()
 	if _crossed_sunset and day_night:
 		day_night.sunset.start()
-	if placing == BuildMenu.Thing.FIRE:
+	if thing == BuildMenu.Thing.FIRE:
 		_shelter_line_pending = true
 		_update_shelter_line(0.0)
 
@@ -236,7 +236,12 @@ func _check_burn_out() -> void:
 
 func _update_shelter_line(delta: float) -> void:
 	shelter_line.advance(delta)
-	if _shelter_line_pending and not (day_night and day_night.sunset.is_showing()):
+	var sunset_showing: bool = day_night != null and day_night.sunset.is_showing()
+	if sunset_showing and shelter_line.is_showing():
+		# The sunset line started over his: he steps aside and says it once it has gone.
+		shelter_line = SunsetLine.new()
+		_shelter_line_pending = true
+	if _shelter_line_pending and not sunset_showing:
 		_shelter_line_pending = false
 		shelter_line.start()
 	%ShelterLine.visible = shelter_line.is_showing()

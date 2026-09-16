@@ -108,6 +108,19 @@ func test_line_waits_for_sunset_line() -> void:
 	assert_bool(dn.sunset.is_showing()).is_false()
 	assert_bool(_line().visible).is_true()
 
+func test_line_steps_aside_for_sunset_line_starting_over_it() -> void:
+	var dn := _clock()
+	await _build_fire(dn, 1075.0)
+	assert_bool(_line().visible).is_true()
+	dn.sunset.start()
+	builder.tick(0.0)
+	assert_bool(_line().visible).is_false()
+	dn.tick(5.0)
+	builder.tick(0.0)
+	assert_bool(dn.sunset.is_showing()).is_false()
+	assert_bool(_line().visible).is_true()
+	assert_float(_line().modulate.a).is_less(0.2)
+
 func test_line_said_again_on_relight() -> void:
 	var dn := _clock()
 	await _build_fire(dn, 900.0)
