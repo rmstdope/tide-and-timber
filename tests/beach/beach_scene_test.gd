@@ -61,3 +61,124 @@ func test_tall_things_sort_with_him() -> void:
 func test_no_words() -> void:
 	assert_array(beach.find_children("*", "Label", true, false)).is_empty()
 	assert_array(beach.find_children("*", "RichTextLabel", true, false)).is_empty()
+
+func test_walks_right_at_walking_pace() -> void:
+	runner.simulate_action_press("move_right")
+	await await_millis(300)
+	assert_vector(player.velocity).is_equal_approx(Vector2(48, 0), Vector2(0.01, 0.01))
+	assert_float(player.global_position.x).is_greater(1480.0)
+	assert_int(player.facing).is_equal(Walk.Facing.RIGHT)
+	assert_that(_animation()).is_equal(&"walk_right")
+	runner.simulate_action_release("move_right")
+
+func test_keys_and_arrows_both_walk() -> void:
+	runner.simulate_key_press(KEY_A)
+	await await_millis(200)
+	assert_float(player.velocity.x).is_less(0.0)
+	runner.simulate_key_release(KEY_A)
+	runner.simulate_key_press(KEY_UP)
+	await await_millis(200)
+	assert_float(player.velocity.y).is_less(0.0)
+	assert_float(player.velocity.x).is_equal(0.0)
+	runner.simulate_key_release(KEY_UP)
+
+func test_diagonal_no_faster_and_faces_sideways() -> void:
+	runner.simulate_action_press("move_up")
+	runner.simulate_action_press("move_left")
+	await await_millis(300)
+	assert_float(player.velocity.length()).is_equal_approx(48.0, 0.01)
+	assert_int(player.facing).is_equal(Walk.Facing.LEFT)
+	runner.simulate_action_release("move_up")
+	runner.simulate_action_release("move_left")
+
+func test_opposite_keys_cancel() -> void:
+	runner.simulate_action_press("move_left")
+	runner.simulate_action_press("move_right")
+	await await_millis(300)
+	assert_vector(player.global_position).is_equal(Vector2(1480, 184))
+	assert_that(_animation()).is_equal(&"still_down")
+	runner.simulate_action_release("move_left")
+	runner.simulate_action_release("move_right")
+
+func test_stops_facing_last_way() -> void:
+	runner.simulate_action_press("move_up")
+	await await_millis(200)
+	runner.simulate_action_release("move_up")
+	await await_millis(200)
+	assert_that(_animation()).is_equal(&"still_up")
+
+func test_jungle_edge_stops_straight_walk() -> void:
+	_place(Vector2i(92, 9))
+	runner.simulate_action_press("move_up")
+	await await_millis(600)
+	assert_float(player.global_position.y).is_equal_approx(150.0, 0.5)
+	assert_float(player.global_position.x).is_equal(1480.0)
+	assert_that(_animation()).is_equal(&"still_up")
+	runner.simulate_action_release("move_up")
+
+func test_diagonal_into_jungle_slides() -> void:
+	_place(Vector2i(92, 9))
+	runner.simulate_action_press("move_up")
+	runner.simulate_action_press("move_right")
+	await await_millis(600)
+	assert_float(player.global_position.y).is_equal_approx(150.0, 0.5)
+	assert_float(player.global_position.x).is_greater_equal(1488.0)
+	assert_that(_animation()).is_equal(&"walk_right")
+	runner.simulate_action_release("move_up")
+	runner.simulate_action_release("move_right")
+
+func test_deep_water_blocks() -> void:
+	_place(Vector2i(92, 17))
+	runner.simulate_action_press("move_down")
+	await await_millis(600)
+	assert_float(player.global_position.y).is_less_equal(288.5)
+	runner.simulate_action_release("move_down")
+
+func test_headland_blocks() -> void:
+	_place(Vector2i(17, 12))
+	runner.simulate_action_press("move_left")
+	await await_millis(800)
+	assert_float(player.global_position.x).is_equal_approx(261.0, 0.5)
+	runner.simulate_action_release("move_left")
+
+func test_palm_trunk_blocks() -> void:
+	_place(Vector2i(47, 11))
+	runner.simulate_action_press("move_up")
+	await await_millis(800)
+	assert_float(player.global_position.y).is_equal_approx(166.0, 0.5)
+	runner.simulate_action_release("move_up")
+	await await_millis(50)
+	player.global_position = Vector2(760, 152)
+	camera.snap_to_target()
+	await await_millis(100)
+	assert_vector(player.global_position).is_equal(Vector2(760, 152))
+
+func test_camera_follows_loosely_on_whole_pixels() -> void:
+	runner.simulate_action_press("move_right")
+	await await_millis(1500)
+	assert_float(player.global_position.x - camera.global_position.x).is_between(24.0, 48.0)
+	assert_vector(camera.global_position).is_equal(camera.global_position.round())
+	runner.simulate_action_release("move_right")
+	await await_millis(1500)
+	var settled := camera.global_position
+	await await_millis(300)
+	assert_vector(camera.global_position).is_equal(settled)
+	assert_float(player.global_position.x - camera.global_position.x).is_between(23.0, 25.0)
+
+func test_focus_loss_stops_him() -> void:
+	runner.simulate_key_press(KEY_D)
+	await runner.await_input_processed()
+	await await_millis(200)
+	player.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	await await_millis(200)
+	assert_bool(Input.is_action_pressed(&"move_right")).is_false()
+	assert_vector(player.velocity).is_equal(Vector2.ZERO)
+	assert_that(_animation()).is_equal(&"still_right")
+
+func test_escape_does_nothing() -> void:
+	runner.simulate_key_pressed(KEY_ESCAPE)
+	await runner.await_input_processed()
+	await await_millis(100)
+	assert_bool(is_instance_valid(beach) and beach.is_inside_tree()).is_true()
+	assert_bool(beach.get_tree().paused).is_false()
+	assert_vector(player.global_position).is_equal(Vector2(1480, 184))

@@ -15,3 +15,9 @@ func _ready() -> void:
 func snap_to_target() -> void:
 	centre = target.global_position
 	global_position = centre.round()
+
+func _physics_process(delta: float) -> void:
+	if target == null:
+		return
+	centre = LooseFollow.step(centre, target.global_position, delta)
+	global_position = centre.round()
