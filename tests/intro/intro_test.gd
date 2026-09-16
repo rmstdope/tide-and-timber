@@ -155,3 +155,14 @@ func test_right_click_on_a_pause_item_does_nothing() -> void:
 	await _tap(KEY_ESCAPE)
 	_click_item("SkipStory", MOUSE_BUTTON_RIGHT)
 	assert_int(intro.story.phase).is_equal(IntroStory.Phase.PAUSED)
+
+func test_surf_follows_the_black_beat() -> void:
+	var surf := _node("Surf") as SurfSound
+	assert_bool(surf.audible).is_false()
+	for i in 3:
+		await _tap()
+	assert_bool(surf.audible).is_true()
+	assert_bool(surf.stream_paused).is_false()
+	await _tap(KEY_ESCAPE)
+	assert_bool(surf.audible).is_false()
+	assert_bool(surf.stream_paused).is_true()

@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/intro/intro.gd" id="1_intro"]
 [ext_resource type="Script" path="res://src/intro/story_picture.gd" id="2_picture"]
 [ext_resource type="Script" path="res://src/intro/skip_ring.gd" id="3_ring"]
+[ext_resource type="Script" path="res://src/intro/surf_sound.gd" id="4_surf"]
 
 [node name="Intro" type="Control"]
 layout_mode = 3
@@ -206,3 +207,7 @@ theme_override_colors/font_color = Color(1, 0.835294, 0.541176, 1)
 theme_override_font_sizes/font_size = 8
 text = "▶"
 vertical_alignment = 1
+
+[node name="Surf" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+script = ExtResource("4_surf")
