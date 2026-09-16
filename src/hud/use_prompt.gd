@@ -17,6 +17,7 @@ func _ready() -> void:
 func show_for(usable: Usable) -> void:
 	verb_label.text = usable.verb
 	global_position = (usable.global_position + usable.prompt_offset).round()
+	verb_label.position = Vector2(-width() / 2 + 14, -HEIGHT + 3)
 	show()
 	queue_redraw()
 
@@ -27,7 +28,6 @@ func _draw() -> void:
 	var w := width()
 	var x0 := -w / 2
 	var y0 := -HEIGHT
-	verb_label.position = Vector2(x0 + 14, y0 + 3)
 	draw_rect(Rect2(x0, y0, w, 13), Color("#7a5030"))
 	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 11), Color("#b07a45"))
 	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 1), Color("#d9a56b"))

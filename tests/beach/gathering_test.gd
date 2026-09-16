@@ -77,6 +77,12 @@ func test_holding_e_takes_one() -> void:
 	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
 	runner.simulate_key_press(KEY_E)
 	await await_millis(600)
+	var echo := InputEventKey.new()
+	echo.physical_keycode = KEY_E
+	echo.pressed = true
+	echo.echo = true
+	Input.parse_input_event(echo)
+	await await_millis(100)
 	runner.simulate_key_release(KEY_E)
 	await runner.await_input_processed()
 	assert_int(inventory.count(K.DRIFTWOOD)).is_equal(1)
