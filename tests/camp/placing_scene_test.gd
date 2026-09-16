@@ -12,6 +12,7 @@ var builder: Builder
 var inventory: Inventory
 
 func before_test() -> void:
+	InputDevice.reset()
 	runner = scene_runner(SCENE)
 	beach = runner.scene() as Beach
 	player = beach.get_node("%Player") as Player
@@ -68,7 +69,7 @@ func test_e_chooses_and_places_outline_in_front() -> void:
 	assert_int(builder.mode).is_equal(M.PLACING)
 	assert_bool(_list().visible).is_false()
 	assert_bool(_n("BuildBlocker").visible).is_false()
-	assert_str((_n("KeyHint") as KeyHint).label.text).is_equal("E or click: Place   Esc: Back")
+	assert_str((_n("KeyHint") as KeyHint).text()).is_equal("[E] Place   [Esc] Back")
 	await await_millis(50)
 	var ghost := _n("Ghost") as BuildGhost
 	assert_bool(ghost.visible).is_true()

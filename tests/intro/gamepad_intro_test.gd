@@ -15,6 +15,9 @@ func before_test() -> void:
 	var recorded := calls
 	intro.end_story = func() -> void: recorded.append("end")
 
+func after_test() -> void:
+	InputDevice.reset()
+
 func _node(unique: String) -> Node:
 	return intro.get_node("%" + unique)
 

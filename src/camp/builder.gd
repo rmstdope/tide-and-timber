@@ -46,7 +46,7 @@ func open_list() -> void:
 	%BuildList.show_menu(menu)
 	%BuildList.show()
 	%BuildBlocker.show()
-	%KeyHint.show_text(KeyHint.LIST_TEXT)
+	%KeyHint.show_hint(DeviceHints.Hint.BUILD_LIST)
 
 func close_list() -> void:
 	mode = Mode.CLOSED
@@ -64,7 +64,7 @@ func choose(thing: int) -> void:
 	%Prompt.hide()
 	%BuildList.hide()
 	%BuildBlocker.hide()
-	%KeyHint.show_text(KeyHint.PLACING_TEXT)
+	%KeyHint.show_hint(DeviceHints.Hint.PLACING)
 	_update_ghost()
 
 ## Leaves placing as if it never began: nothing spent, outline and hint gone, the world unfrozen.

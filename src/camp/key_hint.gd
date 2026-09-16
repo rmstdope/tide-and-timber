@@ -1,36 +1,39 @@
 class_name KeyHint
 extends Control
-## The key hint band along the bottom while building.
+## The key hint band along the bottom while building, showing the device's pictures.
 
 const TOP := 136.0
 const HEIGHT := 12.0
 const BAND := Color(0, 0, 0, 0.55)
 const TEXT := Color("#fff6e0")
-const LIST_TEXT := "E or click: Build   Esc: Close"
-const PLACING_TEXT := "E or click: Place   Esc: Back"
 
-var label: Label
+var view: HintView
 
 func _ready() -> void:
 	hide()
 	mouse_filter = MOUSE_FILTER_IGNORE
-	label = Label.new()
-	label.mouse_filter = MOUSE_FILTER_IGNORE
-	label.add_theme_font_size_override(&"font_size", 8)
-	label.add_theme_color_override(&"font_color", TEXT)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(label)
+	view = HintView.new()
+	view.word_colour = TEXT
+	add_child(view)
+	InputDevice.changed.connect(_layout)
 
-func show_text(text: String) -> void:
-	label.text = text
-	var w := text.length() * 8 + 8
+## Shows the band for BUILD_LIST or PLACING, centred on the 320 px picture.
+func show_hint(h: DeviceHints.Hint) -> void:
+	view.hint = h
+	_layout()
+	show()
+
+func text() -> String:
+	return view.text()
+
+func _layout() -> void:
+	var w := view.line_width() + 8
 	size = Vector2(w, HEIGHT)
 	position = Vector2(roundi((320 - w) / 2.0), TOP)
-	label.position = Vector2.ZERO
-	label.size = size
-	show()
+	view.position = Vector2.ZERO
+	view.size = size
 	queue_redraw()
+	view.queue_redraw()
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), BAND)

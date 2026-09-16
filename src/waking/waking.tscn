@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://src/night/night.gd" id="5_night"]
 [ext_resource type="Script" path="res://src/night/frost.gd" id="6_frost"]
 [ext_resource type="Script" path="res://src/night/morning_card_view.gd" id="7_card"]
+[ext_resource type="Script" path="res://src/hud/hint_view.gd" id="8_hint"]
 
 [node name="Waking" type="Node2D"]
 script = ExtResource("1_waking")
@@ -118,16 +119,14 @@ offset_bottom = 14.0
 mouse_filter = 2
 color = Color(0.047, 0.051, 0.078, 0.75)
 
-[node name="Label" type="Label" parent="Overlay/MoveHint"]
+[node name="Line" type="Control" parent="Overlay/MoveHint"]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 14.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
-theme_override_font_sizes/font_size = 8
-text = "WASD or arrows · Move"
-horizontal_alignment = 1
-vertical_alignment = 1
+script = ExtResource("8_hint")
+hint = 0
+word_colour = Color(1, 0.964706, 0.878431, 1)
 
 [node name="Cover" type="ColorRect" parent="Overlay"]
 unique_name_in_owner = true
