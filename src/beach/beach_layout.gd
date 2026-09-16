@@ -33,6 +33,12 @@ static func kind_at(cell: Vector2i) -> Kind:
 static func is_solid(kind: Kind) -> bool:
 	return kind == Kind.JUNGLE or kind == Kind.DEEP or kind == Kind.CLIFF
 
+static func is_wadeable(kind: Kind) -> bool:
+	return kind == Kind.SHALLOWS
+
+static func cell_at(at: Vector2) -> Vector2i:
+	return Vector2i((at / TILE).floor())
+
 static func cell_centre(cell: Vector2i) -> Vector2:
 	return Vector2(cell * TILE) + Vector2(8, 8)
 
