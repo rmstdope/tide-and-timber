@@ -6,6 +6,7 @@ var waking: Waking
 var player: Player
 
 func before_test() -> void:
+	InputDevice.reset()
 	runner = scene_runner("res://src/waking/waking.tscn")
 	waking = runner.scene() as Waking
 	waking.set_process(false)
@@ -48,7 +49,7 @@ func test_gets_himself_up_then_control_and_clock() -> void:
 	assert_bool(player.control_enabled).is_true()
 	assert_that(_animation()).is_equal(&"still_down")
 	assert_bool(_node("MoveHint").visible).is_true()
-	assert_str((_node("MoveHint").get_node("Label") as Label).text).is_equal("WASD or arrows · Move")
+	assert_str((_node("MoveHint").get_node("Line") as HintView).text()).is_equal("[W][A][S][D] Move")
 	assert_bool(_node("DayNight").running).is_true()
 	assert_bool(_node("DayNight").get_node("%Hud").visible).is_true()
 

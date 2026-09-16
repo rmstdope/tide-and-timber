@@ -12,6 +12,7 @@ var builder: Builder
 var inventory: Inventory
 
 func before_test() -> void:
+	InputDevice.reset()
 	runner = scene_runner(SCENE)
 	beach = runner.scene() as Beach
 	player = beach.get_node("%Player") as Player
@@ -60,7 +61,7 @@ func test_b_opens_list_enough_driftwood() -> void:
 	assert_bool(_list().visible).is_true()
 	assert_bool(_n("BuildBlocker").visible).is_true()
 	assert_bool(_n("KeyHint").visible).is_true()
-	assert_str((_n("KeyHint") as KeyHint).label.text).is_equal("E or click: Build   Esc: Close")
+	assert_str((_n("KeyHint") as KeyHint).text()).is_equal("[E] Build   [Esc] Close")
 	assert_str(_list().title_label.text).is_equal("Build")
 	assert_str(_list().name_labels[0].text).is_equal("Lean-to")
 	assert_str(_list().cost_labels[0].text).is_equal("9/8 driftwood")

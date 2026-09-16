@@ -12,6 +12,10 @@ config/custom_user_dir_name="Tide and Timber"
 boot_splash/show_image=false
 boot_splash/bg_color=Color(0, 0, 0, 1)
 
+[autoload]
+
+InputDevice="*res://src/input/input_device.gd"
+
 [display]
 
 window/size/viewport_width=320

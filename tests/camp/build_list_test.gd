@@ -9,7 +9,3 @@ func test_top_left_above_and_right_of_him_on_screen() -> void:
 func test_text_fits() -> void:
 	assert_float(BuildList.SIZE.x).is_greater_equal(6 + 7 * 8 + 8 + 15 * 8 + 6)
 	assert_int("99/8 driftwood".length()).is_less("Needs a lean-to".length())
-
-func test_key_hint_texts() -> void:
-	assert_str(KeyHint.LIST_TEXT).is_equal("E or click: Build   Esc: Close")
-	assert_str(KeyHint.PLACING_TEXT).is_equal("E or click: Place   Esc: Back")

@@ -1,9 +1,9 @@
 class_name Glyphs
 extends RefCounted
-## A tiny 3x5 pixel alphabet for slot counts and the key cap, crisp at any font.
+## A tiny 3x5 pixel alphabet for slot counts and hint pictures, crisp at any font.
 
-const SHEET := preload("res://assets/hud/glyphs.png")   # 44x5, white on transparent
-const ORDER := "0123456789E"                             # glyph i sits at x = 4 * i
+const SHEET := preload("res://assets/hud/glyphs.png")   # 96x5, white on transparent
+const ORDER := "0123456789EABDLSWXYsc✕○△"                # glyph i sits at x = 4 * i
 const W := 3
 const H := 5
 const GAP := 1

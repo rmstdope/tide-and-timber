@@ -21,6 +21,7 @@ func before_test() -> void:
 	inventory = beach.inventory
 
 func after_test() -> void:
+	InputDevice.reset()
 	for b: JoyButton in [JOY_BUTTON_A, JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_DPAD_RIGHT]:
 		_send_pad(b, false)
 	_send_stick(JOY_AXIS_LEFT_X, 0.0)

@@ -19,6 +19,7 @@ func before_test() -> void:
 	inventory = beach.inventory
 
 func after_test() -> void:
+	InputDevice.reset()
 	_send_stick(JOY_AXIS_LEFT_X, 0.0)
 
 func _n(unique: String) -> Node:
