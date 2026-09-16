@@ -8,12 +8,15 @@ const MOVED_EPSILON := 0.05             # px moved in one physics tick that coun
 
 var facing: Walk.Facing = Walk.Facing.DOWN
 var moving := false
+var control_enabled := true             # false while the waking plays; beach.tscn alone keeps true
 
 func _ready() -> void:
 	%Sprite.sprite_frames = ManFrames.build(SHEET)
 	_show()
 
 func _physics_process(_delta: float) -> void:
+	if not control_enabled:
+		return
 	var dir := Walk.direction(Input.is_action_pressed(&"move_left"), Input.is_action_pressed(&"move_right"),
 		Input.is_action_pressed(&"move_up"), Input.is_action_pressed(&"move_down"))
 	velocity = Walk.velocity(dir)
@@ -30,6 +33,21 @@ func _notification(what: int) -> void:
 		for action in MOVE_ACTIONS:
 			Input.action_release(action)
 		velocity = Vector2.ZERO
+
+## Shows one of his poses; only holds while control is off, since walking shows its own.
+func play_pose(anim: StringName) -> void:
+	if %Sprite.animation != anim:
+		%Sprite.play(anim)
+
+## Hands him to the player standing still facing down; a key held until now does not walk him.
+func give_control() -> void:
+	for action in MOVE_ACTIONS:
+		Input.action_release(action)
+	velocity = Vector2.ZERO
+	moving = false
+	facing = Walk.Facing.DOWN
+	control_enabled = true
+	_show()
 
 func _show() -> void:
 	var anim := Walk.animation_for(facing, moving)

@@ -1,0 +1,57 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/waking/waking.gd" id="1_waking"]
+[ext_resource type="PackedScene" path="res://src/beach/beach.tscn" id="2_beach"]
+[ext_resource type="PackedScene" path="res://src/day_night/day_night.tscn" id="3_daynight"]
+[ext_resource type="Script" path="res://src/intro/surf_sound.gd" id="4_surf"]
+
+[node name="Waking" type="Node2D"]
+script = ExtResource("1_waking")
+
+[node name="Beach" parent="." instance=ExtResource("2_beach")]
+unique_name_in_owner = true
+
+[node name="DayNight" parent="." instance=ExtResource("3_daynight")]
+unique_name_in_owner = true
+
+[node name="Surf" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+script = ExtResource("4_surf")
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="MoveHint" type="Control" parent="Overlay"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_top = 166.0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="Band" type="ColorRect" parent="Overlay/MoveHint"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 14.0
+mouse_filter = 2
+color = Color(0.047, 0.051, 0.078, 0.75)
+
+[node name="Label" type="Label" parent="Overlay/MoveHint"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 14.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "WASD or arrows · Move"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cover" type="ColorRect" parent="Overlay"]
+unique_name_in_owner = true
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

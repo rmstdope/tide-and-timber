@@ -166,3 +166,9 @@ func test_surf_follows_the_black_beat() -> void:
 	await _tap(KEY_ESCAPE)
 	assert_bool(surf.audible).is_false()
 	assert_bool(surf.stream_paused).is_true()
+
+func test_story_ends_on_the_beach_waking() -> void:
+	assert_str(Intro.WAKING_SCENE).is_equal("res://src/waking/waking.tscn")
+	assert_bool(ResourceLoader.exists(Intro.WAKING_SCENE)).is_true()
+	if ResourceLoader.exists(Intro.WAKING_SCENE):
+		assert_bool((load(Intro.WAKING_SCENE) as PackedScene).can_instantiate()).is_true()
