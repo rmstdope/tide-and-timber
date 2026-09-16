@@ -103,3 +103,18 @@ func test_prompt_over_faced_else_closest() -> void:
 	assert_vector(prompt.global_position).is_equal(D + Vector2(-26, -10))
 	await _stand(D + Vector2(-16, -2), Walk.Facing.UP)
 	assert_vector(prompt.global_position).is_equal(D + Vector2(-26, -10))
+
+func test_bar_counts_what_he_takes() -> void:
+	var bar := beach.get_node("%ItemBar") as ItemBar
+	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
+	await _press_e()
+	assert_int(bar.slots[0].kind).is_equal(K.DRIFTWOOD)
+	assert_str(bar.slots[0].count_text()).is_equal("1")
+
+func test_slot_name_on_pointer_rest() -> void:
+	var bar := beach.get_node("%ItemBar") as ItemBar
+	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
+	await _press_e()
+	bar.slots[0].mouse_entered.emit()
+	assert_str(bar.name_label.text).is_equal("Driftwood")
+	assert_bool(bar.name_plank.visible).is_true()

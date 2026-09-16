@@ -27,6 +27,7 @@ func _ready() -> void:
 	%Player.facing = Walk.Facing.DOWN
 	%Camera.target = %Player
 	%Camera.snap_to_target()
+	%ItemBar.bind(inventory)
 	%Interactor.setup(%Player, inventory, %Prompt)
 
 func _place(scene: PackedScene, cells: Array[Vector2i], parent: Node) -> void:
