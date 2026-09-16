@@ -8,9 +8,10 @@ const BLACK_BEAT_CAPTION_BAR_Y := 79.0   # vertically centred on the black beat
 const SELECTED := Color("#ffd58a")
 const UNSELECTED := Color("#fff6e0")
 const SURF_VOLUME := 0.6
+const WAKING_SCENE := "res://src/waking/waking.tscn"
 
 var story := IntroStory.new()
-var end_story: Callable = _end_story    # tests replace it; part 2 points it at the beach
+var end_story: Callable = _end_story    # tests replace it; it ends on the beach waking
 
 func _ready() -> void:
 	story.finished.connect(func() -> void: end_story.call())
@@ -96,4 +97,4 @@ func _refresh() -> void:
 	%Surf.volume_linear = SURF_VOLUME * (1.0 - story.skip_cover_alpha())
 
 func _end_story() -> void:
-	pass # the screen stays black; part 2 points end_story at the beach
+	get_tree().change_scene_to_file(WAKING_SCENE)
