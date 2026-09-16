@@ -80,3 +80,26 @@ func test_holding_e_takes_one() -> void:
 	runner.simulate_key_release(KEY_E)
 	await runner.await_input_processed()
 	assert_int(inventory.count(K.DRIFTWOOD)).is_equal(1)
+
+func test_prompt_over_usable_until_away_or_taken() -> void:
+	var prompt := beach.get_node("%Prompt") as UsePrompt
+	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
+	assert_bool(prompt.visible).is_true()
+	assert_vector(prompt.global_position).is_equal(D + Vector2(0, -10))
+	assert_str(prompt.verb_label.text).is_equal("Take")
+	await _stand(BeachLayout.cell_centre(BeachLayout.SPAWN_CELL), Walk.Facing.DOWN)
+	assert_bool(prompt.visible).is_false()
+	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
+	assert_bool(prompt.visible).is_true()
+	await _press_e()
+	assert_bool(prompt.visible).is_false()
+
+func test_prompt_over_faced_else_closest() -> void:
+	var prompt := beach.get_node("%Prompt") as UsePrompt
+	_second_driftwood(D + Vector2(-26, 0))
+	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
+	assert_vector(prompt.global_position).is_equal(D + Vector2(0, -10))
+	await _stand(D + Vector2(-16, -2), Walk.Facing.LEFT)
+	assert_vector(prompt.global_position).is_equal(D + Vector2(-26, -10))
+	await _stand(D + Vector2(-16, -2), Walk.Facing.UP)
+	assert_vector(prompt.global_position).is_equal(D + Vector2(-26, -10))
