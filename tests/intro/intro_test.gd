@@ -88,3 +88,70 @@ func test_holding_the_mouse_button_skips() -> void:
 	runner.simulate_mouse_button_release(MOUSE_BUTTON_LEFT)
 	await runner.await_input_processed()
 	assert_int(_node("Picture").picture).is_equal(0)
+
+func _click_item(unique: String, button: MouseButton) -> void:
+	var click := InputEventMouseButton.new()
+	click.button_index = button
+	click.pressed = true
+	(_node(unique) as Control).gui_input.emit(click)
+
+func test_escape_pauses_with_resume_selected() -> void:
+	await _tap(KEY_ESCAPE)
+	assert_bool(_node("PauseBox").visible).is_true()
+	assert_bool(_node("PauseDim").visible).is_true()
+	assert_str((intro.get_node("PauseBox/Heading") as Label).text).is_equal("Paused")
+	assert_str(_node("Resume").text).is_equal("Resume")
+	assert_str(_node("SkipStory").text).is_equal("Skip story")
+	assert_that(_node("Resume").get_theme_color("font_color")).is_equal(Intro.SELECTED)
+	assert_bool(_node("ResumeMarker").visible).is_true()
+	assert_bool(_node("SkipMarker").visible).is_false()
+	intro.tick(10.0)
+	assert_int(_node("Picture").picture).is_equal(0)
+	assert_array(calls).is_empty()
+
+func test_pausing_mid_hold_clears_the_ring() -> void:
+	runner.simulate_key_press(KEY_SPACE)
+	await runner.await_input_processed()
+	intro.tick(0.5)
+	await _tap(KEY_ESCAPE)
+	assert_float(_node("SkipRing").progress).is_equal(0.0)
+
+func test_escape_again_resumes() -> void:
+	await _tap(KEY_ESCAPE)
+	await _tap(KEY_ESCAPE)
+	assert_bool(_node("PauseBox").visible).is_false()
+	assert_int(intro.story.phase).is_equal(IntroStory.Phase.PLAYING)
+
+func test_down_and_enter_choose_skip_story() -> void:
+	await _tap(KEY_ESCAPE)
+	await _tap(KEY_DOWN)
+	assert_bool(_node("SkipMarker").visible).is_true()
+	assert_that(_node("SkipStory").get_theme_color("font_color")).is_equal(Intro.SELECTED)
+	await _tap(KEY_ENTER)
+	assert_int(intro.story.phase).is_equal(IntroStory.Phase.SKIPPING)
+	assert_bool(_node("PauseBox").visible).is_false()
+	intro.tick(0.6)
+	assert_array(calls).is_equal(["end"])
+
+func test_up_wraps_in_the_pause_box() -> void:
+	await _tap(KEY_ESCAPE)
+	await _tap(KEY_UP)
+	assert_bool(_node("SkipMarker").visible).is_true()
+
+func test_hover_and_click_in_the_pause_box() -> void:
+	await _tap(KEY_ESCAPE)
+	(_node("SkipStory") as Control).mouse_entered.emit()
+	assert_bool(_node("SkipMarker").visible).is_true()
+	_click_item("Resume", MOUSE_BUTTON_LEFT)
+	assert_int(intro.story.phase).is_equal(IntroStory.Phase.PLAYING)
+
+func test_clicking_skip_story_skips() -> void:
+	await _tap(KEY_ESCAPE)
+	_click_item("SkipStory", MOUSE_BUTTON_LEFT)
+	intro.tick(0.6)
+	assert_array(calls).is_equal(["end"])
+
+func test_right_click_on_a_pause_item_does_nothing() -> void:
+	await _tap(KEY_ESCAPE)
+	_click_item("SkipStory", MOUSE_BUTTON_RIGHT)
+	assert_int(intro.story.phase).is_equal(IntroStory.Phase.PAUSED)

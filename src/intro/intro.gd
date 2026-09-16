@@ -13,6 +13,8 @@ var end_story: Callable = _end_story    # tests replace it; part 2 points it at 
 
 func _ready() -> void:
 	story.finished.connect(func() -> void: end_story.call())
+	_connect_pause_item(%Resume, IntroStory.PauseItem.RESUME)
+	_connect_pause_item(%SkipStory, IntroStory.PauseItem.SKIP_STORY)
 	_refresh()
 
 func _process(delta: float) -> void:
@@ -22,24 +24,54 @@ func tick(delta: float) -> void:
 	story.advance(delta)
 	_refresh()
 
-func _unhandled_input(event: InputEvent) -> void:
-	if story.phase == IntroStory.Phase.PLAYING:
-		var click := event as InputEventMouseButton
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause"):
+		story.toggle_pause()
+	elif story.phase == IntroStory.Phase.PAUSED:
+		if event.is_action_pressed("menu_up"):
+			story.move_pause_selection(-1)
+		elif event.is_action_pressed("menu_down"):
+			story.move_pause_selection(1)
+		elif event.is_action_pressed("menu_accept"):
+			story.choose_pause(story.pause_selected)
+		else:
+			return
+	elif story.phase == IntroStory.Phase.PLAYING:
 		if event.is_action_pressed("menu_accept"):
 			story.press()
 		elif event.is_action_released("menu_accept"):
 			story.release()
-		elif click and click.button_index == MOUSE_BUTTON_LEFT:
-			if click.pressed:
-				story.press()
-			else:
-				story.release()
 		else:
 			return
 	else:
 		return
 	_refresh()
 	get_viewport().set_input_as_handled()
+
+func _unhandled_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if story.phase != IntroStory.Phase.PLAYING or click == null or click.button_index != MOUSE_BUTTON_LEFT:
+		return
+	if click.pressed:
+		story.press()
+	else:
+		story.release()
+	_refresh()
+	get_viewport().set_input_as_handled()
+
+func _connect_pause_item(item_label: Control, item: IntroStory.PauseItem) -> void:
+	item_label.mouse_entered.connect(_on_pause_item_hovered.bind(item))
+	item_label.gui_input.connect(_on_pause_item_input.bind(item))
+
+func _on_pause_item_hovered(item: IntroStory.PauseItem) -> void:
+	story.hover_pause(item)
+	_refresh()
+
+func _on_pause_item_input(event: InputEvent, item: IntroStory.PauseItem) -> void:
+	var click := event as InputEventMouseButton
+	if click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
+		story.choose_pause(item)
+		_refresh()
 
 func _refresh() -> void:
 	var black_beat := story.panel == IntroStory.BLACK_BEAT
