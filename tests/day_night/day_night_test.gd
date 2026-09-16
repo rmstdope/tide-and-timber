@@ -78,3 +78,15 @@ func test_hud_ignores_the_mouse() -> void:
 	assert_int(sunset.get_child_count()).is_equal(2)
 	for c: Node in controls:
 		assert_int((c as Control).mouse_filter).override_failure_message(c.name).is_equal(Control.MOUSE_FILTER_IGNORE)
+
+func test_sunset_line_runs_in_real_seconds_at_any_time_scale() -> void:
+	dn.start()
+	dn.time_scale = 60.0
+	dn.tick(8.0)    # 8 real s at 60x = 320 game minutes: 13:00 -> 18:20
+	assert_bool(_n("Sunset").visible).is_false()
+	dn.tick(0.5)    # crosses 18:30
+	assert_bool(_n("Sunset").visible).is_true()
+	dn.tick(4.0)
+	assert_bool(_n("Sunset").visible).is_true()
+	dn.tick(1.0)
+	assert_bool(_n("Sunset").visible).is_false()

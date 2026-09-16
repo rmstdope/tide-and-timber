@@ -24,11 +24,17 @@ static func parse_args(args: PackedStringArray) -> Dictionary:
 	return opts
 
 
+## A start at or after 13:00 is on DAY 1; an earlier one is the next morning, on DAY 2.
+static func start_total_minutes(minute_of_day: int) -> float:
+	if minute_of_day >= GameClock.START_MINUTES:
+		return minute_of_day
+	return minute_of_day + GameClock.MINUTES_PER_DAY
+
+
 func _ready() -> void:
 	var opts := parse_args(OS.get_cmdline_user_args())
 	var dn: DayNight = DAY_NIGHT.instantiate()
-	var start: int = opts.start
-	dn.clock.total_minutes = start if start >= GameClock.START_MINUTES else start + GameClock.MINUTES_PER_DAY
+	dn.clock.total_minutes = start_total_minutes(opts.start)
 	dn.time_scale = opts.speed
 	add_child(dn)
 	dn.start()
