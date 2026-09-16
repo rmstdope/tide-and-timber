@@ -1,0 +1,57 @@
+extends SceneTree
+## Draws the placeholder art in the mockup's palette. Real art replaces the PNGs at the same paths.
+## Run: godot --headless --path . --script res://tools/placeholder_art/make_placeholder_art.gd
+
+const TILE_COLOURS := [   # base, accent, in BeachLayout.Kind order
+	["#3f7a33", "#5a9a3e"], ["#e9c27f", "#f3d99c"], ["#d2a86a", "#c09658"], ["#bfe9ef", "#ffffff"],
+	["#5fb3c9", "#7fc6d8"], ["#2c6d91", "#245c7c"], ["#7a6a5a", "#5a4a3c"],
+]
+
+func _init() -> void:
+	var tiles := _blank(112, 16)
+	for i in TILE_COLOURS.size():
+		_rects(tiles, Vector2i(16 * i, 0), [[0, 0, 16, 16, TILE_COLOURS[i][0]],
+			[3, 4, 2, 2, TILE_COLOURS[i][1]], [11, 10, 2, 2, TILE_COLOURS[i][1]]])
+	_save(tiles, "res://assets/beach/tiles.png")
+
+	_save(_drawn(16, 16, [[2, 8, 12, 8, "#8a8378"], [4, 6, 8, 2, "#b1aa9c"]]), "res://assets/beach/rock.png")
+	_save(_drawn(32, 32, [[2, 10, 28, 22, "#7a6a5a"], [6, 4, 20, 6, "#8a8378"], [2, 28, 28, 4, "#5a4a3c"]]),
+		"res://assets/beach/boulder.png")
+	_save(_drawn(32, 48, [[13, 16, 6, 32, "#7a4a2a"], [2, 6, 28, 8, "#3f8a3a"], [6, 2, 20, 4, "#2f6e2d"],
+		[0, 14, 10, 4, "#3f8a3a"], [22, 14, 10, 4, "#3f8a3a"]]), "res://assets/beach/palm.png")
+	_save(_drawn(32, 8, [[1, 2, 30, 4, "#9c7048"], [4, 1, 6, 1, "#b8906a"]]), "res://assets/beach/driftwood.png")
+
+	var man := _blank(64, 96)
+	var faces := [   # per Walk.Facing row
+		[[6, 7, 1, 1, "#2a1a10"], [9, 7, 1, 1, "#2a1a10"]],
+		[[5, 5, 6, 5, "#6b3f22"]],
+		[[6, 7, 1, 1, "#2a1a10"], [9, 5, 2, 3, "#6b3f22"]],
+		[[9, 7, 1, 1, "#2a1a10"], [5, 5, 2, 3, "#6b3f22"]],
+	]
+	var legs := [[4, 4], [2, 4], [4, 4], [4, 2]]   # left and right leg heights per column
+	for r in 4:
+		for c in 4:
+			var rects := [[5, 2, 6, 3, "#6b3f22"], [5, 5, 6, 5, "#f0c090"], [4, 10, 8, 7, "#d9dccf"],
+				[5, 17, 6, 3, "#3d5a80"], [5, 20, 2, legs[c][0], "#3d5a80"], [9, 20, 2, legs[c][1], "#3d5a80"]]
+			rects.append_array(faces[r])
+			_rects(man, Vector2i(16 * c, 24 * r), rects)
+	_save(man, "res://assets/man/man.png")
+	quit()
+
+func _blank(w: int, h: int) -> Image:
+	return Image.create(w, h, false, Image.FORMAT_RGBA8)
+
+func _drawn(w: int, h: int, rects: Array) -> Image:
+	var image := _blank(w, h)
+	_rects(image, Vector2i.ZERO, rects)
+	return image
+
+func _rects(image: Image, origin: Vector2i, rects: Array) -> void:
+	for r: Array in rects:
+		image.fill_rect(Rect2i(origin.x + r[0], origin.y + r[1], r[2], r[3]), Color(r[4]))
+
+func _save(image: Image, path: String) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))
+	var err := image.save_png(path)
+	if err != OK:
+		push_error("could not save %s: %s" % [path, error_string(err)])
