@@ -24,7 +24,7 @@ Esc/Start pauses. Accessibility baseline: rebindable controls, scalable UI and t
 colour-blind-safe cues, no timing-critical inputs in the story. It has to feel **cozy, curious,
 resilient**.
 
-Built with Godot 4.5 and GDScript, tests under gdUnit4 (vendored in `addons/`). Unity, Unreal and
+Built with Godot 4.7 (Homebrew's `godot` cask) and GDScript, tests under gdUnit4 (vendored in `addons/`). Unity, Unreal and
 any custom engine are ruled out: licensing and weight, and no hand-rolled renderer or ECS.
 
 ## Four Eye Principle
