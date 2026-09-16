@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Building a camp — agreed</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>:root{--bg:#f7efe0;--ink:#2b2230;--dim:#7a6b5e;--card:#fffaf0}
+@media (prefers-color-scheme:dark){:root{--bg:#17151c;--ink:#efe6d6;--dim:#a79a8c;--card:#221f29}}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}
+h1{font-size:22px;margin:0 0 4px}.lede{color:var(--dim);max-width:75ch;margin:0 0 20px}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+figure{margin:0;background:var(--card);border-radius:8px;padding:8px}
+svg.px{width:100%;height:auto;display:block;image-rendering:pixelated;border-radius:3px}
+figcaption{font-size:13px;padding:6px 2px 0}figcaption b{display:block}figcaption span{color:var(--dim)}
+text{font-family:'Press Start 2P',monospace}
+h2{font-size:17px;margin:40px 0 4px;padding-top:12px;border-top:2px solid #d9ae62}</style></head><body>
+<h1>Building a camp — agreed</h1>
+<p class="lede">B opens a build list (the clock stops while it is open). A lean-to costs 8 driftwood; a fire costs 4 and can only go in front of the lean-to. The outline is placed just in front of him with E or a click; then the screen fades to black for about 5 seconds and the thing stands, 30 minutes later. One camp only; the fire goes out at 07:00, leaving ash. Each picture is the game's 320×180 screen; art, colours and positions are indicative.</p>
+<h2>The build list</h2><div class="strip" id="a"></div>
+<h2>Placing</h2><div class="strip" id="b"></div>
+<h2>Building</h2><div class="strip" id="c"></div>
+<h2>Night and morning</h2><div class="strip" id="d"></div>
+<script>
+const P={sand:'#f0cf8a',sandDk:'#d9ae62',wet:'#c49a5a',shallow:'#6fc3c0',deep:'#2f6f9a',foam:'#eef6f4',jungle:'#3f7a3a',jungleDk:'#2c5a2a',woodDk:'#5c3a22',wood:'#8a5a34',woodLt:'#b98452',skin:'#e0a172',shirt:'#b8462e',pants:'#3d4f6e',hair:'#4a2c1a',text:'#fff6e0',rock:'#8d8a86',fire:'#ff9a2a',fireY:'#ffe06a',red:'#e0503a',ok:'#8fd06a'};
+const r=(x,y,w,h,c,o='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}" ${o}/>`;
+const t=(x,y,s,sz=6,c=P.text,a='start')=>`<text x="${x}" y="${y}" font-size="${sz}" fill="${c}" text-anchor="${a}">${s}</text>`;
+const svg=i=>`<svg class="px" viewBox="0 0 320 180" shape-rendering="crispEdges">${i}</svg>`;
+function beach(){let s=r(0,0,320,180,P.sand)+r(0,0,320,30,P.jungle);
+ for(let x=0;x<320;x+=12)s+=r(x,26,8,8,P.jungleDk);
+ s+=r(0,138,320,6,P.wet)+r(0,144,320,4,P.foam)+r(0,148,320,16,P.shallow)+r(0,164,320,16,P.deep);
+ for(let x=0;x<320;x+=16)for(let y=40;y<136;y+=16)if((x*7+y*3)%5===0)s+=r(x+5,y+6,3,2,P.sandDk);
+ s+=r(20,60,12,9,P.rock)+r(282,96,14,10,P.rock)+r(240,44,18,3,P.wood)+r(60,120,14,3,P.wood);return s}
+function man(x,y,face='down'){return r(x,y,8,7,P.skin)+r(x,y,8,2,P.hair)+r(x-1,y+7,10,8,P.shirt)+r(x,y+15,3,6,P.pants)+r(x+5,y+15,3,6,P.pants)}
+function leanto(x,y,o=''){return `<g ${o}>`+r(x,y+24,40,4,P.woodDk)+`<polygon points="${x},${y+26} ${x+34},${y} ${x+40},${y+2} ${x+8},${y+28}" fill="${P.wood}"/>`+[4,12,20,28].map(i=>r(x+i,y+22-i*0.7,6,2,P.woodLt)).join('')+r(x+34,y,3,28,P.woodDk)+'</g>'}
+function fire(x,y,lit=true,o=''){let s=`<g ${o}>`+r(x,y+8,14,3,P.woodDk)+r(x+2,y+6,10,3,P.wood);
+ if(lit)s+=`<circle cx="${x+7}" cy="${y+6}" r="26" fill="#ffc060" opacity=".18"/>`+`<polygon points="${x+2},${y+7} ${x+7},${y-6} ${x+12},${y+7}" fill="${P.fire}"/><polygon points="${x+5},${y+7} ${x+7},${y} ${x+9},${y+7}" fill="${P.fireY}"/>`;
+ return s+'</g>'}
+function ghost(inner,okay){return `<g opacity=".55">${inner}</g>`+`<g opacity=".25">${r(0,0,0,0,'#000')}</g>`}
+function plank(x,y,w,h){return r(x,y,w,h,P.woodDk)+r(x+1,y+1,w-2,h-2,P.wood)}
+function bar(n){let s=plank(110,160,100,16);for(let i=0;i<5;i++){s+=r(114+i*19,163,16,10,P.woodDk);}
+ s+=r(117,167,10,2,P.woodLt)+r(119,165,6,2,P.wood)+t(130,172,n,5,P.text,'end');return s}
+function hint(x,y,w,s){return r(x,y,w,12,'#000','opacity=".55"')+t(x+w/2,y+8.5,s,5,P.text,'middle')}
+function fig(title,sub,inner){return `<figure>${svg(inner)}<figcaption><b>${title}</b><span>${sub}</span></figcaption></figure>`}
+function clock(s){return plank(6,4,50,16)+t(31,14.5,s,5,P.text,'middle')}
+function black(o){return r(0,0,320,180,'#000',`opacity="${o}"`)}
+function list(x,y,items,sel){let h=16+items.length*13;let s=plank(x,y,98,h)+t(x+49,y+10,'BUILD',6,P.text,'middle');
+ items.forEach((it,i)=>{const yy=y+14+i*13;if(i===sel)s+=r(x+3,yy,92,11,P.woodLt);const c=it[2]?P.text:'#c9b79c';s+=t(x+6,yy+8,it[0],5,c)+t(x+92,yy+8,it[1],5,c,'end')});return s}
+function night(){return r(0,0,320,180,'#101a40','opacity=".55"')}
+function ash(x,y){return r(x,y+8,14,3,'#6a625c')+r(x+3,y+6,8,2,'#8a827a')}
+function line(w){return r(40,150,240,16,'#000','opacity=".45"')+t(160,161,w,6,P.text,'middle')}
+function wlist(x,y,w,title,items,sel){let h=16+items.length*13;let s=plank(x,y,w,h)+t(x+w/2,y+10,title,6,P.text,'middle');
+ items.forEach((it,i)=>{const yy=y+14+i*13;if(i===sel)s+=r(x+3,yy,w-6,11,P.woodLt);const c=it[2]?P.text:'#c9b79c';s+=t(x+6,yy+8,it[0],5,c)+t(x+w-6,yy+8,it[1],5,c,'end')});return s}
+function ptr(x,y){return `<polygon points="${x},${y} ${x},${y+9} ${x+3},${y+7} ${x+6},${y+11} ${x+7},${y+10} ${x+5},${y+6} ${x+8},${y+6}" fill="#fff" stroke="#000" stroke-width=".6"/>`}
+const put=(id,a)=>document.getElementById(id).innerHTML=a.join('');
+const LH='E or click: Build   Esc: Close', PH='E or click: Place   Esc: Back';
+const L=(items,sel,bars,x=124)=>wlist(x,56,150,'Build',items,sel);
+put('a',[
+fig('No lean-to, enough driftwood','Opens with the first thing he can build highlighted. Fire greyed.',beach()+man(100,80)+bar(9)+clock('16:00')+L([['Lean-to','9/8 driftwood',1],['Fire','Needs a lean-to',0]],0)+hint(70,140,180,LH)),
+fig('Not enough driftwood','Greyed; highlight still movable but E does nothing on a greyed line.',beach()+man(100,80)+bar(3)+clock('16:00')+L([['Lean-to','3/8 driftwood',0],['Fire','Needs a lean-to',0]],0)+hint(70,140,180,LH)),
+fig('Lean-to built, no fire','',beach()+leanto(20,90)+man(100,80)+bar(5)+clock('17:00')+L([['Lean-to','Already built',0],['Fire','5/4 driftwood',1]],1)+hint(70,140,180,LH)),
+fig('Camp built, fire lit','Nothing to build: the list still opens, all greyed.',beach()+leanto(20,90)+fire(70,104)+man(100,80)+bar(5)+clock('21:00')+L([['Lean-to','Already built',0],['Fire','Already lit',0]],-1)+hint(70,140,180,LH))]);
+put('b',[
+fig('Placing the lean-to','Outline just in front of him, turning with him as he walks. Clock running.',beach()+leanto(146,98,'opacity=".55"')+man(150,80)+bar(9)+clock('16:10')+hint(70,140,180,PH)),
+fig('A spot that will not do','On rock, water, jungle or the lean-to, the outline is red; E or click does nothing.',beach()+man(24,40)+leanto(14,58,'opacity=".6" style="filter:sepia(1) hue-rotate(-40deg) saturate(4)"')+r(20,60,12,9,P.rock)+bar(9)+clock('16:10')+hint(70,140,180,PH)),
+fig('Placing the fire','Normal outline only on the spot in front of the lean-to; anywhere else it is red.',beach()+leanto(146,98)+fire(196,112,false,'opacity=".55"')+man(186,90)+bar(5)+clock('17:00')+hint(70,140,180,PH))]);
+put('c',[
+fig('1. Placed','',beach()+leanto(146,98,'opacity=".55"')+man(150,80)+bar(9)+clock('16:10')),
+fig('2. Black, about 5 seconds','Only building sounds. Input ignored.',black(1)),
+fig('3. Built, 30 minutes on','Driftwood gone from the bar.',beach()+leanto(146,98)+man(150,76)+bar(1)+clock('16:40')),
+fig('Fire built: shelter done','His line for about 4 seconds.',beach()+leanto(146,98)+fire(196,112)+man(176,92)+bar(1)+clock('17:30')+line('That should see me through the night.'))]);
+put('d',[
+fig('Night','Fire glowing in front of the lean-to.',beach()+leanto(146,98)+fire(196,112)+man(176,92)+night()+'<circle cx="203" cy="118" r="30" fill="#ffc060" opacity=".25"/>'+clock('01:00')),
+fig('07:00','Fire out; ash remains. Fire can be built again for 4 driftwood.',beach()+leanto(146,98)+ash(196,112)+man(176,92)+clock('07:10'))]);
+</script></body></html>
