@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Makes sure the official export templates for the Godot on PATH are installed in Godot's
+# per-user templates directory, downloading and checksum-verifying them only when missing.
+set -euo pipefail
+
+godot="${GATE_GODOT:-godot}"
+base="${GODOT_RELEASES_URL:-https://github.com/godotengine/godot/releases/download}"
+
+say() { echo "install-export-templates: $*" >&2; }
+
+if [ "$#" -ne 0 ]; then
+  say "usage: scripts/install-export-templates (takes no arguments)"
+  exit 2
+fi
+
+if ! command -v "$godot" >/dev/null 2>&1; then
+  say "no godot at $godot; run brew install --cask godot"
+  exit 1
+fi
+
+raw="$("$godot" --headless --version | head -n 1)"
+if [[ $raw =~ ^([0-9]+\.[0-9]+(\.[0-9]+)?)\.stable(\.|$) ]]; then
+  num="${BASH_REMATCH[1]}"
+else
+  say "unsupported godot version '$raw'; only stable releases have export templates"
+  exit 1
+fi
+ver="$num.stable"
+tag="$num-stable"
+file="Godot_v$num-stable_export_templates.tpz"
+
+host="$(uname -s)"
+case "$host" in
+  Darwin) root="$HOME/Library/Application Support/Godot/export_templates" ;;
+  Linux)  root="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates" ;;
+  *)      say "unsupported host $host"; exit 1 ;;
+esac
+dest="$root/$ver"
+
+if [ -f "$dest/version.txt" ] && [ "$(cat "$dest/version.txt")" = "$ver" ] \
+  && [ -s "$dest/macos.zip" ] && [ -s "$dest/windows_release_x86_64.exe" ]; then
+  say "$ver already installed in $dest"
+  exit 0
+fi
+
+mkdir -p "$root"
+stage="$(mktemp -d "$root/.staging.XXXXXX")"
+trap 'rm -rf "$stage"' EXIT
+
+fetch() {
+  local url="$1" out="$2" n
+  say "downloading $url"
+  if curl -fL --retry 3 -o "$out" "$url"; then :; else
+    n=$?
+    say "download failed (exit $n): $url"
+    exit 1
+  fi
+}
+fetch "$base/$tag/SHA512-SUMS.txt" "$stage/SHA512-SUMS.txt"
+fetch "$base/$tag/$file" "$stage/$file"
+
+want="$(awk -v f="$file" '$2==f {print $1; exit}' "$stage/SHA512-SUMS.txt")"
+if [ -z "$want" ]; then
+  say "no checksum listed for $file"
+  exit 1
+fi
+got="$(shasum -a 512 "$stage/$file" | awk '{print $1}')"
+if [ "$got" != "$want" ]; then
+  say "checksum mismatch for $file"
+  exit 1
+fi
+
+unzip -q "$stage/$file" -d "$stage/x"
+if [ ! -f "$stage/x/templates/version.txt" ] || [ "$(cat "$stage/x/templates/version.txt")" != "$ver" ]; then
+  say "$file does not hold templates for $ver"
+  exit 1
+fi
+
+rm -rf "$dest"
+mv "$stage/x/templates" "$dest"
+say "installed $ver in $dest"

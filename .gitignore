@@ -15,3 +15,6 @@
 
 # gdUnit4 reports, written by scripts/gate-fast
 /reports/
+
+# Release exports, written by scripts/gate-full
+/build/
