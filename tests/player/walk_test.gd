@@ -40,3 +40,33 @@ func test_facing_vectors() -> void:
 	assert_vector(Walk.facing_vector(Walk.Facing.UP)).is_equal(Vector2(0, -1))
 	assert_vector(Walk.facing_vector(Walk.Facing.LEFT)).is_equal(Vector2(-1, 0))
 	assert_vector(Walk.facing_vector(Walk.Facing.RIGHT)).is_equal(Vector2(1, 0))
+
+func test_run_is_double_walk() -> void:
+	assert_float(Walk.speed_for(true, false)).is_equal(96.0)
+	assert_float(Walk.speed_for(false, false)).is_equal(Walk.SPEED)
+
+func test_wading_is_half_walk_even_running() -> void:
+	assert_float(Walk.speed_for(false, true)).is_equal(24.0)
+	assert_float(Walk.speed_for(true, true)).is_equal(24.0)
+
+func test_velocity_takes_a_speed() -> void:
+	assert_vector(Walk.velocity(Vector2(1, 0), 96.0)).is_equal(Vector2(96, 0))
+	assert_vector(Walk.velocity(Vector2(1, 0))).is_equal(Vector2(48, 0))
+
+func test_wading_animation_names() -> void:
+	assert_that(Walk.animation_for(Walk.Facing.LEFT, true, true)).is_equal(&"wade_walk_left")
+	assert_that(Walk.animation_for(Walk.Facing.DOWN, false, true)).is_equal(&"wade_still_down")
+	assert_that(Walk.animation_for(Walk.Facing.UP, true, false)).is_equal(&"walk_up")
+
+func test_trail_kinds() -> void:
+	assert_that(Walk.trail_for(true, true, false)).is_equal(&"puff")
+	assert_that(Walk.trail_for(true, false, true)).is_equal(&"ripple")
+	assert_that(Walk.trail_for(true, true, true)).is_equal(&"ripple")
+	assert_that(Walk.trail_for(true, false, false)).is_equal(&"")
+	assert_that(Walk.trail_for(false, true, false)).is_equal(&"")
+	assert_that(Walk.trail_for(false, false, true)).is_equal(&"")
+
+func test_trail_intervals() -> void:
+	assert_float(Walk.trail_interval(&"puff")).is_equal(0.15)
+	assert_float(Walk.trail_interval(&"ripple")).is_equal(0.3)
+	assert_float(Walk.trail_interval(&"")).is_equal(0.0)

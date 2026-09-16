@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/beach/marks/trail_mark.gd" id="1_mark"]
+[ext_resource type="Texture2D" path="res://assets/beach/puff.png" id="2_texture"]
+
+[node name="Puff" type="Sprite2D"]
+texture = ExtResource("2_texture")
+script = ExtResource("1_mark")
+lifetime = 0.4
+grow = 1.0

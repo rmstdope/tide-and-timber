@@ -18,3 +18,17 @@ func test_move_actions_are_bound_by_physical_key() -> void:
 			assert_bool(InputMap.event_is_action(event, action)) \
 				.override_failure_message("%s not bound to %s" % [action, OS.get_keycode_string(key)]) \
 				.is_true()
+
+func test_run_is_bound_to_shift() -> void:
+	assert_bool(InputMap.has_action(&"run")).is_true()
+	for location: int in [KEY_LOCATION_LEFT, KEY_LOCATION_RIGHT]:
+		var shift := InputEventKey.new()
+		shift.physical_keycode = KEY_SHIFT
+		shift.location = location
+		shift.pressed = true
+		assert_bool(InputMap.event_is_action(shift, &"run")).override_failure_message("location %d" % location).is_true()
+	var a := InputEventKey.new()
+	a.physical_keycode = KEY_A
+	a.shift_pressed = true
+	a.pressed = true
+	assert_bool(InputMap.event_is_action(a, &"move_left")).is_true()

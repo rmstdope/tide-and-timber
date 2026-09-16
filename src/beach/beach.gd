@@ -10,6 +10,8 @@ const PALM := preload("res://src/beach/props/palm.tscn")
 const DRIFTWOOD := preload("res://src/beach/props/driftwood.tscn")
 const SHELLFISH := preload("res://src/beach/props/shellfish.tscn")
 const SPRING := preload("res://src/beach/props/spring.tscn")
+const PUFF := preload("res://src/beach/marks/puff.tscn")
+const RIPPLE := preload("res://src/beach/marks/ripple.tscn")
 
 var inventory := Inventory.new()
 
@@ -28,6 +30,9 @@ func _ready() -> void:
 	_place(SHELLFISH, BeachLayout.SHELLFISH, %Decor)
 	%Player.position = BeachLayout.cell_centre(BeachLayout.SPAWN_CELL)
 	%Player.facing = Walk.Facing.DOWN
+	%Player.is_wading_at = func(at: Vector2) -> bool:
+		return BeachLayout.is_wadeable(BeachLayout.kind_at(BeachLayout.cell_at(at)))
+	%Player.trail_mark.connect(_on_trail_mark)
 	%Camera.target = %Player
 	%Camera.snap_to_target()
 	%ItemBar.bind(inventory)
@@ -45,3 +50,9 @@ func _place(scene: PackedScene, cells: Array[Vector2i], parent: Node) -> Array[N
 		parent.add_child(prop)
 		placed.append(prop)
 	return placed
+
+func _on_trail_mark(kind: StringName, at: Vector2) -> void:
+	# Under %Decor, not the y-sorted %World, so a mark at his heels never sorts over his feet.
+	var mark := (PUFF if kind == &"puff" else RIPPLE).instantiate() as Node2D
+	mark.position = at
+	%Decor.add_child(mark)

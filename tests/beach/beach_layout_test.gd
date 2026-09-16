@@ -105,3 +105,13 @@ func test_coconuts_land_on_open_sand() -> void:
 			var cell := Vector2i(((BeachLayout.cell_base(palm) + d) / BeachLayout.TILE).floor())
 			_expect(cell, K.SAND)
 			assert_bool(props.has(cell)).override_failure_message("%s lands on a prop" % cell).is_false()
+
+func test_only_shallows_are_wadeable() -> void:
+	for kind: int in BeachLayout.Kind.values():
+		assert_bool(BeachLayout.is_wadeable(kind)).override_failure_message("kind %d" % kind) \
+			.is_equal(kind == BeachLayout.Kind.SHALLOWS)
+
+func test_cell_at_floors() -> void:
+	assert_that(BeachLayout.cell_at(Vector2(1480, 184))).is_equal(Vector2i(92, 11))
+	assert_that(BeachLayout.cell_at(Vector2(1480, 256))).is_equal(Vector2i(92, 16))
+	assert_that(BeachLayout.cell_at(Vector2(1480, 255.9))).is_equal(Vector2i(92, 15))
