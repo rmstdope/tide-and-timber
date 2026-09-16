@@ -1,7 +1,7 @@
 class_name Beach
 extends Node2D
 ## The long beach: ground, props and the spring, the man, the loose camera, and what he carries with its bar.
-## Handles no input itself (clicks go to %ClickWalker), so Esc does nothing.
+## Handles no input itself (clicks go to %ClickWalker; B, and Esc while building, to %Builder).
 
 const TILES := preload("res://assets/beach/tiles.png")
 const ROCK := preload("res://src/beach/props/rock.tscn")
@@ -41,6 +41,7 @@ func _ready() -> void:
 	inventory.added.connect(_on_added)
 	walk_grid = WalkGrid.new(BeachLayout.MAP_SIZE, func(t: Vector2i) -> bool: return BeachLayout.is_solid(BeachLayout.kind_at(t)))
 	%ClickWalker.setup(%Player, %Interactor, walk_grid, %Decor, _obstacles)
+	%Builder.setup(inventory)
 
 ## The base boxes of the solid props in %World.
 func _obstacles() -> Array[Rect2]:
@@ -54,6 +55,10 @@ func _obstacles() -> Array[Rect2]:
 				var size: Vector2 = (shape_node.shape as RectangleShape2D).size
 				rects.append(Rect2(shape_node.global_position - size / 2, size))
 	return rects
+
+## The waking scene hands in its clock, so building can stop it and move it on.
+func set_day_night(day_night: DayNight) -> void:
+	%Builder.day_night = day_night
 
 func _on_added(kind: Item.Kind, amount: int) -> void:
 	RisingLine.show_over(%Player, Item.gain_line(kind, amount))
