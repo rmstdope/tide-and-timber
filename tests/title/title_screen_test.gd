@@ -1,0 +1,63 @@
+extends GdUnitTestSuite
+
+const SCENE := "res://src/title/title_screen.tscn"
+
+var runner: GdUnitSceneRunner
+var screen: TitleScreen
+var calls: Array[String] = []
+
+func before_test() -> void:
+	calls = []
+	runner = scene_runner(SCENE)
+	screen = runner.scene() as TitleScreen
+	var recorded := calls
+	screen.quit_game = func() -> void: recorded.append("quit")
+	screen.start_new_game = func() -> void: recorded.append("new_game")
+
+func _plank(unique: String) -> PanelContainer:
+	return screen.get_node("%" + unique) as PanelContainer
+
+func assert_highlighted(unique: String) -> void:
+	var other := "Quit" if unique == "NewGame" else "NewGame"
+	assert_object(_plank(unique).get_theme_stylebox("panel")) \
+		.override_failure_message("%s should be highlighted" % unique) \
+		.is_same(TitleScreen.PLANK_HIGHLIGHT_STYLE)
+	assert_object(_plank(other).get_theme_stylebox("panel")) \
+		.override_failure_message("%s should not be highlighted" % other) \
+		.is_same(TitleScreen.PLANK_STYLE)
+
+func _fade_alpha() -> float:
+	return (screen.get_node("%Fade") as CanvasItem).modulate.a
+
+func _press(key: Key) -> void:
+	runner.simulate_key_pressed(key)
+	await runner.await_input_processed()
+
+func test_opens_with_new_game_highlighted() -> void:
+	assert_highlighted("NewGame")
+	assert_float(_fade_alpha()).is_equal(0.0)
+
+func test_shows_the_agreed_words() -> void:
+	assert_str((screen.get_node("Title") as Label).text).is_equal("TIDE & TIMBER")
+	assert_str((screen.get_node("Tagline") as Label).text).is_equal("a story of an island")
+	assert_str((screen.get_node("Menu/NewGame/Label") as Label).text).is_equal("New Game")
+	assert_str((screen.get_node("Menu/Quit/Label") as Label).text).is_equal("Quit")
+	assert_str((screen.get_node("%Version") as Label).text).is_equal("v0.1")
+
+func test_down_and_s_move_and_wrap() -> void:
+	await _press(KEY_DOWN)
+	assert_highlighted("Quit")
+	await _press(KEY_S)
+	assert_highlighted("NewGame")
+
+func test_up_and_w_move_and_wrap() -> void:
+	await _press(KEY_UP)
+	assert_highlighted("Quit")
+	await _press(KEY_W)
+	assert_highlighted("NewGame")
+
+func test_escape_does_nothing() -> void:
+	await _press(KEY_ESCAPE)
+	assert_highlighted("NewGame")
+	assert_array(calls).is_empty()
+	assert_float(_fade_alpha()).is_equal(0.0)
