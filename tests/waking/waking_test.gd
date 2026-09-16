@@ -26,6 +26,7 @@ func test_opens_black_with_him_face_down_at_the_waterline() -> void:
 	assert_vector((_node("Beach").get_node("%Camera") as Node2D).global_position).is_equal(Vector2(1480, 232))
 	assert_bool(_node("MoveHint").visible).is_false()
 	assert_bool(_node("DayNight").running).is_false()
+	assert_bool(_node("DayNight").get_node("%Hud").visible).is_false()
 
 func test_keys_do_nothing_while_he_wakes() -> void:
 	runner.simulate_key_press(KEY_D)
