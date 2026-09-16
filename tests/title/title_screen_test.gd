@@ -44,6 +44,13 @@ func test_shows_the_agreed_words() -> void:
 	assert_str((screen.get_node("Menu/Quit/Label") as Label).text).is_equal("Quit")
 	assert_str((screen.get_node("%Version") as Label).text).is_equal("v0.1")
 
+func test_whole_screen_fits_the_base_viewport() -> void:
+	var view := screen.get_viewport_rect()
+	assert_vector(screen.size).is_equal(view.size)
+	var version := (screen.get_node("%Version") as Control).get_global_rect()
+	assert_bool(view.encloses(version)) \
+		.override_failure_message("version at %s is outside %s" % [version, view]).is_true()
+
 func test_down_and_s_move_and_wrap() -> void:
 	await _press(KEY_DOWN)
 	assert_highlighted("Quit")
@@ -117,13 +124,15 @@ func test_input_during_fade_is_ignored() -> void:
 
 func test_waves_move() -> void:
 	var waves := screen.get_node("%Waves").get_children()
-	var recorded: Array[float] = []
+	var recorded: Array[float] = [20.0, 100.0, 190.0]   # home x in title_screen.tscn
+	await runner.simulate_frames(1, 25)
+	var first: Array[float] = []
 	for wave: Control in waves:
-		recorded.append(wave.position.x)
+		first.append(wave.position.x)
 	await runner.simulate_frames(30, 25)
 	var any_moved := false
 	for i in waves.size():
 		var drift: float = (waves[i] as Control).position.x - recorded[i]
-		any_moved = any_moved or drift != 0.0
+		any_moved = any_moved or (waves[i] as Control).position.x != first[i]
 		assert_float(absf(drift)).is_less_equal(TitleScreen.WAVE_AMPLITUDE_PX)
 	assert_bool(any_moved).is_true()

@@ -7,8 +7,6 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 320.0
-offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title")
@@ -75,7 +73,6 @@ polygon = PackedVector2Array(240, 94, 285, 94, 280, 107, 235, 107)
 unique_name_in_owner = true
 
 [node name="Wave1" type="ColorRect" parent="Waves"]
-
 offset_left = 20.0
 offset_top = 115.0
 offset_right = 50.0
@@ -84,7 +81,6 @@ mouse_filter = 2
 color = Color(0.560784, 0.827451, 0.909804, 1)
 
 [node name="Wave2" type="ColorRect" parent="Waves"]
-
 offset_left = 100.0
 offset_top = 122.0
 offset_right = 120.0
@@ -93,7 +89,6 @@ mouse_filter = 2
 color = Color(0.560784, 0.827451, 0.909804, 1)
 
 [node name="Wave3" type="ColorRect" parent="Waves"]
-
 offset_left = 190.0
 offset_top = 130.0
 offset_right = 235.0
