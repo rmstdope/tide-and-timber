@@ -70,3 +70,9 @@ func test_trail_intervals() -> void:
 	assert_float(Walk.trail_interval(&"puff")).is_equal(0.15)
 	assert_float(Walk.trail_interval(&"ripple")).is_equal(0.3)
 	assert_float(Walk.trail_interval(&"")).is_equal(0.0)
+
+func test_facing_names_round_trip() -> void:
+	for f: int in Walk.Facing.values():
+		assert_int(Walk.facing_for_name(Walk.facing_name(f))).is_equal(f)
+	assert_str(Walk.facing_name(Walk.Facing.LEFT)).is_equal("left")
+	assert_int(Walk.facing_for_name("north")).is_equal(-1)

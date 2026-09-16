@@ -48,3 +48,37 @@ func slot_kind(index: int) -> int:
 
 func slot_count(index: int) -> int:
 	return 0 if _slots[index] == EMPTY else _counts[_slots[index]]
+
+## Slot by slot, SLOT_COUNT entries: {} for an empty slot, else {"kind": Item.Kind, "count": int}.
+func to_slots() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for i in SLOT_COUNT:
+		out.append({} if _slots[i] == EMPTY else {"kind": _slots[i], "count": _counts[_slots[i]]})
+	return out
+
+## Replaces everything carried with `slots` (the shape to_slots returns) and returns true.
+## Returns false and changes nothing when the shape is wrong: not exactly SLOT_COUNT entries,
+## a kind not in Item.Kind, a count < 1, or one kind in two slots.
+## Emits `changed` once on success and never `added`, so no "+1" line rises on a load.
+func restore(slots: Array[Dictionary]) -> bool:
+	if slots.size() != SLOT_COUNT:
+		return false
+	var seen := {}
+	for slot in slots:
+		if slot.is_empty():
+			continue
+		var kind: Variant = slot.get("kind")
+		var amount: Variant = slot.get("count")
+		if typeof(kind) != TYPE_INT or not Item.Kind.values().has(kind) or seen.has(kind):
+			return false
+		if typeof(amount) != TYPE_INT or amount < 1:
+			return false
+		seen[kind] = true
+	_slots.fill(EMPTY)
+	_counts.clear()
+	for i in SLOT_COUNT:
+		if not slots[i].is_empty():
+			_slots[i] = slots[i]["kind"]
+			_counts[slots[i]["kind"]] = slots[i]["count"]
+	changed.emit()
+	return true

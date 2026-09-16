@@ -11,6 +11,13 @@ const RIPPLE_INTERVAL := 0.3            # s between ripples while wading and mov
 
 const _NAMES := ["down", "up", "left", "right"]
 
+static func facing_name(facing: Facing) -> String:
+	return _NAMES[facing]
+
+## The Facing a name gives, or -1 when unknown.
+static func facing_for_name(facing_name_: String) -> int:
+	return _NAMES.find(facing_name_)
+
 static func direction(left: bool, right: bool, up: bool, down: bool) -> Vector2:
 	return Vector2(int(right) - int(left), int(down) - int(up)).normalized()
 

@@ -73,3 +73,46 @@ func test_signals() -> void:
 	assert_bool(inv.remove(K.SHELLFISH)).is_true()
 	assert_int(changes.size()).is_equal(2)
 	assert_int(adds.size()).is_equal(1)
+
+func _slots_of(inv: Inventory) -> Array:
+	var out := []
+	for i in Inventory.SLOT_COUNT:
+		out.append([inv.slot_kind(i), inv.slot_count(i)])
+	return out
+
+func test_to_slots_keeps_slot_order() -> void:
+	var inv := _three()
+	inv.remove(K.SHELLFISH)
+	var expected: Array[Dictionary] = [{"kind": K.DRIFTWOOD, "count": 1}, {}, {"kind": K.COCONUT, "count": 1}, {}, {}, {}, {}, {}]
+	assert_array(inv.to_slots()).is_equal(expected)
+
+func test_restore_round_trips_into_a_new_inventory() -> void:
+	var a := _three()
+	a.add(K.COCONUT, 4)
+	a.remove(K.SHELLFISH)
+	var b := Inventory.new()
+	assert_bool(b.restore(a.to_slots())).is_true()
+	assert_array(_slots_of(b)).is_equal(_slots_of(a))
+	assert_int(b.count(K.COCONUT)).is_equal(5)
+	b.add(K.FRESH_WATER)
+	assert_int(b.slot_kind(1)).is_equal(K.FRESH_WATER)
+
+func test_restore_emits_changed_once_and_never_added() -> void:
+	var inv := Inventory.new()
+	var seen := {"changed": 0, "added": 0}
+	inv.changed.connect(func() -> void: seen["changed"] += 1)
+	inv.added.connect(func(_k: Item.Kind, _a: int) -> void: seen["added"] += 1)
+	inv.restore(_three().to_slots())
+	assert_int(seen["changed"]).is_equal(1)
+	assert_int(seen["added"]).is_equal(0)
+
+func test_restore_refuses_bad_shapes_unchanged() -> void:
+	var inv := _three()
+	var before := _slots_of(inv)
+	var seven: Array[Dictionary] = [{}, {}, {}, {}, {}, {}, {}]
+	var bad_kind: Array[Dictionary] = [{"kind": 99, "count": 1}, {}, {}, {}, {}, {}, {}, {}]
+	var zero: Array[Dictionary] = [{"kind": K.DRIFTWOOD, "count": 0}, {}, {}, {}, {}, {}, {}, {}]
+	var twice: Array[Dictionary] = [{"kind": K.DRIFTWOOD, "count": 1}, {"kind": K.DRIFTWOOD, "count": 2}, {}, {}, {}, {}, {}, {}]
+	for bad: Array[Dictionary] in [seven, bad_kind, zero, twice]:
+		assert_bool(inv.restore(bad)).is_false()
+		assert_array(_slots_of(inv)).is_equal(before)

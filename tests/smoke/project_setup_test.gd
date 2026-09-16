@@ -13,6 +13,8 @@ const EXPECTED := {
 	"rendering/renderer/rendering_method": "gl_compatibility",
 	"application/run/main_scene": "res://src/title/title_screen.tscn",
 	"application/config/version": "0.1",
+	"application/config/use_custom_user_dir": true,
+	"application/config/custom_user_dir_name": "Tide and Timber",
 	"application/boot_splash/show_image": false,
 	"gui/theme/custom_font": "res://assets/fonts/PressStart2P-Regular.ttf",
 }
