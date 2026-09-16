@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# The fast gate: headless import, then every gdUnit4 suite under res://tests.
+# Exits 0 only when both succeed with no failures, errors or orphan nodes.
+set -euo pipefail
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+godot="${GATE_GODOT:-godot}"
+
+say() { echo "gate-fast: $*" >&2; }
+
+if [ "$#" -ne 0 ]; then
+  say "usage: scripts/gate-fast (takes no arguments)"
+  exit 2
+fi
+
+if ! command -v "$godot" >/dev/null; then
+  say "no godot at $godot; run brew install --cask godot"
+  exit 1
+fi
+
+say "importing"
+if "$godot" --headless --path "$repo" --import; then :; else
+  n=$?
+  say "import failed (exit $n)"
+  exit 1
+fi
+
+say "running gdUnit4 suites in res://tests"
+if "$godot" --headless --path "$repo" -d --remote-debug tcp://127.0.0.1:0 \
+  --script res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode \
+  -c -a res://tests -rd res://reports -rc 1; then :; else
+  n=$?
+  say "gdUnit4 suites failed (exit $n)"
+  exit 1
+fi
+
+say "green"
