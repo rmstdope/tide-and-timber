@@ -11,7 +11,8 @@ static func exists(dir: String = SLOT_DIR) -> bool:
 
 ## Writes each entry of `files` as `<dir>/<stem>.json`. Returns OK, or the first error met.
 ## Every file goes to a .tmp first and replaces its final name only once all are written, meta last,
-## so a crash mid-write never leaves a new meta.json beside half-written data.
+## so a crash while writing the .tmp files leaves the previous save intact. A crash inside the short
+## replace loop can still leave a missing or mixed set; recovering from that is not handled here.
 static func write(files: Dictionary, dir: String = SLOT_DIR) -> Error:
 	var err := DirAccess.make_dir_recursive_absolute(dir)
 	if err != OK:

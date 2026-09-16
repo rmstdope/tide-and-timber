@@ -72,6 +72,19 @@ func test_restore_refuses_unknown_prop_or_cell_unchanged() -> void:
 		await await_idle_frame()
 		assert_int(_count(beach, "driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
 
+func test_restore_refuses_bad_inventory_unchanged() -> void:
+	var data := beach.capture()
+	data.player_position = Vector2(400, 200)
+	var cells: Array[Vector2i] = [BeachLayout.DRIFTWOOD[0]]
+	data.taken = {"driftwood": cells}
+	var twice: Array[Dictionary] = [{"kind": Item.Kind.DRIFTWOOD, "count": 1}, {"kind": Item.Kind.DRIFTWOOD, "count": 2}, {}, {}, {}, {}, {}, {}]
+	data.inventory_slots = twice
+	assert_bool(beach.restore(data)).is_false()
+	assert_vector(_player(beach).global_position).is_equal(BeachLayout.cell_centre(BeachLayout.SPAWN_CELL))
+	assert_int(beach.inventory.slot_kind(0)).is_equal(Inventory.EMPTY)
+	await await_idle_frame()
+	assert_int(_count(beach, "driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
+
 func test_restore_does_not_raise_a_gain_line() -> void:
 	var data := beach.capture()
 	var slots: Array[Dictionary] = [{"kind": Item.Kind.DRIFTWOOD, "count": 3}, {}, {}, {}, {}, {}, {}, {}]

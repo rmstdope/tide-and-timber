@@ -59,3 +59,5 @@ func test_rejects() -> void:
 	_rejected(func(f: Dictionary) -> void: f["inventory"]["slots"][0]["count"] = 0)
 	_rejected(func(f: Dictionary) -> void: f["world"]["taken"]["driftwood"][0] = [1])
 	_rejected(func(f: Dictionary) -> void: f["player"] = "oops")
+	_rejected(func(f: Dictionary) -> void: f["player"]["x"] = "1")
+	_rejected(func(f: Dictionary) -> void: f["world"]["taken"] = [])
