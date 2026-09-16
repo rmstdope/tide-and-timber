@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://src/beach/beach.gd" id="1_beach"]
 [ext_resource type="PackedScene" path="res://src/player/player.tscn" id="2_player"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://src/interact/interactor.gd" id="4_interactor"]
 [ext_resource type="Script" path="res://src/hud/use_prompt.gd" id="5_prompt"]
 [ext_resource type="Script" path="res://src/hud/item_bar.gd" id="6_bar"]
+[ext_resource type="Script" path="res://src/interact/click_walker.gd" id="7_walker"]
 
 [node name="Beach" type="Node2D"]
 script = ExtResource("1_beach")
@@ -30,6 +31,10 @@ script = ExtResource("5_prompt")
 [node name="Interactor" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("4_interactor")
+
+[node name="ClickWalker" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("7_walker")
 
 [node name="Camera" type="Camera2D" parent="."]
 unique_name_in_owner = true
