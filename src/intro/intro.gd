@@ -17,6 +17,7 @@ func _ready() -> void:
 	story.finished.connect(func() -> void: end_story.call())
 	_connect_pause_item(%Resume, IntroStory.PauseItem.RESUME)
 	_connect_pause_item(%SkipStory, IntroStory.PauseItem.SKIP_STORY)
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_refresh()
 
 func _process(delta: float) -> void:
@@ -26,7 +27,8 @@ func tick(delta: float) -> void:
 	story.advance(delta)
 	_refresh()
 
-func _unhandled_key_input(event: InputEvent) -> void:
+# _shortcut_input, not _unhandled_input: it gets keys and pad buttons, and gdUnit4 delivers it once.
+func _shortcut_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
 		story.toggle_pause()
 	elif story.phase == IntroStory.Phase.PAUSED:
@@ -49,6 +51,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	_refresh()
 	get_viewport().set_input_as_handled()
+
+## A pad lost mid-story pauses it; an already paused, skipping or finished story is left alone.
+func _on_joy_connection_changed(_device: int, connected: bool) -> void:
+	if not connected and story.phase == IntroStory.Phase.PLAYING:
+		story.toggle_pause()
+		_refresh()
 
 func _unhandled_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton

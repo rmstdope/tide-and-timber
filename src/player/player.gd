@@ -20,13 +20,13 @@ var auto_direction := Vector2.ZERO      # set each tick by a click-walk; used on
 
 func _ready() -> void:
 	%Sprite.sprite_frames = ManFrames.build(SHEET)
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_show()
 
 func _physics_process(delta: float) -> void:
 	if not control_enabled:
 		return
-	var dir := Walk.direction(Input.is_action_pressed(&"move_left"), Input.is_action_pressed(&"move_right"),
-		Input.is_action_pressed(&"move_up"), Input.is_action_pressed(&"move_down"))
+	var dir := Walk.direction(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
 	if dir == Vector2.ZERO:
 		dir = auto_direction
 	running = Input.is_action_pressed(RUN_ACTION)
@@ -43,11 +43,19 @@ func _physics_process(delta: float) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
-		# A key still held when focus returns sends no new press, so he stays stopped until pressed again.
-		for action in MOVE_ACTIONS:
-			Input.action_release(action)
-		Input.action_release(RUN_ACTION)
-		velocity = Vector2.ZERO
+		release_held()
+
+## Lets go of every held move and run: a key or stick still held sends no new press, so he stays
+## stopped until pressed again. A click-walk in progress is left alone.
+func release_held() -> void:
+	for action in MOVE_ACTIONS:
+		Input.action_release(action)
+	Input.action_release(RUN_ACTION)
+	velocity = Vector2.ZERO
+
+func _on_joy_connection_changed(_device: int, connected: bool) -> void:
+	if not connected:
+		release_held()
 
 ## Shows one of his poses; only holds while control is off, since walking shows its own.
 func play_pose(anim: StringName) -> void:

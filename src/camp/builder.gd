@@ -135,7 +135,7 @@ func tick(delta: float) -> void:
 func _process(delta: float) -> void:
 	tick(delta)
 
-func _unhandled_key_input(event: InputEvent) -> void:
+func _shortcut_input(event: InputEvent) -> void:
 	match mode:
 		Mode.CLOSED:
 			if event.is_action_pressed(&"build", false) and %Player.control_enabled:
@@ -154,14 +154,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				if menu.highlighted >= 0:
 					choose(menu.highlighted)
 				_handled()
-			elif event.is_action_pressed(&"build", false) or event.is_action_pressed(&"pause", false):
+			elif event.is_action_pressed(&"build", false) or event.is_action_pressed(&"build_back", false):
 				close_list()
 				_handled()
 		Mode.PLACING:
 			if event.is_action_pressed(&"build_accept", false):
 				try_place()
 				_handled()
-			elif event.is_action_pressed(&"build", false) or event.is_action_pressed(&"pause", false):
+			elif event.is_action_pressed(&"build", false) or event.is_action_pressed(&"build_back", false):
 				back_to_list()
 				_handled()
 		Mode.BUILDING:

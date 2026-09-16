@@ -18,8 +18,13 @@ static func facing_name(facing: Facing) -> String:
 static func facing_for_name(facing_name_: String) -> int:
 	return _NAMES.find(facing_name_)
 
-static func direction(left: bool, right: bool, up: bool, down: bool) -> Vector2:
-	return Vector2(int(right) - int(left), int(down) - int(up)).normalized()
+## The unit walking direction for an input vector: snapped to the nearest of eight, or ZERO.
+static func direction(input: Vector2) -> Vector2:
+	if input == Vector2.ZERO:
+		return Vector2.ZERO
+	var a := snappedf(input.angle(), PI / 4)
+	# Rounded components keep the cardinals exact, so walking straight up never faces him sideways.
+	return Vector2(roundf(cos(a)), roundf(sin(a))).normalized()
 
 static func speed_for(running: bool, wading: bool) -> float:
 	if wading:
