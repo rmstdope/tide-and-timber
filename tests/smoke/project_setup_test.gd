@@ -54,3 +54,10 @@ func test_menu_actions_are_bound() -> void:
 			assert_bool(InputMap.event_is_action(event, action)) \
 				.override_failure_message("%s not bound to %s" % [action, OS.get_keycode_string(key)]) \
 				.is_true()
+
+func test_pause_action_is_bound() -> void:
+	assert_bool(InputMap.has_action("pause")).is_true()
+	var event := InputEventKey.new()
+	event.physical_keycode = KEY_ESCAPE
+	event.pressed = true
+	assert_bool(InputMap.event_is_action(event, "pause")).is_true()
