@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel="stylesheet" href="common.css"><title>Reason line fit</title>
+<style>
+.menu{left:0!important;right:0;width:auto!important}
+.menu .plank{width:176px;margin:6px auto!important}
+.hint{font-size:16px!important;line-height:20px;white-space:nowrap;margin:-2px 0 2px!important;padding:0!important}
+.hint.wrap{white-space:normal}
+.over{outline:2px dashed #ff4d4d}
+h2{font-family:system-ui;font-size:16px;color:#ffe2a8;margin:28px 0 8px}
+.row2{display:flex;flex-wrap:wrap;gap:24px}
+</style></head><body>
+<h1 class="page">Continue dimmed for a save from a newer version: when the version number is long — agreed: D, never show the version</h1>
+<p class="note">Drawn at 2x the game's base size, with the reason line at its real readable size (every letter the same width; 40 letters fill the whole screen). Each option is shown with a short version (v0.4), a medium one (v0.12.3) and a long one (v1.2.3-beta+4567). The red dashed outline marks words that run off the screen. Scene art and colours are indicative.</p>
+<div id="out"></div>
+<script>
+const scene=`<div class="sky"></div><div class="sun"></div><div class="wreck"></div><div class="beach"></div><div class="palm" style="left:40px"></div><div class="logo" style="left:0;right:0;top:28px;text-align:center">TIDE &amp; TIMBER<small>a story of an island</small></div>`;
+const vs=["v0.4","v0.12.3","v1.2.3-beta+4567"];
+const opts=[
+ ["As agreed today (for comparison)", v=>`Save is from ${v} — update to continue`, false],
+ ["A. The line wraps onto a second line under Continue", v=>`Save is from ${v} — update to continue`, true],
+ ["B. Shorter words, version always shown", v=>`Update to ${v} to continue`, false],
+ ["C. Version shown while it fits; otherwise no version", v=>(`Save is from ${v} — update to continue`.length<=40?`Save is from ${v} — update to continue`:`Save is from a newer version`), false],
+ ["D. (Recommended) Never show the version", v=>`Save is from a newer version`, false],
+];
+let h="";
+for(const [t,f,wrap] of opts){h+=`<h2>${t}</h2><div class="row2">`;
+ for(const v of vs){const s=f(v);const over=!wrap&&s.length>40;
+  h+=`<div><div class="screen">${scene}<div class="menu" style="top:${wrap&&s.length>40?196:206}px"><div class="plank off">Continue</div><div class="hint ${wrap?'wrap':''}"><span class="${over?'over':''}">${s}</span></div><div class="plank sel">New Game</div><div class="plank">Quit</div></div><div class="foot">v0.3</div></div><p class="cap">Save made by ${v}${over?' — does not fit':''}</p></div>`;}
+ h+=`</div>`;}
+document.getElementById("out").innerHTML=h;
+</script></body></html>
