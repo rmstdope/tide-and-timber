@@ -3,6 +3,7 @@ extends Control
 ## The title screen: draws the menu from a TitleMenu and turns input into its moves.
 
 const INTRO_SCENE := "res://src/intro/intro.tscn"
+const FADE_SECONDS := 1.0
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
 
@@ -36,6 +37,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		menu.move(-1)
 	elif event.is_action_pressed("menu_down"):
 		menu.move(1)
+	elif event.is_action_pressed("menu_accept"):
+		_choose(menu.highlighted)
 	else:
 		return
 	_refresh()
@@ -47,6 +50,10 @@ func _choose(choice: TitleMenu.Choice) -> void:
 	_refresh()
 	if choice == TitleMenu.Choice.QUIT:
 		quit_game.call()
+	else:
+		var fade := create_tween()
+		fade.tween_property(%Fade, "modulate:a", 1.0, FADE_SECONDS).from(0.0)
+		fade.tween_callback(func() -> void: start_new_game.call())
 
 func _refresh() -> void:
 	%NewGame.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.NEW_GAME))

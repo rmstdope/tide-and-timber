@@ -89,3 +89,28 @@ func test_click_off_the_menu_does_nothing() -> void:
 	await runner.await_input_processed()
 	assert_array(calls).is_empty()
 	assert_highlighted("NewGame")
+
+func test_enter_on_quit_quits_at_once() -> void:
+	await _press(KEY_DOWN)
+	runner.simulate_key_press(KEY_ENTER)
+	assert_array(calls).is_equal(["quit"])
+	runner.simulate_key_release(KEY_ENTER)
+
+func test_space_on_new_game_fades_then_starts() -> void:
+	await _press(KEY_SPACE)
+	assert_array(calls).is_empty()
+	assert_bool(screen.menu.locked).is_true()
+	await await_millis(1300)
+	assert_array(calls).is_equal(["new_game"])
+	assert_float(_fade_alpha()).is_equal(1.0)
+
+func test_input_during_fade_is_ignored() -> void:
+	await _press(KEY_ENTER)
+	await _press(KEY_DOWN)
+	await _press(KEY_ENTER)
+	await _press(KEY_SPACE)
+	_plank("Quit").mouse_entered.emit()
+	_click("Quit", MOUSE_BUTTON_LEFT)
+	assert_highlighted("NewGame")
+	await await_millis(1300)
+	assert_array(calls).is_equal(["new_game"])
