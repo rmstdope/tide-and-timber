@@ -20,6 +20,9 @@ func _init() -> void:
 	_save(_drawn(32, 48, [[13, 16, 6, 32, "#7a4a2a"], [2, 6, 28, 8, "#3f8a3a"], [6, 2, 20, 4, "#2f6e2d"],
 		[0, 14, 10, 4, "#3f8a3a"], [22, 14, 10, 4, "#3f8a3a"]]), "res://assets/beach/palm.png")
 	_save(_drawn(32, 8, [[1, 2, 30, 4, "#9c7048"], [4, 1, 6, 1, "#b8906a"]]), "res://assets/beach/driftwood.png")
+	_save(_drawn(4, 4, [[1, 0, 2, 4, "#fff8e8"], [0, 1, 4, 2, "#fff8e8"]]), "res://assets/beach/puff.png")
+	_save(_drawn(12, 4, [[2, 0, 8, 1, "#e6f7fb"], [0, 1, 2, 2, "#e6f7fb"], [10, 1, 2, 2, "#e6f7fb"],
+		[2, 3, 8, 1, "#e6f7fb"]]), "res://assets/beach/ripple.png")
 
 	var man := _blank(64, 96)
 	var faces := [   # per Walk.Facing row

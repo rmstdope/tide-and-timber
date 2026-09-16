@@ -6,6 +6,8 @@ const SIZES := {
 	"res://assets/beach/boulder.png": Vector2i(32, 32),
 	"res://assets/beach/palm.png": Vector2i(32, 48),
 	"res://assets/beach/driftwood.png": Vector2i(32, 8),
+	"res://assets/beach/puff.png": Vector2i(4, 4),
+	"res://assets/beach/ripple.png": Vector2i(12, 4),
 	"res://assets/man/man.png": Vector2i(64, 96),
 	"res://assets/beach/shellfish.png": Vector2i(12, 6),
 	"res://assets/items/driftwood.png": Vector2i(10, 10),
