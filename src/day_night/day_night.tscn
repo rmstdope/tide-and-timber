@@ -1,0 +1,88 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/day_night/day_night.gd" id="1_dn"]
+[ext_resource type="StyleBox" path="res://src/title/plank.tres" id="2_plank"]
+[ext_resource type="Script" path="res://src/day_night/clock_dial.gd" id="3_dial"]
+
+[node name="DayNight" type="Node"]
+process_mode = 1
+script = ExtResource("1_dn")
+
+[node name="Light" type="CanvasModulate" parent="."]
+unique_name_in_owner = true
+color = Color(1, 1, 1, 1)
+
+[node name="Hud" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = 10
+visible = false
+
+[node name="Plank" type="Panel" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 68.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("2_plank")
+
+[node name="DayLabel" type="Label" parent="Hud/Plank"]
+unique_name_in_owner = true
+offset_top = 5.0
+offset_right = 64.0
+offset_bottom = 13.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "DAY 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dial" type="Control" parent="Hud/Plank"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+offset_top = 14.0
+offset_right = 64.0
+offset_bottom = 42.0
+mouse_filter = 2
+script = ExtResource("3_dial")
+
+[node name="TimeLabel" type="Label" parent="Hud/Plank"]
+unique_name_in_owner = true
+offset_top = 43.0
+offset_right = 64.0
+offset_bottom = 51.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "13:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Sunset" type="Control" parent="Hud"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 150.0
+offset_right = 308.0
+offset_bottom = 166.0
+mouse_filter = 2
+
+[node name="Band" type="ColorRect" parent="Hud/Sunset"]
+offset_right = 296.0
+offset_bottom = 16.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="Text" type="Label" parent="Hud/Sunset"]
+offset_right = 296.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "It'll be dark soon. I need shelter."
+horizontal_alignment = 1
+vertical_alignment = 1
