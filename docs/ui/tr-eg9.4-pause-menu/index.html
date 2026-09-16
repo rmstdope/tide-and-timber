@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Pause menu — agreed</title><script src="common.js"></script></head><body><script>
+function storyBox(items,sel){return dim()+r(105,32,110,20+items.length*20,P.plankDk)+r(107,34,106,16+items.length*20,'#6d4527')+t(160,47,'Paused',7,P.text,'middle')+items.map((l,i)=>plank(117,56+i*20,86,l,i==sel)).join('')}
+const S=()=>beach()+dial(.5,'16:30','DAY 3'), ST=['Resume','Skip story','Settings','Quit to title'];
+const W=['Quit to title?','Anything since this morning will be lost.'], N=['Quit to title?','Nothing has been saved yet.'];
+page('Pause menu — agreed','Esc or Start pauses: the world freezes, the scene dims and a wooden board opens in the middle. Each picture is the game\'s 320×180 screen; scene art, colours and the button pictures in the strip are indicative, not final art.',[
+ fig('1. Playing on DAY 3','Before Esc / Start.',S()),
+ fig('2. Paused','Resume highlighted. Clock, light, frost and his lines stand still. Esc, Start or Back resume at once.',S()+menuA(0)+HSB),
+ fig('3. Quit to title highlighted','Up/Down wrap round. Select asks first.',S()+menuA(2)+HSB),
+ fig('4. Quit box — a save exists','Stay highlighted; Esc / B = Stay, back to the board with Quit to title highlighted.',S()+menuA(2)+confirmBox(W,['Stay','Quit'],0)+HSB),
+ fig('5. Quit box — before this run\'s first save','DAY 1 on the beach.',beach()+dial(.33,'14:10','DAY 1')+menuA(2)+confirmBox(N,['Stay','Quit'],0)+HSB),
+ fig('6. Paused in the shipwreck story','One menu everywhere: Skip story kept second.',storyPic()+storyBox(ST,0)+HSB),
+ fig('7. Quit box in the story','Nothing saved yet in this run.',storyPic()+storyBox(ST,3)+confirmBox(N,['Stay','Quit'],0)+HSB),
+ fig('8. Quit pressed','Fade to black (~1 s), then the title screen as it opens (Continue highlighted if a save exists).',r(0,0,320,180,'#000')),
+ fig('9. Window switched away and back','The game paused itself the moment it lost focus; the board waits with Resume highlighted.',S()+menuA(0)+HSB)]);
+</script></body></html>
