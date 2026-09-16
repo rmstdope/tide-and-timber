@@ -1,0 +1,25 @@
+extends GdUnitTestSuite
+
+const TILES := preload("res://assets/beach/tiles.png")
+
+func test_tile_set_shape() -> void:
+	var tile_set := BeachTileSet.build(TILES)
+	assert_vector(Vector2(tile_set.tile_size)).is_equal(Vector2(16, 16))
+	assert_int(tile_set.get_physics_layers_count()).is_equal(1)
+	var source := tile_set.get_source(0)
+	assert_object(source).is_instanceof(TileSetAtlasSource)
+	assert_int((source as TileSetAtlasSource).get_tiles_count()).is_equal(7)
+
+func test_only_solid_kinds_collide() -> void:
+	var source := BeachTileSet.build(TILES).get_source(0) as TileSetAtlasSource
+	for kind: int in BeachLayout.Kind.values():
+		var data := source.get_tile_data(Vector2i(kind, 0), 0)
+		var solid := BeachLayout.is_solid(kind)
+		assert_int(data.get_collision_polygons_count(0)).override_failure_message(BeachLayout.Kind.keys()[kind]) \
+			.is_equal(1 if solid else 0)
+		if solid:
+			var points := data.get_collision_polygon_points(0, 0)
+			assert_int(points.size()).is_equal(4)
+			for p in points:
+				assert_float(absf(p.x)).is_equal(8.0)
+				assert_float(absf(p.y)).is_equal(8.0)

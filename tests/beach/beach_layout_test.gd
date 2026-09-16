@@ -1,0 +1,81 @@
+extends GdUnitTestSuite
+
+const K := BeachLayout.Kind
+
+func _expect(cell: Vector2i, kind: int) -> void:
+	assert_int(BeachLayout.kind_at(cell)).override_failure_message(
+		"%s: expected %s, got %s" % [cell, K.keys()[kind], K.keys()[BeachLayout.kind_at(cell)]]).is_equal(kind)
+
+func test_rows_top_to_bottom_in_the_middle() -> void:
+	for y in 26:
+		var expected: int
+		if y <= 8: expected = K.JUNGLE
+		elif y <= 13: expected = K.SAND
+		elif y == 14: expected = K.WET_SAND
+		elif y == 15: expected = K.FOAM
+		elif y <= 17: expected = K.SHALLOWS
+		else: expected = K.DEEP
+		_expect(Vector2i(92, y), expected)
+
+func test_headlands_close_both_ends() -> void:
+	for cell: Vector2i in [Vector2i(12, 9), Vector2i(15, 17), Vector2i(168, 9), Vector2i(171, 17)]:
+		_expect(cell, K.CLIFF)
+	_expect(Vector2i(16, 9), K.SAND)
+	_expect(Vector2i(167, 9), K.SAND)
+
+func test_scenery_beyond_ends() -> void:
+	_expect(Vector2i(0, 14), K.JUNGLE)
+	_expect(Vector2i(183, 9), K.JUNGLE)
+	_expect(Vector2i(0, 15), K.DEEP)
+	_expect(Vector2i(183, 17), K.DEEP)
+
+func test_solid_kinds() -> void:
+	for kind: int in K.values():
+		var solid := kind in [K.JUNGLE, K.DEEP, K.CLIFF]
+		assert_bool(BeachLayout.is_solid(kind)).override_failure_message(K.keys()[kind]).is_equal(solid)
+
+func test_spawn_is_middle_sand() -> void:
+	_expect(BeachLayout.SPAWN_CELL, K.SAND)
+	assert_int(BeachLayout.SPAWN_CELL.x).is_equal(BeachLayout.MAP_SIZE.x / 2)
+	assert_vector(BeachLayout.cell_centre(BeachLayout.SPAWN_CELL)).is_equal(Vector2(1480, 184))
+
+func _all_props() -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	cells.append_array(BeachLayout.PALMS)
+	cells.append_array(BeachLayout.ROCKS)
+	cells.append_array(BeachLayout.BOULDERS)
+	cells.append_array(BeachLayout.DRIFTWOOD)
+	return cells
+
+func test_props_stand_on_walkable_ground_away_from_spawn() -> void:
+	for cell in _all_props():
+		assert_bool(BeachLayout.is_solid(BeachLayout.kind_at(cell))).override_failure_message("%s solid" % cell).is_false()
+		var d := cell - BeachLayout.SPAWN_CELL
+		assert_int(maxi(absi(d.x), absi(d.y))).override_failure_message("%s near spawn" % cell).is_greater_equal(3)
+
+func test_both_headlands_reachable() -> void:
+	var blocked := {}
+	for c in BeachLayout.ROCKS: blocked[c] = true
+	for c in BeachLayout.PALMS: blocked[c] = true
+	for c in BeachLayout.BOULDERS:
+		blocked[c] = true
+		blocked[c + Vector2i(-1, 0)] = true
+		blocked[c + Vector2i(1, 0)] = true
+	var seen := {BeachLayout.SPAWN_CELL: true}
+	var queue: Array[Vector2i] = [BeachLayout.SPAWN_CELL]
+	var bounds := Rect2i(Vector2i.ZERO, BeachLayout.MAP_SIZE)
+	while not queue.is_empty():
+		var cell: Vector2i = queue.pop_front()
+		for step: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+			var next := cell + step
+			if not bounds.has_point(next) or seen.has(next) or blocked.has(next):
+				continue
+			if BeachLayout.is_solid(BeachLayout.kind_at(next)):
+				continue
+			seen[next] = true
+			queue.append(next)
+	assert_bool(seen.has(Vector2i(16, 12))).is_true()
+	assert_bool(seen.has(Vector2i(167, 12))).is_true()
+
+func test_cell_base_is_bottom_centre() -> void:
+	assert_vector(BeachLayout.cell_base(Vector2i(47, 9))).is_equal(Vector2(760, 160))
