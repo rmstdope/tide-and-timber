@@ -12,3 +12,6 @@
 
 # Godot
 .godot/
+
+# gdUnit4 reports, written by scripts/gate-fast
+/reports/
