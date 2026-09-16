@@ -12,7 +12,22 @@ var start_new_game: Callable = _start_new_game
 
 func _ready() -> void:
 	%Version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
+	_connect_plank(%NewGame, TitleMenu.Choice.NEW_GAME)
+	_connect_plank(%Quit, TitleMenu.Choice.QUIT)
 	_refresh()
+
+func _connect_plank(plank: Control, choice: TitleMenu.Choice) -> void:
+	plank.mouse_entered.connect(_on_plank_hovered.bind(choice))
+	plank.gui_input.connect(_on_plank_input.bind(choice))
+
+func _on_plank_hovered(choice: TitleMenu.Choice) -> void:
+	menu.hover(choice)
+	_refresh()
+
+func _on_plank_input(event: InputEvent, choice: TitleMenu.Choice) -> void:
+	var click := event as InputEventMouseButton
+	if click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
+		_choose(choice)
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if menu.locked:
@@ -25,6 +40,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	_refresh()
 	get_viewport().set_input_as_handled()
+
+func _choose(choice: TitleMenu.Choice) -> void:
+	if not menu.pick(choice):
+		return
+	_refresh()
+	if choice == TitleMenu.Choice.QUIT:
+		quit_game.call()
 
 func _refresh() -> void:
 	%NewGame.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.NEW_GAME))

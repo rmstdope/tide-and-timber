@@ -61,3 +61,31 @@ func test_escape_does_nothing() -> void:
 	assert_highlighted("NewGame")
 	assert_array(calls).is_empty()
 	assert_float(_fade_alpha()).is_equal(0.0)
+
+func _click(unique: String, button: MouseButton) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = true
+	_plank(unique).gui_input.emit(event)
+
+func test_hover_moves_the_highlight_and_keys_carry_on() -> void:
+	_plank("Quit").mouse_entered.emit()
+	assert_highlighted("Quit")
+	await _press(KEY_DOWN)
+	assert_highlighted("NewGame")
+
+func test_left_click_on_quit_quits() -> void:
+	_click("Quit", MOUSE_BUTTON_LEFT)
+	assert_array(calls).is_equal(["quit"])
+
+func test_right_click_on_a_plank_does_nothing() -> void:
+	_click("Quit", MOUSE_BUTTON_RIGHT)
+	_click("NewGame", MOUSE_BUTTON_RIGHT)
+	assert_array(calls).is_empty()
+
+func test_click_off_the_menu_does_nothing() -> void:
+	runner.simulate_mouse_move(Vector2(10, 10))
+	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	await runner.await_input_processed()
+	assert_array(calls).is_empty()
+	assert_highlighted("NewGame")
