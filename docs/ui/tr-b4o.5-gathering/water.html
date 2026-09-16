@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 1 · What happens at the freshwater spring?', 'The spring is a small rock pool at the jungle edge with a trickle running out. Colours and figures are placeholders.');
+let r = option('Option A — He drinks there; nothing is carried', 'Using the spring is a drink on the spot (“Drink”). Water never goes into the bar. Nothing to manage, but the player has to walk back to drink.');
+let g = screen(r, 'At the spring.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up');
+plank(g, 132, 36, 40, 13); keycap(g, 'E', 135, 38); text(g, 'Drink', 146, 40, C.paper, 6); hotbar(g, [['wood',4]], 8);
+r = option('Option B — He fills a coconut shell and carries it', 'Using the spring fills an empty coconut shell (“Fill”), which becomes Fresh water in the bar. Needs an empty shell first, from eating a coconut. More to find out; water can be taken anywhere.');
+g = screen(r, 'At the spring with an empty shell.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up');
+plank(g, 132, 36, 36, 13); keycap(g, 'E', 135, 38); text(g, 'Fill', 146, 40, C.paper, 6); hotbar(g, [['wood',4],['water',1]], 8);
+r = option('Option C — Both', 'The prompt shows two keys: one to drink now, one to fill a shell if he has one. Most freedom; the busiest prompt.');
+g = screen(r, 'At the spring.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up');
+plank(g, 124, 22, 48, 27); keycap(g, 'E', 127, 24); text(g, 'Drink', 138, 26, C.paper, 6); keycap(g, 'Q', 127, 37); text(g, 'Fill', 138, 39, C.paper, 6);
+hotbar(g, [['wood',4],['water',1]], 8);
+</script></body></html>

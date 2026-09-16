@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 4 · When he can’t use something yet', 'Three cases: a rock with no coconut in the bar, the spring with no empty shell, and a palm already shaken bare. Colours and figures are placeholders.');
+let r = option('Option A — No prompt; clicking or pressing does nothing', 'Only things he can use right now show a prompt. Quiet, but the player isn’t told that a rock cracks coconuts or that the spring needs a shell.');
+let g = screen(r, 'At the spring with no shell: no prompt.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up'); hotbar(g, [['wood',3]], 8);
+g = screen(r, 'At a rock with no coconut: no prompt.'); beach(g); rock(g, 170, 90); man(g, 152, 84, 'right'); hotbar(g, [['wood',3]], 8);
+r = option('Option B — A faded prompt; pressing says what is missing', 'The prompt shows faded. Pressing E (or clicking it) makes a short line rise: “You need an empty shell” at the spring, “You need a coconut” at a rock. A bare palm shows no prompt. Teaches the player what each place is for.');
+g = screen(r, 'At the spring with no shell, after pressing.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up'); g.globalAlpha=.45; prompt(g, 152, 36, 'E', 'Fill'); g.globalAlpha=1; text(g,'You need an empty shell',152,24,C.paper,6,'center'); hotbar(g, [['wood',3]], 8);
+g = screen(r, 'At a rock with no coconut, after pressing.'); beach(g); rock(g, 170, 90); man(g, 152, 84, 'right'); g.globalAlpha=.45; prompt(g, 178, 72, 'E', 'Crack'); g.globalAlpha=1; text(g,'You need a coconut',178,60,C.paper,6,'center'); hotbar(g, [['wood',3]], 8);
+r = option('Also shown, not asked', 'Any boulder on the beach can crack a coconut. When he stands next to two usable things, the prompt shows over the one he is facing (or the closest) only. The mouse outline follows the option chosen for pointing. Say if any of this should differ.');
+</script></body></html>

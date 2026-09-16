@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 2 · Does the beach refill?', 'The same stretch of beach on day one and the next morning. Colours and figures are placeholders.');
+function day1(g){ beach(g); palm(g, 90, 80, 2); driftwood(g, 160, 96); driftwood(g, 220, 70); shellfish(g, 60, 124); man(g, 140, 60); hotbar(g, [], 8); }
+let r = option('Option A — What is there is all there is', 'Everything is placed once. Once taken, it is gone for good. Every piece matters, but a careless first day can leave the beach bare.');
+let g = screen(r, 'Day one.'); day1(g);
+g = screen(r, 'Next morning, after he took it all: bare beach.'); beach(g); palm(g, 90, 80, 0); man(g, 140, 60); hotbar(g, [['wood',2],['coconut',2],['shellfish',1]], 8);
+r = option('Option B — The tide brings more each morning', 'Overnight, some new driftwood and shellfish wash up and palms grow new coconuts, never more than a set amount. The beach never runs dry.');
+g = screen(r, 'Day one.'); day1(g);
+g = screen(r, 'Next morning: new driftwood near the waterline, fresh shellfish, coconuts back on the palm.'); beach(g); palm(g, 90, 80, 2); driftwood(g, 200, 118); shellfish(g, 250, 126); man(g, 140, 60); hotbar(g, [['wood',2],['coconut',2],['shellfish',1]], 8);
+r = option('Option C — Wood and shellfish come back, coconuts don’t', 'The sea refills the beach each morning, but a palm picked bare stays bare. Coconuts become the food worth saving.');
+g = screen(r, 'Next morning: wood and shellfish back, the palm is bare.'); beach(g); palm(g, 90, 80, 0); driftwood(g, 200, 118); shellfish(g, 250, 126); man(g, 140, 60); hotbar(g, [['wood',2],['coconut',2],['shellfish',1]], 8);
+</script></body></html>

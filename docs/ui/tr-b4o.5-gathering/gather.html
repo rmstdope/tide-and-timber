@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 1 · How does he pick things up?', 'Each option shows the moment before and the moment after. Colours and figures are placeholders.');
+let r = option('Option A — Walk up, press a key', 'Standing next to something, a small key prompt appears over it. One press picks it up. Nothing is taken by accident; one extra press per item.');
+let g = screen(r, 'Next to the driftwood: the prompt shows.');
+beach(g); palm(g, 90, 80); driftwood(g, 160, 96); man(g, 142, 86, 'right');
+plank(g, 150, 76, 38, 13); keycap(g, 'E', 153, 78); text(g, 'Take', 164, 80, C.paper, 6);
+hotbar(g, [], 8);
+g = screen(r, 'After the press: the wood leaves the sand, a short “+1 Driftwood” rises and fades, it lands in the bar.');
+beach(g); palm(g, 90, 80); man(g, 142, 86, 'right');
+text(g, '+1 Driftwood', 150, 72, C.hi, 6);
+hotbar(g, [['wood', 1]], 8);
+
+r = option('Option B — Walk over it', 'Items are picked up the moment he steps on them. Fastest and most relaxed; he also picks up things the player only walked past. A spring or a palm still needs a press.');
+g = screen(r, 'Walking towards the driftwood — no prompt.');
+beach(g); palm(g, 90, 80); driftwood(g, 160, 96); man(g, 130, 86, 'right');
+hotbar(g, [], 8);
+g = screen(r, 'Stepped on it: picked up with the same rising “+1 Driftwood”.');
+beach(g); palm(g, 90, 80); man(g, 158, 86, 'right');
+text(g, '+1 Driftwood', 150, 72, C.hi, 6);
+hotbar(g, [['wood', 1]], 8);
+
+r = option('Option C — Hold a key to gather', 'Next to something, hold the key; a small ring fills over about a second while he crouches and works, then it is his. Feels like effort; slower, and holding is a timed input.');
+g = screen(r, 'Holding E: he crouches, the ring fills.');
+beach(g); palm(g, 90, 80); driftwood(g, 160, 96); man(g, 144, 86, 'right', 'crouch');
+g.strokeStyle = '#00000066'; g.lineWidth = 3; g.beginPath(); g.arc(167, 80, 6, 0, 7); g.stroke();
+g.strokeStyle = C.hi; g.beginPath(); g.arc(167, 80, 6, -1.57, 2.2); g.stroke();
+hotbar(g, [], 8);
+g = screen(r, 'Ring full: picked up.');
+beach(g); palm(g, 90, 80); man(g, 144, 86, 'right');
+text(g, '+1 Driftwood', 150, 72, C.hi, 6);
+hotbar(g, [['wood', 1]], 8);
+</script></body></html>

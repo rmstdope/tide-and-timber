@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 4 · The words', 'Every word the player reads in this piece of work, in two sets. Only the words differ. Colours and figures are placeholders.');
+let r = option('Words 1 — one short verb per place', 'Prompts: “Take” (driftwood, shellfish, a fallen coconut) · “Shake” (palm) · “Crack” (rock) · “Fill” (spring). Rising line after: “+1 Driftwood”, “+1 Shellfish”, “+1 Coconut”, “+1 Empty shell”, “+1 Fresh water”. Resting the pointer on a slot shows its name: “Driftwood”, “Shellfish”, “Coconut”, “Empty shell”, “Fresh water”.');
+let g = screen(r, 'The prompts.'); beach(g); prompt(g, 50, 40, 'E', 'Take'); prompt(g, 120, 40, 'E', 'Shake'); prompt(g, 195, 40, 'E', 'Crack'); prompt(g, 265, 40, 'E', 'Fill');
+text(g, '+1 Driftwood', 80, 80, C.hi, 6, 'center'); text(g, '+1 Fresh water', 230, 80, C.hi, 6, 'center');
+let x0 = hotbar(g, [['wood',6],['coconut',1],['shell',1],['water',2]], 8); plank(g, x0+30, 138, 58, 13); text(g,'Empty shell',x0+59,141,C.paper,6,'center'); cursor(g, x0+42, 164);
+r = option('Words 2 — saying what he does', 'Prompts: “Pick up” (driftwood, shellfish, a fallen coconut) · “Shake palm” · “Crack coconut” · “Fill shell”. Rising line after: “Driftwood +1” and so on. Slot names: “Driftwood”, “Shellfish”, “Coconut”, “Coconut shell”, “Shell of water”.');
+g = screen(r, 'The prompts.'); beach(g); prompt(g, 45, 40, 'E', 'Pick up'); prompt(g, 125, 40, 'E', 'Shake palm'); prompt(g, 210, 58, 'E', 'Crack coconut'); prompt(g, 270, 40, 'E', 'Fill shell');
+text(g, 'Driftwood +1', 80, 90, C.hi, 6, 'center'); text(g, 'Shell of water +1', 230, 90, C.hi, 6, 'center');
+x0 = hotbar(g, [['wood',6],['coconut',1],['shell',1],['water',2]], 8); plank(g, x0+26, 138, 70, 13); text(g,'Coconut shell',x0+61,141,C.paper,6,'center'); cursor(g, x0+42, 164);
+</script></body></html>

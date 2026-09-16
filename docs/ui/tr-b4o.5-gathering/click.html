@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 3 · Clicking from anywhere: the cases around it', 'You chose that clicking something makes him walk there and take it. These are the moments around that. Colours and figures are placeholders.');
+let r = option('Pointing — does something show under the mouse?', 'A1: the thing gets a thin light outline when the pointer is over it, so the player knows it can be clicked. A2: nothing shows; only the pointer.');
+let g = screen(r, 'A1 — outline under the pointer.'); beach(g); driftwood(g, 220, 110); outline(g,220,110,14,6); cursor(g, 226, 113); man(g, 120, 70, 'right'); hotbar(g, [['wood',3]], 8);
+g = screen(r, 'A2 — nothing shows.'); beach(g); driftwood(g, 220, 110); cursor(g, 226, 113); man(g, 120, 70, 'right'); hotbar(g, [['wood',3]], 8);
+r = option('Clicking empty sand', 'B1: he walks to where you clicked, so the mouse can move him everywhere. B2: nothing happens; the mouse only walks him to things he can take.');
+g = screen(r, 'B1 — a small mark where you clicked; he walks there.'); beach(g); man(g, 120, 70, 'right'); rect(g,200,100,5,1,C.hi); rect(g,202,98,1,5,C.hi); cursor(g, 203, 101); hotbar(g, [['wood',3]], 8);
+r = option('A thing he cannot reach (behind rocks, out past the shallows)', 'C1: he walks as close as he can and stops, and “Can’t reach that” rises over him. C2: he doesn’t move, and the same line shows at once.');
+g = screen(r, 'C1 — stopped at the edge of the deep water.'); beach(g); rect(g, 230, 164, 14, 3, C.wood); man(g, 232, 132, 'down'); text(g,'Can’t reach that',238,118,C.paper,6,'center'); cursor(g, 237, 165); hotbar(g, [['wood',3]], 8);
+r = option('Changing your mind while he walks', 'Walking there, pressing any movement key stops him at once and hands control back to the keys; clicking something else sends him there instead. (Shown, not asked; say if it should differ.)');
+</script></body></html>

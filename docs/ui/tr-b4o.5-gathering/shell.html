@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 3 · Where does the shell for carrying water come from?', 'You chose to carry water. That replaces drinking at the spring: the spring prompt becomes “Fill”, and nothing is drunk yet. Each filled shell is one Fresh water; filling uses up an empty shell. Colours and figures are placeholders.');
+let r = option('Option A — Empty shells lie on the beach', 'A few empty coconut shells lie on the sand, picked up like driftwood. Simple and findable; they are one more thing to find.');
+let g = screen(r, 'An empty shell on the sand.'); beach(g); emptyShell(g, 170, 98); man(g, 150, 86, 'right'); prompt(g, 173, 78, 'E', 'Take'); hotbar(g, [['wood',3],['coconut',1]], 8);
+g = screen(r, 'At the spring with 2 shells: one is filled.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up'); prompt(g, 152, 36, 'E', 'Fill'); text(g,'+1 Fresh water',152,26,C.hi,6,'center'); hotbar(g, [['wood',3],['coconut',1],['shell',1],['water',1]], 8);
+r = option('Option B — Crack a coconut on a rock', 'Standing at a rock with a coconut, the prompt says “Crack”: the coconut becomes an empty shell. Coconuts become the thing to find; costs food.');
+g = screen(r, 'At a rock, carrying coconuts.'); beach(g); rock(g, 170, 90); man(g, 152, 84, 'right'); prompt(g, 178, 72, 'E', 'Crack'); hotbar(g, [['wood',3],['coconut',2]], 8);
+g = screen(r, 'After cracking.'); beach(g); rock(g, 170, 90); man(g, 152, 84, 'right'); text(g,'+1 Empty shell',160,70,C.hi,6); hotbar(g, [['wood',3],['coconut',1],['shell',1]], 8);
+r = option('Option C — No shell needed', 'Pressing at the spring simply gives Fresh water. The simplest; no reason to think about how he carries it.');
+g = screen(r, 'At the spring.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up'); prompt(g, 152, 36, 'E', 'Fill'); text(g,'+1 Fresh water',152,26,C.hi,6,'center'); hotbar(g, [['wood',3],['coconut',1],['water',1]], 8);
+g = screen(r, 'State shown in A and B only: at the spring with no empty shell. Prompt greyed, press shows a line.'); beach(g); spring(g, 140, 50); man(g, 148, 70, 'up'); plank(g, 104, 30, 96, 14); text(g, 'You need an empty shell', 152, 34, C.paper, 6, 'center'); hotbar(g, [['wood',3],['coconut',1]], 8);
+</script></body></html>

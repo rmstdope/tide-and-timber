@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="common.js"></script></head><body><script>
+page('Round 2 · How much can he carry?', 'For now there are only three kinds of things (driftwood, coconuts, shellfish), so 8 slots never fill with kinds. The question is how many of one thing a slot holds. Colours and figures are placeholders.');
+let r = option('Option A — No limit', 'A slot just counts up, 99 and past it. He never has to leave anything behind. Nothing to explain; hoarding is free.');
+let g = screen(r, 'A big pile of driftwood.'); beach(g); driftwood(g, 170, 96); man(g, 152, 86, 'right');
+plank(g, 160, 76, 38, 13); keycap(g, 'E', 163, 78); text(g, 'Take', 174, 80, C.paper, 6);
+hotbar(g, [['wood',143],['coconut',12],['shellfish',30]], 8);
+r = option('Option B — Up to 20 of each; then it stays on the sand', 'A full slot shows its number in yellow. Pressing at a 21st piece of driftwood shows “Can’t carry more driftwood” and the wood stays where it is. Choosing what to carry becomes part of the game.');
+g = screen(r, 'Trying to take a 21st piece.'); beach(g); driftwood(g, 170, 96); man(g, 152, 86, 'right');
+plank(g, 118, 72, 104, 14); text(g, 'Can’t carry more driftwood', 170, 76, C.paper, 6, 'center');
+const x0 = hotbar(g, [['wood',null],['coconut',12],['shellfish',8]], 8); text(g, '20', x0+3+15, 170, C.hi, 5, 'right');
+r = option('Option C — Up to 20, but a second slot starts', 'After 20, driftwood goes on in the next empty slot (20 + 3). Only when all 8 slots are used does he stop, with the same message as B. Most familiar from farming games; rarely reached now.');
+g = screen(r, '23 pieces of driftwood across two slots.'); beach(g); man(g, 152, 86, 'right');
+text(g, '+1 Driftwood', 160, 72, C.hi, 6); hotbar(g, [['wood',20],['coconut',12],['shellfish',8],['wood',3]], 8);
+</script></body></html>
