@@ -63,3 +63,26 @@ func test_pause_action_is_bound() -> void:
 	event.physical_keycode = KEY_ESCAPE
 	event.pressed = true
 	assert_bool(InputMap.event_is_action(event, "pause")).is_true()
+
+func test_box_actions_are_bound() -> void:
+	var keys := {"menu_left": KEY_LEFT, "menu_right": KEY_RIGHT, "menu_cancel": KEY_ESCAPE}
+	for action: String in keys:
+		var e := InputEventKey.new()
+		e.physical_keycode = keys[action]
+		e.pressed = true
+		assert_bool(InputMap.has_action(action) and InputMap.event_is_action(e, action)) \
+			.override_failure_message("%s key" % action).is_true()
+	var buttons := {"menu_left": JOY_BUTTON_DPAD_LEFT, "menu_right": JOY_BUTTON_DPAD_RIGHT, "menu_accept": JOY_BUTTON_A, "menu_cancel": JOY_BUTTON_B}
+	for action: String in buttons:
+		var b := InputEventJoypadButton.new()
+		b.button_index = buttons[action]
+		b.pressed = true
+		assert_bool(InputMap.has_action(action) and InputMap.event_is_action(b, action)) \
+			.override_failure_message("%s button" % action).is_true()
+	var axes := {"menu_left": -1.0, "menu_right": 1.0}
+	for action: String in axes:
+		var m := InputEventJoypadMotion.new()
+		m.axis = JOY_AXIS_LEFT_X
+		m.axis_value = axes[action]
+		assert_bool(InputMap.has_action(action) and InputMap.event_is_action(m, action)) \
+			.override_failure_message("%s stick" % action).is_true()

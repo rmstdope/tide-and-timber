@@ -9,6 +9,7 @@ var beach: Beach
 var builder: Builder
 var player: Player
 var inventory: Inventory
+var saves: Array[SaveData] = []   # what the dawn autosave would have written; never the real slot
 
 func before_test() -> void:
 	runner = scene_runner("res://src/waking/waking.tscn")
@@ -23,6 +24,16 @@ func before_test() -> void:
 	builder = beach.get_node("%Builder") as Builder
 	player = waking.player
 	inventory = beach.inventory
+	saves.clear()
+	var autosave := waking.get_node("%Autosave") as Autosave
+	autosave.set_process(false)
+	autosave.save_game = func() -> Error:
+		saves.append(beach.capture())
+		return OK
+
+func after_test() -> void:
+	if is_instance_valid(waking):
+		waking.get_tree().paused = false
 
 func _n(unique: String) -> Node:
 	return waking.get_node("%" + unique)

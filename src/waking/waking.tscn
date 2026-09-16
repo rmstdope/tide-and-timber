@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://src/night/frost.gd" id="6_frost"]
 [ext_resource type="Script" path="res://src/night/morning_card_view.gd" id="7_card"]
 [ext_resource type="Script" path="res://src/hud/hint_view.gd" id="8_hint"]
+[ext_resource type="PackedScene" path="res://src/autosave/autosave.tscn" id="9_autosave"]
 
 [node name="Waking" type="Node2D"]
 script = ExtResource("1_waking")
@@ -16,6 +17,9 @@ script = ExtResource("1_waking")
 unique_name_in_owner = true
 
 [node name="DayNight" parent="." instance=ExtResource("3_daynight")]
+unique_name_in_owner = true
+
+[node name="Autosave" parent="." instance=ExtResource("9_autosave")]
 unique_name_in_owner = true
 
 [node name="Surf" type="AudioStreamPlayer" parent="."]

@@ -166,3 +166,15 @@ func test_click_during_collapse_is_swallowed() -> void:
 	assert_bool(_walker().is_walking()).is_false()
 	night.tick(100.0)
 	assert_bool(_walker().is_walking()).is_false()
+
+func test_saved_once_when_he_gets_up_with_the_loss_applied() -> void:
+	inventory.add(K.DRIFTWOOD, 9)
+	await await_idle_frame()
+	_collapse_now()
+	night.tick(2.5)
+	assert_int(saves.size()).is_equal(0)
+	night.tick(100.0)
+	assert_int(saves.size()).is_equal(1)
+	assert_int(saves[0].inventory_slots[0]["count"]).is_equal(5)
+	dn.tick(1.0)
+	assert_int(saves.size()).is_equal(1)

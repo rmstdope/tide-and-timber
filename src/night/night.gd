@@ -119,6 +119,7 @@ func _on_got_up() -> void:
 	player.give_control()
 	beach.get_node("%Interactor").process_mode = _interactor_mode
 	collapse = null
+	day_night.dawn.emit()   # the jump to 06:00 skipped tick(); the loss is applied, so it is what gets saved
 
 func _refresh() -> void:
 	%Frost.set_amount(watch.frost)

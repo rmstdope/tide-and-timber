@@ -11,6 +11,7 @@ func _sample() -> SaveData:
 	d.inventory_slots = slots
 	var cells: Array[Vector2i] = [Vector2i(1, 2)]
 	d.taken = {"driftwood": cells}
+	d.clock_minutes = 1800.0
 	return d
 
 func _rm(path: String) -> void:
@@ -33,6 +34,7 @@ func _assert_same(a: SaveData, b: SaveData) -> void:
 	assert_int(a.player_facing).is_equal(b.player_facing)
 	assert_array(a.inventory_slots).is_equal(b.inventory_slots)
 	assert_dict(a.taken).is_equal(b.taken)
+	assert_float(a.clock_minutes).is_equal(b.clock_minutes)
 
 func test_nothing_saved_means_not_exists() -> void:
 	assert_bool(SaveStore.exists(DIR)).is_false()
@@ -42,7 +44,7 @@ func test_write_makes_one_small_file_per_stem() -> void:
 	assert_int(SaveStore.save_slot(_sample(), DIR)).is_equal(OK)
 	var files := Array(DirAccess.get_files_at(DIR))
 	files.sort()
-	assert_array(files).is_equal(["inventory.json", "meta.json", "player.json", "world.json"])
+	assert_array(files).is_equal(["clock.json", "inventory.json", "meta.json", "player.json", "world.json"])
 	assert_bool(SaveStore.exists(DIR)).is_true()
 
 func test_save_then_load_round_trips() -> void:
@@ -75,3 +77,47 @@ func test_unwritable_dir_returns_error() -> void:
 
 func test_slot_dir_is_under_saves() -> void:
 	assert_str(SaveStore.SLOT_DIR).is_equal("user://saves/slot_1")
+
+func _put(path: String, text: String) -> void:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(text)
+	f.close()
+
+func test_interrupted_replace_recovers_the_new_set() -> void:
+	var old := _sample()
+	SaveStore.save_slot(old, DIR)
+	var new := _sample()
+	new.player_position = Vector2(12, 34)
+	new.clock_minutes = 3240.0
+	var files := new.to_files()
+	# the new set was written to .tmp, then the replace loop died after player and inventory
+	for stem: String in files:
+		_put(DIR.path_join(stem + ".json.tmp"), JSON.stringify(files[stem]))
+	for stem in ["player", "inventory"]:
+		DirAccess.remove_absolute(DIR.path_join(stem + ".json"))
+		DirAccess.rename_absolute(DIR.path_join(stem + ".json.tmp"), DIR.path_join(stem + ".json"))
+	DirAccess.remove_absolute(DIR.path_join("world.json"))
+	var loaded := SaveStore.load_slot(DIR)
+	assert_object(loaded).is_not_null()
+	assert_vector(loaded.player_position).is_equal(Vector2(12, 34))
+	assert_float(loaded.clock_minutes).is_equal(3240.0)
+	assert_bool(SaveStore.exists(DIR)).is_true()
+
+func test_unfinished_tmp_write_keeps_the_old_set() -> void:
+	SaveStore.save_slot(_sample(), DIR)
+	_put(DIR.path_join("player.json.tmp"), JSON.stringify({"x": 1, "y": 2, "facing": "up"}))
+	_put(DIR.path_join("meta.json.tmp"), "{\"vers")
+	var loaded := SaveStore.load_slot(DIR)
+	assert_object(loaded).is_not_null()
+	assert_vector(loaded.player_position).is_equal(Vector2(400, 200))
+
+func test_next_save_after_an_interrupted_one_is_clean() -> void:
+	SaveStore.save_slot(_sample(), DIR)
+	_put(DIR.path_join("meta.json.tmp"), "{\"vers")
+	var d := _sample()
+	d.player_position = Vector2(7, 8)
+	assert_int(SaveStore.save_slot(d, DIR)).is_equal(OK)
+	var files := Array(DirAccess.get_files_at(DIR))
+	files.sort()
+	assert_array(files).is_equal(["clock.json", "inventory.json", "meta.json", "player.json", "world.json"])
+	assert_vector(SaveStore.load_slot(DIR).player_position).is_equal(Vector2(7, 8))

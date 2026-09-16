@@ -52,3 +52,13 @@ func dial_fraction() -> float:
 
 func sunsets_passed() -> int:
 	return int(floor((total_minutes - SUNSET_LINE_MINUTE) / MINUTES_PER_DAY))
+
+
+## How many 06:00s have passed since DAY 1 00:00: 0 on DAY 1 afternoon, 1 from DAY 2 06:00.
+func dawns_passed() -> int:
+	return int(floor((total_minutes - DAY_START_MINUTE) / MINUTES_PER_DAY))
+
+
+## The total minutes of the most recent 06:00 at or before now.
+func last_dawn_minutes() -> float:
+	return float(dawns_passed() * MINUTES_PER_DAY + DAY_START_MINUTE)

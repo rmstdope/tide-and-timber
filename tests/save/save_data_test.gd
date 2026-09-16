@@ -11,6 +11,7 @@ func _sample() -> SaveData:
 	var cells: Array[Vector2i] = [Vector2i(30, 13)]
 	var none: Array[Vector2i] = []
 	d.taken = {"driftwood": cells, "shellfish": none}
+	d.clock_minutes = 1800.0
 	return d
 
 func _json_files() -> Dictionary:
@@ -29,6 +30,7 @@ func test_to_files_exact_shape() -> void:
 	assert_int(files["inventory"]["slots"].size()).is_equal(8)
 	assert_array(files["world"]["taken"]["driftwood"]).is_equal([[30, 13]])
 	assert_array(files["world"]["taken"]["shellfish"]).is_equal([])
+	assert_dict(files["clock"]).is_equal({"total_minutes": 1800.0})
 
 func test_round_trip_through_json_text() -> void:
 	var d := SaveData.from_files(_json_files())
@@ -41,6 +43,7 @@ func test_round_trip_through_json_text() -> void:
 	assert_int(typeof(d.inventory_slots[0]["count"])).is_equal(TYPE_INT)
 	assert_dict(d.taken).is_equal(s.taken)
 	assert_int(typeof(d.taken["driftwood"][0])).is_equal(TYPE_VECTOR2I)
+	assert_float(d.clock_minutes).is_equal(1800.0)
 
 func _rejected(mutate: Callable) -> void:
 	var files := _json_files()
@@ -61,3 +64,6 @@ func test_rejects() -> void:
 	_rejected(func(f: Dictionary) -> void: f["player"] = "oops")
 	_rejected(func(f: Dictionary) -> void: f["player"]["x"] = "1")
 	_rejected(func(f: Dictionary) -> void: f["world"]["taken"] = [])
+	_rejected(func(f: Dictionary) -> void: f.erase("clock"))
+	_rejected(func(f: Dictionary) -> void: f["clock"]["total_minutes"] = "1800")
+	_rejected(func(f: Dictionary) -> void: f["clock"]["total_minutes"] = -1.0)

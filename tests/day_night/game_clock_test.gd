@@ -70,3 +70,14 @@ func test_sunsets_passed_counts_each_18_30() -> void:
 	assert_int(_at(1110.0).sunsets_passed()).is_equal(0)
 	assert_int(_at(1440.0 + 1109.0).sunsets_passed()).is_equal(0)
 	assert_int(_at(1440.0 + 1110.0).sunsets_passed()).is_equal(1)
+
+func test_dawns_passed() -> void:
+	assert_int(GameClock.new().dawns_passed()).is_equal(0)
+	assert_int(_at(1799.0).dawns_passed()).is_equal(0)
+	assert_int(_at(1800.0).dawns_passed()).is_equal(1)
+	assert_int(_at(3240.0).dawns_passed()).is_equal(2)
+
+func test_last_dawn_minutes() -> void:
+	assert_float(_at(1800.67).last_dawn_minutes()).is_equal(1800.0)
+	assert_float(_at(3000.0).last_dawn_minutes()).is_equal(1800.0)
+	assert_float(_at(3240.0).last_dawn_minutes()).is_equal(3240.0)
