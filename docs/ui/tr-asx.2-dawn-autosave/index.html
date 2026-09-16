@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Dawn autosave — agreed</title><script src="common.js"></script></head><body><script>
+const D=dial(0,"06:00","DAY 2");
+const L=w=>r(40,150,240,16,"#000","opacity=\".45\"")+journal(46,152)+t(166,161,w,5,P.text,"middle");
+const box=sel=>beach()+dawnTint+D+r(0,0,320,180,'#000','opacity=".35"')+r(66,56,188,70,P.plankDk)+r(68,58,184,66,P.plank)+journalX(76,64)+t(92,73,"The day couldn't be saved.",5)+t(160,90,'Your progress since yesterday',5,P.text,'middle')+t(160,99,'may be lost if you quit.',5,P.text,'middle')+r(84,106,70,13,sel==0?'#ffd58a':P.plankDk)+t(119,115,'Try again',5,sel==0?P.plankDk:P.text,'middle')+r(166,106,70,13,sel==1?'#ffd58a':P.plankDk)+t(201,115,'Keep playing',5,sel==1?P.plankDk:P.text,'middle');
+page('Dawn autosave — agreed','At 06:00 every in-game morning the game saves without stopping play, and he says one line with a small journal beside it. If the save cannot be written, play stops on a box. Each picture is the game\'s 320×180 screen; scene art, colours and the journal are indicative.',[
+ fig('DAY 1, 13:00 — no save yet','Nothing is saved on the first afternoon; the first save is DAY 2 at 06:00.',beach()+dial(.33,'13:00','DAY 1')),
+ fig('05:50 — just before dawn','Nothing shown.',beach()+dawnTint+dial(1,'05:50','DAY 2')),
+ fig('06:00 — saved','Journal + "Another morning. Still here." on the sunset line\'s band, fades in, about 3 seconds, fades out.',beach()+dawnTint+D+L('Another morning. Still here.')),
+ fig('06:00 after a collapse','He wakes, the loss is applied, then the save and the same line.',beach()+dawnTint+D+L('Another morning. Still here.')),
+ fig('Save failed — box opens','Play and clock stop. "Try again" highlighted. Esc / B = Keep playing.',box(0)),
+ fig('Keep playing chosen','Box gone, play resumes, no line. Tried again at the next dawn.',beach()+dawnTint+D)]);
+</script></body></html>
