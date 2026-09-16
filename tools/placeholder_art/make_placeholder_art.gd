@@ -59,6 +59,12 @@ func _init() -> void:
 	for i in patterns.size():
 		_pattern(glyphs, Vector2i(4 * i, 0), patterns[i], Color("#ffffff"))
 	_save(glyphs, "res://assets/hud/glyphs.png")
+	_save(_drawn(10, 4, [[0, 0, 4, 4, "#6b4226"], [6, 0, 4, 4, "#6b4226"], [1, 1, 1, 1, "#8b5a36"],
+		[7, 1, 1, 1, "#8b5a36"]]), "res://assets/beach/palm_coconuts.png")
+	_save(_drawn(6, 6, [[0, 0, 6, 6, "#6b4226"], [1, 1, 2, 1, "#8b5a36"]]), "res://assets/beach/coconut.png")
+	_save(_drawn(32, 24, [[2, 0, 28, 14, "#8a8378"], [6, 3, 20, 8, "#7fd3e6"], [8, 4, 6, 1, "#cff3fa"],
+		[2, 11, 28, 3, "#625c53"], [14, 14, 3, 10, "#7fd3e6"]]), "res://assets/beach/spring.png")
+
 	quit()
 
 func _blank(w: int, h: int) -> Image:

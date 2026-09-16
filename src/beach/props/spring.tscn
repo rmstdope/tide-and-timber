@@ -1,24 +1,24 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/beach/rock.png" id="1_tex"]
+[ext_resource type="Texture2D" path="res://assets/beach/spring.png" id="1_tex"]
 [ext_resource type="Script" path="res://src/interact/exchange.gd" id="2_exchange"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_base"]
-size = Vector2(12, 8)
+size = Vector2(28, 10)
 
-[node name="Rock" type="StaticBody2D"]
+[node name="Spring" type="StaticBody2D"]
 
 [node name="Sprite" type="Sprite2D" parent="."]
-offset = Vector2(0, -8)
+offset = Vector2(0, -2)
 texture = ExtResource("1_tex")
 
 [node name="Base" type="CollisionShape2D" parent="."]
-position = Vector2(0, -4)
+position = Vector2(0, -5)
 shape = SubResource("RectangleShape2D_base")
 
-[node name="Crack" type="Node2D" parent="."]
+[node name="Fill" type="Node2D" parent="."]
 script = ExtResource("2_exchange")
-verb = "Crack"
-prompt_offset = Vector2(0, -12)
-takes = 2
-gives = 3
+verb = "Fill"
+prompt_offset = Vector2(0, -16)
+takes = 3
+gives = 4
