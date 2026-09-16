@@ -22,3 +22,9 @@ func test_art_sizes() -> void:
 		assert_object(texture).override_failure_message("%s did not load" % path).is_not_null()
 		if texture:
 			assert_vector(Vector2(texture.get_size())).override_failure_message(path).is_equal(Vector2(SIZES[path]))
+
+func test_wake_art_size() -> void:
+	var texture := load("res://assets/man/man_wake.png") as Texture2D
+	assert_object(texture).is_not_null()
+	if texture:
+		assert_vector(Vector2(texture.get_size())).is_equal(Vector2(72, 24))
