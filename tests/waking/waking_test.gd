@@ -96,3 +96,6 @@ func test_waves_are_heard_on_the_beach() -> void:
 	assert_bool((_node("Surf") as SurfSound).audible).is_true()
 	waking.tick(1.0)
 	assert_float((_node("Surf") as AudioStreamPlayer).volume_linear).is_equal_approx(0.6, 0.001)
+
+func test_beach_builder_gets_the_clock() -> void:
+	assert_object(_node("Beach").get_node("%Builder").day_night).is_same(_node("DayNight"))

@@ -13,6 +13,7 @@ var _last_position := Vector2.ZERO
 
 func _ready() -> void:
 	player = %Beach.get_node("%Player")
+	%Beach.set_day_night(%DayNight)
 	ManFrames.add_waking(player.get_node("%Sprite").sprite_frames, WAKE_SHEET)
 	player.control_enabled = false
 	player.global_position = BeachLayout.cell_centre(WAKE_CELL)

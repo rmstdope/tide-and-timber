@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/beach/beach.gd" id="1_beach"]
 [ext_resource type="PackedScene" path="res://src/player/player.tscn" id="2_player"]
@@ -7,6 +7,11 @@
 [ext_resource type="Script" path="res://src/hud/use_prompt.gd" id="5_prompt"]
 [ext_resource type="Script" path="res://src/hud/item_bar.gd" id="6_bar"]
 [ext_resource type="Script" path="res://src/interact/click_walker.gd" id="7_walker"]
+[ext_resource type="Script" path="res://src/camp/build_ghost.gd" id="7_ghost"]
+[ext_resource type="Script" path="res://src/camp/builder.gd" id="8_builder"]
+[ext_resource type="Script" path="res://src/camp/build_sound.gd" id="9_sound"]
+[ext_resource type="Script" path="res://src/camp/build_list.gd" id="10_list"]
+[ext_resource type="Script" path="res://src/camp/key_hint.gd" id="11_hint"]
 
 [node name="Beach" type="Node2D"]
 script = ExtResource("1_beach")
@@ -24,6 +29,10 @@ y_sort_enabled = true
 [node name="Player" parent="World" instance=ExtResource("2_player")]
 unique_name_in_owner = true
 
+[node name="Ghost" type="Node2D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("7_ghost")
+
 [node name="Prompt" type="Node2D" parent="."]
 unique_name_in_owner = true
 script = ExtResource("5_prompt")
@@ -36,6 +45,14 @@ script = ExtResource("4_interactor")
 unique_name_in_owner = true
 script = ExtResource("7_walker")
 
+[node name="Builder" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("8_builder")
+
+[node name="BuildSound" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+script = ExtResource("9_sound")
+
 [node name="Camera" type="Camera2D" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_camera")
@@ -46,3 +63,34 @@ layer = 10
 [node name="ItemBar" type="Control" parent="Hud"]
 unique_name_in_owner = true
 script = ExtResource("6_bar")
+
+[node name="BuildBlocker" type="Control" parent="Hud"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+
+[node name="BuildList" type="Control" parent="Hud"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("10_list")
+
+[node name="KeyHint" type="Control" parent="Hud"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("11_hint")
+
+[node name="Cover" type="CanvasLayer" parent="."]
+layer = 30
+
+[node name="BuildCover" type="ColorRect" parent="Cover"]
+unique_name_in_owner = true
+visible = false
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

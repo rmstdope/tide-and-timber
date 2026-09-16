@@ -42,3 +42,11 @@ func _refresh() -> void:
 	%Dial.queue_redraw()
 	%Sunset.visible = sunset.is_showing()
 	%Sunset.modulate.a = sunset.alpha()
+
+
+## Moves the clock on at once and refreshes. True if an 18:30 was crossed. Does not start the line.
+func add_minutes(minutes: float) -> bool:
+	var before := clock.sunsets_passed()
+	clock.total_minutes += minutes
+	_refresh()
+	return clock.sunsets_passed() > before

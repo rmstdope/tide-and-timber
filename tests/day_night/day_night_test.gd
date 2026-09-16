@@ -90,3 +90,20 @@ func test_sunset_line_runs_in_real_seconds_at_any_time_scale() -> void:
 	assert_bool(_n("Sunset").visible).is_true()
 	dn.tick(1.0)
 	assert_bool(_n("Sunset").visible).is_false()
+
+func test_add_minutes_moves_clock_and_refreshes() -> void:
+	dn.start()
+	assert_bool(dn.add_minutes(30.0)).is_false()
+	assert_float(dn.clock.total_minutes).is_equal(810.0)
+	assert_str(_n("TimeLabel").text).is_equal("13:30")
+
+func test_add_minutes_reports_sunset_crossed_without_starting_line() -> void:
+	dn.start()
+	dn.clock.total_minutes = 1100.0
+	assert_bool(dn.add_minutes(30.0)).is_true()
+	assert_bool(dn.sunset.is_showing()).is_false()
+
+func test_add_minutes_not_crossing_1830() -> void:
+	dn.start()
+	dn.clock.total_minutes = 1115.0
+	assert_bool(dn.add_minutes(30.0)).is_false()
