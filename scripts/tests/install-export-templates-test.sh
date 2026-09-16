@@ -135,6 +135,19 @@ test_download_failure_exits_1() {
   done_sb
 }
 
+test_wrong_version_archive_installs_nothing() {
+  local t="${FUNCNAME[0]}"; sandbox; make_fake_godot 4.7.2.stable.official.ed1daf0bf; make_release 4.7.2
+  local tpz="$S/rel/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
+  printf '4.7.1.stable\n' > "$S/src/templates/version.txt"; rm -f "$tpz"
+  (cd "$S/src" && zip -qr "$tpz" templates)
+  echo "$(shasum -a 512 "$tpz" | awk '{print $1}')  Godot_v4.7.2-stable_export_templates.tpz" > "$S/rel/4.7.2-stable/SHA512-SUMS.txt"
+  run_it
+  if [ "$code" -eq 1 ] && grep -qF 'Godot_v4.7.2-stable_export_templates.tpz does not hold templates for 4.7.2.stable' "$S/err" \
+    && [ ! -e "$T/4.7.2.stable" ] && no_staging; then ok "$t"
+  else fail "$t" "code=$code err=$(cat "$S/err")"; fi
+  done_sb
+}
+
 test_arguments_exit_2
 test_missing_godot_exits_1
 test_non_stable_version_exits_1
@@ -145,4 +158,5 @@ test_version_without_patch_uses_short_tag
 test_checksum_mismatch_installs_nothing
 test_unlisted_archive_installs_nothing
 test_download_failure_exits_1
+test_wrong_version_archive_installs_nothing
 exit "$failed"

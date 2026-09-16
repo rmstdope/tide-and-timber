@@ -22,6 +22,7 @@ sandbox() {
 echo "\$*" >> $S/calls
 for out in "\$@"; do :; done
 [ "\${FAKE_GODOT_NO_FILE:-}" = 1 ] || echo x > "\$out"
+case "\$*" in *Windows*) exit \${FAKE_GODOT_WIN_EXIT:-\${FAKE_GODOT_EXIT:-0}} ;; esac
 exit \${FAKE_GODOT_EXIT:-0}
 FAKE
   chmod +x "$S/repo/scripts/gate-fast" "$S/repo/scripts/install-export-templates" "$S/bin/godot"
@@ -104,6 +105,15 @@ test_stale_build_is_removed() {
   done_sb
 }
 
+test_windows_failure_after_macos_fails() {
+  local t="${FUNCNAME[0]}"; sandbox
+  FAKE_GODOT_WIN_EXIT=4 run_gate
+  if [ "$code" -eq 1 ] && grep -qF 'gate-full: export failed: Windows (godot exit 4)' "$S/err" \
+    && ! grep -qF 'gate-full: ok' "$S/err"; then ok "$t"
+  else fail "$t" "code=$code err=$(cat "$S/err")"; fi
+  done_sb
+}
+
 test_runs_gate_fast_templates_then_both_exports_in_order
 test_gate_fast_failure_stops_everything
 test_template_failure_stops_exports
@@ -111,4 +121,5 @@ test_godot_nonzero_exit_names_target
 test_export_without_file_fails
 test_arguments_exit_2
 test_stale_build_is_removed
+test_windows_failure_after_macos_fails
 exit "$failed"
