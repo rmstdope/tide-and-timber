@@ -1,0 +1,64 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Day and night clock — agreed</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>:root{--bg:#f7efe0;--ink:#2b2230;--dim:#7a6b5e;--card:#fffaf0}
+@media (prefers-color-scheme:dark){:root{--bg:#17151c;--ink:#efe6d6;--dim:#a79a8c;--card:#221f29}}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}
+h1{font-size:22px;margin:0 0 4px}.lede{color:var(--dim);max-width:75ch;margin:0 0 20px}
+h2{font-size:17px;margin:40px 0 4px;padding-top:12px;border-top:2px solid #d9ae62}
+h3{font-size:15px;margin:20px 0 6px}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+figure{margin:0;background:var(--card);border-radius:8px;padding:8px}
+svg.px{width:100%;height:auto;display:block;image-rendering:pixelated;border-radius:3px}
+figcaption{font-size:13px;padding:6px 2px 0}figcaption b{display:block}figcaption span{color:var(--dim)}
+.cost{background:var(--card);border-left:4px solid #d9ae62;padding:8px 12px;max-width:75ch;border-radius:4px;margin:8px 0}
+text{font-family:'Press Start 2P',monospace}
+</style></head><body>
+<h1>Day and night clock — agreed</h1>
+<p class="lede">A sun-dial clock with DAY and a 24-hour time, top-left. The light shifts smoothly toward a deep blue night that stays readable. He wakes at 13:00, and one in-game hour takes 1½ real minutes (about 10½ minutes to dark). At 18:30 one line appears in his voice. Night runs at the same pace to morning. Each picture is the game's 320×180 screen; scene art and colours are indicative.</p>
+<h2>Through the first day</h2><div class="strip" id="day"></div>
+<h2>Night into morning</h2><div class="strip" id="night"></div>
+<script>
+const P={sand:'#f0cf8a',sandDk:'#d9ae62',wet:'#c49a5a',shallow:'#4fa3a5',foam:'#d8e6e8',grass:'#6a9a3e',palm:'#3f7a3a',woodDk:'#5c3a22',wood:'#8a5a34',skin:'#e0a172',shirt:'#b8462e',pants:'#3d4f6e',hair:'#4a2c1a',text:'#fff6e0',plank:'#8a5a34',plankDk:'#5c3a22'};
+const r=(x,y,w,h,c,o='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}" ${o}/>`;
+const t=(x,y,s,sz=6,c=P.text,a='start')=>`<text x="${x}" y="${y}" font-size="${sz}" fill="${c}" text-anchor="${a}">${s}</text>`;
+const svg=i=>`<svg class="px" viewBox="0 0 320 180" shape-rendering="crispEdges">${i}</svg>`;
+function beach(){let s=r(0,0,320,180,P.sand)+r(0,0,320,34,P.shallow)+r(0,34,320,6,P.foam)+r(0,40,320,8,P.wet);
+ for(let x=0;x<320;x+=16)for(let y=48;y<180;y+=16)if((x*7+y*3)%5===0)s+=r(x+5,y+6,3,2,P.sandDk);
+ s+=r(0,150,320,30,P.grass)+r(30,128,6,26,P.woodDk)+r(14,118,40,12,P.palm)+r(270,132,6,22,P.woodDk)+r(254,122,40,12,P.palm);
+ s+=r(200,100,22,4,P.wood)+r(96,112,14,3,P.wood);
+ s+=r(153,82,6,6,P.skin)+r(153,82,6,2,P.hair)+r(152,88,8,7,P.shirt)+r(153,95,2,5,P.pants)+r(157,95,2,5,P.pants);return s}
+function tint(c,o){return o?r(0,0,320,180,c,`opacity="${o}"`):''}
+const phases={noon:['#000',0],late:['#ffb060',.12],sunset:['#ff7a3c',.28],dusk:['#5a3c7a',.42],night:['#101a40',.58]};
+function glow(){return `<circle cx="156" cy="90" r="22" fill="#ffd58a" opacity=".18"/>`}
+function hudSign(label,warn=false){return r(6,6,74,16,P.plankDk)+r(7,7,72,14,P.plank)+t(43,17,label,6,warn?'#ffd58a':P.text,'middle')}
+function hudDial(frac,label){const cx=30,cy=22,R=16;let s=r(6,4,50,30,P.plankDk)+r(7,5,48,28,P.plank);
+ s+=`<path d="M${cx-R} ${cy} A${R} ${R} 0 0 1 ${cx+R} ${cy}" stroke="#f6e3b0" stroke-width="2" fill="none"/>`;
+ const a=Math.PI*(1-frac),x=cx+R*Math.cos(a),y=cy-R*Math.sin(a);s+=`<circle cx="${x}" cy="${y}" r="3" fill="${frac<.8?'#ffd24a':'#e8ecff'}"/>`;
+ s+=t(cx,cy+9,label,5,P.text,'middle');return s}
+function hudBar(frac){let s=r(110,6,100,10,P.plankDk)+r(111,7,98,8,'#3a6fa0')+r(111,7,70,8,'#e9b85c')+r(181,7,10,8,'#c0623a');
+ const x=111+Math.round(frac*94);s+=r(x-1,4,5,14,'#fff6e0')+r(x,5,3,12,frac<.7?'#ffd24a':'#e8ecff');return s}
+function fig(id,title,sub,inner){return `<figure id="${id}">${svg(inner)}<figcaption><b>${title}</b><span>${sub}</span></figcaption></figure>`}
+const put=(id,html)=>document.getElementById(id).innerHTML=html;
+
+
+function dial(frac,label,day){const cx=30,cy=day?26:22,R=16,h=day?34:30;let s=r(6,4,50,h,P.plankDk)+r(7,5,48,h-2,P.plank);
+ if(day)s+=t(cx,13,day,5,P.text,'middle');
+ s+=`<path d="M${cx-R} ${cy} A${R} ${R} 0 0 1 ${cx+R} ${cy}" stroke="#f6e3b0" stroke-width="2" fill="none"/>`;
+ const a=Math.PI*(1-frac),x=cx+R*Math.cos(a),y=cy-R*Math.sin(a);const sun=frac<.78;
+ s+=sun?`<circle cx="${x}" cy="${y}" r="3" fill="#ffd24a"/>`:`<circle cx="${x}" cy="${y}" r="3" fill="#e8ecff"/><circle cx="${x+1.5}" cy="${y-1.5}" r="2.5" fill="${P.plank}"/>`;
+ s+=t(cx,cy+9,label,5,P.text,'middle');return s}
+const line=w=>r(40,150,240,16,'#000','opacity=".45"')+t(160,161,w,6,P.text,'middle');
+
+const T=(o)=>tint(...o);
+const F=(x)=>x; // frac along the arc: sun 06:00→20:00, moon 20:00→06:00
+const sunF=h=>(h-6)/14*.78, moonF=h=>.78+((h>=20?h-20:h+4)/10)*.22;
+put('day',
+ fig('s1','13:00 — control given','The clock starts when he stands up after waking. Full daylight.',beach()+dial(sunF(13),'13:00','DAY 1'))+
+ fig('s2','16:30 — late afternoon','The light is already a little warmer. The time moves on every 10 in-game minutes.',beach()+T(phases.late)+dial(sunF(16.5),'16:30','DAY 1'))+
+ fig('s3','18:30 — the sunset line','The line fades in, stays about 4 seconds, then fades out. Once each evening.',beach()+T(phases.sunset)+dial(sunF(18.5),'18:30','DAY 1')+line("It'll be dark soon. I need shelter.")))
+;
+put('night',
+ fig('s4','20:00 — dark','The sun reaches the right end of the arc and a moon starts from the left.',beach()+T(phases.dusk)+dial(.8,'20:00','DAY 1'))+
+ fig('s5','01:00 — deepest night','Deep blue, never black. The day number turned to DAY 2 at 00:00.',beach()+T(phases.night)+glow()+dial(.9,'01:00','DAY 2'))+
+ fig('s6','06:00 — morning','The moon turns back into a sun at the left and the light returns to full day over the next hour.',beach()+tint('#ffb060',.2)+dial(0,'06:00','DAY 2')));
+</script></body></html>
