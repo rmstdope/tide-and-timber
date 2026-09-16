@@ -1,6 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/beach/palm.png" id="1_tex"]
+[ext_resource type="Texture2D" path="res://assets/beach/palm_coconuts.png" id="2_crown"]
+[ext_resource type="Script" path="res://src/interact/shake.gd" id="3_shake"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_base"]
 size = Vector2(6, 6)
@@ -14,3 +16,14 @@ texture = ExtResource("1_tex")
 [node name="Base" type="CollisionShape2D" parent="."]
 position = Vector2(0, -3)
 shape = SubResource("RectangleShape2D_base")
+
+[node name="Crown" type="Sprite2D" parent="."]
+position = Vector2(0, -32)
+texture = ExtResource("2_crown")
+
+[node name="Shake" type="Node2D" parent="." node_paths=PackedStringArray("crown", "tree_sprite")]
+script = ExtResource("3_shake")
+verb = "Shake"
+prompt_offset = Vector2(0, -48)
+crown = NodePath("../Crown")
+tree_sprite = NodePath("../Sprite")

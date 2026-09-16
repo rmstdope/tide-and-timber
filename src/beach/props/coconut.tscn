@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/beach/coconut.png" id="1_tex"]
+[ext_resource type="Script" path="res://src/interact/pickup.gd" id="2_pickup"]
+
+[node name="Coconut" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+offset = Vector2(0, -3)
+texture = ExtResource("1_tex")
+
+[node name="Pickup" type="Node2D" parent="."]
+script = ExtResource("2_pickup")
+verb = "Take"
+prompt_offset = Vector2(0, -8)
+item = 2

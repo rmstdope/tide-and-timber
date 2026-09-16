@@ -46,6 +46,7 @@ func _all_props() -> Array[Vector2i]:
 	cells.append_array(BeachLayout.BOULDERS)
 	cells.append_array(BeachLayout.DRIFTWOOD)
 	cells.append_array(BeachLayout.SHELLFISH)
+	cells.append_array(BeachLayout.SPRINGS)
 	return cells
 
 func test_shellfish_on_wet_sand() -> void:
@@ -66,7 +67,7 @@ func test_both_headlands_reachable() -> void:
 	var blocked := {}
 	for c in BeachLayout.ROCKS: blocked[c] = true
 	for c in BeachLayout.PALMS: blocked[c] = true
-	for c in BeachLayout.BOULDERS:
+	for c in BeachLayout.BOULDERS + BeachLayout.SPRINGS:
 		blocked[c] = true
 		blocked[c + Vector2i(-1, 0)] = true
 		blocked[c + Vector2i(1, 0)] = true
@@ -88,3 +89,16 @@ func test_both_headlands_reachable() -> void:
 
 func test_cell_base_is_bottom_centre() -> void:
 	assert_vector(BeachLayout.cell_base(Vector2i(47, 9))).is_equal(Vector2(760, 160))
+
+func test_spring_on_sand_against_the_jungle() -> void:
+	assert_int(BeachLayout.SPRINGS.size()).is_equal(1)
+	_expect(BeachLayout.SPRINGS[0], K.SAND)
+	_expect(BeachLayout.SPRINGS[0] + Vector2i.UP, K.JUNGLE)
+
+func test_coconuts_land_on_open_sand() -> void:
+	var props := _all_props()
+	for palm in BeachLayout.PALMS:
+		for d in Shake.DROPS:
+			var cell := Vector2i(((BeachLayout.cell_base(palm) + d) / BeachLayout.TILE).floor())
+			_expect(cell, K.SAND)
+			assert_bool(props.has(cell)).override_failure_message("%s lands on a prop" % cell).is_false()

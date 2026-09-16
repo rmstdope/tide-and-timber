@@ -43,6 +43,7 @@ func test_props_are_placed() -> void:
 	assert_int(_count(world, "palm.tscn")).is_equal(BeachLayout.PALMS.size())
 	assert_int(_count(world, "rock.tscn")).is_equal(BeachLayout.ROCKS.size())
 	assert_int(_count(world, "boulder.tscn")).is_equal(BeachLayout.BOULDERS.size())
+	assert_int(_count(world, "spring.tscn")).is_equal(BeachLayout.SPRINGS.size())
 	assert_int(_count(beach.get_node("%Decor"), "driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
 	var base := BeachLayout.cell_base(BeachLayout.PALMS[0])
 	assert_bool(world.get_children().any(func(n: Node) -> bool:

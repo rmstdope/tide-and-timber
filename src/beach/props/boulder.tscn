@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/beach/boulder.png" id="1_tex"]
+[ext_resource type="Script" path="res://src/interact/exchange.gd" id="2_exchange"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_base"]
 size = Vector2(24, 10)
@@ -14,3 +15,10 @@ texture = ExtResource("1_tex")
 [node name="Base" type="CollisionShape2D" parent="."]
 position = Vector2(0, -5)
 shape = SubResource("RectangleShape2D_base")
+
+[node name="Crack" type="Node2D" parent="."]
+script = ExtResource("2_exchange")
+verb = "Crack"
+prompt_offset = Vector2(0, -30)
+takes = 2
+gives = 3
