@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# The full gate: gate-fast, the matching export templates, then headless release exports
+# for macOS and Windows into build/. Exits 0 only when every step passed.
+set -euo pipefail
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+godot="${GATE_GODOT:-godot}"
+export GATE_GODOT="$godot"
+
+say() { echo "gate-full: $*" >&2; }
+
+if [ "$#" -ne 0 ]; then
+  say "usage: scripts/gate-full (takes no arguments)"
+  exit 2
+fi
+
+if "$repo/scripts/gate-fast"; then :; else
+  n=$?
+  say "gate-fast failed (exit $n)"
+  exit 1
+fi
+
+if "$repo/scripts/install-export-templates"; then :; else
+  n=$?
+  say "export templates unavailable (exit $n)"
+  exit 1
+fi
+
+export_target() {
+  local label="$1" preset="$2" rel="$3" n
+  rm -rf "$repo/$(dirname "$rel")"
+  mkdir -p "$repo/$(dirname "$rel")"
+  say "exporting $label -> $rel"
+  if "$godot" --headless --path "$repo" --export-release "$preset" "$repo/$rel"; then :; else
+    n=$?
+    say "export failed: $label (godot exit $n)"
+    exit 1
+  fi
+  if ! test -s "$repo/$rel"; then
+    say "export produced no file: $rel"
+    exit 1
+  fi
+}
+
+export_target macOS macOS build/macos/tide-and-timber.zip
+export_target Windows Windows build/windows/tide-and-timber.exe
+
+say "ok"
