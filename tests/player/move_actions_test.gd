@@ -5,6 +5,7 @@ const BINDINGS := {
 	&"move_right": [KEY_D, KEY_RIGHT],
 	&"move_up": [KEY_W, KEY_UP],
 	&"move_down": [KEY_S, KEY_DOWN],
+	&"use": [KEY_E],
 }
 
 func test_move_actions_are_bound_by_physical_key() -> void:

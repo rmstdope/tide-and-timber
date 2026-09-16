@@ -45,7 +45,16 @@ func _all_props() -> Array[Vector2i]:
 	cells.append_array(BeachLayout.ROCKS)
 	cells.append_array(BeachLayout.BOULDERS)
 	cells.append_array(BeachLayout.DRIFTWOOD)
+	cells.append_array(BeachLayout.SHELLFISH)
 	return cells
+
+func test_shellfish_on_wet_sand() -> void:
+	for cell in BeachLayout.SHELLFISH:
+		_expect(cell, K.WET_SAND)
+	var seen := {}
+	for cell in _all_props():
+		assert_bool(seen.has(cell)).override_failure_message("%s used twice" % cell).is_false()
+		seen[cell] = true
 
 func test_props_stand_on_walkable_ground_away_from_spawn() -> void:
 	for cell in _all_props():
