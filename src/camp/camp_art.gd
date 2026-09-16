@@ -8,6 +8,8 @@ const WOOD_LIGHT := Color("#b98452")
 const FLAME := Color("#ff9a2a")
 const FLAME_CORE := Color("#ffe06a")
 const RED := Color("#e0503a")
+const ASH_DARK := Color("#6a625c")
+const ASH := Color("#8a827a")
 
 static func draw_lean_to(canvas: CanvasItem, red: bool) -> void:
 	_rect(canvas, Rect2(-22, -5, 44, 4), WOOD_DARK, red)
@@ -24,6 +26,11 @@ static func draw_fire(canvas: CanvasItem, lit: bool, red: bool) -> void:
 		_rect(canvas, Rect2(-2, -15, 4, 4), FLAME, red)
 		_rect(canvas, Rect2(-2, -10, 4, 3), FLAME_CORE, red)
 		_rect(canvas, Rect2(-1, -13, 2, 3), FLAME_CORE, red)
+
+## The small pile of ash a burnt-out fire leaves, relative to the fire's origin.
+static func draw_ash(canvas: CanvasItem) -> void:
+	canvas.draw_rect(Rect2(-7, -5, 14, 3), ASH_DARK)
+	canvas.draw_rect(Rect2(-4, -7, 8, 2), ASH)
 
 static func _rect(canvas: CanvasItem, rect: Rect2, colour: Color, red: bool) -> void:
 	canvas.draw_rect(rect, RED if red else colour)

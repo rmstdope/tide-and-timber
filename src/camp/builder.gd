@@ -5,6 +5,8 @@ extends Node
 
 enum Mode { CLOSED, LIST, PLACING, BUILDING }
 
+const SHELTER_TEXT := "That should see me through the night."
+
 var mode: Mode = Mode.CLOSED
 var menu := BuildMenu.new()
 var placing: BuildMenu.Thing = BuildMenu.Thing.LEAN_TO
@@ -16,10 +18,13 @@ var inventory: Inventory
 var _frozen: Dictionary = {}             # Node -> its process_mode before freezing
 var _crossed_sunset := false
 var _props: Dictionary = {}              # BuildSite.prop_cells(), computed once in setup
+var shelter_line := SunsetLine.new()     # the fade timer of his shelter line
+var _shelter_line_pending := false       # lit, waiting for the sunset line to go
 
 func setup(p_inventory: Inventory) -> void:
 	inventory = p_inventory
 	_props = BuildSite.prop_cells()
+	%ShelterLine.get_node("Text").text = SHELTER_TEXT
 	%BuildList.row_hovered.connect(_on_row_hovered)
 	%BuildList.row_clicked.connect(_on_row_clicked)
 
@@ -98,13 +103,25 @@ func try_place() -> bool:
 	_refresh_cover()
 	return true
 
+## A lean-to stands with a lit fire in front of it (the fire can stand nowhere else).
+func has_shelter() -> bool:
+	return lean_to != null and fire != null and fire.lit
+
+## True if at (global px) is inside a lit fire's glow.
+func in_firelight(at: Vector2) -> bool:
+	return fire != null and fire.lit and at.distance_to(fire.light_centre()) <= CampFire.LIGHT_RADIUS
+
 func tick(delta: float) -> void:
+	var was := mode
+	_check_burn_out()
 	match mode:
 		Mode.BUILDING:
 			fade.advance(delta)
 			_refresh_cover()
 		Mode.PLACING:
 			_update_ghost()
+	if was == Mode.CLOSED or was == Mode.PLACING:
+		_update_shelter_line(delta)
 
 func _process(delta: float) -> void:
 	tick(delta)
@@ -186,6 +203,8 @@ func _on_went_black(cells: Array[Vector2i], thing: BuildMenu.Thing) -> void:
 		lean_to.position = BuildSite.origin_for(thing, cells)
 		%World.add_child(lean_to)
 	else:
+		if fire != null:
+			fire.queue_free()
 		fire = CampFire.new()
 		fire.cell = cells[0]
 		fire.position = BuildSite.origin_for(thing, cells)
@@ -196,6 +215,9 @@ func _on_black_ended() -> void:
 	%BuildSound.set_audible(false)
 	if day_night:
 		_crossed_sunset = day_night.add_minutes(30.0)
+	if placing == BuildMenu.Thing.FIRE and day_night:
+		fire.out_at = FireLife.out_at(day_night.clock.total_minutes)
+	_check_burn_out()
 
 func _on_finished() -> void:
 	fade = null
@@ -204,6 +226,21 @@ func _on_finished() -> void:
 	_refresh_cover()
 	if _crossed_sunset and day_night:
 		day_night.sunset.start()
+	if placing == BuildMenu.Thing.FIRE:
+		_shelter_line_pending = true
+		_update_shelter_line(0.0)
+
+func _check_burn_out() -> void:
+	if fire != null and fire.lit and day_night and FireLife.is_out(fire.out_at, day_night.clock.total_minutes):
+		fire.put_out()
+
+func _update_shelter_line(delta: float) -> void:
+	shelter_line.advance(delta)
+	if _shelter_line_pending and not (day_night and day_night.sunset.is_showing()):
+		_shelter_line_pending = false
+		shelter_line.start()
+	%ShelterLine.visible = shelter_line.is_showing()
+	%ShelterLine.modulate.a = shelter_line.alpha()
 
 func _on_row_hovered(i: int) -> void:
 	if mode != Mode.LIST:
