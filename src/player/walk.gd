@@ -24,5 +24,8 @@ static func facing_for(dir: Vector2, previous: Facing) -> Facing:
 		return Facing.DOWN
 	return previous
 
+static func facing_vector(facing: Facing) -> Vector2:
+	return [Vector2.DOWN, Vector2.UP, Vector2.LEFT, Vector2.RIGHT][facing]
+
 static func animation_for(facing: Facing, moving: bool) -> StringName:
 	return StringName(("walk_" if moving else "still_") + _NAMES[facing])

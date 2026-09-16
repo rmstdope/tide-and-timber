@@ -36,6 +36,29 @@ func _init() -> void:
 			rects.append_array(faces[r])
 			_rects(man, Vector2i(16 * c, 24 * r), rects)
 	_save(man, "res://assets/man/man.png")
+
+	_save(_drawn(12, 6, [[1, 0, 10, 5, "#f1d6c8"], [2, 5, 8, 1, "#c98f86"], [4, 1, 1, 4, "#c98f86"],
+		[7, 1, 1, 4, "#c98f86"]]), "res://assets/beach/shellfish.png")
+	_save(_drawn(10, 10, [[0, 5, 10, 3, "#9c7048"], [1, 7, 8, 1, "#6e4a2c"], [6, 2, 2, 4, "#9c7048"]]),
+		"res://assets/items/driftwood.png")
+	_save(_drawn(10, 10, [[1, 3, 8, 5, "#f1d6c8"], [2, 7, 6, 1, "#c98f86"], [3, 4, 1, 3, "#c98f86"],
+		[6, 4, 1, 3, "#c98f86"]]), "res://assets/items/shellfish.png")
+	_save(_drawn(10, 10, [[2, 2, 7, 7, "#6b4226"], [3, 3, 2, 1, "#8b5a36"]]), "res://assets/items/coconut.png")
+	_save(_drawn(10, 10, [[2, 3, 7, 6, "#6b4226"], [3, 3, 5, 2, "#3a2414"]]), "res://assets/items/empty_shell.png")
+	_save(_drawn(10, 10, [[2, 3, 7, 6, "#6b4226"], [3, 3, 5, 2, "#7fd3e6"]]), "res://assets/items/fresh_water.png")
+
+	var glyphs := _blank(44, 5)
+	var patterns := [
+		["###", "#.#", "#.#", "#.#", "###"], [".#.", "##.", ".#.", ".#.", "###"],
+		["###", "..#", "###", "#..", "###"], ["###", "..#", "###", "..#", "###"],
+		["#.#", "#.#", "###", "..#", "..#"], ["###", "#..", "###", "..#", "###"],
+		["###", "#..", "###", "#.#", "###"], ["###", "..#", "..#", "..#", "..#"],
+		["###", "#.#", "###", "#.#", "###"], ["###", "#.#", "###", "..#", "###"],
+		["###", "#..", "###", "#..", "###"],
+	]
+	for i in patterns.size():
+		_pattern(glyphs, Vector2i(4 * i, 0), patterns[i], Color("#ffffff"))
+	_save(glyphs, "res://assets/hud/glyphs.png")
 	quit()
 
 func _blank(w: int, h: int) -> Image:
@@ -49,6 +72,13 @@ func _drawn(w: int, h: int, rects: Array) -> Image:
 func _rects(image: Image, origin: Vector2i, rects: Array) -> void:
 	for r: Array in rects:
 		image.fill_rect(Rect2i(origin.x + r[0], origin.y + r[1], r[2], r[3]), Color(r[4]))
+
+func _pattern(image: Image, origin: Vector2i, rows: Array, colour: Color) -> void:
+	for y in rows.size():
+		var row: String = rows[y]
+		for x in row.length():
+			if row[x] == "#":
+				image.set_pixel(origin.x + x, origin.y + y, colour)
 
 func _save(image: Image, path: String) -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))

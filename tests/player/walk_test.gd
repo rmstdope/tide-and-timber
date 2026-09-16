@@ -34,3 +34,9 @@ func test_standing_keeps_last_facing() -> void:
 func test_animation_names() -> void:
 	assert_that(Walk.animation_for(Walk.Facing.UP, true)).is_equal(&"walk_up")
 	assert_that(Walk.animation_for(Walk.Facing.RIGHT, false)).is_equal(&"still_right")
+
+func test_facing_vectors() -> void:
+	assert_vector(Walk.facing_vector(Walk.Facing.DOWN)).is_equal(Vector2(0, 1))
+	assert_vector(Walk.facing_vector(Walk.Facing.UP)).is_equal(Vector2(0, -1))
+	assert_vector(Walk.facing_vector(Walk.Facing.LEFT)).is_equal(Vector2(-1, 0))
+	assert_vector(Walk.facing_vector(Walk.Facing.RIGHT)).is_equal(Vector2(1, 0))

@@ -1,16 +1,16 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/beach/driftwood.png" id="1_tex"]
+[ext_resource type="Texture2D" path="res://assets/beach/shellfish.png" id="1_tex"]
 [ext_resource type="Script" path="res://src/interact/pickup.gd" id="2_pickup"]
 
-[node name="Driftwood" type="Node2D"]
+[node name="Shellfish" type="Node2D"]
 
 [node name="Sprite" type="Sprite2D" parent="."]
-offset = Vector2(0, -4)
+offset = Vector2(0, -6)
 texture = ExtResource("1_tex")
 
 [node name="Pickup" type="Node2D" parent="."]
 script = ExtResource("2_pickup")
 verb = "Take"
-prompt_offset = Vector2(0, -10)
-item = 0
+prompt_offset = Vector2(0, -11)
+item = 1
