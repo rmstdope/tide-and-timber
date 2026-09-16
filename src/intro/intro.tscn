@@ -1,5 +1,9 @@
 [gd_scene format=3]
 
+[ext_resource type="Script" path="res://src/intro/intro.gd" id="1_intro"]
+[ext_resource type="Script" path="res://src/intro/story_picture.gd" id="2_picture"]
+[ext_resource type="Script" path="res://src/intro/skip_ring.gd" id="3_ring"]
+
 [node name="Intro" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -7,6 +11,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_intro")
 
 [node name="Black" type="ColorRect" parent="."]
 layout_mode = 1
@@ -17,3 +23,186 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
+
+[node name="Picture" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+script = ExtResource("2_picture")
+
+[node name="CaptionBar" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0.0
+offset_top = 138.0
+offset_right = 320.0
+offset_bottom = 160.0
+mouse_filter = 2
+color = Color(0.047, 0.051, 0.078, 0.75)
+
+[node name="Caption" type="Label" parent="CaptionBar"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 320.0
+offset_bottom = 22.0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Three weeks out of port."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TapMarker" type="Label" parent="CaptionBar"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 304.0
+offset_top = 7.0
+offset_right = 312.0
+offset_bottom = 15.0
+theme_override_colors/font_color = Color(1, 0.835294, 0.541176, 1)
+theme_override_font_sizes/font_size = 8
+text = "▼"
+
+[node name="PanelCover" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+modulate = Color(1, 1, 1, 1)
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="SkipHint" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 202.0
+offset_top = 163.0
+offset_right = 316.0
+offset_bottom = 177.0
+visible = false
+mouse_filter = 2
+color = Color(0.047, 0.051, 0.078, 0.6)
+
+[node name="SkipRing" type="Control" parent="SkipHint"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = 14.0
+offset_bottom = 12.0
+mouse_filter = 2
+script = ExtResource("3_ring")
+
+[node name="Label" type="Label" parent="SkipHint"]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 3.0
+offset_right = 113.0
+offset_bottom = 11.0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Hold to skip"
+
+[node name="SkipCover" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+modulate = Color(1, 1, 1, 0)
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="PauseDim" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+mouse_filter = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="PauseBox" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 100.0
+offset_top = 58.0
+offset_right = 220.0
+offset_bottom = 122.0
+visible = false
+mouse_filter = 2
+color = Color(0.047, 0.051, 0.078, 1)
+
+[node name="Heading" type="Label" parent="PauseBox"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 8.0
+offset_right = 120.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Paused"
+horizontal_alignment = 1
+
+[node name="Resume" type="Label" parent="PauseBox"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0.0
+offset_top = 28.0
+offset_right = 120.0
+offset_bottom = 40.0
+mouse_filter = 0
+theme_override_font_sizes/font_size = 8
+text = "Resume"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResumeMarker" type="Label" parent="PauseBox"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 24.0
+offset_top = 28.0
+offset_right = 32.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(1, 0.835294, 0.541176, 1)
+theme_override_font_sizes/font_size = 8
+text = "▶"
+vertical_alignment = 1
+
+[node name="SkipStory" type="Label" parent="PauseBox"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 0.0
+offset_top = 44.0
+offset_right = 120.0
+offset_bottom = 56.0
+mouse_filter = 0
+theme_override_font_sizes/font_size = 8
+text = "Skip story"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SkipMarker" type="Label" parent="PauseBox"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 44.0
+offset_right = 16.0
+offset_bottom = 56.0
+theme_override_colors/font_color = Color(1, 0.835294, 0.541176, 1)
+theme_override_font_sizes/font_size = 8
+text = "▶"
+vertical_alignment = 1
