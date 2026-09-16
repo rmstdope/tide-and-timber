@@ -67,6 +67,15 @@ func choose(thing: int) -> void:
 	%KeyHint.show_text(KeyHint.PLACING_TEXT)
 	_update_ghost()
 
+## Leaves placing as if it never began: nothing spent, outline and hint gone, the world unfrozen.
+func abandon_placing() -> void:
+	if mode != Mode.PLACING:
+		return
+	mode = Mode.CLOSED
+	_freeze_only([])
+	%Ghost.hide()
+	%KeyHint.hide()
+
 func back_to_list() -> void:
 	open_list()
 
