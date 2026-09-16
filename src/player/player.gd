@@ -25,8 +25,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not control_enabled:
 		return
-	var dir := Walk.direction(Input.is_action_pressed(&"move_left"), Input.is_action_pressed(&"move_right"),
-		Input.is_action_pressed(&"move_up"), Input.is_action_pressed(&"move_down"))
+	var dir := Walk.direction(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
 	if dir == Vector2.ZERO:
 		dir = auto_direction
 	running = Input.is_action_pressed(RUN_ACTION)
