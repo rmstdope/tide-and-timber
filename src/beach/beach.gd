@@ -29,6 +29,10 @@ func _ready() -> void:
 	%Camera.snap_to_target()
 	%ItemBar.bind(inventory)
 	%Interactor.setup(%Player, inventory, %Prompt)
+	inventory.added.connect(_on_added)
+
+func _on_added(kind: Item.Kind, amount: int) -> void:
+	RisingLine.show_over(%Player, Item.gain_line(kind, amount))
 
 func _place(scene: PackedScene, cells: Array[Vector2i], parent: Node) -> void:
 	for cell in cells:

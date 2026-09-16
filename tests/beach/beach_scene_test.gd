@@ -58,8 +58,11 @@ func test_tall_things_sort_with_him() -> void:
 		elif n.scene_file_path.ends_with("boulder.tscn"):
 			assert_float((n.get_node("Sprite") as Sprite2D).offset.y).is_equal(-16.0)
 
-func test_no_words() -> void:
-	assert_array(beach.find_children("*", "Label", true, false)).is_empty()
+func test_no_words_on_arrival() -> void:
+	await await_millis(50)
+	for label: Label in beach.find_children("*", "Label", true, false):
+		if label.is_visible_in_tree():
+			assert_str(label.text).override_failure_message("%s shows words" % label.get_path()).is_empty()
 	assert_array(beach.find_children("*", "RichTextLabel", true, false)).is_empty()
 
 func test_walks_right_at_walking_pace() -> void:

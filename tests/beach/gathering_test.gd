@@ -118,3 +118,14 @@ func test_slot_name_on_pointer_rest() -> void:
 	bar.slots[0].mouse_entered.emit()
 	assert_str(bar.name_label.text).is_equal("Driftwood")
 	assert_bool(bar.name_plank.visible).is_true()
+
+func test_gain_line_rises_and_is_gone_within_a_second() -> void:
+	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
+	await _press_e()
+	var line := player.get_node_or_null("RisingLine") as RisingLine
+	assert_object(line).is_not_null()
+	assert_str((line.find_children("*", "Label", false, false)[0] as Label).text).is_equal("+1 Driftwood")
+	await await_millis(300)
+	assert_float(line.position.y).is_less(RisingLine.START.y)
+	await await_millis(900)
+	assert_object(player.get_node_or_null("RisingLine")).is_null()
