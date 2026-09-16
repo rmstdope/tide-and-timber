@@ -18,14 +18,14 @@ func can_use(_inventory: Inventory) -> bool:
 func use(_inventory: Inventory) -> void:
 	if _shaken:
 		return
+	if drop_parent == null:
+		push_error("Shake has no drop_parent")
+		return
 	_shaken = true
 	crown.hide()
 	var wiggle := tree_sprite.create_tween()
 	for x: float in [1.0, -1.0, 1.0, 0.0]:
 		wiggle.tween_property(tree_sprite, "position:x", x, WIGGLE_STEP)
-	if drop_parent == null:
-		push_error("Shake has no drop_parent")
-		return
 	for d in DROPS:
 		var c := COCONUT.instantiate() as Node2D
 		drop_parent.add_child(c)

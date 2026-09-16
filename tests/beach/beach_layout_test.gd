@@ -97,6 +97,9 @@ func test_spring_on_sand_against_the_jungle() -> void:
 
 func test_coconuts_land_on_open_sand() -> void:
 	var props := _all_props()
+	for c in BeachLayout.BOULDERS + BeachLayout.SPRINGS:
+		props.append(c + Vector2i(-1, 0))
+		props.append(c + Vector2i(1, 0))
 	for palm in BeachLayout.PALMS:
 		for d in Shake.DROPS:
 			var cell := Vector2i(((BeachLayout.cell_base(palm) + d) / BeachLayout.TILE).floor())

@@ -72,6 +72,7 @@ func test_crack_at_rock_turns_coconut_into_shell() -> void:
 func test_crack_at_boulder_uses_one_of_several() -> void:
 	inventory.add(K.COCONUT, 3)
 	await _stand(B + Vector2(-18, 0), Walk.Facing.RIGHT)
+	assert_bool(prompt.visible).is_true()
 	assert_str(prompt.verb_label.text).is_equal("Crack")
 	assert_vector(prompt.global_position).is_equal(B + Vector2(0, -30))
 	await _press_e()
@@ -121,6 +122,7 @@ func _shake_palm() -> void:
 
 func test_shake_palm_drops_coconuts_and_palm_goes_bare() -> void:
 	await _stand(P + Vector2(-10, 0), Walk.Facing.RIGHT)
+	assert_bool(prompt.visible).is_true()
 	assert_str(prompt.verb_label.text).is_equal("Shake")
 	assert_vector(prompt.global_position).is_equal(P + Vector2(0, -48))
 	await _press_e()
@@ -143,6 +145,7 @@ func test_bare_palm_shows_nothing() -> void:
 func test_take_fallen_coconut() -> void:
 	await _shake_palm()
 	await _stand(P + Shake.DROPS[0] + Vector2(-10, -2), Walk.Facing.RIGHT)
+	assert_bool(prompt.visible).is_true()
 	assert_str(prompt.verb_label.text).is_equal("Take")
 	await _press_e()
 	assert_int(inventory.count(K.COCONUT)).is_equal(1)
