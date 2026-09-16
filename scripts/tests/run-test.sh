@@ -11,7 +11,9 @@ fail() { echo "FAIL $1: $2"; failed=1; return 1; }
 
 # Sets up the sandbox $S with a copy of scripts/run; exports the fake's environment.
 sandbox() {
+  unset FAKE_IMPORT_EXIT FAKE_GAME_EXIT
   S="$(cd "$(mktemp -d)" && pwd)"
+  trap 'rm -rf "$S"' EXIT
   mkdir -p "$S/repo/scripts" "$S/bin"
   cp "$root/scripts/run" "$S/repo/scripts/run"
   chmod +x "$S/repo/scripts/run"
