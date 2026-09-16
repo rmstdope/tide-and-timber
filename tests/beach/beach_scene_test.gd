@@ -186,3 +186,98 @@ func test_escape_does_nothing() -> void:
 	assert_bool(is_instance_valid(beach) and beach.is_inside_tree()).is_true()
 	assert_bool(beach.get_tree().paused).is_false()
 	assert_vector(player.global_position).is_equal(Vector2(1480, 184))
+
+func _sprite() -> AnimatedSprite2D:
+	return player.get_node("%Sprite") as AnimatedSprite2D
+
+func _marks(suffix: String) -> Array[Node]:
+	return beach.get_node("%Decor").get_children().filter(func(n: Node) -> bool: return n.scene_file_path.ends_with(suffix))
+
+func test_shift_runs_at_double_pace_with_puffs() -> void:
+	_place(Vector2i(92, 12))
+	runner.simulate_action_press("run")
+	runner.simulate_action_press("move_right")
+	await await_millis(300)
+	assert_vector(player.velocity).is_equal_approx(Vector2(96, 0), Vector2(0.01, 0.01))
+	assert_that(_animation()).is_equal(&"walk_right")
+	assert_float(_sprite().speed_scale).is_equal(2.0)
+	var puffs := _marks("puff.tscn")
+	assert_array(puffs).is_not_empty()
+	for puff: Node2D in puffs:
+		assert_float(puff.position.y).is_equal(200.0)
+		assert_float(puff.position.x).is_less(player.global_position.x)
+	runner.simulate_action_release("run")
+	runner.simulate_action_release("move_right")
+
+func test_letting_go_of_shift_walks() -> void:
+	_place(Vector2i(92, 12))
+	runner.simulate_action_press("run")
+	runner.simulate_action_press("move_right")
+	await await_millis(300)
+	var x0 := player.global_position.x
+	runner.simulate_action_release("run")
+	await await_millis(300)
+	assert_vector(player.velocity).is_equal_approx(Vector2(48, 0), Vector2(0.01, 0.01))
+	assert_float(_sprite().speed_scale).is_equal(1.0)
+	for puff: Node2D in _marks("puff.tscn"):
+		assert_float(puff.position.x).is_less(x0)
+	runner.simulate_action_release("move_right")
+
+func test_walking_leaves_no_puffs() -> void:
+	_place(Vector2i(92, 12))
+	runner.simulate_action_press("move_right")
+	await await_millis(400)
+	assert_array(_marks("puff.tscn")).is_empty()
+	runner.simulate_action_release("move_right")
+
+func test_wades_at_half_pace_legs_hidden_with_ripples() -> void:
+	_place(Vector2i(92, 16))
+	runner.simulate_action_press("move_right")
+	await await_millis(400)
+	assert_vector(player.velocity).is_equal_approx(Vector2(24, 0), Vector2(0.01, 0.01))
+	assert_bool(player.wading).is_true()
+	assert_that(_animation()).is_equal(&"wade_walk_right")
+	assert_float(_sprite().speed_scale).is_equal(0.5)
+	assert_array(_marks("ripple.tscn")).is_not_empty()
+	runner.simulate_action_release("move_right")
+
+func test_shift_does_not_speed_wading() -> void:
+	_place(Vector2i(92, 16))
+	runner.simulate_action_press("run")
+	runner.simulate_action_press("move_right")
+	await await_millis(400)
+	assert_vector(player.velocity).is_equal_approx(Vector2(24, 0), Vector2(0.01, 0.01))
+	assert_array(_marks("puff.tscn")).is_empty()
+	runner.simulate_action_release("run")
+	runner.simulate_action_release("move_right")
+
+func test_standing_in_water_hides_legs_without_ripples() -> void:
+	_place(Vector2i(92, 17))
+	await await_millis(400)
+	assert_that(_animation()).is_equal(&"wade_still_down")
+	assert_array(_marks("ripple.tscn")).is_empty()
+
+func test_foam_is_dry() -> void:
+	_place(Vector2i(92, 15))
+	runner.simulate_action_press("move_left")
+	await await_millis(300)
+	assert_vector(player.velocity).is_equal_approx(Vector2(-48, 0), Vector2(0.01, 0.01))
+	assert_bool(player.wading).is_false()
+	assert_that(_animation()).is_equal(&"walk_left")
+	runner.simulate_action_release("move_left")
+
+func test_walking_out_of_the_water_shows_legs() -> void:
+	_place(Vector2i(92, 16))
+	runner.simulate_action_press("move_up")
+	await await_millis(800)
+	assert_float(player.global_position.y).is_less(256.0)
+	assert_that(_animation()).is_equal(&"walk_up")
+	runner.simulate_action_release("move_up")
+
+func test_focus_loss_releases_shift() -> void:
+	runner.simulate_action_press("run")
+	runner.simulate_action_press("move_right")
+	await await_millis(200)
+	player.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	await await_millis(100)
+	assert_bool(Input.is_action_pressed(&"run")).is_false()
