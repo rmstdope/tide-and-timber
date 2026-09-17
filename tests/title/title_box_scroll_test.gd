@@ -191,6 +191,10 @@ func test_large_scrolls_too() -> void:
 	assert_that(_rect("%StartOverBox")).is_equal(Rect2(58, 32, 204, 102))
 	assert_that(Rect2(_clip("StartOverBox").position, _clip("StartOverBox").size)).is_equal(Rect2(0, 10, 204, 82))
 	assert_that(Rect2(_content("StartOverBox").position, _content("StartOverBox").size)).is_equal(Rect2(0, -8, 204, 133))
+	for i in 2:
+		await _press(KEY_DOWN)
+	_box_highlighted("StartOver")
+	assert_float(_content("StartOverBox").position.y).is_equal(-41.0)
 
 func test_replace_box_scrolls_at_largest() -> void:
 	await _open_replace_box()
@@ -202,3 +206,117 @@ func test_replace_box_scrolls_at_largest() -> void:
 	_box_highlighted("Cancel")
 	assert_bool(screen._replace_frame.shows_mark_above()).is_false()
 	assert_bool(screen._replace_frame.shows_mark_below()).is_true()
+	await _press(KEY_RIGHT)
+	_box_highlighted("ReplaceStartOver")
+	assert_float(_content("ReplaceBox").position.y).is_equal(-81.0)
+	assert_bool(screen._replace_frame.shows_mark_above()).is_true()
+	assert_bool(screen._replace_frame.shows_mark_below()).is_false()
+
+func test_down_reads_the_words_then_moves_to_start_over() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	for i in 3:
+		await _press(KEY_DOWN)
+	assert_float(_content("StartOverBox").position.y).is_equal(-41.0)
+	_box_highlighted("KeepMyIsland")
+	await _press(KEY_DOWN)
+	_box_highlighted("StartOver")
+	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	assert_bool(screen._start_over_frame.shows_mark_above()).is_true()
+	assert_bool(screen._start_over_frame.shows_mark_below()).is_false()
+
+func test_up_returns_to_the_words() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	await _press(KEY_RIGHT)
+	assert_int(screen._start_over_offset).is_equal(61)
+	await _press(KEY_UP)
+	_box_highlighted("KeepMyIsland")
+	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	for i in 6:
+		await _press(KEY_UP)
+	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
+	_box_highlighted("KeepMyIsland")
+	assert_bool(_control("%StartOverBox").visible).is_true()
+	assert_array(calls).is_empty()
+
+func test_left_and_right_show_the_button_they_pick() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	await _press(KEY_RIGHT)
+	_box_highlighted("StartOver")
+	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	await _press(KEY_LEFT)
+	_box_highlighted("KeepMyIsland")
+	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+
+func test_wheel_scrolls_and_keeps_the_highlight() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	await _wheel(MOUSE_BUTTON_WHEEL_DOWN, 1)
+	assert_float(_content("StartOverBox").position.y).is_equal(-19.0)
+	_box_highlighted("KeepMyIsland")
+
+func test_select_presses_a_hidden_highlight() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	await _press(KEY_ENTER)
+	assert_bool(_control("%StartOverBox").visible).is_false()
+	assert_int(screen.menu.highlighted).is_equal(TitleMenu.Choice.NEW_GAME)
+	assert_bool(screen.menu.locked).is_false()
+	assert_array(calls).is_empty()
+	await _press(KEY_ENTER)
+	await get_tree().process_frame
+	await _press(KEY_RIGHT)
+	await _press(KEY_ENTER)
+	assert_bool(screen.menu.locked).is_true()
+	assert_array(calls).is_empty()
+
+func test_reopening_starts_at_the_top() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	await _press(KEY_RIGHT)
+	assert_int(screen._start_over_offset).is_equal(61)
+	await _press(KEY_ESCAPE)
+	await _press(KEY_ENTER)
+	await get_tree().process_frame
+	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
+	_box_highlighted("KeepMyIsland")
+
+func test_size_change_while_up_refits_and_keeps_the_highlight() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	for i in 3:
+		await _press(KEY_DOWN)
+	assert_int(screen._start_over_offset).is_equal(33)
+	Display.use_prefs(DisplayPrefs.new())
+	await get_tree().process_frame
+	assert_that(_rect("%StartOverBox")).is_equal(Rect2(12, 42, 296, 96))
+	assert_vector(_content("StartOverBox").position).is_equal(Vector2.ZERO)
+	assert_bool(screen._start_over_frame.shows_mark_above()).is_false()
+	assert_bool(screen._start_over_frame.shows_mark_below()).is_false()
+	_box_highlighted("KeepMyIsland")
+
+func test_hover_lands_only_on_the_drawn_part() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	await _press(KEY_RIGHT)
+	assert_int(screen._start_over_offset).is_equal(61)
+	await _wheel(MOUSE_BUTTON_WHEEL_UP, 6)
+	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
+	await _hover(_control("%KeepMyIsland"))
+	_box_highlighted("StartOver")
+	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
+	await _wheel(MOUSE_BUTTON_WHEEL_DOWN, 6)
+	assert_int(screen._start_over_offset).is_equal(61)
+	await _hover(_control("%KeepMyIsland"))
+	_box_highlighted("KeepMyIsland")
+	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)

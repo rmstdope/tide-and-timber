@@ -151,19 +151,24 @@ func _input(event: InputEvent) -> void:
 		return   # the Settings board, a child, reads it
 	var step := InputDevice.menu_step(event)
 	if menu.box != TitleMenu.Box.NONE:
+		# Wheel events are not menu steps, so they are read before the match, never inside it.
+		var click := event as InputEventMouseButton
+		if click != null and click.pressed and \
+				(click.button_index == MOUSE_BUTTON_WHEEL_UP or click.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+			_push_box(BoxLayout.Push.WHEEL_UP if click.button_index == MOUSE_BUTTON_WHEEL_UP \
+					else BoxLayout.Push.WHEEL_DOWN)
+			_refresh()
+			get_viewport().set_input_as_handled()
+			return
 		match step:
 			MenuPush.Step.LEFT:
-				menu.select_box(_box_left_button())
+				_push_box(BoxLayout.Push.LEFT)
 			MenuPush.Step.RIGHT:
-				menu.select_box(TitleMenu.BoxButton.START_OVER)
+				_push_box(BoxLayout.Push.RIGHT)
 			MenuPush.Step.UP:
-				if not _open_box_layout().stacked:
-					return
-				menu.select_box(_box_left_button())
+				_push_box(BoxLayout.Push.UP)
 			MenuPush.Step.DOWN:
-				if not _open_box_layout().stacked:
-					return
-				menu.select_box(TitleMenu.BoxButton.START_OVER)
+				_push_box(BoxLayout.Push.DOWN)
 			MenuPush.Step.SELECT:
 				_act(menu.press_box(menu.box_selected))
 			MenuPush.Step.BACK:
@@ -268,6 +273,23 @@ func _frame_box(box: BoxLayout, panel: Control, b: Vector2, offset: int, s: floa
 func _frame_boxes_later() -> void:
 	_frame_boxes.call_deferred()
 
+## The open box's framed layout, or null while no box is open or none has been framed yet.
+func _open_box_frame() -> BoxLayout:
+	return _start_over_frame if menu.box == TitleMenu.Box.START_OVER else _replace_frame
+
+## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
+func _push_box(push: BoxLayout.Push) -> void:
+	var f := _open_box_frame()
+	if f == null:
+		return
+	var left := _box_left_button()
+	var after := f.pushed(push, BoxLayout.Side.LEFT if menu.box_selected == left else BoxLayout.Side.RIGHT)
+	menu.select_box(left if after.x == BoxLayout.Side.LEFT else TitleMenu.BoxButton.START_OVER)
+	if menu.box == TitleMenu.Box.START_OVER:
+		_start_over_offset = after.y
+	else:
+		_replace_offset = after.y
+
 func _draw_marks(which: TitleMenu.Box) -> void:
 	var f := _start_over_frame if which == TitleMenu.Box.START_OVER else _replace_frame
 	if f == null or menu.box != which:
@@ -291,10 +313,6 @@ func _fit_box(normal: BoxLayout, panel: Control, left: Control, right: Control, 
 	var layout := normal.at(s, left.size, right.size, BoxLayout.label_heights(labels))
 	layout.place(panel, lines, left, right)
 	return layout
-
-## The open box's layout drawn now. Only called while a box is open.
-func _open_box_layout() -> BoxLayout:
-	return _start_over_box if menu.box == TitleMenu.Box.START_OVER else _replace_box
 
 ## The open box's left (stacked: top) button.
 func _box_left_button() -> TitleMenu.BoxButton:
