@@ -52,17 +52,20 @@ offset_bottom = 44.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HBoxContainer" parent="Panel/UiSize"]
+[node name="Row" type="HFlowContainer" parent="Panel/UiSize"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 0
+alignment = 1
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
 
 [node name="Pad" type="Control" parent="Panel/UiSize/Row"]
-custom_minimum_size = Vector2(4, 0)
+custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="Label" type="Label" parent="Panel/UiSize/Row"]
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
@@ -72,7 +75,7 @@ text = "UI size"
 vertical_alignment = 1
 
 [node name="Prev" type="Label" parent="Panel/UiSize/Row"]
-custom_minimum_size = Vector2(12, 0)
+custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -82,7 +85,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Value" type="Label" parent="Panel/UiSize/Row"]
-custom_minimum_size = Vector2(64, 0)
+custom_minimum_size = Vector2(64, 12)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -91,7 +94,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Next" type="Label" parent="Panel/UiSize/Row"]
-custom_minimum_size = Vector2(12, 0)
+custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -111,17 +114,20 @@ offset_bottom = 64.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HBoxContainer" parent="Panel/TextSize"]
+[node name="Row" type="HFlowContainer" parent="Panel/TextSize"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 0
+alignment = 1
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
 
 [node name="Pad" type="Control" parent="Panel/TextSize/Row"]
-custom_minimum_size = Vector2(4, 0)
+custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="Label" type="Label" parent="Panel/TextSize/Row"]
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
@@ -131,7 +137,7 @@ text = "Text size"
 vertical_alignment = 1
 
 [node name="Prev" type="Label" parent="Panel/TextSize/Row"]
-custom_minimum_size = Vector2(12, 0)
+custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -141,7 +147,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Value" type="Label" parent="Panel/TextSize/Row"]
-custom_minimum_size = Vector2(64, 0)
+custom_minimum_size = Vector2(64, 12)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -150,7 +156,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Next" type="Label" parent="Panel/TextSize/Row"]
-custom_minimum_size = Vector2(12, 0)
+custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -170,17 +176,20 @@ offset_bottom = 84.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HBoxContainer" parent="Panel/ColourCues"]
+[node name="Row" type="HFlowContainer" parent="Panel/ColourCues"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 0
+alignment = 1
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
 
 [node name="Pad" type="Control" parent="Panel/ColourCues/Row"]
-custom_minimum_size = Vector2(4, 0)
+custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="Label" type="Label" parent="Panel/ColourCues/Row"]
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
@@ -190,7 +199,7 @@ text = "Colour cues"
 vertical_alignment = 1
 
 [node name="Prev" type="Label" parent="Panel/ColourCues/Row"]
-custom_minimum_size = Vector2(12, 0)
+custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -200,7 +209,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Value" type="Label" parent="Panel/ColourCues/Row"]
-custom_minimum_size = Vector2(64, 0)
+custom_minimum_size = Vector2(64, 12)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -209,7 +218,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Next" type="Label" parent="Panel/ColourCues/Row"]
-custom_minimum_size = Vector2(12, 0)
+custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -229,17 +238,20 @@ offset_bottom = 104.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HBoxContainer" parent="Panel/Controls"]
+[node name="Row" type="HFlowContainer" parent="Panel/Controls"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 0
+alignment = 1
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
 
 [node name="Pad" type="Control" parent="Panel/Controls/Row"]
-custom_minimum_size = Vector2(4, 0)
+custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="Label" type="Label" parent="Panel/Controls/Row"]
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
@@ -249,7 +261,7 @@ text = "Controls"
 vertical_alignment = 1
 
 [node name="Arrow" type="Label" parent="Panel/Controls/Row"]
-custom_minimum_size = Vector2(12, 0)
+custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
