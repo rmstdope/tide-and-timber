@@ -84,6 +84,7 @@ func _ready() -> void:
 	(%StartOverBox.get_node("Marks") as Control).draw.connect(_draw_marks.bind(TitleMenu.Box.START_OVER))
 	(%ReplaceBox.get_node("Marks") as Control).draw.connect(_draw_marks.bind(TitleMenu.Box.REPLACE))
 	_apply_ui_size()
+	_frame_boxes_later()   # again once the strip's own deferred layout has run, so screen_top() is final
 	InputDevice.set_menu_open(self, true)
 
 func _exit_tree() -> void:
@@ -290,15 +291,25 @@ func _push_box(push: BoxLayout.Push) -> void:
 	else:
 		_replace_offset = after.y
 
+## The centre one mark is drawn on, in that box's Marks units: the box's horizontal centre, in the
+## top mark row (up) or the bottom one.
+func box_mark_centre(which: TitleMenu.Box, up: bool) -> Vector2:
+	var marks := _box_marks(which)
+	return Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0) if up \
+			else Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0)
+
+func _box_marks(which: TitleMenu.Box) -> Control:
+	return (%StartOverBox if which == TitleMenu.Box.START_OVER else %ReplaceBox).get_node("Marks") as Control
+
 func _draw_marks(which: TitleMenu.Box) -> void:
 	var f := _start_over_frame if which == TitleMenu.Box.START_OVER else _replace_frame
 	if f == null or menu.box != which:
 		return
-	var marks := (%StartOverBox if which == TitleMenu.Box.START_OVER else %ReplaceBox).get_node("Marks") as Control
+	var marks := _box_marks(which)
 	if f.shows_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, box_mark_centre(which, true), true)
 	if f.shows_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(marks, box_mark_centre(which, false), false)
 
 ## Lays both title boxes out for the current UI scale: side by side, or stacked when too wide.
 ## Both are laid out whether shown or not, so a box opens already fitted.

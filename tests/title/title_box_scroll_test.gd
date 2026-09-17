@@ -320,3 +320,19 @@ func test_hover_lands_only_on_the_drawn_part() -> void:
 	await _hover(_control("%KeepMyIsland"))
 	_box_highlighted("KeepMyIsland")
 	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+
+func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
+	await _open_start_over_box()
+	_largest()
+	await get_tree().process_frame
+	for box: String in ["StartOverBox", "ReplaceBox"]:
+		var marks := _marks(box)
+		assert_that(marks.get_rect()).is_equal(Rect2(0, 0, 152, 74))
+		assert_int(marks.get_signal_connection_list("draw").size()) \
+			.override_failure_message("%s/Marks has no draw handler, so no mark is ever drawn" % box).is_greater(0)
+	# The centres _draw_marks draws on: the box's horizontal centre, in the top and bottom mark rows
+	# of the 74-tall framed panel. Pinned as literals, so moving either mark out of its row fails here.
+	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, true)).is_equal(Vector2(76, 5))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, false)).is_equal(Vector2(76, 69))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, true)).is_equal(Vector2(76, 5))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, false)).is_equal(Vector2(76, 69))
