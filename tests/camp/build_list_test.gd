@@ -26,3 +26,10 @@ func test_stacked_words_fit() -> void:
 	assert_float(BuildList.STACKED_ROW_SIZE.x - 6).is_greater_equal(15 * 8)
 	assert_float(BuildList.STACKED_SIZE.x * 2).is_less_equal(320 - 2 * BuildList.SCREEN_MARGIN)
 	assert_float(BuildList.STACKED_ROW_TOP[1] + BuildList.STACKED_ROW_SIZE.y).is_less_equal(BuildList.STACKED_SIZE.y - 1)
+
+func test_stacks_only_when_wider_than_the_screen() -> void:
+	assert_bool(BuildList.stacks(196, 1.0)).is_false()
+	assert_bool(BuildList.stacks(196, 1.5)).is_false()
+	assert_bool(BuildList.stacks(196, 2.0)).is_true()
+	assert_bool(BuildList.stacks(160, 2.0)).is_false()
+	assert_bool(BuildList.stacks(150, 2.0)).is_false()

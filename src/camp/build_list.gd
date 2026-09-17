@@ -12,6 +12,8 @@ const STACKED_SIZE := Vector2(150, 61)
 const STACKED_ROW_SIZE := Vector2(144, 21)
 const STACKED_ROW_TOP: Array[int] = [14, 37]
 const LINE_HEIGHT := 9.0                # the cost line's top below the name line's top when stacked
+const COST_GAP := 8.0                   # the least space between a name and its cost, side by side
+const SCREEN_WIDTH := 320.0
 const TEXT := Color("#fff6e0")
 const GREYED := Color("#c9b79c")
 const BORDER := Color("#5c3a22")
@@ -53,8 +55,26 @@ func _place() -> void:
 	if not _placed or not is_inside_tree():
 		return
 	var s := UiScale.current(Display.prefs, get_tree().root)
+	stacked = stacks(side_by_side_width(), s)
+	_layout()
 	scale = Vector2(s, s)
 	position = top_left_for(_man, s, list_size())
+
+## True when a list side_by_side_width wide, drawn at scale s, is wider than the screen.
+static func stacks(side_by_side_width: float, s: float) -> bool:
+	return side_by_side_width * s > SCREEN_WIDTH
+
+## The list's unscaled width with every row side by side for the words it shows now: SIZE.x, or wider when
+## a row's name, COST_GAP and cost, plus the row's and list's 3-unit insets on both sides, need more.
+func side_by_side_width() -> float:
+	var widest := 0.0
+	for i in BuildMenu.LINE_COUNT:
+		widest = maxf(widest, _text_width(name_labels[i]) + COST_GAP + _text_width(cost_labels[i]))
+	return maxf(SIZE.x, widest + 12.0)
+
+static func _text_width(label: Label) -> float:
+	return label.get_theme_font(&"font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+			label.get_theme_font_size(&"font_size")).x
 
 ## STACKED_SIZE while stacked, else SIZE.
 func list_size() -> Vector2:
@@ -121,6 +141,7 @@ func show_menu(menu: BuildMenu) -> void:
 		var colour := TEXT if menu.can_build(thing) else GREYED
 		name_labels[i].add_theme_color_override(&"font_color", colour)
 		cost_labels[i].add_theme_color_override(&"font_color", colour)
+	_place()
 	queue_redraw()
 
 func _draw() -> void:
