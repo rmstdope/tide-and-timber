@@ -38,9 +38,7 @@ func say(text: String) -> void:
 
 ## The width at scale s: full_width while full_width * s fits the screen, else the screen less its margins.
 static func width_at(full_width: float, s: float) -> float:
-	if full_width * s <= SCREEN_WIDTH:
-		return full_width
-	return floorf((SCREEN_WIDTH - 2.0 * SCREEN_MARGIN) / s)
+	return TextScale.fit_width(full_width, full_width, s)
 
 ## Lays the line out for scale s.
 func fit(s: float) -> void:
