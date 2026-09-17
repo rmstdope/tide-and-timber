@@ -40,28 +40,33 @@ func say(text: String) -> void:
 static func width_at(full_width: float, s: float) -> float:
 	return TextScale.fit_width(full_width, full_width, s)
 
-## Lays the line out for scale s.
-func fit(s: float) -> void:
-	var w := width_at(_full_width, s)
-	_text.autowrap_mode = TextServer.AUTOWRAP_OFF if w == _full_width else TextServer.AUTOWRAP_WORD_SMART
-	_text.update_minimum_size()     # else the unwrapped minimum width still clamps the narrower size
+## Lays the line out for UI scale s, with the words at `rel` times that (1.0: Text size Normal).
+func fit(s: float, rel: float = 1.0) -> void:
 	var own := _text == (self as Object)
-	if own:
-		size.x = w
-	else:
-		_text.size.x = w - _text_left
+	_text.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_text.scale = Vector2.ONE
+	_text.update_minimum_size()     # else the unwrapped minimum width still clamps the narrower size
+	var words := _text_left + ceilf(_text.get_minimum_size().x * rel)
+	var want := maxf(_full_width, words)
+	var w := TextScale.fit_width(_full_width, words, s)
+	_text.autowrap_mode = TextServer.AUTOWRAP_OFF if w == want else TextServer.AUTOWRAP_WORD_SMART
+	_text.scale = Vector2.ONE * rel
+	_text.size.x = (w if own else w - _text_left) / rel
+	_text.update_minimum_size()
 	var lines := maxi(1, _text.get_line_count())
 	var step := _text.get_line_height() + _text.get_theme_constant(&"line_spacing")
-	var h := _full_height + (lines - 1) * step
+	var h := _full_height + (lines - 1) * step + lines * (ceilf(step * rel) - step)
 	position = Vector2(roundf((SCREEN_WIDTH - w) / 2.0), _bottom - h if grows_up else roundf(_centre_y - h / 2.0))
-	size = Vector2(w, h)
-	if _band:
-		_band.size = size
-	if not own:
-		_text.size = Vector2(w - _text_left, h)
+	if own:
+		size = Vector2(w, h) / rel
+	else:
+		size = Vector2(w, h)
+		if _band:
+			_band.size = size
+		_text.size = Vector2((w - _text_left) / rel, h / rel)
 
 func _refit() -> void:
-	fit(UiScale.current(Display.prefs, get_tree().root))
+	fit(UiScale.current(Display.prefs, get_tree().root), TextScale.relative(Display.prefs, get_tree().root))
 
 func _find_text() -> Label:
 	var child := get_node_or_null(^"Text") as Label

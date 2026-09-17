@@ -107,3 +107,77 @@ func test_refits_on_window_resize() -> void:
 	assert_float(line.size.x).is_equal(208.0)
 	get_tree().root.size = Vector2i(320, 180)
 	assert_float(line.size.x).is_equal(156.0)
+
+func test_text_large_widens_without_wrapping() -> void:
+	var line := _band_line()
+	line.say("The tide is turning again.")
+	line.fit(1.0, 1.5)
+	var text := line.get_node("Text") as Label
+	var step := text.get_line_height() + text.get_theme_constant(&"line_spacing")
+	assert_float(line.size.x).is_equal(312.0)
+	assert_float(line.position.x).is_equal(4.0)
+	assert_int(text.autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
+	assert_vector(text.scale).is_equal(Vector2(1.5, 1.5))
+	assert_float(text.size.x).is_equal(208.0)
+	assert_float(line.size.y).is_equal(16.0 + ceilf(step * 1.5) - step)
+	assert_float(line.position.y + line.size.y).is_equal(166.0)
+	assert_vector((line.get_node("Band") as Control).size).is_equal(line.size)
+
+func test_text_large_long_line_wraps_at_the_margin() -> void:
+	var line := _band_line()
+	line.say("That should see me through the night.")
+	line.fit(1.0, 1.5)
+	var text := line.get_node("Text") as Label
+	assert_float(line.size.x).is_equal(312.0)
+	assert_int(text.autowrap_mode).is_equal(TextServer.AUTOWRAP_WORD_SMART)
+	assert_int(text.get_line_count()).is_greater_equal(2)
+	assert_float(line.position.y + line.size.y).is_equal(166.0)
+	assert_float(text.get_minimum_size().y).is_less_equal(text.size.y)
+
+func test_largest_ui_and_text_wrap_within_the_screen() -> void:
+	var line := _band_line()
+	line.say("That should see me through the night.")
+	line.fit(2.0, 2.0)
+	var text := line.get_node("Text") as Label
+	assert_float(line.size.x).is_equal(156.0)
+	assert_float(line.position.x).is_equal(82.0)
+	assert_float(text.size.x).is_equal(78.0)
+	assert_int(text.get_line_count()).is_greater_equal(2)
+	assert_float(line.position.y + line.size.y).is_equal(166.0)
+	assert_float(line.size.y).is_greater(16.0)
+
+func test_short_line_keeps_normal_width_at_text_large() -> void:
+	var line := _band_line()
+	line.say("Rest now.")
+	line.fit(1.0, 1.5)
+	assert_float(line.size.x).is_equal(296.0)
+	assert_float(line.position.x).is_equal(12.0)
+	assert_int((line.get_node("Text") as Label).autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
+
+func test_text_left_is_kept_when_words_grow() -> void:
+	var line := _band_line(16)
+	line.say("The tide is turning again.")
+	line.fit(1.0, 1.5)
+	var text := line.get_node("Text") as Control
+	assert_float(text.position.x).is_equal(16.0)
+	assert_float(text.size.x * 1.5).is_equal_approx(line.size.x - 16.0, 0.001)
+
+func test_bare_line_grows_about_its_centre() -> void:
+	var l := _bare_line()
+	(l as Object).call("say", "So cold... just... rest a moment...")
+	(l as Object).call("fit", 1.0, 2.0)
+	assert_vector(l.scale).is_equal(Vector2(2, 2))
+	assert_float(l.size.x * 2.0).is_equal(312.0)
+	assert_float(l.position.x).is_equal(4.0)
+	assert_float(l.position.y + l.size.y * 2.0 / 2.0).is_equal_approx(90.0, 0.5)
+
+func test_refits_on_text_size_changed() -> void:
+	get_tree().root.size = Vector2i(640, 360)
+	var line := _band_line()
+	line.say("The tide is turning again.")
+	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
+	assert_float(line.size.x).is_equal(312.0)
+	Display.use_prefs(DisplayPrefs.new())
+	assert_float(line.size.x).is_equal(296.0)
+	assert_float(line.size.y).is_equal(16.0)
+	assert_vector((line.get_node("Text") as Label).scale).is_equal(Vector2.ONE)
