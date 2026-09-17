@@ -136,7 +136,7 @@ func test_build_list_grows_beside_him() -> void:
 	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 1.5))
 	_step(1)
 	assert_vector(list.scale).is_equal(Vector2(2, 2))
-	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 2.0))
+	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 2.0, BuildList.STACKED_SIZE))
 	assert_bool((list.get_parent() as CanvasLayer).transform == Transform2D.IDENTITY).is_true()
 
 func test_launched_at_largest_the_pause_strip_is_in_the_corner() -> void:
