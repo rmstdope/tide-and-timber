@@ -46,6 +46,8 @@ func _ready() -> void:
 			debug.add_row(DebugMenu.Page.TIME, row)
 		DebugItems.add_rows(debug, %Beach.inventory)
 		DebugPlaces.add_rows(debug, go_to_place)
+		DebugShow.add_rows(debug)
+		DebugShow.attach(self, %Beach, %DayNight)
 
 func _process(delta: float) -> void:
 	tick(delta)

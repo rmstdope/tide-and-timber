@@ -4,3 +4,9 @@ extends RefCounted
 
 ## He passes through anything solid. Read by Player every physics tick.
 static var walk_through := false
+## The readout box top-right: day and time, speed, FPS, position.
+static var readout := false
+## Solid shapes outlined in red.
+static var collision_areas := false
+## Use areas outlined in blue.
+static var use_areas := false
