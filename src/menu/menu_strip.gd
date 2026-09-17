@@ -33,6 +33,8 @@ func text() -> String:
 	return view.text()
 
 func _layout() -> void:
+	if not is_inside_tree():
+		return
 	var w := view.line_width() + 8
 	size = Vector2(w, KeyHint.HEIGHT)
 	var s := UiScale.current(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
@@ -47,9 +49,12 @@ func _layout() -> void:
 	queue_redraw()
 	view.queue_redraw()
 
-## Deferred: the host's scale is set by other handlers of the same signals, so read it at frame end.
-func _layout_later() -> void:
+## Lays out again at frame end, reading the host's scale then; a host that scales itself calls it too.
+func relayout() -> void:
 	_layout.call_deferred()
+
+func _layout_later() -> void:
+	relayout()
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), KeyHint.BAND)

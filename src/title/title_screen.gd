@@ -200,6 +200,7 @@ func _apply_ui_size() -> void:
 	for c: Control in [%StartOverBox, %ReplaceBox, %SettingsBoard]:
 		c.pivot_offset = OverlayScale.ANCHOR_CENTRE - c.position
 		c.scale = Vector2(s, s)
+	(%SettingsBoard as SettingsBoard).strip.relayout()   # it was laid out before the board was scaled
 	_place_menu()
 
 ## The menu grows about its own centre and keeps clear of the strip. Runs after visibility is set.

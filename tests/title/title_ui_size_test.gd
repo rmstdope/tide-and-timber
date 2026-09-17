@@ -101,3 +101,20 @@ func test_title_board_grows_while_ui_size_changes_and_keeps_the_highlight() -> v
 	assert_bool(screen.menu.settings_open).is_true()
 	await get_tree().process_frame
 	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 158), EPS)
+
+func test_launched_at_largest_the_board_strip_is_in_the_corner() -> void:
+	_step(2)
+	_open()
+	await _tap(KEY_DOWN)
+	await _tap(KEY_ENTER)
+	await get_tree().process_frame
+	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 152), EPS)
+	assert_vector(board.strip.get_global_transform_with_canvas().get_scale()).is_equal_approx(Vector2(2, 2), EPS)
+
+func test_a_window_resize_regrows_the_title() -> void:
+	_step(1)
+	_open()
+	get_tree().root.size = Vector2i(960, 540)
+	await get_tree().process_frame
+	assert_vector(board.scale).is_equal_approx(Vector2(5.0 / 3.0, 5.0 / 3.0), EPS)
+	assert_vector((screen.get_node("%Menu") as Control).scale).is_equal_approx(Vector2(5.0 / 3.0, 5.0 / 3.0), EPS)

@@ -122,6 +122,12 @@ func test_build_list_grows_beside_him() -> void:
 	var beach := waking.get_node("%Beach")
 	var list := beach.get_node("%BuildList") as BuildList
 	var him := Vector2(100, 150)
+	_step(1)
+	list.place_beside(him)
+	get_tree().root.size = Vector2i(320, 180)   # k = 1: Large rounds up to 2
+	assert_vector(list.scale).is_equal(Vector2(2, 2))
+	get_tree().root.size = Vector2i(640, 360)
+	Display.use_prefs(DisplayPrefs.new())
 	list.place_beside(him)
 	assert_vector(list.scale).is_equal(Vector2.ONE)
 	assert_vector(list.position).is_equal(Vector2(112, 81))
@@ -132,3 +138,15 @@ func test_build_list_grows_beside_him() -> void:
 	assert_vector(list.scale).is_equal(Vector2(2, 2))
 	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 2.0))
 	assert_bool((list.get_parent() as CanvasLayer).transform == Transform2D.IDENTITY).is_true()
+
+func test_launched_at_largest_the_pause_strip_is_in_the_corner() -> void:
+	Display.use_prefs(DisplayPrefs.new())
+	_step(2)
+	runner = scene_runner("res://src/waking/waking.tscn")
+	waking = runner.scene() as Waking
+	waking.set_process(false)
+	pause = waking.get_node("%Pause") as Pause
+	waking.tick(5.0)
+	await _tap(KEY_ESCAPE)
+	await get_tree().process_frame
+	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 152), EPS)
