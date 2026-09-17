@@ -22,7 +22,9 @@ func test_collapse_takes_control_and_falls() -> void:
 	assert_bool(player.control_enabled).is_false()
 	assert_bool(_n("CollapseCover").visible).is_false()
 	night.tick(1.5)
-	assert_that((player.get_node("%Sprite") as AnimatedSprite2D).animation).is_equal(&"lie")
+	var sprite := player.get_node("%Sprite") as AnimatedSprite2D
+	assert_that(sprite.animation).is_equal(&"death_down")
+	assert_int(sprite.frame).is_equal(6)
 
 func test_input_ignored_during_collapse() -> void:
 	_collapse_now()

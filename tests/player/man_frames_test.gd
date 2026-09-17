@@ -6,11 +6,12 @@ func _region(frames: SpriteFrames, anim: StringName, i: int) -> Rect2:
 func _atlas(frames: SpriteFrames, anim: StringName, i: int) -> String:
 	return (frames.get_frame_texture(anim, i) as AtlasTexture).atlas.resource_path
 
-func test_twenty_eight_animations() -> void:
+func test_thirty_two_animations() -> void:
 	var names := Array(ManFrames.build().get_animation_names())
 	names.sort()
 	assert_array(names).is_equal([
 		"collect_down", "collect_left", "collect_right", "collect_up",
+		"death_down", "death_left", "death_right", "death_up",
 		"run_down", "run_left", "run_right", "run_up",
 		"still_down", "still_left", "still_right", "still_up",
 		"wade_collect_down", "wade_collect_left", "wade_collect_right", "wade_collect_up",
@@ -53,14 +54,20 @@ func test_collect_animations() -> void:
 	assert_that(_region(frames, &"collect_down", 7)).is_equal(Rect2(448, 0, 64, 64))
 	assert_str(_atlas(frames, &"collect_down", 0)).is_equal("res://assets/man/collect.png")
 
-func test_waking_poses() -> void:
+func test_the_fall_animations() -> void:
 	var frames := ManFrames.build()
-	ManFrames.add_waking(frames, load("res://assets/man/man_wake.png"))
-	for pose: StringName in [&"lie", &"push_up", &"sit"]:
-		assert_int(frames.get_frame_count(pose)).override_failure_message(pose).is_equal(1)
-		assert_bool(frames.get_animation_loop(pose)).override_failure_message(pose).is_false()
-	assert_that(_region(frames, &"push_up", 0)).is_equal(Rect2(64, 0, 64, 64))
-	assert_int(frames.get_animation_names().size()).is_equal(31)
+	assert_int(frames.get_frame_count(&"death_left")).is_equal(8)
+	assert_bool(frames.get_animation_loop(&"death_left")).is_false()
+	assert_float(frames.get_animation_speed(&"death_left")).is_equal(4.0)
+	assert_that(_region(frames, &"death_left", 0)).is_equal(Rect2(0, 128, 64, 64))
+	assert_that(_region(frames, &"death_left", 7)).is_equal(Rect2(448, 128, 64, 64))
+	assert_str(_atlas(frames, &"death_left", 0)).is_equal("res://assets/man/death.png")
+	# He keeps his legs if he goes down in the shallows, as the placeholder poses did.
+	assert_bool(frames.has_animation(&"wade_death_left")).is_false()
+
+## The rules count the fall's frames without loading its five textures, so the two must agree.
+func test_the_fall_has_as_many_frames_as_the_rules_count() -> void:
+	assert_int(ManFrames.build().get_frame_count(&"death_down")).is_equal(WakeUp.FALL_FRAMES)
 
 func test_wading_hides_legs() -> void:
 	var frames := ManFrames.build()

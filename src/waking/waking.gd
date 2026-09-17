@@ -4,7 +4,6 @@ extends Node2D
 ## A thin view over WakeUp; handles no input itself. Esc/Start pause through %Pause once he has control.
 
 const WAKE_CELL := Vector2i(92, 14)     # wet sand at the waterline, under the beach's spawn column
-const WAKE_SHEET := preload("res://assets/man/man_wake.png")
 const Preview := preload("res://src/day_night/day_night_preview.gd")
 const MOVE_HINT_TOP := 166.0         # %MoveHint's offset_top in waking.tscn
 const MOVE_HINT_HEIGHT := 14.0       # its band's height
@@ -20,7 +19,6 @@ func _ready() -> void:
 	player = %Beach.get_node("%Player")
 	%Beach.set_day_night(%DayNight)
 	if resume_data == null:
-		ManFrames.add_waking(player.get_node("%Sprite").sprite_frames, WAKE_SHEET)
 		player.control_enabled = false
 		player.global_position = BeachLayout.cell_centre(WAKE_CELL)
 		(%Beach.get_node("%Camera") as LooseCamera).snap_to_target()
@@ -98,8 +96,9 @@ func go_to_place(place: DebugPlaces.Place) -> void:
 
 func _refresh() -> void:
 	%Cover.modulate.a = wake.cover_alpha()
-	if wake.pose() != &"":
-		player.play_pose(wake.pose())
+	var f := wake.fall_frame()
+	if f >= 0:
+		player.show_frame(Walk.fall_animation_for(player.facing), f)
 	%MoveHint.modulate.a = wake.hint_alpha()
 	%MoveHint.visible = wake.hint_alpha() > 0.0
 	%Surf.set_audible(true)

@@ -10,7 +10,6 @@ enum Phase { FALLING, FADING_OUT, BLACK, FADING_IN, PUSHING_UP, SITTING, DONE }
 
 const FALL_SECONDS := 2.0
 const SWAY_SECONDS := 0.6        # standing, swaying
-const KNEEL_SECONDS := 0.6       # then kneeling (the "sit" pose), then lying for the rest of the fall
 const SWAY_STEP_SECONDS := 0.15  # the sway flips side this often
 const FADE_OUT_SECONDS := 0.5
 const BLACK_SECONDS := 3.0
@@ -51,21 +50,20 @@ func line_alpha() -> float:
 	var e := phase_elapsed
 	return clampf(minf(e / LINE_FADE_SECONDS, (BLACK_SECONDS - e) / LINE_FADE_SECONDS), 0.0, 1.0)
 
-func pose() -> StringName:
+## The frame of the fall to hold now, or -1 once he is up. The whole of FALL_SECONDS carries the
+## eight frames: the sheet's first three are the upright figure, so they are the sway, and the sheet
+## itself says when he kneels.
+func fall_frame() -> int:
 	match phase:
 		Phase.FALLING:
-			if phase_elapsed < SWAY_SECONDS:
-				return &""
-			if phase_elapsed < SWAY_SECONDS + KNEEL_SECONDS:
-				return &"sit"
-			return &"lie"
+			return WakeUp.step_of(phase_elapsed, FALL_SECONDS)
 		Phase.FADING_OUT, Phase.BLACK, Phase.FADING_IN:
-			return &"lie"
+			return WakeUp.FALL_FRAMES - 1
 		Phase.PUSHING_UP:
-			return &"push_up"
+			return WakeUp.getting_up_frame(phase_elapsed)
 		Phase.SITTING:
-			return &"sit"
-	return &""
+			return WakeUp.getting_up_frame(WakeUp.PUSH_UP_SECONDS + phase_elapsed)
+	return -1
 
 func sway_x() -> float:
 	if phase == Phase.FALLING and phase_elapsed < SWAY_SECONDS:

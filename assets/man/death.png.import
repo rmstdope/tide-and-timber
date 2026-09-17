@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cbtq6cf8fnivt"
-path="res://.godot/imported/man_wake.png-431a9b102ae658ad30f4ef51762e1bfd.ctex"
+uid="uid://c1lx6fsgno8j"
+path="res://.godot/imported/death.png-a6af335e0067691eefae79799fda1a57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/man/man_wake.png"
-dest_files=["res://.godot/imported/man_wake.png-431a9b102ae658ad30f4ef51762e1bfd.ctex"]
+source_file="res://assets/man/death.png"
+dest_files=["res://.godot/imported/death.png-a6af335e0067691eefae79799fda1a57.ctex"]
 
 [params]
 
