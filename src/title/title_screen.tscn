@@ -347,6 +347,7 @@ theme_override_font_sizes/font_size = 8
 text = "Wash up on a new island?"
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="SecondLine" type="Label" parent="StartOverBox"]
 layout_mode = 0
@@ -435,6 +436,7 @@ theme_override_font_sizes/font_size = 8
 text = "Start a new game?"
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="SecondLine" type="Label" parent="ReplaceBox"]
 layout_mode = 0
