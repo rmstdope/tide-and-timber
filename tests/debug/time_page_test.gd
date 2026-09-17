@@ -108,6 +108,7 @@ func test_chosen_speed_drives_the_clock_after_resume() -> void:
 	assert_float(dn.clock.total_minutes).is_equal(before + 240.0)
 
 func test_story_time_rows_dimmed_and_inert() -> void:
+	waking.free()   # one scene at a time: the beach must not take the story's keys
 	var story := scene_runner("res://src/intro/intro.tscn")
 	var intro := story.scene() as Intro
 	intro.end_story = func() -> void: pass

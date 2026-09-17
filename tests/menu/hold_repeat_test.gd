@@ -26,3 +26,7 @@ func test_release_stops_and_press_restarts() -> void:
 func test_one_big_frame() -> void:
 	h.press(1)
 	assert_int(h.advance(1.0)).is_equal(7)
+
+func test_just_short_of_delay_fires_nothing() -> void:
+	h.press(1)
+	assert_int(h.advance(HoldRepeat.DELAY - 1e-5)).is_equal(0)

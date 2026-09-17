@@ -51,6 +51,7 @@ func test_rows_over_a_day_night() -> void:
 	assert_float(dn.clock.total_minutes).is_equal(2220.0)
 	rows[1].step.call(1)
 	assert_str(rows[1].value_text()).is_equal("13:30")
+	assert_float(dn.clock.total_minutes).is_equal(2250.0)
 	rows[2].step.call(-1)
 	assert_str(rows[2].value_text()).is_equal("x0.5")
 	assert_float(dn.time_scale).is_equal(0.5)
