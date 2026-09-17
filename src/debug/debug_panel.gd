@@ -71,22 +71,7 @@ static func slot_at(point: Vector2) -> int:
 
 ## -1 for Q or the left shoulder, 1 for E or the right shoulder, 0 for anything else (read only after menu_tab matched).
 static func tab_step(event: InputEvent) -> int:
-	var key := event as InputEventKey
-	if key != null:
-		match key.physical_keycode:
-			KEY_Q:
-				return -1
-			KEY_E:
-				return 1
-		return 0
-	var button := event as InputEventJoypadButton
-	if button != null:
-		match button.button_index:
-			JOY_BUTTON_LEFT_SHOULDER:
-				return -1
-			JOY_BUTTON_RIGHT_SHOULDER:
-				return 1
-	return 0
+	return MenuTab.step(event)   # raw key reads live in src/input
 
 ## What a row's value draws: "" when it has none; "← v →" when highlighted and Left/Right change it; else v.
 static func value_shown(row: DebugRow, highlighted: bool) -> String:
