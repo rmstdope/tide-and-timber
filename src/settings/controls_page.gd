@@ -189,10 +189,11 @@ func shows_mark_above() -> bool:
 func shows_mark_below() -> bool:
 	return scrolls and ScrollWindow.hidden_below(offset, content_bottom(stacked) - CONTENT_TOP, view.size.y)
 
-# Frames against the page's band on screen; with no tree or strip yet, against the whole page.
+# Frames against the page's band on screen. With no tree or strip yet the band is unknown, so the content's
+# own extent is passed and the page is left unscrolled rather than scrolled against a band that is not the real one.
 func _frame() -> void:
 	if not is_inside_tree() or strip == null:
-		frame(0.0, 180.0)
+		frame(CONTENT_TOP, content_bottom(stacked))
 		return
 	var b := ScrollWindow.band(get_global_transform_with_canvas(), strip.screen_top())
 	frame(b.x, b.y)

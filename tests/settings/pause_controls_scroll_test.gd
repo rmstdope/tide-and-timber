@@ -94,3 +94,33 @@ func test_normal_pause_page_does_not_scroll() -> void:
 	await _open_page()
 	assert_bool(page.scrolls).is_false()
 	assert_that(page.view).is_equal(Rect2(0, 0, 320, 180))
+
+func test_a_box_does_not_move_the_scrolled_page() -> void:
+	_size(2)
+	await _open_page()
+	await _tap(KEY_UP)   # the Reset row, at the bottom of the content
+	var scrolled := page.offset
+	assert_int(scrolled).is_equal(201)
+	await _tap(KEY_ENTER)
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
+	assert_int(page.offset).is_equal(scrolled)   # the box is a child node; the page under it does not move
+	assert_that(page.view).is_equal(Rect2(0, 56, 320, 32))
+	await _tap(KEY_ESCAPE)
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
+	assert_int(page.offset).is_equal(scrolled)
+
+func test_large_pause_page_scrolls_inside_its_band() -> void:
+	_size(1)
+	await _open_page()
+	assert_bool(page.stacked).is_true()
+	assert_bool(page.scrolls).is_true()
+	# The view is the band less one mark row at each end: on screen, 2 from the top of the screen
+	# and 2 above the strip, both inset by a mark row at this scale.
+	var t := page.get_global_transform_with_canvas()
+	var scale := t.get_scale().y
+	var top_on_screen := (t * Vector2(0, page.view.position.y)).y
+	var bottom_on_screen := (t * Vector2(0, page.view.end.y)).y
+	assert_float(top_on_screen).is_equal_approx(2.0 + ScrollWindow.MARK_ROW * scale, 1.0 + scale)
+	assert_float(bottom_on_screen).is_equal_approx(
+			page.strip.screen_top() - 2.0 - ScrollWindow.MARK_ROW * scale, 1.0 + scale)
+	assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()

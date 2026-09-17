@@ -245,3 +245,17 @@ func test_clicks_land_where_drawn() -> void:
 	assert_int(page.offset).is_equal(198)
 	_left_click(page, page.to_page(ControlsPage.row_rect(8, true).get_center()))
 	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
+
+func test_an_unknown_band_leaves_the_page_unscrolled() -> void:
+	# frame is public; with no strip to measure, _frame must not scroll against a band it does not know.
+	_size(2)
+	await _open_page()
+	await _settle()
+	assert_bool(page.scrolls).is_true()
+	var saved := page.strip
+	page.strip = null   # the band cannot be measured
+	page._frame()
+	page.strip = saved
+	assert_bool(page.scrolls).is_false()
+	assert_int(page.offset).is_equal(0)
+	assert_that(page.view).is_equal(Rect2(0, 0, 320, 180))
