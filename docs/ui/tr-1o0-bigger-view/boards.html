@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><title>How big the boards are</title><script src="common.js"></script></head><body><script>
+const W=640,H=360;
+page('How big are the full-screen boards?',
+ 'The pause board, the Settings and Controls pages, the title menu and the build list are the places where the whole screen is given over to reading and choosing. They can follow the same answer as the playing screen, or a different one. Every drawing is shown at the same width, so it is a fair comparison. Colours, fonts and sizes are placeholders for the real pixel art.',
+ [fig('Today — Paused','',view(320,180,pause(1,320,180))),
+  fig('A — Paused, the same size on screen','Exactly as big as it is today.',view(W,H,pause(2,W,H))),
+  fig('B — Paused, three-quarters','A quarter smaller, with more room around it.',view(W,H,pause(1.5,W,H))),
+  fig('C — Paused, half','As small as the world got. Too small to sit comfortably.',view(W,H,pause(1,W,H))),
+  fig('Today — Settings','Four rows and the explaining line beneath.',scr(320,180,settingsBoard(1,320,180))),
+  fig('A — Settings, the same size on screen','Identical to today.',scr(W,H,settingsBoard(2,W,H))),
+  fig('B — Settings, three-quarters','Noticeably more room around every row.',scr(W,H,settingsBoard(1.5,W,H)))],
+ 'Recommended: <b>the same answer as the playing screen</b> — one size rule everywhere, so a board never looks as though it came from a different game than the bar beneath it. Worth knowing either way: these boards are measured against your window, not against the island, so the wider view does not by itself make more rows fit. Under A the Settings and Controls pages start needing their up and down arrows at exactly the point they do today; under B they fit one size step further before any scrolling begins.',1);
+</script></body></html>

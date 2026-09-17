@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>The item bar</title><script src="common.js"></script></head><body><script>
+const W=640,H=360;
+const zoom=(u,k)=>`<svg class="px" viewBox="0 0 ${141*2*k} ${22*2*k}" shape-rendering="crispEdges"><g transform="scale(${k}) translate(0 ${-22*u})">${items(u,141*u,45*u)}</g></svg>`;
+page('The item bar, at half the size',
+ 'The item bar is the thing you glance at most while you are gathering — what you are carrying and how many. Its slots are sixteen pixels square and the little count digits are three pixels wide, so halving it halves those too. The first two drawings are the bar itself, magnified so you can judge the digits; the rest show it in place.',
+ [fig('The bar today, magnified','Slots and counts as they are now. Both magnified drawings are at the same magnification, so this one really is twice the other.',zoom(2,2)),
+  fig('The bar at half, magnified','The same bar, halved. Judge the small digits here.',zoom(1,2)),
+  fig('A — everything half, the bar included','One rule, no exceptions.',view(W,H,overlay(1,W,H))),
+  fig('B — the bar alone stays at today’s size','The clock, hints and his lines are half; the item bar is not. It becomes the most prominent thing on the screen.',view(W,H,clock(1)+items(2,W,H)+hints(1,W,H,[['E','Gather']],true)+spoken(1,W,H))),
+  fig('C — the bar half, but with no count digits','Halved like everything else, and the counts are dropped rather than shown too small to read; the name plank above a slot still says what it is.',view(W,H,clock(1)+items(1,W,H,4,false)+hints(1,W,H,[['E','Gather']],true)+spoken(1,W,H)))],
+ 'Recommended: <b>A</b>. Keeping one rule matters more than the digits, the counts are read from a glance at a familiar shape rather than actually parsed, and anyone who cannot read them has the size steps — which is what they are for. <b>B</b> buys legibility exactly where it is needed but makes the bar tower over the rest of the screen, and the first thing anyone would ask is why the clock did not get the same treatment.',1);
+</script></body></html>

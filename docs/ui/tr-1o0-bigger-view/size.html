@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>How big while playing</title><script src="common.js"></script></head><body><script>
+const W=640,H=360;
+page('How big is what you read while you play?',
+ 'The first drawing is the game as it is today. The other three are the wider view — twice as much island on screen — with the clock, item bar, key hints and his spoken line at three different sizes. Every drawing is shown at the same width, so it is a fair comparison of what your eye sees in the same window. Colours, figures, fonts and sizes are placeholders for the real pixel art.',
+ [fig('Today','Everything as it is now. You can see about twenty tiles across.',view(320,180,overlay(1,320,180))),
+  fig('A — the same size on screen','Twice as much island; the clock, bar, hints and his line are exactly as big as they are today.',view(W,H,overlay(2,W,H))),
+  fig('B — three-quarters','Everything you read is a quarter smaller than today, so it covers less of the window.',view(W,H,overlay(1.5,W,H))),
+  fig('C — half','Everything you read shrinks with the world — half of today. The most island, the least readable.',view(W,H,overlay(1,W,H)))],
+ 'Recommended: <b>A</b>. It is what a game normally does when it widens its view: the world gets roomier and nothing a person reads changes at all — no relearning, and the smallest words stay as legible as they are today. Be clear about what A does <i>not</i> do: the clock and the item bar still cover the same corners of your window as they do now. If the aim is for the furniture itself to take up less of the screen, that is B — at the cost of smaller words everywhere, before anyone touches the Text size setting.',1);
+</script></body></html>
