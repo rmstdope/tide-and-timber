@@ -45,3 +45,21 @@ func test_words_fit_320() -> void:
 			pictures += HintLine.picture_width(DeviceHints.picture_for(e, kind))
 		var words := _w(ControlsPage.CONTROLLER_FIXED_WORDS[0]) + _w(ControlsPage.CONTROLLER_FIXED_WORDS[1])
 		assert_float(words + pictures + 12).is_less_equal(312.0)
+
+func test_empty_slot_mark_only_on_the_problem_with_shapes() -> void:
+	const C := DisplayPrefs.Cues
+	assert_str(ControlsPage.empty_slot_mark(true, C.SHAPES)).is_equal("! —")
+	assert_str(ControlsPage.empty_slot_mark(true, C.STANDARD)).is_equal("—")
+	assert_str(ControlsPage.empty_slot_mark(false, C.SHAPES)).is_equal("—")
+	assert_str(ControlsPage.empty_slot_mark(false, C.STANDARD)).is_equal("—")
+
+func test_the_dash_keeps_its_place() -> void:
+	for r in 8:
+		for s in 2:
+			var cell := ControlsPage.slot_rect(r, s)
+			var dash := ControlsPage.empty_slot_at(cell, "—")
+			var marked := ControlsPage.empty_slot_at(cell, "! —")
+			assert_vector(dash).is_equal((cell.get_center() - Vector2(1, 2)).round())
+			assert_vector(marked).is_equal(dash - Vector2(8, 0))
+			assert_bool(marked.x >= cell.position.x).is_true()
+			assert_bool(dash.x + Glyphs.W <= cell.end.x).is_true()

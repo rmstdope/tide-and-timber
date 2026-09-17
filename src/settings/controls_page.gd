@@ -50,6 +50,7 @@ func _ready() -> void:
 			_refresh())
 	gui_input.connect(_on_gui_input)
 	InputDevice.changed.connect(queue_redraw)
+	Display.changed.connect(queue_redraw)
 	_refresh()
 
 ## Opens the page on the tab of the device used last. from_pause: opened from the Paused board.
@@ -92,6 +93,16 @@ static func tab_at(point: Vector2) -> int:
 ## The row's rectangle.
 static func row_rect(r: int) -> Rect2:
 	return Rect2(LIST_X, LIST_TOP + r * ROW_H, LIST_W, ROW_H)
+
+const SHAPES_EMPTY := "! —"   # an empty slot of an action with no key, while Colour cues is Shapes
+
+## What an empty slot draws: SHAPES_EMPTY when the row has no key on this tab (orange) and cues is SHAPES, else "—".
+static func empty_slot_mark(orange: bool, cues: DisplayPrefs.Cues) -> String:
+	return SHAPES_EMPTY if orange and cues == DisplayPrefs.Cues.SHAPES else "—"
+
+## Top-left of an empty slot's mark in cell: the "—" keeps today's place, so any prefix sits to its left.
+static func empty_slot_at(cell: Rect2, mark: String) -> Vector2:
+	return (cell.get_center() - Vector2(1, 2)).round() - Vector2((mark.length() - 1) * (Glyphs.W + Glyphs.GAP), 0)
 
 ## The slot's cell rectangle (row r, slot s).
 static func slot_rect(r: int, s: int) -> Rect2:
@@ -221,7 +232,9 @@ func _draw() -> void:
 				var p := DeviceHints.picture_for(e, kind)
 				HintLine.draw_picture(self, p, (centre - Vector2(HintLine.picture_width(p) / 2.0, 4.5)).round())
 			else:
-				Glyphs.draw(self, "—", (centre - Vector2(1, 2)).round(), ORANGE if rules.is_orange(r) else QUIET)
+				var orange := rules.is_orange(r)
+				var mark := empty_slot_mark(orange, Display.prefs.cues)
+				Glyphs.draw(self, mark, empty_slot_at(cell, mark), ORANGE if orange else QUIET)
 			if r == rules.row and s == rules.slot:
 				draw_rect(cell, SLOT_OUTLINE, false, 1.0)
 	if rules.no_key_line != "":

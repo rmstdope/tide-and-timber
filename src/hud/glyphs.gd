@@ -4,7 +4,7 @@ extends RefCounted
 
 const SHEET := preload("res://assets/hud/glyphs.png")   # 4 * ORDER.length() x 5, white on transparent
 # glyph i sits at x = 4 * i; new glyphs are appended so existing ones keep their place
-const ORDER := "0123456789EABDLSWXYsc✕○△CFGHIJKMNOPQRTUVZabdefghijklmnopqrtuvwxyz-=[]\\;',./`+*□↑↓←→—"
+const ORDER := "0123456789EABDLSWXYsc✕○△CFGHIJKMNOPQRTUVZabdefghijklmnopqrtuvwxyz-=[]\\;',./`+*□↑↓←→—!"
 const W := 3
 const H := 5
 const GAP := 1
