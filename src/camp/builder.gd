@@ -232,18 +232,72 @@ func _refresh_cover() -> void:
 
 func _on_went_black(cells: Array[Vector2i], thing: BuildMenu.Thing) -> void:
 	if thing == BuildMenu.Thing.LEAN_TO:
-		lean_to = LeanTo.new()
-		lean_to.cells = cells
-		lean_to.position = BuildSite.origin_for(thing, cells)
-		%World.add_child(lean_to)
+		_add_lean_to(cells)
 	else:
-		if fire != null:
-			fire.queue_free()
-		fire = CampFire.new()
-		fire.cell = cells[0]
-		fire.position = BuildSite.origin_for(thing, cells)
-		%World.add_child(fire)
+		_add_fire(cells[0])
 	%BuildSound.set_audible(true)
+
+## Adds a lean-to on `cells` under %World and keeps it as lean_to.
+func _add_lean_to(cells: Array[Vector2i]) -> void:
+	lean_to = LeanTo.new()
+	lean_to.cells = cells
+	lean_to.position = BuildSite.origin_for(BuildMenu.Thing.LEAN_TO, cells)
+	%World.add_child(lean_to)
+
+## Frees any fire, adds a new lit one on `cell` under %World, keeps it as fire, returns it.
+func _add_fire(cell: Vector2i) -> CampFire:
+	if fire != null:
+		fire.queue_free()
+	fire = CampFire.new()
+	fire.cell = cell
+	fire.position = BuildSite.origin_for(BuildMenu.Thing.FIRE, [cell])
+	%World.add_child(fire)
+	return fire
+
+## Writes the camp as it is now into data's camp fields.
+func capture_camp(data: SaveData) -> void:
+	data.lean_to_cells = lean_to.cells.duplicate() if lean_to else ([] as Array[Vector2i])
+	data.has_fire = fire != null
+	if fire == null:
+		return
+	data.fire_cell = fire.cell
+	data.fire_lit = fire.lit
+	data.fire_out_at = fire.out_at
+	if fire.lit and not is_finite(fire.out_at) and day_night != null:
+		# Built across 06:00: the dawn save runs inside add_minutes, before _on_black_ended sets out_at.
+		data.fire_out_at = FireLife.out_at(day_night.clock.total_minutes)
+
+## Whether data's camp may be rebuilt: none at all; or a 3x2 lean-to on sand listed row by row,
+## top-left first, with any fire at its fire_spot. A fire without a lean-to is refused. No nodes touched.
+static func camp_fits(data: SaveData) -> bool:
+	var cells := data.lean_to_cells
+	if cells.is_empty():
+		return not data.has_fire
+	if cells.size() != 6:
+		return false
+	var lo := cells[0]
+	for c in cells:
+		lo = lo.min(c)
+	for i in 6:
+		if cells[i] != lo + Vector2i(i % 3, i / 3) or not BuildSite.is_ground_ok(cells[i]):
+			return false
+	return not data.has_fire or data.fire_cell == BuildSite.fire_spot(BuildSite.anchor_of(cells))
+
+## Rebuilds the camp from data (assumes camp_fits). Frees any lean-to or fire already standing.
+func restore_camp(data: SaveData) -> void:
+	if lean_to != null:
+		lean_to.queue_free()
+		lean_to = null
+	if fire != null:
+		fire.queue_free()
+		fire = null
+	if not data.lean_to_cells.is_empty():
+		_add_lean_to(data.lean_to_cells.duplicate())
+	if data.has_fire:
+		var f := _add_fire(data.fire_cell)
+		f.out_at = data.fire_out_at
+		if not data.fire_lit:
+			f.put_out()
 
 func _on_black_ended(thing: BuildMenu.Thing) -> void:
 	%BuildSound.set_audible(false)
