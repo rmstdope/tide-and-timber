@@ -302,14 +302,61 @@ func test_quit_fades_then_opens_the_title() -> void:
 func test_mouse_hovers_and_clicks() -> void:
 	_control()
 	await _tap(KEY_ESCAPE)
-	(_node("Settings") as Control).mouse_entered.emit()
+	_move_over(_node("Settings"))
 	_highlighted("Settings")
 	_click(_node("QuitToTitle"))
 	assert_bool(_node("QuitBox").visible).is_true()
-	(_node("Quit") as Control).mouse_entered.emit()
+	_move_over(_node("Quit"))
 	_highlighted("Quit")
 	_click(_node("Stay"))
 	assert_bool(_node("QuitBox").visible).is_false()
 	_highlighted("QuitToTitle")
 	_click(_node("Resume"))
 	assert_bool(get_tree().paused).is_false()
+
+# A mouse movement straight to a control, as Godot delivers one over it.
+func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
+	var move := InputEventMouseMotion.new()
+	move.relative = relative
+	control.gui_input.emit(move)
+
+# A mouse movement through the window, so InputDevice sees it.
+func _mouse_moved() -> void:
+	var move := InputEventMouseMotion.new()
+	move.position = Vector2(4, 4)
+	move.relative = Vector2(2, 0)
+	Input.parse_input_event(move)
+	Input.flush_buffered_events()
+	await runner.await_input_processed()
+
+func test_esc_hides_the_pointer_and_resuming_shows_it() -> void:
+	_control()
+	await _tap(KEY_ESCAPE)
+	assert_bool(InputDevice.pointer.hidden).is_true()
+	await _tap(KEY_ESCAPE)
+	assert_bool(InputDevice.pointer.hidden).is_false()
+
+func test_pause_after_a_mouse_move_shows_the_pointer() -> void:
+	_control()
+	await _mouse_moved()
+	pause.try_open()
+	assert_bool(InputDevice.pointer.hidden).is_false()
+	await _tap(KEY_DOWN)
+	assert_bool(InputDevice.pointer.hidden).is_true()
+	await _mouse_moved()
+	assert_bool(InputDevice.pointer.hidden).is_false()
+
+func test_resting_pointer_does_not_pull_the_highlight() -> void:
+	_control()
+	await _tap(KEY_ESCAPE)
+	(_node("Settings") as Control).mouse_entered.emit()
+	_highlighted("Resume")
+	_move_over(_node("Settings"), Vector2.ZERO)
+	_highlighted("Resume")
+
+func test_quit_box_hover_needs_motion() -> void:
+	await _open_box()
+	(_node("Quit") as Control).mouse_entered.emit()
+	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.STAY)
+	_move_over(_node("Quit"))
+	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)

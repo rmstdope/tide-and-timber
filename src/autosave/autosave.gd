@@ -67,12 +67,12 @@ func _input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 func _connect_button(button: Control, which: DawnSave.Choice) -> void:
-	button.mouse_entered.connect(func() -> void:
-		rules.select(which)
-		_refresh())
 	button.gui_input.connect(func(event: InputEvent) -> void:
 		var click := event as InputEventMouseButton
-		if click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
+		if PointerRule.is_move(event):
+			rules.select(which)
+			_refresh()
+		elif click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
 			rules.press(which)
 			_after_rules())
 
@@ -97,7 +97,11 @@ func _after_rules() -> void:
 			_shake.tween_property(%FirstLine, "position:x", FIRST_LINE_X + offset, SHAKE_STEP_SECONDS)
 	_refresh()
 
+func _exit_tree() -> void:
+	InputDevice.set_menu_open(self, false)
+
 func _refresh() -> void:
+	InputDevice.set_menu_open(self, rules.box_open)
 	%Dawn.visible = rules.line.is_showing()
 	%Dawn.modulate.a = rules.line.alpha()
 	%Box.visible = rules.box_open

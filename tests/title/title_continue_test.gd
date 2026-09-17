@@ -200,7 +200,7 @@ func test_box_highlight_moves() -> void:
 	_box_highlighted("StartOver")
 	await _press(KEY_LEFT)
 	_box_highlighted("KeepMyIsland")
-	_plank("StartOver").mouse_entered.emit()
+	_move_over(_plank("StartOver"))
 	_box_highlighted("StartOver")
 	await _press(KEY_UP)
 	_box_highlighted("StartOver")
@@ -373,7 +373,7 @@ func _assert_menu_highlight(unique: String) -> void:
 
 func test_mouse_on_dimmed_continue_does_nothing() -> void:
 	_newer()
-	_plank("Continue").mouse_entered.emit()
+	_move_over(_plank("Continue"))
 	_assert_menu_highlight("NewGame")
 	_click("Continue", MOUSE_BUTTON_LEFT)
 	assert_array(calls).is_empty()
@@ -400,7 +400,7 @@ func test_replace_box_highlight_moves() -> void:
 	_box_highlighted("ReplaceStartOver")
 	await _press(KEY_LEFT)
 	_box_highlighted("Cancel")
-	_plank("ReplaceStartOver").mouse_entered.emit()
+	_move_over(_plank("ReplaceStartOver"))
 	_box_highlighted("ReplaceStartOver")
 
 func _assert_replace_cancelled() -> void:
@@ -459,3 +459,14 @@ func test_readable_save_new_game_box_unchanged() -> void:
 	await _open_start_over_box()
 	assert_bool(_visible("%StartOverBox")).is_true()
 	assert_bool(_visible("%ReplaceBox")).is_false()
+
+# A mouse movement straight to a control, as Godot delivers one over it.
+func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
+	var move := InputEventMouseMotion.new()
+	move.relative = relative
+	control.gui_input.emit(move)
+
+func test_resting_pointer_does_not_move_the_box_highlight() -> void:
+	await _open_start_over_box()
+	_plank("StartOver").mouse_entered.emit()
+	_box_highlighted("KeepMyIsland")

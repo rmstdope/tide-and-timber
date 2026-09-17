@@ -77,7 +77,7 @@ func _click(unique: String, button: MouseButton) -> void:
 	_plank(unique).gui_input.emit(event)
 
 func test_hover_moves_the_highlight_and_keys_carry_on() -> void:
-	_plank("Quit").mouse_entered.emit()
+	_move_over(_plank("Quit"))
 	assert_highlighted("Quit")
 	await _press(KEY_DOWN)
 	assert_highlighted("NewGame")
@@ -117,7 +117,7 @@ func test_input_during_fade_is_ignored() -> void:
 	await _press(KEY_DOWN)
 	await _press(KEY_ENTER)
 	await _press(KEY_SPACE)
-	_plank("Quit").mouse_entered.emit()
+	_move_over(_plank("Quit"))
 	_click("Quit", MOUSE_BUTTON_LEFT)
 	assert_highlighted("NewGame")
 	await await_millis(1300)
@@ -141,3 +141,9 @@ func test_waves_move() -> void:
 func test_no_save_shows_two_planks() -> void:
 	assert_bool(_plank("Continue").visible).is_false()
 	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(118.0)
+
+# A mouse movement straight to a control, as Godot delivers one over it.
+func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
+	var move := InputEventMouseMotion.new()
+	move.relative = relative
+	control.gui_input.emit(move)
