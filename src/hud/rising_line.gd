@@ -27,7 +27,9 @@ static func show_over(host: Node2D, text: String) -> RisingLine:
 	label.add_theme_color_override(&"font_outline_color", Color("#3a2414"))
 	label.add_theme_constant_override(&"outline_size", 2)
 	label.size = label.get_minimum_size()
-	label.position = Vector2(-floorf(label.size.x / 2), -label.size.y)
+	var rel := TextScale.relative(Display.prefs, host.get_tree().root) if host.is_inside_tree() else 1.0
+	label.scale = Vector2.ONE * rel
+	label.position = Vector2(-floorf(label.size.x * rel / 2), -ceilf(label.size.y * rel))
 	line.add_child(label)
 	host.add_child(line)
 	var tween := line.create_tween().set_parallel()
