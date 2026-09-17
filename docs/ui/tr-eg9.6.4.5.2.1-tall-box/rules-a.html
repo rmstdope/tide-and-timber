@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Tall box — A</title><script src="common.js"></script><script src="tall.js"></script></head><body><script>
+const B=[4,84];
+page('A — Up and Down scroll the words first, then move between the buttons',
+'The box opens at the top, words showing, with the usual button already highlighted even while it is still out of sight. Up / Down (keys, d-pad, stick) scroll one line per push while the highlighted button is not wholly in view; once it is, they move between the buttons as now. Up from the top button scrolls back up to the words. Left / Right only ever move between the buttons (scrolling to show the one they pick). The mouse wheel scrolls; hovering a button that is drawn highlights it. Select on a button that is out of sight still does that button. Drawn at Largest UI and Largest text, in the game.',[
+ fig('1. Pause Quit box opens','Words at the top. Stay is highlighted, still below. ▼.',scene()+box(PAUSE,B,0,0)),
+ fig('2. Down','One line down. Stay coming into view. ▲ ▼.',scene()+box(PAUSE,B,14,0)),
+ fig('3. Down','Stay wholly in view and highlighted.',scene()+box(PAUSE,B,30,0)),
+ fig('4. Down','Moves to Quit, which comes into view. Only ▲.',scene()+box(PAUSE,B,63,1)),
+ fig('5. Up, Up, Up','To Stay, then back up through the words.',scene()+box(PAUSE,B,0,0)),
+ fig('Dawn-save box opens','Picture and first words. Try again highlighted below.',scene()+box(DAWN,B,0,0)),
+ fig('Dawn-save, Down ×3','Reading down through the words.',scene()+box(DAWN,B,40,0)),
+ fig('Dawn-save, Down again','Try again in view.',scene()+box(DAWN,B,72,0)),
+ fig('Normal size','Fits: exactly as today, no marks.',beach()+dim(.55)+g(1,160,178,bar())+hint([['ENTER','Select'],['ESC','Back']])+r(70,56,180,70,'#fff1c9')+r(72,58,176,66,P.plank)+t(160,74,'Quit to title?',6,P.text,'middle')+t(160,86,'Nothing has been saved yet.',4.5,'#ffe2a8','middle')+plank(80,102,76,'Stay',1,13)+plank(164,102,76,'Quit',0,13))],
+'Recommended: it is how long text with buttons under it behaves in most games and on every phone — you read down to the buttons. Cost: the words can be scrolled past, and a player can press Select on a button they have not yet seen.');
+</script></body></html>
