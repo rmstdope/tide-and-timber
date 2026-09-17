@@ -47,7 +47,7 @@ static func stretch_ends(span: Vector2, content_height: float, first: bool, last
 ## The centre of the ▲ (up) or ▼ mark row inside area: horizontally centred on area, vertically in the
 ## MARK_ROW-deep row just inside area's top or bottom edge. area is in the units the mark is drawn in.
 static func mark_centre(area: Rect2, up: bool) -> Vector2:
-	var y := area.position.y + MARK_ROW / 2.0 if up else area.end.y - MARK_ROW / 2.0
+	var y := (area.position.y + MARK_ROW / 2.0) if up else (area.end.y - MARK_ROW / 2.0)
 	return Vector2(area.position.x + area.size.x / 2.0, y)
 
 ## The baseline origin that centres one mark glyph on centre.

@@ -192,9 +192,8 @@ static func content_bottom(p_stacked := false) -> float:
 ## and tabs; the Reset row reaches down to include the no-key line and the fixed lines.
 static func row_extent(r: int, p_stacked := false) -> Vector2:
 	var rect := row_rect(r, p_stacked)
-	var top := 0.0 if r == 0 else rect.position.y - CONTENT_TOP
-	var bottom := content_bottom(p_stacked) - CONTENT_TOP if r == ControlsMenu.RESET_ROW else rect.end.y - CONTENT_TOP
-	return Vector2(top, bottom)
+	return ScrollWindow.stretch_ends(Vector2(rect.position.y - CONTENT_TOP, rect.end.y - CONTENT_TOP),
+			content_bottom(p_stacked) - CONTENT_TOP, r == 0, r == ControlsMenu.RESET_ROW)
 
 ## How far content is drawn down from where it sits unscrolled (negative when scrolled): 0 while it fits.
 func shift() -> float:
