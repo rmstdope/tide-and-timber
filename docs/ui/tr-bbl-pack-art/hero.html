@@ -1,0 +1,51 @@
+<!doctype html><html><head><meta charset="utf-8"><title>The stranded man</title><link rel="stylesheet" href="style.css"></head><body>
+<h1>Question 2 — which of the pack's figures plays the stranded man?</h1>
+<p>Each figure below is moving the way it would in the game, shown 4× larger on the pack's sand, with today's man on the left for comparison. Under each is what the game needs him to do and whether the pack already has it.</p>
+<div class="opt"><h2>Today's man, for comparison</h2><div id="today" class="row"></div></div>
+<div class="opt rec" id="a"><h2>Hero A — the full figure, dressed as a castaway (recommended)</h2>
+<div>The pack's full figure, with a torn shirt and rolled trousers painted over every frame. The clothes in this drawing are a rough automatic stand-in; the real ones would be hand-painted once and repeated on each pose.</div>
+<div class="dim">Why recommended: it is the only figure with every move the story needs already drawn, and a stranded sailor should look like one, not a bare mannequin.</div></div>
+<div class="opt" id="b"><h2>Hero B — the full figure as it comes</h2>
+<div>Same moves as A, nothing painted on: a bald, bare-skinned figure. No extra art work, but he reads as a placeholder, not a person.</div></div>
+<div class="opt" id="c"><h2>Hero C — the pack's newer figure</h2>
+<div>Only standing and walking exist, and they're still rough coloured blocks (head, body, legs) — the pack's artist hasn't finished it. Everything else he does would have to be drawn from scratch.</div></div>
+<table style="margin-top:10px" class="opt"><tr><th>What he does in the game</th><th>A / B — full figure</th><th>C — newer figure</th></tr>
+<tr><td>Stands, walks four ways</td><td>yes</td><td>yes (rough)</td></tr>
+<tr><td>Runs (hold Shift)</td><td>yes</td><td>no</td></tr>
+<tr><td>Gathers (picks things up)</td><td>yes</td><td>no</td></tr>
+<tr><td>Carries driftwood</td><td>yes</td><td>no</td></tr>
+<tr><td>Collapses at night</td><td>yes (falls)</td><td>no</td></tr>
+<tr><td>Wakes on the beach</td><td>the fall, played backwards</td><td>no</td></tr>
+<tr><td>Later: chops, fishes, waters, hammers</td><td>yes</td><td>no</td></tr></table>
+<script src="assets.js"></script><script src="common.js"></script><script>
+const SC=4;
+function stage(el,label,draw,frames,w,h){const cell=document.createElement('div');cell.className='cell';el.appendChild(cell);const x=canvas(cell,w,h,SC);
+  const t=document.createElement('div');t.textContent=label;cell.appendChild(t);let f=0;
+  setInterval(()=>{tile(x,'pack_Floors_Tiles',96,356,0,0,w,h);draw(x,f%frames);f++},160);}
+function sheet(key,fw,fh,n,dress){return (x,f)=>{const c=document.createElement('canvas');c.width=fw;c.height=fh;const k=c.getContext('2d');
+  k.drawImage(IMG[key],f*fw,0,fw,fh,0,0,fw,fh); if(dress)clothe(k,fw,fh); x.drawImage(c,-(fw-40)/2,-(fh-40)/2-4)}}
+function clothe(k,w,h){const bb={x0:w,y0:h,x1:0,y1:0};const d=k.getImageData(0,0,w,h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d.data[(y*w+x)*4+3]){bb.x0=Math.min(bb.x0,x);bb.y0=Math.min(bb.y0,y);bb.x1=Math.max(bb.x1,x);bb.y1=Math.max(bb.y1,y)}
+  const H=bb.y1-bb.y0;
+  for(let y=bb.y0;y<=bb.y1;y++)for(let x=bb.x0;x<=bb.x1;x++){const i=(y*w+x)*4;if(!d.data[i+3])continue;const r=d.data[i],g=d.data[i+1],b=d.data[i+2];
+    if(!(r>g&&g>b&&r>90))continue;const lum=(r+g+b)/3/180;const rel=(y-bb.y0)/H;
+    let c=null; if(rel>0.4&&rel<0.66)c=[223,227,237]; else if(rel>=0.66&&rel<0.86)c=[71,98,140];
+    if(c){d.data[i]=c[0]*lum;d.data[i+1]=c[1]*lum;d.data[i+2]=c[2]*lum}}
+  k.putImageData(d,0,0)}
+load().then(()=>{
+  const T=document.getElementById('today');
+  stage(T,'today — walks',(x,f)=>x.drawImage(IMG.ours_man_man,f*16,0,16,24,12,8,16,24),4,40,40);
+  stage(T,'today — wakes',(x,f)=>x.drawImage(IMG.ours_man_man_wake,f*24,0,24,24,8,8,24,24),3,40,40);
+  for(const [id,dress] of [['a',true],['b',false]]){const r=document.createElement('div');r.className='row';document.getElementById(id).appendChild(r);
+    stage(r,'stands',sheet('pack_Idle_Down-Sheet',64,64,4,dress),4,40,40);
+    stage(r,'walks down',sheet('pack_Walk_Down-Sheet',64,64,6,dress),6,40,40);
+    stage(r,'walks sideways',sheet('pack_Walk_Side-Sheet',64,64,6,dress),6,40,40);
+    stage(r,'gathers',sheet('pack_Collect_Down-Sheet',64,64,8,dress),8,40,40);
+    stage(r,'collapses',sheet('pack_Death_Down-Sheet',64,64,8,dress),8,40,40);}
+  const r=document.createElement('div');r.className='row';document.getElementById('c').appendChild(r);
+  stage(r,'stands',sheet('pack_nv_idle_down',64,64,4),4,40,40);
+  stage(r,'walks down',sheet('pack_nv_walk_down',48,48,6),6,40,40);
+  stage(r,'walks sideways',sheet('pack_nv_walk_side',48,48,6),6,40,40);
+  ['gathers','collapses'].forEach(l=>stage(r,l+' — not drawn',(x)=>{x.fillStyle='#0006';x.fillRect(0,0,40,40);x.fillStyle='#fff';x.font='bold 18px sans-serif';x.fillText('?',15,26)},1,40,40));
+});
+</script></body></html>
