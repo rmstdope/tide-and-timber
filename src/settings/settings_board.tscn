@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://src/settings/settings_board.gd" id="1_board"]
 [ext_resource type="StyleBox" path="res://src/pause/board.tres" id="2_board"]
+[ext_resource type="PackedScene" path="res://src/settings/controls_page.tscn" id="3_controls_page"]
 
 [node name="SettingsBoard" type="Control"]
 visible = false
@@ -59,3 +60,6 @@ theme_override_font_sizes/font_size = 8
 text = "Controls"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ControlsPage" parent="." instance=ExtResource("3_controls_page")]
+unique_name_in_owner = true
