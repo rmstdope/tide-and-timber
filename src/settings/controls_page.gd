@@ -2,6 +2,7 @@ class_name ControlsPage
 extends Control
 ## The Controls page: draws a ControlsMenu over the whole screen and turns input into its moves.
 ## Instanced by settings_board.tscn.
+## At a scale where its rows no longer fit across the screen, every row goes onto two lines: the name, then its slots.
 
 signal closed              # Back or Leave: the board takes input again on Controls
 signal resume_requested    # Start or Leave-after-Start, opened from the pause board
@@ -29,10 +30,19 @@ const FIXED_BASELINES := [147.0, 156.0]
 const KEYBOARD_FIXED := ["Menus always use the arrow keys,", "Enter and Esc"]   # one agreed sentence, broken to fit 320
 const CONTROLLER_FIXED_WORDS := ["Menus always use the d-pad,", "and"]          # then (A) after the first, (B) after "and"
 const RESET_NAMES := ["Reset keyboard to defaults", "Reset controller to defaults"]
+const SCREEN_MARGIN := 2.0
+const LIST_X_STACKED := 86.0             # (320 - 148) / 2
+const LIST_W_STACKED := 148.0            # fits inside the 160 units a 2x page shows, with margins
+const ROW_H_STACKED := 22.0              # the name line, then the slot line
+const SLOT_XS_STACKED := [96.0, 164.0]   # two 60-wide slots, 8 apart, centred in the stacked list
+const SLOT_TOP_STACKED := 11.0           # row top to slot top
+const NAME_LINE_STEP := 10.0             # baseline to baseline when a stacked name wraps
+const TAB_RECTS_STACKED := [Rect2(82, 14, 68, 11), Rect2(154, 14, 84, 11)]
 const SAFE_X := 40.0                    # the left box button, as in the scene
 const OK_X := 96.0                      # (296 - 104) / 2: OK alone, centred in the box panel
 
 var rules: ControlsMenu
+var stacked := false                     # derived by _restack, never set elsewhere
 var strip: MenuStrip
 var change_slot: Callable = _change_slot   # tests swap in a recorder
 var capture := SlotCapture.new()
@@ -56,7 +66,51 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	InputDevice.changed.connect(queue_redraw)
 	Display.changed.connect(queue_redraw)
+	Display.changed.connect(_restack_later)
+	get_tree().root.size_changed.connect(_restack_later)
 	_refresh()
+
+func _restack() -> void:
+	var now := stacks_at(get_global_transform_with_canvas().get_scale().x) if is_inside_tree() else false
+	if now != stacked:   # Display.changed already queued a redraw; a second would draw twice
+		stacked = now
+		queue_redraw()
+
+# Deferred, so the pause layer's or the title's own scale handler has run first.
+func _restack_later() -> void:
+	_restack.call_deferred()
+
+## True when today's rows, with the screen margins, are wider than the screen at on-screen scale s.
+static func stacks_at(s: float) -> bool:
+	return (LIST_W + 2.0 * SCREEN_MARGIN) * s > 320.0
+
+## The tab's rectangle.
+static func tab_rect(i: int, p_stacked := false) -> Rect2:
+	return TAB_RECTS_STACKED[i] if p_stacked else TAB_RECTS[i]
+
+## Baseline of row r's name (its first line).
+static func name_origin(r: int, p_stacked := false) -> Vector2:
+	return Vector2(LIST_X_STACKED + 4.0, LIST_TOP + r * ROW_H_STACKED + 9.0) if p_stacked \
+			else Vector2(NAME_X, LIST_TOP + r * ROW_H + 9.0)
+
+## A name broken at spaces into lines no wider than max_w (greedy, at FONT_SIZE); one line if it fits.
+static func name_lines(text: String, max_w: float, font: Font) -> PackedStringArray:
+	var lines := PackedStringArray()
+	var current := ""
+	for word in text.split(" "):
+		var candidate := word if current == "" else current + " " + word
+		if current == "" or font.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x <= max_w:
+			current = candidate
+		else:
+			lines.append(current)
+			current = word
+	lines.append(current)
+	return lines
+
+## Baselines of the no-key line and the two fixed lines, moved down below a stacked list.
+static func text_baselines(p_stacked := false) -> Array[float]:
+	var drop := ControlsMenu.ROWS * (ROW_H_STACKED - ROW_H) if p_stacked else 0.0
+	return [LINE_BASELINE + drop, FIXED_BASELINES[0] + drop, FIXED_BASELINES[1] + drop]
 
 ## Opens the page on the tab of the device used last. from_pause: opened from the Paused board.
 func open(from_pause: bool) -> void:
@@ -64,6 +118,7 @@ func open(from_pause: bool) -> void:
 	var device := Controls.Device.KEYBOARD if InputDevice.kind() == DeviceTracker.Kind.KEYBOARD \
 		else Controls.Device.CONTROLLER
 	rules.open(device, from_pause)
+	_restack()
 	_refresh()
 
 ## The pad family the Controller tab draws.
@@ -76,27 +131,29 @@ static func pad_kind() -> DeviceTracker.Kind:
 	return DeviceTracker.Kind.XBOX
 
 ## What a point on the page hits: Vector2i(row, slot), slot -1 on the Reset row; Vector2i(-1, -1) for nothing.
-static func hit(point: Vector2, device: Controls.Device) -> Vector2i:
+static func hit(point: Vector2, device: Controls.Device, p_stacked := false) -> Vector2i:
 	for r in ControlsMenu.ROWS:
-		if not row_rect(r).has_point(point):
+		if not row_rect(r, p_stacked).has_point(point):
 			continue
 		if r == ControlsMenu.RESET_ROW:
 			return Vector2i(r, -1)
 		for s in Controls.slot_count(device):
-			if slot_rect(r, s).has_point(point):
+			if slot_rect(r, s, p_stacked).has_point(point):
 				return Vector2i(r, s)
 		return Vector2i(-1, -1)   # the name part of an action row hits nothing
 	return Vector2i(-1, -1)
 
 ## The tab under a point, or -1.
-static func tab_at(point: Vector2) -> int:
+static func tab_at(point: Vector2, p_stacked := false) -> int:
 	for i in TAB_RECTS.size():
-		if (TAB_RECTS[i] as Rect2).has_point(point):
+		if tab_rect(i, p_stacked).has_point(point):
 			return i
 	return -1
 
 ## The row's rectangle.
-static func row_rect(r: int) -> Rect2:
+static func row_rect(r: int, p_stacked := false) -> Rect2:
+	if p_stacked:
+		return Rect2(LIST_X_STACKED, LIST_TOP + r * ROW_H_STACKED, LIST_W_STACKED, ROW_H_STACKED)
 	return Rect2(LIST_X, LIST_TOP + r * ROW_H, LIST_W, ROW_H)
 
 const SHAPES_EMPTY := "! —"   # an empty slot of an action with no key, while Colour cues is Shapes
@@ -110,7 +167,9 @@ static func empty_slot_at(cell: Rect2, mark: String) -> Vector2:
 	return (cell.get_center() - Vector2(1, 2)).round() - Vector2((mark.length() - 1) * (Glyphs.W + Glyphs.GAP), 0)
 
 ## The slot's cell rectangle (row r, slot s).
-static func slot_rect(r: int, s: int) -> Rect2:
+static func slot_rect(r: int, s: int, p_stacked := false) -> Rect2:
+	if p_stacked:
+		return Rect2(SLOT_XS_STACKED[s], LIST_TOP + r * ROW_H_STACKED + SLOT_TOP_STACKED, SLOT_W, ROW_H - 2)
 	return Rect2(SLOT_XS[s], LIST_TOP + r * ROW_H + 1, SLOT_W, ROW_H - 2)
 
 # The menu step comes first, so Esc (menu_cancel and pause) is Back; Tab and Clear come before Pause.
@@ -170,8 +229,8 @@ func _on_gui_input(event: InputEvent) -> void:
 	var m := event as InputEventMouse
 	if m == null:
 		return
-	var tab := tab_at(m.position)
-	var h := hit(m.position, rules.device)
+	var tab := tab_at(m.position, stacked)
+	var h := hit(m.position, rules.device, stacked)
 	if PointerRule.is_move(event):
 		if h.x >= 0:
 			rules.hover(h.x, h.y)
@@ -262,20 +321,23 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 0, 320, 180), BACKGROUND)
 	_centred(font, "Controls", 160.0, HEADING_BASELINE, TEXT)
 	for i in TAB_RECTS.size():
-		var rect: Rect2 = TAB_RECTS[i]
+		var rect := tab_rect(i, stacked)
 		draw_style_box(PLANK_HIGHLIGHT_STYLE if rules.device == i else PLANK_STYLE, rect)
 		_centred(font, TAB_NAMES[i], rect.get_center().x, rect.position.y + 9, TEXT)
 	var keyboard := rules.device == Controls.Device.KEYBOARD
 	var kind := DeviceTracker.Kind.KEYBOARD if keyboard else pad_kind()
 	for r in ControlsMenu.ROWS:
 		if r == rules.row:
-			draw_style_box(PLANK_HIGHLIGHT_STYLE, row_rect(r))
+			draw_style_box(PLANK_HIGHLIGHT_STYLE, row_rect(r, stacked))
 		var name: String = RESET_NAMES[rules.device] if r == ControlsMenu.RESET_ROW else Controls.NAMES[r]
-		draw_string(font, Vector2(NAME_X, LIST_TOP + r * ROW_H + 9), name, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, TEXT)
+		var lines := name_lines(name, LIST_W_STACKED - 8.0, font) if stacked else PackedStringArray([name])
+		for j in lines.size():
+			draw_string(font, name_origin(r, stacked) + Vector2(0, j * NAME_LINE_STEP), lines[j],
+					HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, TEXT)
 		if r == ControlsMenu.RESET_ROW:
 			continue
 		for s in Controls.slot_count(rules.device):
-			var cell := slot_rect(r, s)
+			var cell := slot_rect(r, s, stacked)
 			var centre := cell.get_center()
 			var e := rules.controls.slot(r as Controls.Action, rules.device, s)
 			if e != null:
@@ -287,13 +349,14 @@ func _draw() -> void:
 				Glyphs.draw(self, mark, empty_slot_at(cell, mark), ORANGE if orange else QUIET)
 			if r == rules.row and s == rules.slot:
 				draw_rect(cell, SLOT_OUTLINE, false, 1.0)
+	var baselines := text_baselines(stacked)
 	if rules.no_key_line != "":
-		_centred(font, rules.no_key_line, 160.0, LINE_BASELINE, ORANGE)
+		_centred(font, rules.no_key_line, 160.0, baselines[0], ORANGE)
 	if keyboard:
-		_centred(font, KEYBOARD_FIXED[0], 160.0, FIXED_BASELINES[0], QUIET)
-		_centred(font, KEYBOARD_FIXED[1], 160.0, FIXED_BASELINES[1], QUIET)
+		_centred(font, KEYBOARD_FIXED[0], 160.0, baselines[1], QUIET)
+		_centred(font, KEYBOARD_FIXED[1], 160.0, baselines[2], QUIET)
 	else:
-		var y: float = FIXED_BASELINES[0]
+		var y: float = baselines[1]
 		var a := DeviceHints.picture_for(_pad_button(JOY_BUTTON_A), kind)
 		var b := DeviceHints.picture_for(_pad_button(JOY_BUTTON_B), kind)
 		var first := _width(font, CONTROLLER_FIXED_WORDS[0])
