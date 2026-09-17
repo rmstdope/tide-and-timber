@@ -6,6 +6,8 @@ extends Node2D
 const WAKE_CELL := Vector2i(92, 14)     # wet sand at the waterline, under the beach's spawn column
 const WAKE_SHEET := preload("res://assets/man/man_wake.png")
 const Preview := preload("res://src/day_night/day_night_preview.gd")
+const MOVE_HINT_TOP := 166.0         # %MoveHint's offset_top in waking.tscn
+const MOVE_HINT_HEIGHT := 14.0       # its band's height
 const SURF_VOLUME := 0.6                # the intro's surf volume, so the cut from the black beat is seamless
 
 var wake := WakeUp.new()
@@ -54,6 +56,16 @@ func _ready() -> void:
 				func() -> StoryPoints.Point: return StoryPoints.current(false, %DayNight.clock.total_minutes),
 				jump_to_story)
 		DebugKeys.attach(self, %DayNight)
+	Display.changed.connect(_place_move_hint_later)
+	get_tree().root.size_changed.connect(_place_move_hint_later)
+	_place_move_hint_later()
+
+## Keeps the move hint at its rest top, lifted above a grown item bar when it would cover it.
+func _place_move_hint() -> void:
+	HintLift.place(%MoveHint, MOVE_HINT_TOP, MOVE_HINT_HEIGHT)
+
+func _place_move_hint_later() -> void:
+	_place_move_hint.call_deferred()
 
 func _process(delta: float) -> void:
 	tick(delta)
