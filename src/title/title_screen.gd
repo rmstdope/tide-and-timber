@@ -27,6 +27,7 @@ var quit_game: Callable = _quit_game          # tests replace these three
 var start_new_game: Callable = _start_new_game
 var start_continue: Callable = _start_continue
 var migration_steps: Dictionary[int, Callable] = SaveMigrations.chain()   # tests replace it
+var strip: MenuStrip
 
 func _ready() -> void:
 	%Version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
@@ -39,6 +40,9 @@ func _ready() -> void:
 	_connect_box_button(%StartOver, TitleMenu.BoxButton.START_OVER)
 	_connect_box_button(%Cancel, TitleMenu.BoxButton.CANCEL)
 	_connect_box_button(%ReplaceStartOver, TitleMenu.BoxButton.START_OVER)
+	strip = MenuStrip.new()
+	add_child(strip)
+	move_child(strip, %Fade.get_index())   # above the dim and both boxes, under the fade
 	read_save(SaveStore.SLOT_DIR)
 	InputDevice.set_menu_open(self, true)
 
@@ -159,6 +163,7 @@ func _refresh() -> void:
 	%StartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
 	%Cancel.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.CANCEL))
 	%ReplaceStartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
+	strip.show_hint(DeviceHints.Hint.SELECT_BACK if menu.box != TitleMenu.Box.NONE else DeviceHints.Hint.SELECT)
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
 	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE
