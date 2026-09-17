@@ -94,7 +94,7 @@ func _plank(unique: String) -> PanelContainer:
 	return screen.get_node("%" + unique) as PanelContainer
 
 func assert_highlighted(unique: String) -> void:
-	for plank: String in ["Continue", "NewGame", "Quit"]:
+	for plank: String in ["Continue", "NewGame", "Settings", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == unique else TitleScreen.PLANK_STYLE
 		assert_object(_plank(plank).get_theme_stylebox("panel")) \
 			.override_failure_message("%s should%s be highlighted" % [plank, "" if plank == unique else " not"]) \
@@ -143,7 +143,7 @@ func test_save_shows_continue_with_the_day() -> void:
 	assert_bool(_visible("%DayLine")).is_true()
 	assert_str(_text("%DayLine")).is_equal("DAY 4")
 	assert_highlighted("Continue")
-	assert_float((_node("%Menu") as Control).position.y).is_equal(104.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(83.0)
 
 func test_menu_fits_with_a_save() -> void:
 	_saved()
@@ -155,7 +155,7 @@ func test_menu_fits_with_a_save() -> void:
 		var label := _node(path) as Label
 		assert_float(label.get_minimum_size().x).is_less_equal(label.size.x)
 
-func test_wraps_over_three() -> void:
+func test_wraps_over_four() -> void:
 	_saved()
 	await _press(KEY_UP)
 	assert_highlighted("Quit")
@@ -163,6 +163,8 @@ func test_wraps_over_three() -> void:
 	assert_highlighted("Continue")
 	await _press(KEY_DOWN)
 	assert_highlighted("NewGame")
+	await _press(KEY_DOWN)
+	assert_highlighted("Settings")
 
 func test_continue_fades_then_continues() -> void:
 	_saved()
@@ -305,7 +307,7 @@ func test_newer_save_dims_continue_with_its_reason() -> void:
 	_assert_dimmed()
 	assert_bool(_visible("%Reason")).is_true()
 	assert_str(_text("%Reason")).is_equal("Save is from a newer version")
-	assert_float((_node("%Menu") as Control).position.y).is_equal(96.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(75.0)
 
 func test_broken_save_dims_continue_with_its_reason() -> void:
 	_broken()
@@ -327,20 +329,20 @@ func test_readable_save_has_no_reason() -> void:
 	assert_bool(_visible("%Reason")).is_false()
 	assert_highlighted("Continue")
 	assert_object((_node("Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
-	assert_float((_node("%Menu") as Control).position.y).is_equal(104.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(83.0)
 
 func test_no_save_has_no_reason() -> void:
 	_open("user://test_saves/none")
 	assert_bool(_visible("%Reason")).is_false()
 	assert_bool(_visible("%Continue")).is_false()
-	assert_float((_node("%Menu") as Control).position.y).is_equal(118.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(97.0)
 
 func test_dimmed_menu_fits() -> void:
 	_newer()
 	await await_idle_frame()
 	var view := Rect2(0, 0, 320, 180)
 	var version := (_node("%Version") as Control).get_global_rect()
-	for plank: String in ["Continue", "NewGame", "Quit"]:
+	for plank: String in ["Continue", "NewGame", "Settings", "Quit"]:
 		var rect := _plank(plank).get_global_rect()
 		assert_float(rect.size.x).override_failure_message("%s width" % plank).is_equal(90.0)
 		assert_float(rect.position.x).override_failure_message("%s x" % plank).is_equal(115.0)
@@ -358,7 +360,7 @@ func test_keys_skip_dimmed_continue() -> void:
 	await _press(KEY_UP)
 	_assert_menu_highlight("Quit")
 	await _press(KEY_UP)
-	_assert_menu_highlight("NewGame")
+	_assert_menu_highlight("Settings")
 	await _press(KEY_DOWN)
 	_assert_menu_highlight("Quit")
 	await _press(KEY_DOWN)

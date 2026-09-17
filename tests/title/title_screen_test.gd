@@ -21,7 +21,7 @@ func _plank(unique: String) -> PanelContainer:
 	return screen.get_node("%" + unique) as PanelContainer
 
 func assert_highlighted(unique: String) -> void:
-	for plank: String in ["Continue", "NewGame", "Quit"]:
+	for plank: String in ["Continue", "NewGame", "Settings", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == unique else TitleScreen.PLANK_STYLE
 		assert_object(_plank(plank).get_theme_stylebox("panel")) \
 			.override_failure_message("%s should%s be highlighted" % [plank, "" if plank == unique else " not"]) \
@@ -54,15 +54,15 @@ func test_whole_screen_fits_the_base_viewport() -> void:
 
 func test_down_and_s_move_and_wrap() -> void:
 	await _press(KEY_DOWN)
-	assert_highlighted("Quit")
+	assert_highlighted("Settings")
 	await _press(KEY_S)
-	assert_highlighted("NewGame")
+	assert_highlighted("Quit")
 
 func test_up_and_w_move_and_wrap() -> void:
 	await _press(KEY_UP)
 	assert_highlighted("Quit")
 	await _press(KEY_W)
-	assert_highlighted("NewGame")
+	assert_highlighted("Settings")
 
 func test_escape_does_nothing() -> void:
 	await _press(KEY_ESCAPE)
@@ -99,6 +99,7 @@ func test_click_off_the_menu_does_nothing() -> void:
 	assert_highlighted("NewGame")
 
 func test_enter_on_quit_quits_at_once() -> void:
+	await _press(KEY_DOWN)
 	await _press(KEY_DOWN)
 	runner.simulate_key_press(KEY_ENTER)
 	assert_array(calls).is_equal(["quit"])
@@ -138,9 +139,9 @@ func test_waves_move() -> void:
 		assert_float(absf(drift)).is_less_equal(TitleScreen.WAVE_AMPLITUDE_PX)
 	assert_bool(any_moved).is_true()
 
-func test_no_save_shows_two_planks() -> void:
+func test_no_save_shows_three_planks() -> void:
 	assert_bool(_plank("Continue").visible).is_false()
-	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(118.0)
+	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(97.0)
 
 # A mouse movement straight to a control, as Godot delivers one over it.
 func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
