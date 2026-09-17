@@ -117,6 +117,14 @@ func _input(event: InputEvent) -> void:
 				rules.box_select(PauseMenu.Choice.QUIT)
 			MenuPush.Step.SELECT:
 				_apply(rules.box_press(rules.box_selected))
+			MenuPush.Step.UP:
+				if not _quit_box.stacked:
+					return
+				rules.box_select(PauseMenu.Choice.STAY)
+			MenuPush.Step.DOWN:
+				if not _quit_box.stacked:
+					return
+				rules.box_select(PauseMenu.Choice.QUIT)
 			_:
 				return   # Start does nothing in the box
 	elif step == MenuPush.Step.UP:
