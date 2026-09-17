@@ -3,6 +3,7 @@ extends Control
 ## The Controls page: draws a ControlsMenu over the whole screen and turns input into its moves.
 ## Instanced by settings_board.tscn.
 ## At a scale where its rows no longer fit across the screen, every row goes onto two lines: the name, then its slots.
+## When its content is taller than the screen above its strip, it scrolls to the highlighted row, with ▲ / ▼ where content is hidden.
 
 signal closed              # Back or Leave: the board takes input again on Controls
 signal resume_requested    # Start or Leave-after-Start, opened from the pause board
@@ -39,8 +40,12 @@ const SLOT_TOP_STACKED := 11.0           # row top to slot top
 const NAME_LINE_STEP := 10.0             # baseline to baseline when a stacked name wraps
 const NAME_WRAP_W := 132.0               # both Reset names break before "to": "Reset keyboard to" (136) does not fit
 const TAB_RECTS_STACKED := [Rect2(82, 14, 68, 11), Rect2(154, 14, 84, 11)]
+const CONTENT_TOP := 3.0                 # the heading's top: HEADING_BASELINE less the font's 8-unit ascent; the scrolled content starts here
 
 var rules: ControlsMenu
+var offset := 0                          # whole units the content is scrolled up; 0 while it fits. Owned by frame().
+var scrolls := false                     # the content is not wholly inside the band; derived by frame(), never set elsewhere
+var view := Rect2(0, 0, 320, 180)        # where content shows, in page units; the whole page while it fits
 var stacked := false                     # derived by _restack, never set elsewhere
 var strip: MenuStrip
 var change_slot: Callable = _change_slot   # tests swap in a recorder
@@ -92,6 +97,8 @@ func _restack() -> void:
 	if now != stacked:   # Display.changed already queued a redraw; a second would draw twice
 		stacked = now
 		queue_redraw()
+	if rules.is_open:   # a size or window change re-follows the highlight even when stacked did not change
+		_frame()
 
 # Deferred, so the pause layer's or the title's own scale handler has run first.
 func _restack_later() -> void:
@@ -129,8 +136,71 @@ static func text_baselines(p_stacked := false) -> Array[float]:
 	var drop := ControlsMenu.ROWS * (ROW_H_STACKED - ROW_H) if p_stacked else 0.0
 	return [LINE_BASELINE + drop, FIXED_BASELINES[0] + drop, FIXED_BASELINES[1] + drop]
 
+## The last fixed line's baseline: the bottom of the scrolled content. Always the second fixed line, so the
+## offset never jumps when the no-key line appears or the tab changes.
+static func content_bottom(p_stacked := false) -> float:
+	return text_baselines(p_stacked)[2]
+
+## Row r's item (top, bottom) in content units (0 at CONTENT_TOP). The first row reaches up to include the heading
+## and tabs; the Reset row reaches down to include the no-key line and the fixed lines.
+static func row_extent(r: int, p_stacked := false) -> Vector2:
+	var rect := row_rect(r, p_stacked)
+	var top := 0.0 if r == 0 else rect.position.y - CONTENT_TOP
+	var bottom := content_bottom(p_stacked) - CONTENT_TOP if r == ControlsMenu.RESET_ROW else rect.end.y - CONTENT_TOP
+	return Vector2(top, bottom)
+
+## How far content is drawn down from where it sits unscrolled (negative when scrolled): 0 while it fits.
+func shift() -> float:
+	return view.position.y - CONTENT_TOP - offset if scrolls else 0.0
+
+## Where a content point is drawn on the page.
+func to_page(point: Vector2) -> Vector2:
+	return point + Vector2(0, shift())
+
+## Decides whether the content scrolls in the band [band_top, band_bottom] (page units), sets view and
+## follows the highlighted row. Reads stacked and rules.row; sets offset, scrolls and view.
+func frame(band_top: float, band_bottom: float) -> void:
+	var was_scrolls := scrolls
+	var was_offset := offset
+	var was_view := view
+	var bottom := content_bottom(stacked)
+	if CONTENT_TOP >= band_top and bottom <= band_bottom:
+		scrolls = false
+		offset = 0
+		view = Rect2(0, 0, 320, 180)
+	else:
+		scrolls = true
+		view = Rect2(0, band_top + ScrollWindow.MARK_ROW, 320,
+				band_bottom - band_top - 2.0 * ScrollWindow.MARK_ROW)
+		var content := bottom - CONTENT_TOP
+		var e := row_extent(rules.row, stacked)
+		offset = ScrollWindow.follow(content, view.size.y, e.x, e.y, offset)
+		# A second pass, so a row whose extent is taller than the view is itself wholly visible.
+		var r := row_rect(rules.row, stacked)
+		offset = ScrollWindow.follow(content, view.size.y, r.position.y - CONTENT_TOP, r.end.y - CONTENT_TOP, offset)
+	if scrolls != was_scrolls or offset != was_offset or view != was_view:
+		queue_redraw()   # only on a change: _refresh redraws anyway, and _restack must not draw twice
+
+## True while ▲ is drawn.
+func shows_mark_above() -> bool:
+	return scrolls and ScrollWindow.hidden_above(offset)
+
+## True while ▼ is drawn.
+func shows_mark_below() -> bool:
+	return scrolls and ScrollWindow.hidden_below(offset, content_bottom(stacked) - CONTENT_TOP, view.size.y)
+
+# Frames against the page's band on screen. With no tree or strip yet the band is unknown, so the content's
+# own extent is passed and the page is left unscrolled rather than scrolled against a band that is not the real one.
+func _frame() -> void:
+	if not is_inside_tree() or strip == null:
+		frame(CONTENT_TOP, content_bottom(stacked))
+		return
+	var b := ScrollWindow.band(get_global_transform_with_canvas(), strip.screen_top())
+	frame(b.x, b.y)
+
 ## Opens the page on the tab of the device used last. from_pause: opened from the Paused board.
 func open(from_pause: bool) -> void:
+	offset = 0
 	rules = ControlsMenu.new(InputDevice.controls)   # picks up a model swapped by use_controls
 	var device := Controls.Device.KEYBOARD if InputDevice.kind() == DeviceTracker.Kind.KEYBOARD \
 		else Controls.Device.CONTROLLER
@@ -254,8 +324,12 @@ func _on_gui_input(event: InputEvent) -> void:
 	var m := event as InputEventMouse
 	if m == null:
 		return
-	var tab := tab_at(m.position, stacked)
-	var h := hit(m.position, rules.device, stacked)
+	# The static geometry is in unscrolled page units, so a point is taken back through the scroll;
+	# a point outside the view (a mark row, the gap above the strip) hits nothing.
+	var inside := view.has_point(m.position)
+	var at := m.position - Vector2(0, shift())
+	var tab := tab_at(at, stacked) if inside else -1
+	var h := hit(at, rules.device, stacked) if inside else Vector2i(-1, -1)
 	if PointerRule.is_move(event):
 		if h.x >= 0:
 			rules.hover(h.x, h.y)
@@ -334,6 +408,8 @@ func _refresh() -> void:
 					PLANK_HIGHLIGHT_STYLE if rules.box_selected == b else PLANK_STYLE)
 	strip.visible = not waiting
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if box_up else DeviceHints.Hint.CONTROLS_PAGE)
+	if rules.is_open:   # after show_hint, so the strip's on-screen top is current
+		_frame()
 	queue_redraw()
 
 func _exit_tree() -> void:
@@ -344,6 +420,7 @@ func _draw() -> void:
 		return
 	var font := get_theme_default_font()
 	draw_rect(Rect2(0, 0, 320, 180), BACKGROUND)
+	draw_set_transform(Vector2(0, shift()))
 	_centred(font, "Controls", 160.0, HEADING_BASELINE, TEXT)
 	for i in TAB_RECTS.size():
 		var rect := tab_rect(i, stacked)
@@ -395,6 +472,15 @@ func _draw() -> void:
 		draw_string(font, Vector2(x, y), CONTROLLER_FIXED_WORDS[1], HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, QUIET)
 		x += second + 4
 		HintLine.draw_picture(self, b, Vector2(x, y - 8))
+	draw_set_transform(Vector2.ZERO)
+	if not scrolls:
+		return
+	draw_rect(Rect2(0, 0, 320, view.position.y), BACKGROUND)                   # covers content scrolled above the view
+	draw_rect(Rect2(0, view.end.y, 320, 180.0 - view.end.y), BACKGROUND)       # and below it, strip gap included
+	if shows_mark_above():
+		ScrollWindow.draw_mark(self, Vector2(160, view.position.y - ScrollWindow.MARK_ROW / 2.0), true)
+	if shows_mark_below():
+		ScrollWindow.draw_mark(self, Vector2(160, view.end.y + ScrollWindow.MARK_ROW / 2.0), false)
 
 func _width(font: Font, text: String) -> float:
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
