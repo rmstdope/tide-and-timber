@@ -84,6 +84,15 @@ func _open_no_pad() -> void:
 	await _tap(KEY_ENTER)
 	await get_tree().process_frame
 
+func _wheel(up: bool, times: int) -> void:
+	for i in times:
+		runner.simulate_mouse_button_pressed(MOUSE_BUTTON_WHEEL_UP if up else MOUSE_BUTTON_WHEEL_DOWN)
+		await runner.await_input_processed()
+
+func _move_mouse(to: Vector2) -> void:
+	runner.simulate_mouse_move(to)
+	await runner.await_input_processed()
+
 func _node(unique: String) -> Control:
 	return page.get_node("%" + unique) as Control
 
@@ -165,3 +174,131 @@ func test_size_change_while_up_refits() -> void:
 	assert_bool(_frame().shows_mark_above()).is_false()
 	assert_bool(_frame().shows_mark_below()).is_false()
 	assert_bool(_is_highlighted(_node("Safe"))).is_true()
+
+func test_reopening_starts_at_the_top() -> void:
+	_size_up(2)
+	await _open_reset()
+	await _wheel(false, 3)
+	assert_int(_offset()).is_greater(0)
+	await _tap(KEY_ESCAPE)
+	await _tap(KEY_ENTER)
+	await get_tree().process_frame
+	assert_int(_offset()).is_equal(0)
+	assert_float(_content().position.y).is_equal(-8.0)
+
+# The box at Largest in the waking scene: a 52-unit band, a 32-unit view and 106 units of content,
+# so the greatest offset is 74. Safe spans content 58..78 and Other 86..106.
+func test_down_scrolls_to_the_top_button_then_moves_on() -> void:
+	_size_up(2)
+	await _open_reset()
+	for i in 5:
+		await _tap(KEY_DOWN)
+	assert_int(_offset()).is_equal(46)
+	assert_float(_content().position.y).is_equal(-54.0)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	await _tap(KEY_DOWN)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
+	assert_int(_offset()).is_equal(74)
+	assert_float(_content().position.y).is_equal(-82.0)
+	assert_bool(_frame().shows_mark_above()).is_true()
+	assert_bool(_frame().shows_mark_below()).is_false()
+
+func test_down_on_the_bottom_button_does_nothing() -> void:
+	_size_up(2)
+	await _open_reset()
+	for i in 6:
+		await _tap(KEY_DOWN)
+	await _tap(KEY_DOWN)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
+	assert_int(_offset()).is_equal(74)
+
+func test_up_from_the_bottom_button_then_back_to_the_words() -> void:
+	_size_up(2)
+	await _open_reset()
+	for i in 6:
+		await _tap(KEY_DOWN)
+	await _tap(KEY_UP)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	assert_int(_offset()).is_equal(58)
+	for i in 6:
+		await _tap(KEY_UP)
+	assert_int(_offset()).is_equal(0)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
+	assert_bool(_frame().shows_mark_below()).is_true()
+	assert_bool(_frame().shows_mark_above()).is_false()
+
+func test_left_and_right_move_and_show_the_button() -> void:
+	_size_up(2)
+	await _open_reset()
+	await _tap(KEY_RIGHT)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
+	assert_int(_offset()).is_equal(74)
+	await _tap(KEY_LEFT)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	assert_int(_offset()).is_equal(58)
+
+func test_the_wheel_scrolls_and_keeps_the_highlight() -> void:
+	_size_up(2)
+	await _open_reset()
+	await _wheel(false, 1)
+	assert_int(_offset()).is_equal(11)
+	assert_float(_content().position.y).is_equal(-19.0)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	await _wheel(true, 2)
+	assert_int(_offset()).is_equal(0)
+
+func test_select_presses_an_out_of_sight_button() -> void:
+	_size_up(2)
+	await _open_page()
+	await _tap(KEY_DELETE)   # clear the highlighted slot, so Keep mine has something to keep
+	await _down(8)
+	await _tap(KEY_ENTER)
+	await get_tree().process_frame
+	assert_int(_offset()).is_equal(0)   # Keep mine, at content 58..78, is below the 0..32 view
+	await _tap(KEY_ENTER)
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
+	assert_bool(page.visible).is_true()
+	assert_object(InputDevice.controls.slot(0 as Controls.Action, Controls.Device.KEYBOARD, 0)).is_null()
+
+func test_right_then_select_leaves() -> void:
+	_size_up(2)
+	await _open_leaving()
+	await _tap(KEY_RIGHT)
+	assert_int(_offset()).is_equal(74)
+	await _tap(KEY_ENTER)
+	assert_bool(page.visible).is_false()
+	assert_bool(board.visible).is_true()
+
+func test_ok_alone_ignores_right_and_scrolls() -> void:
+	_size_up(2)
+	await _open_no_pad()
+	await _tap(KEY_RIGHT)
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	assert_int(_offset()).is_equal(46)
+
+func test_back_still_closes_while_scrolled() -> void:
+	_size_up(2)
+	await _open_reset()
+	for i in 5:
+		await _tap(KEY_DOWN)
+	await _tap(KEY_ESCAPE)
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
+	assert_bool(page.visible).is_true()
+
+func test_hover_lands_only_on_the_drawn_part() -> void:
+	_size_up(2)
+	await _open_reset()
+	await _tap(KEY_RIGHT)
+	await _wheel(true, 7)
+	assert_int(_offset()).is_equal(0)
+	var safe := _node("Safe")
+	await _move_mouse(safe.get_global_rect().get_center())
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
+	assert_int(_offset()).is_equal(0)
+	await _wheel(false, 6)
+	assert_int(_offset()).is_equal(66)
+	await _move_mouse(Vector2(safe.get_global_rect().get_center().x,
+			_clip().get_global_rect().position.y + 2.0))
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	assert_int(_offset()).is_equal(66)

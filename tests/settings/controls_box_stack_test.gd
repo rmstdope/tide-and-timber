@@ -159,26 +159,6 @@ func test_window_resize_refits() -> void:
 	assert_float(_panel().size.x).is_equal(152.0)
 	get_tree().root.size = Vector2i(640, 360)
 
-func test_up_down_move_between_stacked_buttons() -> void:
-	_size_up(2)
-	await _open_reset()
-	await _tap(KEY_DOWN)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	assert_bool(_is_highlighted(_box_node("Other"))).is_true()
-	await _tap(KEY_DOWN)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	await _tap(KEY_UP)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_bool(_is_highlighted(_box_node("Safe"))).is_true()
-	await _tap(KEY_UP)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	await _tap(KEY_RIGHT)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	await _tap(KEY_LEFT)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_bool(_box_node("Box").visible).is_true()
-	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
-
 func test_up_down_do_nothing_side_by_side() -> void:
 	await _open_reset()
 	await _tap(KEY_DOWN)
@@ -192,7 +172,7 @@ func test_up_down_do_nothing_side_by_side() -> void:
 func test_select_when_stacked() -> void:
 	_size_up(2)
 	await _open_leaving()
-	await _tap(KEY_DOWN)
+	await _tap(KEY_RIGHT)
 	await _tap(KEY_ENTER)
 	assert_bool(page.visible).is_false()
 	assert_bool(board.visible).is_true()
