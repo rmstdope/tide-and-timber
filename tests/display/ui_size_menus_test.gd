@@ -56,12 +56,12 @@ func test_pause_layer_grows_about_the_centre() -> void:
 	_step(1)
 	assert_bool(_grown(pause, 2.0)).is_true()
 
-func test_paused_board_strip_stays_in_the_corner() -> void:
+func test_paused_board_strip_lifts_above_the_bar() -> void:
 	_step(2)
 	waking.tick(5.0)
 	await _tap(KEY_ESCAPE)
 	await get_tree().process_frame
-	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 152), EPS)
+	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
 	var resume := pause.get_node("%Resume") as Control
 	var centre := resume.get_global_transform_with_canvas() * (Vector2(120, 16) / 2)
 	assert_float(centre.x).is_equal_approx(160.0, 0.01)
@@ -105,7 +105,7 @@ func test_dawn_save_box_grows_about_the_centre() -> void:
 	autosave.save_game = func() -> Error: return FAILED
 	autosave.on_dawn()
 	await get_tree().process_frame
-	assert_vector(autosave.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 152), EPS)
+	assert_vector(autosave.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
 
 func test_morning_card_grows_about_the_centre() -> void:
 	_step(2)
@@ -139,7 +139,7 @@ func test_build_list_grows_beside_him() -> void:
 	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 2.0, BuildList.STACKED_SIZE))
 	assert_bool((list.get_parent() as CanvasLayer).transform == Transform2D.IDENTITY).is_true()
 
-func test_launched_at_largest_the_pause_strip_is_in_the_corner() -> void:
+func test_launched_at_largest_the_pause_strip_lifts_above_the_bar() -> void:
 	Display.use_prefs(DisplayPrefs.new())
 	_step(2)
 	runner = scene_runner("res://src/waking/waking.tscn")
@@ -149,4 +149,18 @@ func test_launched_at_largest_the_pause_strip_is_in_the_corner() -> void:
 	waking.tick(5.0)
 	await _tap(KEY_ESCAPE)
 	await get_tree().process_frame
-	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 152), EPS)
+	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
+
+func test_settings_board_strip_lifts_above_the_bar() -> void:
+	_step(2)
+	var board := await _open_settings()
+	await get_tree().process_frame
+	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
+	assert_float(board.strip.screen_top()).is_equal_approx(108.0, 0.01)
+	assert_float(HintLift.screen_rect(board.strip).end.y).is_equal_approx(132.0, 0.01)
+
+func test_strips_stay_put_at_normal_in_the_waking_scene() -> void:
+	waking.tick(5.0)
+	await _tap(KEY_ESCAPE)
+	await get_tree().process_frame
+	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 164), EPS)
