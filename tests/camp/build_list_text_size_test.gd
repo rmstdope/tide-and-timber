@@ -139,3 +139,60 @@ func test_a_small_window_still_fits() -> void:
 	assert_vector(list.size).is_equal(Vector2(252, 101))
 	assert_float(list.position.x).is_greater_equal(0.0)
 	assert_float(list.position.x + list.size.x).is_less_equal(320.0)
+
+func test_largest_ui_and_text_wraps_the_cost() -> void:
+	var list := _open(2, 2)
+	assert_bool(list.stacked).is_true()
+	# The grown list is taller than the screen at UI Largest, so frame() scrolls it and `size` is the
+	# framed window; list_size() is the whole list.
+	assert_vector(list.list_size()).is_equal(Vector2(156, 145))
+	assert_bool(list.scrolls).is_true()
+	assert_float(list.size.x).is_equal(156.0)
+	for i in BuildMenu.LINE_COUNT:
+		assert_vector(list.rows[i].size).is_equal(Vector2(150, 59))
+		assert_vector(list.cost_labels[i].position).is_equal(Vector2(3, 19))
+		assert_int(list.cost_labels[i].autowrap_mode).is_equal(TextServer.AUTOWRAP_WORD_SMART)
+		assert_int(list.name_labels[i].autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
+		assert_float(list.cost_labels[i].size.x).is_equal(72.0)
+	assert_float(list.rows[0].position.y).is_equal(22.0)
+	assert_float(list.rows[1].position.y).is_equal(83.0)
+	assert_float(list.position.x + list.size.x * 2.0).is_less_equal(316.0)
+
+func test_largest_ui_and_large_text_wraps_the_cost() -> void:
+	var list := _open(2, 1)
+	assert_vector(list.list_size()).is_equal(Vector2(156, 115))
+	for i in BuildMenu.LINE_COUNT:
+		assert_vector(list.rows[i].size).is_equal(Vector2(150, 46))
+		assert_vector(list.cost_labels[i].position).is_equal(Vector2(3, 15))
+		assert_float(list.cost_labels[i].size.x).is_equal(96.0)
+	assert_float(list.rows[0].position.y).is_equal(18.0)
+	assert_float(list.rows[1].position.y).is_equal(66.0)
+
+func test_large_ui_and_largest_text_wraps_the_cost() -> void:
+	var list := _open(1, 2)
+	assert_vector(list.list_size()).is_equal(Vector2(208, 145))
+	for i in BuildMenu.LINE_COUNT:
+		assert_float(list.cost_labels[i].size.x).is_equal(98.0)
+	assert_float(list.position.x + list.size.x * 1.5).is_less_equal(316.0)
+
+func test_wrapped_lines_never_breaks_a_word() -> void:
+	var list := _open(0, 0)
+	var label := list.cost_labels[0]
+	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 120.0)).is_equal(1)
+	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 72.0)).is_equal(2)
+	# "Needs a" is exactly 56 wide, so it still fits; 48 is the width that forces a third line.
+	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 56.0)).is_equal(2)
+	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 48.0)).is_equal(3)
+	assert_int(BuildList.wrapped_lines(label, "0/8 driftwood", 72.0)).is_equal(2)
+	assert_int(BuildList.wrapped_lines(label, "driftwood", 72.0)).is_equal(1)
+	assert_int(BuildList.wrapped_lines(label, "driftwood", 40.0)).is_equal(1)
+
+func test_godot_wraps_where_we_counted() -> void:
+	var list := _open(2, 2)
+	await await_idle_frame()
+	await await_idle_frame()
+	for i in BuildMenu.LINE_COUNT:
+		assert_int(list.cost_labels[i].get_line_count()).is_equal(
+				BuildList.wrapped_lines(list.cost_labels[i], list.cost_labels[i].text, 72.0))
+		assert_int(list.cost_labels[i].get_line_count()).is_equal(2)
+		assert_int(list.name_labels[i].get_line_count()).is_equal(1)

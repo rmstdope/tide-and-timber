@@ -53,6 +53,10 @@ var offset := 0
 var scrolls := false
 ## The hint whose on-screen top bounds the list from below; null when none.
 var hint: Control
+## Lines the tallest name and the tallest cost take at the current width; 1 while nothing wraps.
+## Set only by _layout; read them, never write them.
+var _name_lines := 1
+var _cost_lines := 1
 ## The words' scale inside the list, on top of UI size; 1.0 at Text size Normal.
 ## Set only by _place; read it, never write it.
 var _rel := 1.0
@@ -208,14 +212,31 @@ static func _width_of(label: Label, text: String) -> float:
 static func _text_width(label: Label) -> float:
 	return _width_of(label, label.text)
 
+## Lines `text` takes in `label` when the label is `width` of its own units wide, breaking only
+## between words: a word wider than the line keeps its own line and is never broken inside.
+static func wrapped_lines(label: Label, text: String, width: float) -> int:
+	var lines := 1
+	var line := ""
+	for word in text.split(" ", false):
+		var candidate := word if line.is_empty() else line + " " + word
+		if line.is_empty() or _width_of(label, candidate) <= width:
+			line = candidate
+		else:
+			lines += 1
+			line = word
+	return lines
+
+static func _wrap(lines: int) -> TextServer.AutowrapMode:
+	return TextServer.AUTOWRAP_WORD_SMART if lines > 1 else TextServer.AUTOWRAP_OFF
+
 ## The list's unscaled size for the words it shows now.
 func list_size() -> Vector2:
 	return Vector2(list_width(),
 			_row_tops()[BuildMenu.LINE_COUNT - 1] + _row_size().y + BOTTOM_MARGIN)
 
 func _row_size() -> Vector2:
-	var h := ROW_TOP_PAD + _text_height(1)
-	h += (NAME_GAP + _text_height(1) + STACKED_BOTTOM_PAD) if stacked else ROW_BOTTOM_PAD
+	var h := ROW_TOP_PAD + _text_height(_name_lines)
+	h += (NAME_GAP + _text_height(_cost_lines) + STACKED_BOTTOM_PAD) if stacked else ROW_BOTTOM_PAD
 	return Vector2(list_width() - 2.0 * INSET, h)
 
 func _row_tops() -> Array[float]:
@@ -228,6 +249,14 @@ func _row_tops() -> Array[float]:
 
 func _layout() -> void:
 	var text_w := _text_width_available()
+	_name_lines = 1
+	_cost_lines = 1
+	if stacked:
+		for i in BuildMenu.LINE_COUNT:
+			_name_lines = maxi(_name_lines,
+					wrapped_lines(name_labels[i], name_labels[i].text, text_w))
+			_cost_lines = maxi(_cost_lines,
+					wrapped_lines(cost_labels[i], cost_labels[i].text, text_w))
 	var box := list_size()
 	var row_size := _row_size()
 	var tops := _row_tops()
@@ -240,14 +269,18 @@ func _layout() -> void:
 		rows[i].size = row_size
 		name_labels[i].position = Vector2(INSET, ROW_TOP_PAD)
 		name_labels[i].scale = Vector2.ONE * _rel
-		name_labels[i].size = Vector2(text_w, TEXT_LINE)
+		name_labels[i].autowrap_mode = _wrap(_name_lines)
+		# else the unwrapped minimum width still clamps the narrower size (as SpokenLine does)
+		name_labels[i].update_minimum_size()
+		name_labels[i].size = Vector2(text_w, _name_lines * TEXT_LINE)
 		name_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		name_labels[i].autowrap_mode = TextServer.AUTOWRAP_OFF
 		cost_labels[i].scale = Vector2.ONE * _rel
-		cost_labels[i].size = Vector2(text_w, TEXT_LINE)
-		cost_labels[i].autowrap_mode = TextServer.AUTOWRAP_OFF
+		cost_labels[i].autowrap_mode = _wrap(_cost_lines) if stacked else TextServer.AUTOWRAP_OFF
+		cost_labels[i].update_minimum_size()
+		cost_labels[i].size = Vector2(text_w, (_cost_lines if stacked else 1) * TEXT_LINE)
 		if stacked:
-			cost_labels[i].position = Vector2(INSET, ROW_TOP_PAD + _text_height(1) + NAME_GAP)
+			cost_labels[i].position = Vector2(INSET,
+					ROW_TOP_PAD + _text_height(_name_lines) + NAME_GAP)
 			cost_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		else:
 			cost_labels[i].position = Vector2(0, ROW_TOP_PAD)
