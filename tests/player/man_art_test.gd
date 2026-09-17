@@ -159,17 +159,24 @@ func test_his_arms_and_feet_are_bare() -> void:
 						"%s row %d frame %d: trousers on his foot at (%d, %d)"
 						% [name_, row, frame, x, y]).is_false()
 					return
-		var feet := _tally(ours, row, frame, SKIN, extent.y - 1)
+		var feet := _tally(ours, row, frame, SKIN, extent.y - 1, extent.y)
 		assert_int(feet).override_failure_message(
 			"%s row %d frame %d: no bare skin in his bottom two rows" % [name_, row, frame]).is_greater(0)
 		# His arms, shins and feet: bare skin below his head.
 		var bare := _tally(ours, row, frame, SKIN, extent.x + HEAD_ROWS)
 		assert_int(bare).override_failure_message(
 			"%s row %d frame %d: only %d bare pixels below his head, wanted at least %d"
-			% [name_, row, frame, bare, BARE]).is_greater_equal(BARE)
-		# Sleeveless: no row of the shirt ever reaches past his torso onto an arm.
+			% [name_, row, frame, bare, BARE]).is_greater_equal(BARE))
+
+## Sleeveless, measured as width: his torso is TORSO_WIDTH across and his arms swing outside it, so a
+## sleeve reaching an arm carries the shirt past that bound. Worth knowing what this does not catch:
+## shirt pixels painted on an arm that lies within TORSO_WIDTH of the torso would pass. The obvious
+## stricter form - skin in the shirt's rows but outside its columns - was measured and cannot be used:
+## it reaches 0 on run.png rows 2 and 3 frame 2, where the arm swings across the torso.
+func test_his_shirt_has_no_sleeves() -> void:
+	_each_frame(func(name_: String, ours: Image, row: int, frame: int) -> void:
 		for y in 64:
-			var worn := []
+			var worn: Array[int] = []
 			for x in 64:
 				var c := ours.get_pixel(frame * 64 + x, row * 64 + y)
 				if c.a == 1.0 and SHIRT.has(c.to_html(false)):
@@ -182,10 +189,6 @@ func test_his_arms_and_feet_are_bare() -> void:
 					"%s row %d frame %d row %d: the shirt is %d px across, wider than his torso - a sleeve"
 					% [name_, row, frame, y, span]).is_less_equal(TORSO_WIDTH)
 				return)
-
-## The fact the whole dressing scheme rests on: the pack draws him with the same rigid head in every
-## frame, so a frame's top plus a fixed block is always where his head ends and his body begins. His
-## eyes are the landmark, being pixels no band ever repaints. A pose that broke this - a collapse,
 ## say - would move them, and the tool would paint hair onto a cheek.
 func test_his_head_is_the_same_block_in_every_frame() -> void:
 	for name_: String in SHEETS:

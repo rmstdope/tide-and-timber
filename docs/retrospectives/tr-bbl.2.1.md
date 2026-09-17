@@ -64,6 +64,8 @@ rule measured on one frame of one animation is a hypothesis, and the plan should
 was checked against. Two of the review's findings were the same lesson one level up — the invariants
 I wrote to guard the rule (`at least 8 skin pixels below the shirt`, `HEAD_ROWS := 14`) were also
 generalisations from a subset, and measuring them across all 96 frames showed the first reaching 0 on
-a run frame and the second holding in only 68 of 72.
+a run frame, and the second resting on a proxy: a divider-row detector agreed with a rigid 14-row
+head in 68 of 72 frames, which is why the assertion that replaced it measures his eyes instead, and
+those hold in all 42 frames that show them.
 
 **Seen before.** None found.
