@@ -23,6 +23,7 @@ func before_test() -> void:
 func after_test() -> void:
 	get_tree().paused = false
 	InputDevice.reset()
+	InputDevice.use_controls(Controls.new())
 
 func _node(unique: String) -> Node:
 	return pause.get_node("%" + unique)
@@ -360,3 +361,13 @@ func test_quit_box_hover_needs_motion() -> void:
 	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.STAY)
 	_move_over(_node("Quit"))
 	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)
+
+func test_the_players_pause_key_pauses() -> void:
+	var p := InputEventKey.new()
+	p.physical_keycode = KEY_P
+	InputDevice.controls.set_slot(Controls.Action.PAUSE, Controls.Device.KEYBOARD, 0, p)
+	_control()
+	await _tap(KEY_ESCAPE)
+	assert_bool(_node("Board").visible).is_false()
+	await _tap(KEY_P)
+	assert_bool(_node("Board").visible).is_true()

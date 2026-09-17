@@ -156,3 +156,24 @@ func test_e_while_placing_does_not_take_things() -> void:
 	var wood := _n("Decor").get_children().filter(func(n: Node) -> bool:
 		return n.scene_file_path.ends_with("driftwood.tscn"))
 	assert_int(wood.size()).is_equal(BeachLayout.DRIFTWOOD.size())
+
+func after_test() -> void:
+	InputDevice.use_controls(Controls.new())
+
+func _key(code: Key) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.physical_keycode = code
+	return e
+
+func test_the_players_use_key_places() -> void:
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, _key(KEY_F))
+	_driftwood(9)
+	await _stand(Vector2i(92, 11), F.DOWN)
+	await _press(KEY_B)
+	await _press(KEY_F)
+	assert_int(builder.mode).is_equal(M.PLACING)
+	await await_millis(50)
+	await _press(KEY_E)
+	assert_int(builder.mode).is_equal(M.PLACING)
+	await _press(KEY_F)
+	assert_int(builder.mode).is_not_equal(M.PLACING)

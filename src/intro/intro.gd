@@ -35,9 +35,9 @@ func tick(delta: float) -> void:
 # _shortcut_input, not _unhandled_input: it gets keys and pad buttons, and gdUnit4 delivers it once.
 func _shortcut_input(event: InputEvent) -> void:
 	if story.phase == IntroStory.Phase.PLAYING:
-		if event.is_action_pressed("menu_accept"):
+		if event.is_action_pressed("menu_accept") or event.is_action_pressed("use"):
 			story.press()
-		elif event.is_action_released("menu_accept"):
+		elif event.is_action_released("menu_accept") or event.is_action_released("use"):
 			story.release()
 		else:
 			return
