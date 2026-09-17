@@ -394,11 +394,8 @@ func _choice_extent(choice: TitleMenu.Choice) -> Vector2:
 			break
 		y += h
 	var selectable := menu.selectable()
-	if choice == selectable[0]:
-		top = 0.0
-	if choice == selectable[selectable.size() - 1]:
-		bottom = m.size.y
-	return Vector2(top, bottom)
+	return ScrollWindow.stretch_ends(Vector2(top, bottom), m.size.y,
+			choice == selectable[0], choice == selectable[selectable.size() - 1])
 
 func _plank_for(choice: TitleMenu.Choice) -> Control:
 	match choice:

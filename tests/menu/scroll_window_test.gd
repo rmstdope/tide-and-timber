@@ -57,3 +57,9 @@ func test_mark_centre_follows_the_areas_own_origin() -> void:
 			view.size + Vector2(0, 2.0 * ScrollWindow.MARK_ROW))
 	assert_that(ScrollWindow.mark_centre(rows, true)).is_equal(Vector2(160, 17))
 	assert_that(ScrollWindow.mark_centre(rows, false)).is_equal(Vector2(160, 147))
+
+func test_stretch_ends_reaches_the_content_edges() -> void:
+	assert_that(ScrollWindow.stretch_ends(Vector2(20, 36), 190, false, false)).is_equal(Vector2(20, 36))
+	assert_that(ScrollWindow.stretch_ends(Vector2(20, 36), 190, true, false)).is_equal(Vector2(0, 36))
+	assert_that(ScrollWindow.stretch_ends(Vector2(20, 36), 190, false, true)).is_equal(Vector2(20, 190))
+	assert_that(ScrollWindow.stretch_ends(Vector2(20, 36), 190, true, true)).is_equal(Vector2(0, 190))

@@ -270,12 +270,8 @@ func _content_height() -> float:
 func _item_extent(item: PauseMenu.Plank) -> Vector2:
 	var p := _plank(item)
 	var top := p.position.y - HEADING_TOP
-	var bottom := top + p.size.y
-	if item == rules.items[0]:
-		top = 0.0
-	if item == rules.items[rules.items.size() - 1]:
-		bottom = _content_height()
-	return Vector2(top, bottom)
+	return ScrollWindow.stretch_ends(Vector2(top, top + p.size.y), _content_height(),
+			item == rules.items[0], item == rules.items[rules.items.size() - 1])
 
 func _frame() -> void:
 	if not is_inside_tree() or strip == null:
