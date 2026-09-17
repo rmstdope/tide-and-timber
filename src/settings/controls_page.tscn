@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://src/settings/controls_page.gd" id="1_page"]
 [ext_resource type="StyleBox" path="res://src/title/plank.tres" id="2_plank"]
+[ext_resource type="Script" path="res://src/settings/waiting_box.gd" id="3_waiting"]
 
 [node name="ControlsPage" type="Control"]
 visible = false
@@ -9,6 +10,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 320.0
 offset_bottom = 180.0
+process_mode = 3
 script = ExtResource("1_page")
 
 [node name="Box" type="Control" parent="."]
@@ -83,3 +85,11 @@ theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="WaitingBox" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+script = ExtResource("3_waiting")
