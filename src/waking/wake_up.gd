@@ -11,6 +11,7 @@ const LIE_SECONDS := 2.0                # still, after the picture is fully up
 const PUSH_UP_SECONDS := 0.4
 const SIT_SECONDS := 0.8
 const FALL_FRAMES := 8                  # the columns of assets/man/death.png
+const EDGE := 1e-6                      # see getting_up_frame: float slack at a step boundary
 const HINT_WALK_PIXELS := 32.0          # "a few steps": two tiles
 const HINT_FADE_SECONDS := 0.5
 
@@ -57,15 +58,24 @@ func cover_alpha() -> float:
 		return 1.0 - clampf(phase_elapsed / FADE_IN_SECONDS, 0.0, 1.0)
 	return 0.0
 
-func pose() -> StringName:
+## The frame of the fall for a getting-up that began `elapsed` seconds ago: the fall, backwards,
+## over PUSH_UP_SECONDS + SIT_SECONDS. Collapse shares it, so the two mornings agree.
+static func getting_up_frame(elapsed: float) -> int:
+	var span := PUSH_UP_SECONDS + SIT_SECONDS
+	# EDGE nudges a step boundary onto the step it belongs to: 0.6 / 1.2 * 8 is 3.99999 in floats,
+	# which would hold a frame twice and drop another out of the eight.
+	return clampi(FALL_FRAMES - 1 - int(elapsed / span * FALL_FRAMES + EDGE), 0, FALL_FRAMES - 1)
+
+## The frame of the fall to hold now, or -1 when he is not in it and walking shows its own.
+func fall_frame() -> int:
 	match phase:
 		Phase.FADING_IN, Phase.LYING:
-			return &"lie"
+			return FALL_FRAMES - 1
 		Phase.PUSHING_UP:
-			return &"push_up"
+			return getting_up_frame(phase_elapsed)
 		Phase.SITTING:
-			return &"sit"
-	return &""
+			return getting_up_frame(PUSH_UP_SECONDS + phase_elapsed)
+	return -1
 
 func hint_alpha() -> float:
 	if phase != Phase.CONTROL:

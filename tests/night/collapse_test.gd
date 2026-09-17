@@ -48,22 +48,26 @@ func test_one_huge_step_emits_each_once_in_order() -> void:
 	c.advance(1.0)
 	assert_array(got).is_equal(["went_black", "morning", "got_up"])
 
-func test_poses_through_the_fall_and_getting_up() -> void:
+## The fall runs forwards over FALL_SECONDS, is held through the night, and runs backwards over
+## PUSH_UP_SECONDS + SIT_SECONDS at dawn. -1 means he is not in it and walking shows its own.
+func test_the_fall_runs_forwards_then_backwards() -> void:
 	var now := [0.0]
 	_to(0.3, now)
-	assert_that(c.pose()).is_equal(&"")
+	assert_int(c.fall_frame()).is_equal(1)
 	_to(0.9, now)
-	assert_that(c.pose()).is_equal(&"sit")
+	assert_int(c.fall_frame()).is_equal(3)
 	_to(1.5, now)
-	assert_that(c.pose()).is_equal(&"lie")
+	assert_int(c.fall_frame()).is_equal(6)
 	_to(3.0, now)
-	assert_that(c.pose()).is_equal(&"lie")
+	assert_int(c.fall_frame()).is_equal(7)
 	_to(6.6, now)
-	assert_that(c.pose()).is_equal(&"push_up")
+	assert_int(c.fall_frame()).is_equal(7)
 	_to(7.0, now)
-	assert_that(c.pose()).is_equal(&"sit")
+	assert_int(c.fall_frame()).is_equal(4)
+	_to(7.6, now)
+	assert_int(c.fall_frame()).is_equal(0)
 	_to(7.8, now)
-	assert_that(c.pose()).is_equal(&"")
+	assert_int(c.fall_frame()).is_equal(-1)
 
 func test_sway_only_while_standing() -> void:
 	var now := [0.0]

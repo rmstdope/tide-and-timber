@@ -109,9 +109,9 @@ func _start_collapse() -> void:
 func _advance_collapse(delta: float) -> void:
 	collapse.advance(delta)
 	if collapse:
-		var p := collapse.pose()
-		if p != &"":
-			player.play_pose(p)
+		var f := collapse.fall_frame()
+		if f >= 0:
+			player.show_frame(Walk.fall_animation_for(player.facing), f)
 		player.get_node("%Sprite").offset.x = collapse.sway_x()
 
 func _on_went_black() -> void:

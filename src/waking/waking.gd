@@ -98,8 +98,9 @@ func go_to_place(place: DebugPlaces.Place) -> void:
 
 func _refresh() -> void:
 	%Cover.modulate.a = wake.cover_alpha()
-	if wake.pose() != &"":
-		player.play_pose(wake.pose())
+	var f := wake.fall_frame()
+	if f >= 0:
+		player.show_frame(Walk.fall_animation_for(player.facing), f)
 	%MoveHint.modulate.a = wake.hint_alpha()
 	%MoveHint.visible = wake.hint_alpha() > 0.0
 	%Surf.set_audible(true)

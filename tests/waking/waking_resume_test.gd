@@ -61,7 +61,7 @@ func test_fades_up_with_nothing_said() -> void:
 	game.tick(0.6)
 	assert_float(_node("Cover").modulate.a).is_equal_approx(0.0, 0.001)
 	assert_bool(_node("MoveHint").visible).is_false()
-	assert_that((player.get_node("%Sprite") as AnimatedSprite2D).animation).is_not_equal(&"lie")
+	assert_that((player.get_node("%Sprite") as AnimatedSprite2D).animation).is_equal(&"still_down")
 	var decor := _node("Beach").get_node("%Decor")
 	assert_int(decor.get_children().filter(func(n: Node) -> bool: return n is WaveWash).size()).is_equal(0)
 

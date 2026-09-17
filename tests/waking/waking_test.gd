@@ -18,11 +18,15 @@ func _node(unique: String) -> Node:
 func _animation() -> StringName:
 	return (player.get_node("%Sprite") as AnimatedSprite2D).animation
 
+func _frame() -> int:
+	return (player.get_node("%Sprite") as AnimatedSprite2D).frame
+
 func test_opens_black_with_him_face_down_at_the_waterline() -> void:
 	assert_float(_node("Cover").modulate.a).is_greater(0.8)
 	assert_vector(player.global_position).is_equal(Vector2(1480, 232))
 	assert_int(BeachLayout.kind_at(Waking.WAKE_CELL)).is_equal(BeachLayout.Kind.WET_SAND)
-	assert_that(_animation()).is_equal(&"lie")
+	assert_that(_animation()).is_equal(&"death_down")
+	assert_int(_frame()).is_equal(7)
 	assert_bool(player.control_enabled).is_false()
 	assert_vector((_node("Beach").get_node("%Camera") as Node2D).global_position).is_equal(Vector2(1480, 232))
 	assert_bool(_node("MoveHint").visible).is_false()
@@ -39,11 +43,12 @@ func test_keys_do_nothing_while_he_wakes() -> void:
 func test_gets_himself_up_then_control_and_clock() -> void:
 	waking.tick(1.2)
 	assert_float(_node("Cover").modulate.a).is_equal_approx(0.0, 0.001)
-	assert_that(_animation()).is_equal(&"lie")
+	assert_that(_animation()).is_equal(&"death_down")
+	assert_int(_frame()).is_equal(7)
 	waking.tick(2.0)
-	assert_that(_animation()).is_equal(&"push_up")
+	assert_int(_frame()).is_equal(6)
 	waking.tick(0.4)
-	assert_that(_animation()).is_equal(&"sit")
+	assert_int(_frame()).is_equal(3)
 	assert_bool(player.control_enabled).is_false()
 	waking.tick(0.8)
 	assert_bool(player.control_enabled).is_true()
