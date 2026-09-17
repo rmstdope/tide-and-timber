@@ -151,8 +151,10 @@ static func layout_at(p_lines: PackedStringArray, p_items: Array, rel: float, ui
 	var pw := ceilf(_word(p_lines[1], font) * rel)
 	var whole_hold: Array = [p_items[0], p_items[1], p_items[2]]
 	var hw := _row_width(whole_hold, rel, font)
+	# The hold row is centred on 160 and the ring hangs off its right end, so a whole hold line
+	# wants the ring's room on one side of the centre: twice it, in a width centred on 160.
 	var panel_w := TextScale.fit_width(PANEL.size.x,
-			maxf(maxf(nw, pw), hw + RING_GAP + RING_SIZE) + 2.0 * SIDE_PAD, ui)
+			maxf(maxf(nw, pw), hw + 2.0 * (RING_GAP + RING_SIZE)) + 2.0 * SIDE_PAD, ui)
 	var area := panel_w - 2.0 * SIDE_PAD
 	l.names = ControlsPage.name_lines(p_lines[0], area / rel, font)
 	l.presses = ControlsPage.name_lines(p_lines[1], area / rel, font)
