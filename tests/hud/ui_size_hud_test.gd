@@ -69,7 +69,7 @@ func test_lines_grow_about_their_bottom_centre() -> void:
 	var black := waking.get_node("%BlackLine")
 	assert_bool(_is_scaled(black, 2.0, Vector2(160, 90))).is_true()
 	assert_int(_layer_of(black).layer).is_equal(31)
-	assert_bool(_layer_of(waking.get_node("%Card")).transform == Transform2D.IDENTITY).is_true()
+	assert_bool(_is_scaled(waking.get_node("%Card"), 2.0, Vector2(160, 90))).is_true()
 
 func test_use_prompt_grows_about_its_bottom_centre() -> void:
 	var beach := _scene("res://src/beach/beach.tscn")
