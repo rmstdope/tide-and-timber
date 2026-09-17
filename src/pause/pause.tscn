@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/pause/pause.gd" id="1_pause"]
 [ext_resource type="StyleBox" path="res://src/pause/board.tres" id="2_board"]
 [ext_resource type="StyleBox" path="res://src/title/plank.tres" id="3_plank"]
+[ext_resource type="PackedScene" path="res://src/settings/settings_board.tscn" id="4_settings"]
 
 [node name="Pause" type="CanvasLayer"]
 process_mode = 3
@@ -215,6 +216,9 @@ theme_override_font_sizes/font_size = 8
 text = "Quit"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SettingsBoard" parent="." instance=ExtResource("4_settings")]
+unique_name_in_owner = true
 
 [node name="Fade" type="ColorRect" parent="."]
 unique_name_in_owner = true

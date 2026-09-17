@@ -222,8 +222,8 @@ func test_settings_asks_for_the_settings_screen_and_stays_paused() -> void:
 	await _tap(KEY_ENTER)
 	assert_array(calls).is_equal(["settings"])
 	assert_bool(get_tree().paused).is_true()
-	assert_bool(_node("Board").visible).is_true()
-	_highlighted("Settings")
+	assert_bool(_node("Board").visible).is_false()
+	assert_bool(pause.rules.settings_open).is_true()
 
 func test_quit_to_title_asks_on_stay_before_any_save() -> void:
 	await _open_box()

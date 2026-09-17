@@ -1,0 +1,61 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/settings/settings_board.gd" id="1_board"]
+[ext_resource type="StyleBox" path="res://src/pause/board.tres" id="2_board"]
+
+[node name="SettingsBoard" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 180.0
+mouse_filter = 2
+script = ExtResource("1_board")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 180.0
+color = Color(0.05, 0.04, 0.06, 0.45)
+
+[node name="Panel" type="Panel" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 88.0
+offset_top = 62.0
+offset_right = 232.0
+offset_bottom = 118.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("2_board")
+
+[node name="Heading" type="Label" parent="Panel"]
+layout_mode = 0
+offset_top = 8.0
+offset_right = 144.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Settings"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Controls" type="PanelContainer" parent="Panel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 16)
+layout_mode = 0
+offset_left = 12.0
+offset_top = 28.0
+offset_right = 132.0
+offset_bottom = 44.0
+focus_mode = 0
+mouse_filter = 0
+
+[node name="Label" type="Label" parent="Panel/Controls"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Controls"
+horizontal_alignment = 1
+vertical_alignment = 1
