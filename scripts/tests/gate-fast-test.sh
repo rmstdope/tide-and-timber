@@ -296,6 +296,32 @@ test_the_lock_dir_is_hidden_from_godots_importer() {
   rm -rf "$S"
 }
 
+test_two_runs_in_one_checkout_do_not_overlap() {
+  local name="${FUNCNAME[0]}"; local apid acode bcode names
+  sandbox; make_fake_godot
+  (cd "$S/elsewhere" && GATE_GODOT="$S/bin/godot" FAKE_IMPORT_SLEEP=2 \
+    FAKE_OVERRIDE_SNAPSHOT="$S/snapA" bash "$S/repo/scripts/gate-fast" \
+    >/dev/null 2>"$S/errA") &
+  apid=$!
+  sleep 0.5
+  FAKE_OVERRIDE_SNAPSHOT="$S/snapB" run_gate
+  bcode=$code
+  wait "$apid"; acode=$?
+  names="$(grep -cF 'config/custom_user_dir_name=' "$S/snapA" 2>/dev/null)"
+  if [ "$acode" != 0 ]; then fail "$name" "run A exit $acode: $(cat "$S/errA")"
+  elif [ "$bcode" != 1 ]; then fail "$name" "run B exit $bcode: $(cat "$S/err")"
+  elif ! grep -qF "gate-fast: another gate-fast is already running in $S/repo (pid " "$S/err"; then
+    fail "$name" "run B stderr: $(cat "$S/err")"
+  elif [ -e "$S/snapB" ]; then fail "$name" "run B launched godot"
+  elif [ "$names" != 2 ]; then fail "$name" "run A saw $names user dir lines"
+  elif [ "$(grep -F 'config/custom_user_dir_name=' "$S/snapA" | sort -u | wc -l | tr -d ' ')" != 1 ]; then
+    fail "$name" "run A saw two different user dirs: $(grep -F 'config/custom_user_dir_name=' "$S/snapA")"
+  elif [ -e "$S/repo/override.cfg" ]; then fail "$name" "override.cfg left behind"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
 test_missing_godot_exits_1
 test_default_godot_comes_from_path
 test_arguments_exit_2
@@ -317,4 +343,5 @@ test_lock_is_released_when_the_run_is_signalled
 test_stale_lock_from_a_dead_holder_is_reclaimed
 test_lock_dir_with_no_pid_file_is_reclaimed
 test_the_lock_dir_is_hidden_from_godots_importer
+test_two_runs_in_one_checkout_do_not_overlap
 exit "$failed"
