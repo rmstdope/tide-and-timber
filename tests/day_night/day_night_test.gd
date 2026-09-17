@@ -129,3 +129,14 @@ func test_dawn_after_refresh() -> void:
 	dn.start()
 	dn.tick(1531.0)
 	assert_array(labels).is_equal(["DAY 2"])
+
+func test_add_minutes_across_06_00_emits_dawn_once() -> void:
+	var seen := []
+	dn.dawn.connect(func() -> void: seen.append(_n("TimeLabel").text))
+	dn.start()
+	dn.clock.total_minutes = 1785.0
+	dn.add_minutes(30.0)
+	assert_array(seen).is_equal(["06:10"])
+	dn.add_minutes(30.0)
+	dn.tick(1.0)
+	assert_int(seen.size()).is_equal(1)

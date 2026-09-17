@@ -10,6 +10,8 @@ var box_open := false
 var selected: Choice = Choice.TRY_AGAIN
 var failed_retries := 0          # +1 on every Try again that fails; the view shakes the first line on each rise
 var _save: Callable              # () -> Error
+var _holding := false            # a save that works now starts the line only on release_line()
+var _line_waiting := false
 
 func _init(save: Callable) -> void:
 	_save = save
@@ -19,7 +21,7 @@ func dawn() -> void:
 	if box_open:
 		return
 	if _save.call() == OK:
-		line.start()
+		_saved()
 	else:
 		box_open = true
 		selected = Choice.TRY_AGAIN
@@ -43,10 +45,27 @@ func press(button: Choice) -> void:
 	selected = Choice.TRY_AGAIN
 	if _save.call() == OK:
 		box_open = false
-		line.start()
+		_saved()
 	else:
 		failed_retries += 1
 
 ## Esc / B.
 func cancel() -> void:
 	press(Choice.KEEP_PLAYING)
+
+## Until release_line(), a save that works does not start the line (the screen is black).
+func hold_line() -> void:
+	_holding = true
+
+## Starts the line if a save worked while it was held.
+func release_line() -> void:
+	_holding = false
+	if _line_waiting:
+		_line_waiting = false
+		line.start()
+
+func _saved() -> void:
+	if _holding:
+		_line_waiting = true
+	else:
+		line.start()

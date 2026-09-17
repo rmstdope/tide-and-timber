@@ -3,9 +3,8 @@ extends Node
 ## The day/night clock: owns the time, tints the world, shows the dial and the 18:30 line.
 ## Instance day_night.tscn and call start() when the player gets control.
 
-## Emitted once each time the clock crosses 06:00 in tick(), after the light and labels show it.
-## Something that moves the clock past 06:00 without tick() (a collapse) applies its own changes,
-## then emits this itself.
+## Emitted once each time the clock crosses 06:00 in tick() or add_minutes(), after the light and
+## labels show it. A collapse applies its loss before add_minutes(), so the loss is what gets saved.
 signal dawn
 
 var clock := GameClock.new()
@@ -53,8 +52,12 @@ func _refresh() -> void:
 
 
 ## Moves the clock on at once and refreshes. True if an 18:30 was crossed. Does not start the line.
+## Emits dawn when a 06:00 was crossed, like tick().
 func add_minutes(minutes: float) -> bool:
 	var before := clock.sunsets_passed()
+	var dawns_before := clock.dawns_passed()
 	clock.total_minutes += minutes
 	_refresh()
+	if clock.dawns_passed() > dawns_before:
+		dawn.emit()
 	return clock.sunsets_passed() > before

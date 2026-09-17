@@ -20,7 +20,9 @@ static func write(files: Dictionary, dir: String = SLOT_DIR) -> Error:
 	if _recovering(dir):
 		for stem in STEMS:
 			if FileAccess.file_exists(_path(dir, stem) + ".tmp"):
-				_replace(dir, stem)
+				err = _replace(dir, stem)
+				if err != OK:
+					return err
 	var stems := STEMS.filter(func(stem: String) -> bool: return files.has(stem))
 	for stem: String in stems:
 		var f := FileAccess.open(_path(dir, stem) + ".tmp", FileAccess.WRITE)

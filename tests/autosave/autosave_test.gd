@@ -163,3 +163,26 @@ func test_hud_ignores_the_mouse_except_buttons() -> void:
 	for c: Control in all:
 		var want := Control.MOUSE_FILTER_STOP if c in buttons else Control.MOUSE_FILTER_IGNORE
 		assert_int(c.mouse_filter).override_failure_message("%s mouse_filter" % c.name).is_equal(want)
+
+func _joy(button: JoyButton) -> void:
+	var e := InputEventJoypadButton.new()
+	e.button_index = button
+	e.pressed = true
+	Input.parse_input_event(e)
+	await runner.await_input_processed()
+
+func test_controller_moves_and_presses() -> void:
+	_fail_dawn([OK])
+	await _joy(JOY_BUTTON_DPAD_RIGHT)
+	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
+	await _joy(JOY_BUTTON_DPAD_LEFT)
+	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
+	await _joy(JOY_BUTTON_A)
+	assert_bool(_n("Box").visible).is_false()
+	assert_bool(_n("Dawn").visible).is_true()
+
+func test_controller_b_keeps_playing() -> void:
+	_fail_dawn()
+	await _joy(JOY_BUTTON_B)
+	assert_bool(_n("Box").visible).is_false()
+	assert_bool(_paused()).is_false()

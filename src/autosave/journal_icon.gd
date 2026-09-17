@@ -7,7 +7,6 @@ extends Control
 func _init() -> void:
 	custom_minimum_size = Vector2(12, 12)
 	size = Vector2(12, 12)
-	mouse_filter = MOUSE_FILTER_IGNORE
 
 func _draw() -> void:
 	draw_rect(Rect2(0, 0, 12, 12), Color("#3d5a80"))

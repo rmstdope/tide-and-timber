@@ -97,3 +97,20 @@ func test_dawn_while_box_open_does_nothing() -> void:
 	r.dawn()
 	r.dawn()
 	assert_int(calls.size()).is_equal(1)
+
+func test_held_line_waits_for_release() -> void:
+	var r := _rules([OK])
+	r.hold_line()
+	r.dawn()
+	assert_int(calls.size()).is_equal(1)
+	assert_bool(r.line.is_showing()).is_false()
+	r.release_line()
+	assert_bool(r.line.is_showing()).is_true()
+
+func test_release_without_a_save_shows_nothing() -> void:
+	var r := _rules([ERR_FILE_CANT_WRITE])
+	r.hold_line()
+	r.dawn()
+	r.cancel()
+	r.release_line()
+	assert_bool(r.line.is_showing()).is_false()

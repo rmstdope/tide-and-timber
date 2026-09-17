@@ -167,14 +167,22 @@ func test_click_during_collapse_is_swallowed() -> void:
 	night.tick(100.0)
 	assert_bool(_walker().is_walking()).is_false()
 
-func test_saved_once_when_he_gets_up_with_the_loss_applied() -> void:
+func test_saved_at_black_with_the_loss_applied_and_line_when_he_gets_up() -> void:
 	inventory.add(K.DRIFTWOOD, 9)
 	await await_idle_frame()
 	_collapse_now()
-	night.tick(2.5)
+	night.tick(2.0)
 	assert_int(saves.size()).is_equal(0)
-	night.tick(100.0)
+	night.tick(0.5)
 	assert_int(saves.size()).is_equal(1)
 	assert_int(saves[0].inventory_slots[0]["count"]).is_equal(5)
+	assert_float(dn.clock.total_minutes).is_equal(1800.0)
+	var autosave := _n("Autosave") as Autosave
+	autosave.tick(0.5)
+	assert_bool(autosave.get_node("%Dawn").visible).is_false()
+	night.tick(100.0)
+	assert_object(night.collapse).is_null()
+	autosave.tick(0.5)
+	assert_bool(autosave.get_node("%Dawn").visible).is_true()
 	dn.tick(1.0)
 	assert_int(saves.size()).is_equal(1)

@@ -33,6 +33,14 @@ func on_dawn() -> void:
 	rules.dawn()
 	_after_rules()
 
+## While he lies in the dark after a collapse: save at dawn as usual, but keep the line back.
+func hold_line() -> void:
+	rules.hold_line()
+
+func release_line() -> void:
+	rules.release_line()
+	_refresh()
+
 func _process(delta: float) -> void:
 	tick(delta)
 
