@@ -36,7 +36,20 @@ offset_bottom = 138.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_plank")
 
-[node name="Lines" type="Label" parent="Box/Panel"]
+[node name="Clip" type="Control" parent="Box/Panel"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+clip_contents = true
+
+[node name="Content" type="Control" parent="Box/Panel/Clip"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+
+[node name="Lines" type="Label" parent="Box/Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
@@ -50,7 +63,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Safe" type="PanelContainer" parent="Box/Panel"]
+[node name="Safe" type="PanelContainer" parent="Box/Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 40.0
@@ -60,7 +73,7 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Box/Panel/Safe"]
+[node name="Label" type="Label" parent="Box/Panel/Clip/Content/Safe"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -68,7 +81,7 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Other" type="PanelContainer" parent="Box/Panel"]
+[node name="Other" type="PanelContainer" parent="Box/Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 152.0
@@ -78,13 +91,19 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Box/Panel/Other"]
+[node name="Label" type="Label" parent="Box/Panel/Clip/Content/Other"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Marks" type="Control" parent="Box/Panel"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
 
 [node name="WaitingBox" type="Control" parent="."]
 unique_name_in_owner = true

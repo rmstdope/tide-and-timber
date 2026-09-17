@@ -103,8 +103,9 @@ func _rect(unique: String) -> Rect2:
 	var n := _box_node(unique)
 	return Rect2(n.position, n.size)
 
+# The rest layout: what _fit_box laid out, before the box is framed to the room above the strip.
 func _panel_rect() -> Rect2:
-	return Rect2(_panel().position, _panel().size)
+	return page._box_layout.panel
 
 func _assert_normal_box() -> void:
 	assert_that(_panel_rect()).is_equal(Rect2(12, 42, 296, 96))
@@ -216,8 +217,9 @@ func test_stacked_buttons_do_not_overlap() -> void:
 	var safe := _box_node("Safe").get_global_rect()
 	var other := _box_node("Other").get_global_rect()
 	assert_bool(safe.intersects(other)).is_false()
-	assert_bool(_panel().get_global_rect().encloses(safe)).is_true()
-	assert_bool(_panel().get_global_rect().encloses(other)).is_true()
+	var content := page.get_node("%Box/Panel/Clip/Content") as Control
+	assert_bool(content.get_global_rect().encloses(safe)).is_true()
+	assert_bool(content.get_global_rect().encloses(other)).is_true()
 
 func test_ok_alone_side_by_side_is_todays_layout() -> void:
 	await _open_no_pad()
