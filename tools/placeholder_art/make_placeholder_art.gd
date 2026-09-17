@@ -1,25 +1,9 @@
 extends SceneTree
-## Draws the placeholder art still waiting for the pack: the man, the item icons and the glyphs.
+## Draws the placeholder art still waiting for the pack: his waking poses, the item icons and the glyphs.
 ## Run: godot --headless --path . --script res://tools/placeholder_art/make_placeholder_art.gd
 
 func _init() -> void:
-	var man := _blank(64, 96)
-	var faces := [   # per Walk.Facing row
-		[[6, 7, 1, 1, "#2a1a10"], [9, 7, 1, 1, "#2a1a10"]],
-		[[5, 5, 6, 5, "#6b3f22"]],
-		[[6, 7, 1, 1, "#2a1a10"], [9, 5, 2, 3, "#6b3f22"]],
-		[[9, 7, 1, 1, "#2a1a10"], [5, 5, 2, 3, "#6b3f22"]],
-	]
-	var legs := [[4, 4], [2, 4], [4, 4], [4, 2]]   # left and right leg heights per column
-	for r in 4:
-		for c in 4:
-			var rects := [[5, 2, 6, 3, "#6b3f22"], [5, 5, 6, 5, "#f0c090"], [4, 10, 8, 7, "#d9dccf"],
-				[5, 17, 6, 3, "#3d5a80"], [5, 20, 2, legs[c][0], "#3d5a80"], [9, 20, 2, legs[c][1], "#3d5a80"]]
-			rects.append_array(faces[r])
-			_rects(man, Vector2i(16 * c, 24 * r), rects)
-	_save(man, "res://assets/man/man.png")
-
-	var wake := _blank(72, 24)   # frames in ManFrames.WAKE_POSES order: lie, push_up, sit
+	var wake := _blank(192, 64)   # frames in ManFrames.WAKE_POSES order: lie, push_up, sit
 	var poses := [
 		[[2, 20, 9, 4, "#3d5a80"], [11, 19, 8, 5, "#d9dccf"], [19, 19, 5, 5, "#f0c090"], [19, 19, 5, 3, "#6b3f22"]],
 		[[2, 20, 10, 4, "#3d5a80"], [10, 14, 7, 7, "#d9dccf"], [16, 18, 2, 6, "#f0c090"], [15, 9, 6, 5, "#f0c090"],
@@ -27,8 +11,9 @@ func _init() -> void:
 		[[6, 20, 12, 4, "#3d5a80"], [8, 13, 8, 7, "#d9dccf"], [9, 7, 6, 6, "#f0c090"], [9, 7, 6, 2, "#6b3f22"],
 			[10, 10, 1, 1, "#2a1a10"], [13, 10, 1, 1, "#2a1a10"]],
 	]
+	# Centred in the 64x64 frame with its bottom row on 47, the footline every man sheet shares.
 	for i in poses.size():
-		_rects(wake, Vector2i(24 * i, 0), poses[i])
+		_rects(wake, Vector2i(64 * i + 20, 24), poses[i])
 	_save(wake, "res://assets/man/man_wake.png")
 
 	_save(_drawn(10, 10, [[0, 5, 10, 3, "#9c7048"], [1, 7, 8, 1, "#6e4a2c"], [6, 2, 2, 4, "#9c7048"]]),

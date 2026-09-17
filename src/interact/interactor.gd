@@ -32,6 +32,8 @@ func try_use(usable: Usable) -> bool:
 	if usable == null or not is_instance_valid(usable) or usable.is_gone() or not usable.can_use(inventory):
 		return false
 	usable.use(inventory)
+	if player != null:
+		player.collect()
 	return true
 
 func _process(_delta: float) -> void:

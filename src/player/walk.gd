@@ -2,7 +2,7 @@ class_name Walk
 extends RefCounted
 ## Movement rules for the man, free of nodes.
 
-enum Facing { DOWN, UP, LEFT, RIGHT }   # also the row order of assets/man/man.png
+enum Facing { DOWN, UP, LEFT, RIGHT }   # also the row order of every sheet under assets/man/
 const SPEED := 48.0                     # px per second: three 16 px tiles
 const RUN_SPEED := 96.0                 # px/s: double walking pace
 const WADE_SPEED := 24.0                # px/s: half walking pace, Shift or not
@@ -48,8 +48,19 @@ static func facing_for(dir: Vector2, previous: Facing) -> Facing:
 static func facing_vector(facing: Facing) -> Vector2:
 	return [Vector2.DOWN, Vector2.UP, Vector2.LEFT, Vector2.RIGHT][facing]
 
-static func animation_for(facing: Facing, moving: bool, wading: bool = false) -> StringName:
+static func animation_for(facing: Facing, moving: bool, wading: bool = false, running: bool = false) -> StringName:
+	# Wading is one pace whether Shift is held, so there is no wading run to show.
+	if moving and running and not wading:
+		return StringName("run_" + _NAMES[facing])
 	return StringName(("wade_" if wading else "") + ("walk_" if moving else "still_") + _NAMES[facing])
+
+## The gathering move's animation for how he stands now.
+static func collect_animation_for(facing: Facing, wading: bool = false) -> StringName:
+	return StringName(("wade_" if wading else "") + "collect_" + _NAMES[facing])
+
+## How fast his animation runs: half pace in the water, its own pace everywhere else.
+static func animation_scale(wading: bool) -> float:
+	return WADE_SPEED / SPEED if wading else 1.0
 
 static func trail_for(moving: bool, running: bool, wading: bool) -> StringName:
 	if not moving:

@@ -27,13 +27,14 @@ func _ground_colour(tiles: Image, kind: int) -> Color:
 func test_he_stands_out_at_night_on_sand_and_grass() -> void:
 	var night := Daylight.color_at(0.0)
 	var tiles := (load("res://assets/beach/tiles.png") as Texture2D).get_image()
-	var man := (load("res://assets/man/man.png") as Texture2D).get_image()
 	var his := {}
-	for y in man.get_height():
-		for x in man.get_width():
-			var c := man.get_pixel(x, y)
-			if c.a == 1.0:
-				his[c.to_html(false)] = true
+	for sheet: String in ["idle", "walk", "run", "collect"]:
+		var man := (load("res://assets/man/%s.png" % sheet) as Texture2D).get_image()
+		for y in man.get_height():
+			for x in man.get_width():
+				var c := man.get_pixel(x, y)
+				if c.a == 1.0:
+					his[c.to_html(false)] = true
 	for kind: int in [BeachLayout.Kind.SAND, BeachLayout.Kind.WET_SAND, BeachLayout.Kind.JUNGLE]:
 		var ground := _luminance(_tinted(_ground_colour(tiles, kind), night))
 		var best := 0.0

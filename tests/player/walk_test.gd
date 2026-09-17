@@ -91,3 +91,19 @@ func test_facing_names_round_trip() -> void:
 		assert_int(Walk.facing_for_name(Walk.facing_name(f))).is_equal(f)
 	assert_str(Walk.facing_name(Walk.Facing.LEFT)).is_equal("left")
 	assert_int(Walk.facing_for_name("north")).is_equal(-1)
+
+func test_running_has_its_own_animation() -> void:
+	assert_that(Walk.animation_for(Walk.Facing.RIGHT, true, false, true)).is_equal(&"run_right")
+	assert_that(Walk.animation_for(Walk.Facing.RIGHT, false, false, true)).is_equal(&"still_right")
+	# Wading is one pace whether Shift is held, so there is no wading run to show.
+	assert_that(Walk.animation_for(Walk.Facing.RIGHT, true, true, true)).is_equal(&"wade_walk_right")
+	assert_that(Walk.animation_for(Walk.Facing.RIGHT, true)).is_equal(&"walk_right")
+	assert_that(Walk.animation_for(Walk.Facing.RIGHT, false, true)).is_equal(&"wade_still_right")
+
+func test_the_gathering_move_names() -> void:
+	assert_that(Walk.collect_animation_for(Walk.Facing.UP)).is_equal(&"collect_up")
+	assert_that(Walk.collect_animation_for(Walk.Facing.UP, true)).is_equal(&"wade_collect_up")
+
+func test_animation_scale_halves_in_the_water() -> void:
+	assert_float(Walk.animation_scale(false)).is_equal(1.0)
+	assert_float(Walk.animation_scale(true)).is_equal(0.5)
