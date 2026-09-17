@@ -23,7 +23,7 @@ func _json_files() -> Dictionary:
 
 func test_to_files_exact_shape() -> void:
 	var files := _sample().to_files()
-	assert_dict(files["meta"]).is_equal({"version": 1})
+	assert_dict(files["meta"]).is_equal({"version": 1, "game_version": str(ProjectSettings.get_setting("application/config/version"))})
 	assert_dict(files["player"]).is_equal({"x": 1480.0, "y": 184.0, "facing": "left"})
 	assert_dict(files["inventory"]["slots"][0]).is_equal({"item": "driftwood", "count": 3})
 	assert_dict(files["inventory"]["slots"][1]).is_equal({})
@@ -44,6 +44,16 @@ func test_round_trip_through_json_text() -> void:
 	assert_dict(d.taken).is_equal(s.taken)
 	assert_int(typeof(d.taken["driftwood"][0])).is_equal(TYPE_VECTOR2I)
 	assert_float(d.clock_minutes).is_equal(1800.0)
+
+func test_meta_names_the_game_version() -> void:
+	assert_str(_sample().to_files().meta.game_version).is_equal(str(ProjectSettings.get_setting("application/config/version")))
+
+func test_meta_without_game_version_still_loads() -> void:
+	var files := _json_files()
+	files.meta.erase("game_version")
+	assert_object(SaveData.from_files(files)).is_not_null()
+	files.meta["game_version"] = 42
+	assert_object(SaveData.from_files(files)).is_not_null()
 
 func _rejected(mutate: Callable) -> void:
 	var files := _json_files()

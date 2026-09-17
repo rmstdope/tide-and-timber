@@ -70,8 +70,10 @@ static func read(dir: String = SLOT_DIR) -> Dictionary:
 static func save_slot(data: SaveData, dir: String = SLOT_DIR) -> Error:
 	return write(data.to_files(), dir)
 
+## Null when missing, broken, newer, or refused by a migration step. Migrates in memory only.
 static func load_slot(dir: String = SLOT_DIR) -> SaveData:
-	return SaveData.from_files(read(dir))
+	var files: Variant = SaveMigrations.migrate(read(dir))
+	return null if files == null else SaveData.from_files(files)
 
 static func _path(dir: String, stem: String) -> String:
 	return dir.path_join(stem + ".json")

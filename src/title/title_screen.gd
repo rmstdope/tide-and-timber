@@ -20,6 +20,7 @@ var saved_day := 0                      # 0: no DAY line
 var quit_game: Callable = _quit_game          # tests replace these three
 var start_new_game: Callable = _start_new_game
 var start_continue: Callable = _start_continue
+var migration_steps: Dictionary[int, Callable] = SaveMigrations.chain()   # tests replace it
 
 func _ready() -> void:
 	%Version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
@@ -35,11 +36,10 @@ func _ready() -> void:
 
 ## Reads the slot once and sets the menu up for it. Writes nothing, ever.
 func read_save(dir: String) -> void:
-	var exists := SaveStore.exists(dir)
-	saved_game = SaveStore.load_slot(dir) if exists else null
-	var opens := saved_game != null and Beach.can_restore(saved_game)
-	if not opens:
-		saved_game = null
+	var reading := SlotReading.open(dir, migration_steps)
+	var exists := reading.state != SlotReading.State.NONE
+	var opens := reading.state == SlotReading.State.READY
+	saved_game = reading.data
 	if saved_game:
 		saved_day = saved_game.day()
 	else:
