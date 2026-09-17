@@ -1,12 +1,12 @@
 <!doctype html><html><head><meta charset=utf-8><title>Menu controls — agreed</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=common.css><script src=scene.js></script></head><body><script>
-const KS=hp('<span class="key">ENTER</span>Select'), KSB=hp('<span class="key">ENTER</span>Select &nbsp; <span class="key">ESC</span>Back');
+const KS=KS2, KSB=KSB2;
 const over=s=>box(['Wash up on a new island?','Everything you built will be lost to the sea.'],['Keep my island','Start over'],s);
-page('Menus with a controller — agreed','Each picture is at 2x the game\'s 320x180 base. Scene art, colours, button pictures and the settings rows are placeholders: the button pictures and the settings screen are decided in separate pieces of work. The box top-left says what the player just did.',[
-['1. Title opens',scene(M3(0)+KS+ptr(470,120)),'Pointer visible; strip shows the keyboard (no device used yet). Title strip: Select only.'],
+page('Menus with a controller — agreed','Each picture is at 2x the game\'s 320x180 base. Scene art, colours, button pictures and the settings rows are placeholders: the button pictures follow the device hints drawing (tr-eg9.3) and the settings screen is decided separately. Which device the strip shows: device-rule.html. The box top-left says what the player just did.',[
+['1. Title opens',scene(M3(0)+KS+ptr(470,120)),'No pad connected: pointer visible, strip shows keys. With a pad connected it shows pad buttons from launch (see device-rule.html). Title strip: Select only.'],
 ['2. Push down on the pad',scene(M3(1)+HS+pad('push down')),'One step per push. Pointer hides; strip switches to controller buttons.'],
 ['3. Keep holding',scene(M3(1)+HS+pad('holding down, 2 s')),'Nothing more; let go and push again for the next step. Wrapping on a fresh push as already agreed.'],
 ['4. Back on the title',scene(M3(1)+HS+pad('press B')),'Nothing happens, as for Esc.'],
-['5. Mouse moved',scene(M3(2)+KS+ptr(330,300)),'Pointer back; highlight follows it only because it moved; strip shows keys.'],
+['5. Mouse moved',scene(M3(2)+HS+ptr(330,300)),'Pointer back; highlight follows it only because it moved; the strip stays on the pad until a click or key (see device-rule.html).'],
 ['6. A box on the title',scene(M3(1)+over(0)+HSB),'Boxes show Select and Back. Left/right move between buttons, one step per push.'],
 ['7. Settings row',settings(0,2,pad('push right')+HSB),'Up/down move between rows; left/right change the value at once, stopping at the ends.'],
 ['8. Back from settings',scene(menu([{t:'Resume'},{t:'Settings',sel:1},{t:'Quit to title'}],212)+HSB+pad('press B in settings')),'Returns to the menu it came from with Settings highlighted (pause menu placeholder shown).']]);

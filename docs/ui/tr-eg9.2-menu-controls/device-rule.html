@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset=utf-8><title>Option A — menus follow the same rule as every other hint</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=common.css><script src=scene.js></script></head><body><script>
+const BH=A+' Build &nbsp; '+B+' Close', BHk=capk('E')+' Build &nbsp; '+capk('Esc')+' Close';
+page('Option A (recommended) — the menu strip follows the same rule as every in-play hint','One rule for every hint in the game. Moving the mouse brings the pointer back and moves the highlight, but does not switch the strip; a click or key does. The box top-left says what the player just did. Pictures, colours and art are placeholders.',[
+['A1. Title opens, a pad is plugged in',scene(M3(0)+HS+ptr(470,120)+pad('launched, nothing pressed')),'Pad buttons from the start, because a pad is connected. (With no pad: ENTER Select.)'],
+['A2. Mouse moved after using the pad',scene(M3(2)+HS+ptr(330,300)+pad('mouse moved')),'Pointer back and highlight follows it, as agreed. The strip stays on the pad.'],
+['A3. Mouse clicked',scene(M3(2)+KS2+ptr(330,300)+pad('clicked')),'A click counts: the strip shows keys.'],
+['A4. The pad is unplugged',scene(M3(1)+KS2+pad('last pad unplugged')),'Keys at once. The menu itself does not change.'],
+['A5. A box over play, mouse bumped',overPlay(BH,HSB,ptr(420,90)+pad('mouse moved, pad in hand')),'The box strip and the build hint behind it always show the same device.']]);
+</script></body></html>
