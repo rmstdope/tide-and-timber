@@ -74,12 +74,13 @@ func _drawn(r: int) -> Rect2:
 # --- pure ---
 
 func test_content_bottom_and_row_extent() -> void:
-	assert_float(ControlsPage.content_bottom(true)).is_equal(255.0)
-	assert_float(ControlsPage.content_bottom()).is_equal(156.0)
-	assert_that(ControlsPage.row_extent(0, true)).is_equal(Vector2(0, 47))
-	assert_that(ControlsPage.row_extent(1, true)).is_equal(Vector2(47, 69))
-	assert_that(ControlsPage.row_extent(8, true)).is_equal(Vector2(201, 252))
-	assert_that(ControlsPage.row_extent(3)).is_equal(Vector2(58, 69))
+	var stacked := ControlsLayout.make(true, 1.0, 2.0)
+	assert_float(stacked.content_bottom()).is_equal(273.0)
+	assert_float(ControlsLayout.make(false, 1.0, 1.0).content_bottom()).is_equal(156.0)
+	assert_that(stacked.row_extent(0)).is_equal(Vector2(0, 47))
+	assert_that(stacked.row_extent(1)).is_equal(Vector2(47, 69))
+	assert_that(stacked.row_extent(8)).is_equal(Vector2(201, 270))
+	assert_that(ControlsLayout.make(false, 1.0, 1.0).row_extent(3)).is_equal(Vector2(58, 69))
 
 # --- title ---
 
@@ -126,15 +127,15 @@ func test_moving_down_and_up_scrolls_to_the_highlight() -> void:
 	assert_int(page.offset).is_equal(0)
 	assert_bool(page.shows_mark_above()).is_false()
 
-func test_up_from_the_top_shows_reset_and_the_fixed_lines() -> void:
+func test_up_from_the_top_shows_the_reset_row() -> void:
 	_size(2)
 	await _open_page()
 	await _settle()
 	await _press(KEY_UP)
 	assert_int(page.rules.row).is_equal(8)
-	assert_int(page.offset).is_equal(198)
+	assert_int(page.offset).is_equal(201)
 	assert_bool(page.shows_mark_above()).is_true()
-	assert_bool(page.shows_mark_below()).is_false()
+	assert_bool(page.shows_mark_below()).is_true()
 	assert_bool(page.view.encloses(_drawn(8))).is_true()
 
 func test_every_row_is_drawn_inside_the_view() -> void:
@@ -191,7 +192,7 @@ func test_reopening_starts_at_the_top() -> void:
 	await _open_page()
 	await _settle()
 	await _press(KEY_UP)
-	assert_int(page.offset).is_equal(198)
+	assert_int(page.offset).is_equal(201)
 	await _press(KEY_ESCAPE)
 	await _press(KEY_ENTER)
 	await _settle()
@@ -233,7 +234,7 @@ func test_clicks_land_where_drawn() -> void:
 	await _settle()
 	await _press(KEY_UP)
 	assert_int(page.rules.row).is_equal(8)
-	assert_int(page.offset).is_equal(198)
+	assert_int(page.offset).is_equal(201)
 	_left_click(page, ControlsPage.tab_rect(1, true).get_center())   # the unscrolled place, outside the view
 	assert_int(page.rules.device).is_equal(Controls.Device.KEYBOARD)
 	await _press(KEY_DOWN)
@@ -242,7 +243,7 @@ func test_clicks_land_where_drawn() -> void:
 	_left_click(page, page.to_page(ControlsPage.tab_rect(1, true).get_center()))
 	assert_int(page.rules.device).is_equal(Controls.Device.CONTROLLER)
 	await _press(KEY_UP)
-	assert_int(page.offset).is_equal(198)
+	assert_int(page.offset).is_equal(201)
 	_left_click(page, page.to_page(ControlsPage.row_rect(8, true).get_center()))
 	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
 
