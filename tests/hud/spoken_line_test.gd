@@ -98,3 +98,12 @@ func test_refits_on_display_changed() -> void:
 	Display.use_prefs(DisplayPrefs.new())
 	assert_float(line.size.x).is_equal(296.0)
 	assert_float(line.size.y).is_equal(16.0)
+
+func test_refits_on_window_resize() -> void:
+	get_tree().root.size = Vector2i(640, 360)
+	var line := _band_line()
+	line.say("That should see me through the night.")
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+	assert_float(line.size.x).is_equal(208.0)
+	get_tree().root.size = Vector2i(320, 180)
+	assert_float(line.size.x).is_equal(156.0)

@@ -4,12 +4,21 @@ const K := Item.Kind
 
 var inv: Inventory
 var bar: ItemBar
+var _saved_size: Vector2i
+var _saved_mode: Window.ContentScaleMode
 
 func before_test() -> void:
+	_saved_size = get_tree().root.size
+	_saved_mode = get_tree().root.content_scale_mode
 	inv = Inventory.new()
 	bar = auto_free(ItemBar.new())
 	add_child(bar)
 	bar.bind(inv)
+
+func after_test() -> void:
+	get_tree().root.size = _saved_size
+	get_tree().root.content_scale_mode = _saved_mode
+	Display.use_prefs(DisplayPrefs.new())
 
 func test_eight_slots_centred_at_bottom() -> void:
 	assert_int(bar.slots.size()).is_equal(8)
@@ -53,16 +62,10 @@ func test_slots_stop_the_mouse() -> void:
 
 func test_name_plank_stays_on_screen_at_largest() -> void:
 	var root := get_tree().root
-	var saved_size := root.size
-	var saved_mode := root.content_scale_mode
 	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	root.size = Vector2i(640, 360)
 	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 	inv.add(K.SHELLFISH)
 	bar.slots[0].mouse_entered.emit()
-	var x := bar.position.x + bar.name_plank.position.x
-	root.size = saved_size
-	root.content_scale_mode = saved_mode
-	Display.use_prefs(DisplayPrefs.new())
-	assert_float(x).is_greater_equal(82.0)
+	assert_float(bar.position.x + bar.name_plank.position.x).is_greater_equal(82.0)
