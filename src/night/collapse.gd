@@ -56,7 +56,7 @@ func line_alpha() -> float:
 func fall_frame() -> int:
 	match phase:
 		Phase.FALLING:
-			return mini(int(phase_elapsed / FALL_SECONDS * WakeUp.FALL_FRAMES), WakeUp.FALL_FRAMES - 1)
+			return WakeUp.step_of(phase_elapsed, FALL_SECONDS)
 		Phase.FADING_OUT, Phase.BLACK, Phase.FADING_IN:
 			return WakeUp.FALL_FRAMES - 1
 		Phase.PUSHING_UP:

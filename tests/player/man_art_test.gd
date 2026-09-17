@@ -322,6 +322,11 @@ func test_the_fall_adds_no_colour() -> void:
 							"death row %d frame %d (%d, %d): %s is not a pack or body colour"
 							% [row, frame, x, y, c.to_html(false)]).is_false()
 						return
+	# What he falls dressed in is the pack's own palette; only his skin stays outside it.
+	for ramp: Array in [SHIRT, TROUSERS, HAIR]:
+		for hex: String in ramp:
+			assert_bool(PackPalette.has(Color(hex))).override_failure_message(
+				"%s is not a colour of the pack" % hex).is_true()
 
 func test_the_fall_s_left_is_its_right_mirrored() -> void:
 	var ours := _death()
