@@ -69,3 +69,37 @@ head in 68 of 72 frames, which is why the assertion that replaced it measures hi
 those hold in all 42 frames that show them.
 
 **Seen before.** None found.
+
+## Two mechanical edits did collateral damage the gate stayed green through
+
+**What happened.** Splitting one test into two, I rewrote the file as `s[:i] + new_content`, where
+`i` was the index of a comment partway down. Everything after that point went: two whole tests,
+`test_his_head_is_the_same_block_in_every_frame` and `test_left_is_right_mirrored`. The gate stayed
+**green** — the remaining tests all passed, and a suite with two fewer tests is not a failure. I
+caught it only because I compared the case count against what I expected: 52 where 54 was right.
+Restoring them with `sed -n '189,$p'` on the old file then did it again on a smaller scale: line 189
+fell inside a doc comment rather than above it, so three of its four lines were dropped, leaving a
+dangling `## say - would move them...` above the restored test. The gate stayed green through that
+too, since a comment cannot fail. The review's delta round caught it; I had asserted in the commit
+message that the restore was intact, having checked the case count and diffed the function bodies —
+neither of which can see a comment.
+
+**Why.** Established. Both edits were index- or line-number-based slices of a file (`s[:i]`,
+`sed -n '189,$p'`) rather than replacements of a matched, self-delimiting region. A slice boundary
+carries no information about whether it falls on a structural edge, and in both cases it did not. The
+gate cannot compensate: a deleted test and a deleted comment are both invisible to a test suite,
+which is precisely the class of damage that reaches main.
+
+**Cost.** About 15 minutes and one extra review round and CI cycle (~6 min). No hand-back. Nothing
+reached main — the case-count check caught the first, the reviewer caught the second.
+
+**Prevent by.** Editing GDScript by matched replacement of a whole region, never by line index or
+string offset: `s.replace(old_block, new_block)` with the old block quoted in full, which fails loudly
+when it does not match instead of silently taking the wrong span. Where a slice is genuinely needed,
+diff the result against the previous commit for that file before committing —
+`git diff <last reviewed sha> -- <file>` would have shown both losses in one line of output, and is
+now the check I would put in `skills/implement-bead` beside the gate: **the gate proves what still
+passes, the diff proves what is still there.** A case-count expectation is a weaker version of the
+same idea and did catch the larger loss.
+
+**Seen before.** None found.
