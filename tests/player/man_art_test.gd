@@ -261,3 +261,100 @@ func test_the_fall_is_the_pack_s_frames() -> void:
 							"death row %d frame %d (%d, %d): alpha %.2f, pack has %.2f"
 							% [row, frame, x, y, mine.a, theirs.a]).is_equal(theirs.a)
 						return
+
+## What each frame of the fall must wear. Lower than WORN above, and hair-led: lying down he is
+## mostly head and legs, and in Down frames 6-7 his torso is behind his own head.
+const FALL_WORN := {"hair": 16, "trousers": 10}
+const FALL_DRESSED := 30                # hair + shirt + trousers together, whichever way he lies
+
+func test_he_falls_dressed() -> void:
+	var ours := _death()
+	if ours == null:
+		return
+	for row: int in ROWS:
+		for frame in DEATH_FRAMES:
+			for worn: String in FALL_WORN:
+				var n := _tally(ours, row, frame, RAMPS[worn])
+				assert_int(n).override_failure_message(
+					"death row %d frame %d: %d %s pixels, wanted at least %d"
+					% [row, frame, n, worn, FALL_WORN[worn]]).is_greater_equal(FALL_WORN[worn])
+			var all := _tally(ours, row, frame, SHIRT + TROUSERS + HAIR)
+			assert_int(all).override_failure_message(
+				"death row %d frame %d: %d dressed pixels, wanted at least %d"
+				% [row, frame, all, FALL_DRESSED]).is_greater_equal(FALL_DRESSED)
+
+func test_the_fall_keeps_the_pack_s_shape() -> void:
+	var ours := _death()
+	if ours == null:
+		return
+	for row: int in ROWS:
+		var pack := _pack("Death", ROWS[row])
+		for frame in DEATH_FRAMES:
+			for y in 64:
+				for x in 64:
+					var mine := ours.get_pixel(frame * 64 + x, row * 64 + y).to_html(false)
+					var theirs := _source(pack, row, frame, x, y).to_html(false)
+					# The outline and his eyes are the pack's drawing, and stay where it put them.
+					if theirs == OUTLINE or EYES.has(theirs):
+						assert_str(mine).override_failure_message(
+							"death row %d frame %d (%d, %d): %s over the pack's %s"
+							% [row, frame, x, y, mine, theirs]).is_equal(theirs)
+						if mine != theirs:
+							return
+					elif mine == OUTLINE or EYES.has(mine):
+						assert_str(mine).override_failure_message(
+							"death row %d frame %d (%d, %d): %s where the pack has %s"
+							% [row, frame, x, y, mine, theirs]).is_equal(theirs)
+						return
+
+func test_the_fall_adds_no_colour() -> void:
+	var ours := _death()
+	if ours == null:
+		return
+	var allowed := [OUTLINE] + SKIN + EYES + SHIRT + TROUSERS + HAIR
+	for row: int in ROWS:
+		for frame in DEATH_FRAMES:
+			for y in 64:
+				for x in 64:
+					var c := ours.get_pixel(frame * 64 + x, row * 64 + y)
+					if c.a == 1.0 and not allowed.has(c.to_html(false)):
+						assert_bool(true).override_failure_message(
+							"death row %d frame %d (%d, %d): %s is not a pack or body colour"
+							% [row, frame, x, y, c.to_html(false)]).is_false()
+						return
+
+func test_the_fall_s_left_is_its_right_mirrored() -> void:
+	var ours := _death()
+	if ours == null:
+		return
+	for frame in DEATH_FRAMES:
+		for y in 64:
+			for x in 64:
+				var left := ours.get_pixel(frame * 64 + x, 2 * 64 + y)
+				var right := ours.get_pixel(frame * 64 + 63 - x, 3 * 64 + y)
+				if left != right:
+					assert_str(left.to_html()).override_failure_message(
+						"death frame %d (%d, %d): left %s, right mirrored %s"
+						% [frame, x, y, left.to_html(), right.to_html()]).is_equal(right.to_html())
+					return
+
+## Frames 0-2 are still the standing figure, so his feet are bare there as they are everywhere else.
+## From frame 3 he is off his feet and the rule stops meaning anything.
+func test_his_feet_are_bare_while_he_still_stands() -> void:
+	var ours := _death()
+	if ours == null:
+		return
+	for row: int in ROWS:
+		for frame in 3:
+			var extent := _extent(ours, row, frame)
+			for y in [extent.y - 1, extent.y]:
+				for x in 64:
+					var c := ours.get_pixel(frame * 64 + x, row * 64 + y)
+					if c.a == 1.0 and TROUSERS.has(c.to_html(false)):
+						assert_bool(true).override_failure_message(
+							"death row %d frame %d: trousers on his foot at (%d, %d)"
+							% [row, frame, x, y]).is_false()
+						return
+			var feet := _tally(ours, row, frame, SKIN, extent.y - 1, extent.y)
+			assert_int(feet).override_failure_message(
+				"death row %d frame %d: no bare skin in his bottom two rows" % [row, frame]).is_greater(0)

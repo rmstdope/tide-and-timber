@@ -24,6 +24,60 @@ const SOURCE_FACING := {DOWN: "Down", UP: "Up", RIGHT: "Side"}
 ## dresses a standing figure by head and body zone - says nothing useful about him.
 const DEATH_FRAMES := 8
 
+## The clothing rectangles of Death_<facing>-Sheet.png: one list per source facing, one entry per
+## frame in the pack's own order, each [rect, ramp] in that frame's own 64x64 coordinates. Unlike
+## BANDS these are per frame and not anchored - from frame 3 he leaves the upright body box, and by
+## frames 6-7 he is on the ground, where nothing about him is a translation of the standing figure.
+## A band a frame does not show is simply absent: his stubble once his face turns away, his shirt
+## while he lies on it. No torn hem here - from frame 3 on no row is the hem of anything.
+const DEATH_BANDS := {
+	"Down": [
+		# Frames 0-2: still the standing figure, one row lower each frame.
+		[[Rect2i(26, 18, 12, 7), HAIR], [Rect2i(26, 29, 12, 2), STUBBLE],
+			[Rect2i(28, 32, 8, 7), SHIRT], [Rect2i(28, 39, 9, 7), TROUSERS]],
+		[[Rect2i(26, 17, 12, 7), HAIR], [Rect2i(26, 28, 12, 2), STUBBLE],
+			[Rect2i(28, 31, 8, 7), SHIRT], [Rect2i(28, 38, 9, 7), TROUSERS]],
+		[[Rect2i(26, 16, 12, 7), HAIR], [Rect2i(26, 27, 12, 2), STUBBLE],
+			[Rect2i(28, 30, 8, 7), SHIRT], [Rect2i(28, 37, 9, 7), TROUSERS]],
+		# Frames 3-5: buckling. His face is down, so no stubble; hair is the head above his brows.
+		[[Rect2i(26, 26, 12, 7), HAIR], [Rect2i(28, 39, 9, 4), SHIRT], [Rect2i(28, 43, 8, 3), TROUSERS]],
+		[[Rect2i(26, 24, 12, 7), HAIR], [Rect2i(28, 38, 9, 4), SHIRT], [Rect2i(28, 42, 8, 4), TROUSERS]],
+		[[Rect2i(26, 29, 12, 5), HAIR], [Rect2i(28, 36, 8, 6), SHIRT], [Rect2i(28, 42, 8, 5), TROUSERS]],
+		# Frames 6-7: on his back, head nearest the camera, feet at the top of the frame. His torso is
+		# behind his own head, so frame 6 shows no shirt; in frame 7 his head is turned away, and all
+		# of it is hair, as the Up-facing frames paint the back of his head.
+		[[Rect2i(28, 47, 9, 3), HAIR], [Rect2i(29, 42, 8, 5), TROUSERS]],
+		[[Rect2i(26, 51, 12, 13), HAIR], [Rect2i(28, 49, 8, 2), SHIRT], [Rect2i(29, 44, 8, 5), TROUSERS]],
+	],
+	"Up": [
+		# The back of his head throughout, so the whole head is hair and there is never any stubble.
+		[[Rect2i(26, 18, 12, 13), HAIR], [Rect2i(28, 32, 8, 7), SHIRT], [Rect2i(28, 39, 9, 7), TROUSERS]],
+		[[Rect2i(26, 17, 12, 13), HAIR], [Rect2i(28, 31, 8, 7), SHIRT], [Rect2i(28, 38, 9, 7), TROUSERS]],
+		[[Rect2i(26, 16, 12, 13), HAIR], [Rect2i(28, 30, 8, 7), SHIRT], [Rect2i(28, 37, 9, 7), TROUSERS]],
+		[[Rect2i(26, 25, 12, 13), HAIR], [Rect2i(28, 39, 8, 4), SHIRT], [Rect2i(28, 43, 8, 5), TROUSERS]],
+		[[Rect2i(26, 23, 12, 13), HAIR], [Rect2i(28, 37, 8, 4), SHIRT], [Rect2i(28, 41, 8, 5), TROUSERS]],
+		[[Rect2i(26, 20, 12, 13), HAIR], [Rect2i(28, 34, 8, 4), SHIRT], [Rect2i(28, 38, 8, 6), TROUSERS]],
+		[[Rect2i(26, 19, 12, 13), HAIR], [Rect2i(28, 32, 8, 4), SHIRT], [Rect2i(28, 36, 8, 6), TROUSERS]],
+		[[Rect2i(26, 18, 12, 13), HAIR], [Rect2i(28, 31, 8, 4), SHIRT], [Rect2i(28, 35, 8, 6), TROUSERS]],
+	],
+	"Side": [
+		# Frames 0-2: standing, stepping back 2 then 6 columns; his legs stay where they stand.
+		[[Rect2i(25, 18, 13, 8), HAIR], [Rect2i(29, 27, 9, 4), STUBBLE],
+			[Rect2i(28, 32, 8, 7), SHIRT], [Rect2i(28, 39, 9, 7), TROUSERS]],
+		[[Rect2i(23, 18, 13, 8), HAIR], [Rect2i(27, 27, 9, 4), STUBBLE],
+			[Rect2i(26, 32, 8, 7), SHIRT], [Rect2i(28, 39, 8, 7), TROUSERS]],
+		[[Rect2i(19, 18, 13, 8), HAIR], [Rect2i(23, 27, 9, 4), STUBBLE],
+			[Rect2i(22, 32, 8, 7), SHIRT], [Rect2i(27, 39, 8, 7), TROUSERS]],
+		[[Rect2i(31, 29, 11, 8), HAIR], [Rect2i(33, 39, 9, 5), SHIRT], [Rect2i(29, 43, 7, 5), TROUSERS]],
+		[[Rect2i(31, 25, 11, 8), HAIR], [Rect2i(33, 35, 9, 5), SHIRT], [Rect2i(29, 41, 7, 6), TROUSERS]],
+		[[Rect2i(35, 27, 12, 8), HAIR], [Rect2i(34, 37, 8, 5), SHIRT], [Rect2i(28, 40, 8, 6), TROUSERS]],
+		# Frames 6-7: he lies with his head to the right and his feet to the left, so the trousers are
+		# the long low bar and the shirt is the narrow shoulder beside his head.
+		[[Rect2i(42, 37, 11, 7), HAIR], [Rect2i(38, 44, 4, 5), SHIRT], [Rect2i(31, 45, 7, 4), TROUSERS]],
+		[[Rect2i(42, 36, 11, 7), HAIR], [Rect2i(38, 43, 4, 5), SHIRT], [Rect2i(31, 44, 7, 4), TROUSERS]],
+	],
+}
+
 ## The pack's own four body tones, light to dark. Never written out: his skin stays the pack's.
 const SKIN: Array[String] = ["fac895", "d9a066", "a26543", "763d2b"]
 ## What he is dressed in, each light to dark against SKIN. Every one is a colour PackPalette already
@@ -86,8 +140,9 @@ func _death_sheet() -> Image:
 		var facing: String = SOURCE_FACING[row]
 		var source := _pack("Death", facing)
 		for frame in DEATH_FRAMES:
-			sheet.blit_rect(source, Rect2i(FRAME * frame, 0, FRAME, FRAME),
-				Vector2i(FRAME * frame, FRAME * row))
+			var at := Vector2i(FRAME * frame, FRAME * row)
+			sheet.blit_rect(source, Rect2i(FRAME * frame, 0, FRAME, FRAME), at)
+			_dress_frame(sheet, at, DEATH_BANDS[facing][frame])
 	for frame in DEATH_FRAMES:
 		sheet.blit_rect(_mirrored(sheet, frame, RIGHT), Rect2i(0, 0, FRAME, FRAME),
 			Vector2i(FRAME * frame, FRAME * LEFT))
@@ -137,6 +192,18 @@ func _dress(sheet: Image, at: Vector2i, bands: Array) -> void:
 			for x in range(rect.position.x, rect.end.x):
 				if band[3] and y == last and (x - rect.position.x) % 2 != 0:
 					continue
+				var step := SKIN.find(sheet.get_pixel(at.x + x, at.y + y).to_html(false))
+				if step >= 0:
+					sheet.set_pixel(at.x + x, at.y + y, Color(ramp[step]))
+
+## Paints one 64x64 frame at `at` from a per-frame [rect, ramp] list: exactly _dress's rule - a pack
+## skin tone inside a rect becomes the same step of that ramp - with no zone, no anchor and no hem.
+func _dress_frame(sheet: Image, at: Vector2i, bands: Array) -> void:
+	for band: Array in bands:
+		var rect: Rect2i = band[0]
+		var ramp: Array[String] = band[1]
+		for y in range(maxi(rect.position.y, 0), mini(rect.end.y, FRAME)):
+			for x in range(maxi(rect.position.x, 0), mini(rect.end.x, FRAME)):
 				var step := SKIN.find(sheet.get_pixel(at.x + x, at.y + y).to_html(false))
 				if step >= 0:
 					sheet.set_pixel(at.x + x, at.y + y, Color(ramp[step]))
