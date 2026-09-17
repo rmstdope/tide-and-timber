@@ -126,3 +126,10 @@ func test_enough_driftwood_for_camp() -> void:
 		# The first five are the original pieces; DRIFTWOOD[2] stands by spawn on purpose.
 		if i >= 5:
 			assert_bool(cell.x >= 83 and cell.x <= 103).override_failure_message("%s near the camp" % cell).is_false()
+
+func test_vegetation_stands_on_jungle() -> void:
+	var seen := {}
+	for cell: Vector2i in BeachLayout.BUSHES + BeachLayout.TUFTS:
+		assert_int(BeachLayout.kind_at(cell)).override_failure_message("%s" % cell).is_equal(BeachLayout.Kind.JUNGLE)
+		assert_bool(seen.has(cell)).override_failure_message("%s twice" % cell).is_false()
+		seen[cell] = true

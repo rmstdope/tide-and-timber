@@ -7,8 +7,8 @@ const FIRST_COLUMN := 16                # the walkable beach's columns, so it ne
 const LAST_COLUMN := 167
 const PERIOD_SECONDS := 4.0
 const REACH := 10                       # px up the wet sand at the top of a wave
-const WATER := Color("#bfe9ef")         # the FOAM tile's base colour
-const EDGE := Color("#ffffff")
+const WATER := Color("#7baadb")         # the FOAM tile's surf colour
+const EDGE := Color("#a3c8ee")
 
 var elapsed := 0.0
 
