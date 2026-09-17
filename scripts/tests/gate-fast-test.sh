@@ -29,8 +29,13 @@ done
 if [ -n "${FAKE_OVERRIDE_SNAPSHOT:-}" ] && [ -n "$proj" ] && [ -f "$proj/override.cfg" ]; then
   cat "$proj/override.cfg" >> "$FAKE_OVERRIDE_SNAPSHOT"
 fi
+if [ -n "${FAKE_LOCK_SNAPSHOT:-}" ] && [ -n "$proj" ]; then
+  ls -a "$proj/gate-fast.gate.lock" >> "$FAKE_LOCK_SNAPSHOT" 2>/dev/null
+fi
 case "$*" in
-  *--import*) exit "${FAKE_IMPORT_EXIT:-0}" ;;
+  *--import*)
+    if [ -n "${FAKE_IMPORT_SLEEP:-}" ]; then sleep "$FAKE_IMPORT_SLEEP"; fi
+    exit "${FAKE_IMPORT_EXIT:-0}" ;;
   *GdUnitCmdTool.gd*)
     if [ -n "${FAKE_SUITE_KILL:-}" ]; then kill -TERM "$PPID"; exit 143; fi
     exit "${FAKE_SUITE_EXIT:-0}" ;;
@@ -281,6 +286,16 @@ test_lock_dir_with_no_pid_file_is_reclaimed() {
   rm -rf "$S"
 }
 
+test_the_lock_dir_is_hidden_from_godots_importer() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  FAKE_LOCK_SNAPSHOT="$S/locksnap" run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif ! grep -qF '.gdignore' "$S/locksnap" 2>/dev/null; then
+    fail "$name" "no .gdignore in the lock while godot ran: $(cat "$S/locksnap" 2>/dev/null)"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
 test_missing_godot_exits_1
 test_default_godot_comes_from_path
 test_arguments_exit_2
@@ -301,4 +316,5 @@ test_lock_is_released_after_a_suite_failure
 test_lock_is_released_when_the_run_is_signalled
 test_stale_lock_from_a_dead_holder_is_reclaimed
 test_lock_dir_with_no_pid_file_is_reclaimed
+test_the_lock_dir_is_hidden_from_godots_importer
 exit "$failed"
