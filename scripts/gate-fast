@@ -18,6 +18,25 @@ if ! command -v "$godot" >/dev/null; then
   exit 1
 fi
 
+slug="$(printf '%s' "$(basename "$repo")" | tr -c 'A-Za-z0-9._-' '_')-$(printf '%s' "$repo" | shasum | cut -c1-8)"
+
+if [ -e "$repo/override.cfg" ] && { [ ! -f "$repo/override.cfg" ] || [ "$(head -n 1 "$repo/override.cfg")" != "; temporary: written by scripts/gate-fast, removed when it exits" ]; }; then
+  say "override.cfg already exists in $repo and was not written by gate-fast; move it aside and rerun"
+  exit 1
+fi
+
+cat > "$repo/override.cfg" <<EOF
+; temporary: written by scripts/gate-fast, removed when it exits
+
+[application]
+
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Tide and Timber/gate/$slug"
+EOF
+trap 'rm -f "$repo/override.cfg"' EXIT INT TERM
+
+say "user data dir Tide and Timber/gate/$slug"
+
 say "importing"
 if "$godot" --headless --path "$repo" --import; then :; else
   n=$?
