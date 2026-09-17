@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Waiting box — A</title><script src="common.js"></script><script src="wait.js"></script></head><body><script>
+const RULE='cap';
+const N='Walk right', PK='Press a new key', PB='Press a new button';
+const combos=[[1,1,'Normal UI, Normal text'],[2,1,'Largest UI, Normal text'],[1.5,1.5,'Large UI, Large text'],[2,1.5,'Largest UI, Large text'],[1.5,2,'Large UI, Largest text'],[2,2,'Largest UI, Largest text']];
+page('Option A — the words stop growing where the box stops fitting','Everything in the box stays: the action, the asking line, and Hold + picture + to cancel with its ring. The words grow with Text size only as far as the whole box still fits the screen; past that they are held at the largest size that fits. Nothing is ever cut off, hidden or dropped.',
+ combos.map(c=>fig(c[2],cap(c[0],c[1],RULE,N,PK),waitScreen(c[0],c[1],RULE,N,PK,'Esc')))
+ .concat([fig('Controller, Largest UI, Largest text',cap(2,2,RULE,N,PB),waitScreen(2,2,RULE,N,PB,'B'))]),
+ 'Recommended: it is the one answer where the player always sees every word and the way out, whatever they picked, and the box behaves the same every time. Cost: a player on the biggest sizes sees smaller words in this one box than everywhere else in the game.');
+</script></body></html>

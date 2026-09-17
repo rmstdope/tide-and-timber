@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Waiting box — saying so</title><script src="common.js"></script><script src="wait.js"></script></head><body><script>
+const N='Walk right', PK='Press a new key';
+var NOTE='';
+const figs=[];
+[[2,2,'Largest UI, Largest text'],[2,1.5,'Largest UI, Large text']].forEach(c=>{
+ NOTE='';  figs.push(fig(c[2]+' — says nothing',cap(c[0],c[1],'cap',N,PK),waitScreen(c[0],c[1],'cap',N,PK,'Esc')));
+ NOTE='Made smaller to fit.'; figs.push(fig(c[2]+' — with a quiet line',cap(c[0],c[1],'cap',N,PK),waitScreen(c[0],c[1],'cap',N,PK,'Esc')));
+ NOTE='';
+});
+page('Does the box say why its words are smaller?','The words in this one box are held back so everything fits. On the left it says nothing; on the right a quieter line under the box explains it — which is itself more to fit, so the rest is held back further still.',figs,
+'Recommended: say nothing. The line is one more thing to read in a moment the player is halfway through, it costs the very room it is explaining, and nothing is missing or broken — the words are simply smaller.');
+</script></body></html>

@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Waiting box — B</title><script src="common.js"></script><script src="wait.js"></script></head><body><script>
+const RULE='shed';
+const N='Walk right', PK='Press a new key', PB='Press a new button';
+const combos=[[1,1,'Normal UI, Normal text'],[2,1,'Largest UI, Normal text'],[1.5,1.5,'Large UI, Large text'],[2,1.5,'Largest UI, Large text'],[1.5,2,'Large UI, Largest text'],[2,2,'Largest UI, Largest text']];
+page('Option B — the cancel line loses its words, then the rest stops growing','Once the box no longer fits, Hold and to cancel go and the line becomes just the picture with its filling ring. The action and the asking line keep growing longer than in A. If even that is not enough, they stop growing as in A.',
+ combos.map(c=>fig(c[2],cap(c[0],c[1],RULE,N,PK),waitScreen(c[0],c[1],RULE,N,PK,'Esc')))
+ .concat([fig('Controller, Largest UI, Largest text',cap(2,2,RULE,N,PB),waitScreen(2,2,RULE,N,PB,'B'))]),
+ 'Cost: at the biggest sizes the only thing telling the player how to get out is a picture of a key with a ring around it, and there are no words to say it must be held.');
+</script></body></html>
