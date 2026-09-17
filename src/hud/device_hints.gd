@@ -2,7 +2,7 @@ class_name DeviceHints
 extends RefCounted
 ## What each hint says on each device: pictures and words, no drawing.
 
-enum Hint { MOVE, USE, BUILD_LIST, PLACING, SELECT, SELECT_BACK }
+enum Hint { MOVE, USE, BUILD_LIST, PLACING, SELECT, SELECT_BACK, CONTROLS_PAGE }
 enum Slot { MOVE, BOTTOM, RIGHT, SELECT, BACK }   # SELECT, BACK: the menu's fixed buttons
 enum Shape { KEY, ROUND, STICK, SHOULDER }   # SHOULDER: also every pad picture of more than one glyph
 
@@ -175,7 +175,20 @@ static func line(hint: Hint, kind: DeviceTracker.Kind, verb: String = "", contro
 			if hint == Hint.SELECT_BACK:
 				items.append_array(pictures(kind, Slot.BACK, controls))
 				items.append("Back")
+		Hint.CONTROLS_PAGE:
+			items.append_array(controls_page_items(kind))
 	return items
+
+## The Controls page's strip: Tab, Change, Clear, Back, in the pictures of `kind`.
+static func controls_page_items(kind: DeviceTracker.Kind) -> Array:
+	if kind == DeviceTracker.Kind.KEYBOARD:
+		return [_cap("Q"), _cap("E"), "Tab", _cap("Enter"), "Change", _cap("Del"), "Clear", _cap("Esc"), "Back"]
+	return [picture_for(_pad_button(JOY_BUTTON_LEFT_SHOULDER), kind), picture_for(_pad_button(JOY_BUTTON_RIGHT_SHOULDER), kind),
+		"Tab", picture_for(_pad_button(JOY_BUTTON_A), kind), "Change", picture_for(_pad_button(JOY_BUTTON_X), kind), "Clear",
+		picture_for(_pad_button(JOY_BUTTON_B), kind), "Back"]
+
+static func _cap(label: String) -> Picture:
+	return Picture.new(Shape.KEY, label, CAP_FACE, CAP_INK)
 
 ## The line in the agreed notation: [label] for KEY, (label) otherwise; a word after a picture gets
 ## one space before it, a picture after a word gets three.

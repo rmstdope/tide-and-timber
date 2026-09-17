@@ -202,3 +202,16 @@ func test_select_ignores_a_rebound_use() -> void:
 	e.physical_keycode = KEY_F
 	c.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, e)
 	assert_str(DeviceHints.as_text(DeviceHints.line(H.SELECT, K.KEYBOARD, "", c))).is_equal("[Enter] Select")
+
+# --- the Controls page (tr-eg9.5.3)
+
+func test_controls_page_strip() -> void:
+	assert_str(_text(H.CONTROLS_PAGE, K.KEYBOARD)).is_equal("[Q][E] Tab   [Enter] Change   [Del] Clear   [Esc] Back")
+	assert_str(_text(H.CONTROLS_PAGE, K.XBOX)).is_equal("(LB)(RB) Tab   (A) Change   (X) Clear   (B) Back")
+	assert_str(_text(H.CONTROLS_PAGE, K.PLAYSTATION)).is_equal("(L1)(R1) Tab   (✕) Change   (□) Clear   (○) Back")
+	assert_str(_text(H.CONTROLS_PAGE, K.NINTENDO)).is_equal("(L)(R) Tab   (B) Change   (Y) Clear   (A) Back")
+
+func test_controls_page_strip_fits() -> void:
+	var font: Font = load("res://assets/fonts/PressStart2P-Regular.ttf")
+	var w := HintLine.width(DeviceHints.line(H.CONTROLS_PAGE, K.KEYBOARD), font)
+	assert_float(w + 8 + MenuStrip.LEFT).is_less_equal(316.0)
