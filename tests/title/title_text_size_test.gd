@@ -87,6 +87,9 @@ func test_normal_text_menu_as_before() -> void:
 	assert_vector(_node("NewGame").size).is_equal(Vector2(90, 18))
 	assert_vector(_node("Continue").size).is_equal(Vector2(90, 21))
 	assert_vector(_node("Menu").position).is_equal(Vector2(0, 83))
+	# The constant menu_top_at grows the menu about must be the scene's own Normal height.
+	assert_float(_node("Menu").get_combined_minimum_size().y) \
+		.is_equal(TitleScreen.MENU_HEIGHT_WITH_SAVE)
 
 func test_large_text_widens_and_heightens_every_plank() -> void:
 	Display.prefs.step(S.TEXT_SIZE, 1)
@@ -112,12 +115,19 @@ func test_largest_text_wraps_the_reason_line() -> void:
 	assert_vector(_node("Continue").size).is_equal(Vector2(132, 26))
 	assert_bool(Rect2(0, 0, 320, 180).encloses(_node("Menu").get_global_rect())).is_true()
 
+func test_the_normal_height_constants_match_the_scene() -> void:
+	_broken()
+	await _settle()
+	assert_float(_node("Menu").get_combined_minimum_size().y).is_equal(TitleScreen.MENU_HEIGHT_DIMMED)
+
 func test_largest_ui_and_text_scroll_and_stay_on_screen() -> void:
 	Display.prefs.step(S.UI_SIZE, 2)
 	Display.prefs.step(S.TEXT_SIZE, 2)
 	_saved()
 	await _settle()
 	assert_bool(screen.menu_scrolls).is_true()
+	assert_bool(_node("MenuClip").get_global_rect().encloses(_node("Continue").get_global_rect())) \
+		.is_true()
 	for name: String in ["Continue", "NewGame", "Settings", "Quit"]:
 		var r := _node(name).get_global_rect()
 		assert_float(r.position.x).is_greater_equal(0.0)

@@ -12,12 +12,14 @@ signal skip_story_chosen    # after SKIP_STORY unpauses the tree
 const TITLE_SCENE := "res://src/title/title_screen.tscn"
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
+# The board at Text size Normal. lay_out() measures the words instead of reading these, so they are
+# the reference the suites check that Normal still draws, not values the layout uses.
 const BOARD_X := 88.0
 const BOARD_W := 144.0
 const BOARD_H_THREE := 96.0          # plus PLANK_STEP per extra plank
 const PLANK_X := 12.0                # inside the board
 const PLANK_TOP := 28.0              # first plank's top inside the board
-const PLANK_STEP := 20.0
+const PLANK_STEP := 20.0             # the Normal step; lay_out() uses plank_h + PLANK_GAP
 const PLANK_SIZE := Vector2(120, 16)
 const BASE_HEIGHT := 180.0
 const HEADING_TOP := 8.0        # panel top to the heading's top; the scrolled content starts here
@@ -319,10 +321,12 @@ func lay_out(retry: bool = true) -> void:
 		_frame.call_deferred(false)
 
 func _frame(retry: bool = true) -> void:
-	lay_out(retry)
+	if is_queued_for_deletion():
+		return   # a deferred retry that arrived as the board was going away
 	if not is_inside_tree() or strip == null:
-		frame(0.0, BASE_HEIGHT)
+		frame(0.0, BASE_HEIGHT)   # lay_out needs the tree; leave the rects as they are
 		return
+	lay_out(retry)
 	var b := ScrollWindow.band((%Board as Control).get_global_transform_with_canvas(), strip.screen_top())
 	frame(b.x, b.y)
 
