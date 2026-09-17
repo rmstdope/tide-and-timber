@@ -13,8 +13,6 @@ const EXPECTED := {
 	"rendering/renderer/rendering_method": "gl_compatibility",
 	"application/run/main_scene": "res://src/title/title_screen.tscn",
 	"application/config/version": "0.1",
-	"application/config/use_custom_user_dir": true,
-	"application/config/custom_user_dir_name": "Tide and Timber",
 	"application/boot_splash/show_image": false,
 	"gui/theme/custom_font": "res://assets/fonts/PressStart2P-Regular.ttf",
 }
@@ -32,6 +30,14 @@ func test_project_settings_match_the_pixel_art_setup() -> void:
 		assert_that([typeof(actual), actual]) \
 			.override_failure_message("%s: expected %s, got %s" % [key, expected, actual]) \
 			.is_equal([typeof(expected), expected])
+
+# Read from project.godot rather than ProjectSettings: scripts/gate-fast points a gate run at a
+# user:// directory of its own through an override.cfg, so the live setting is not what ships.
+# What a player's copy uses is what the tracked file says.
+func test_the_shipped_user_dir_is_the_players_own() -> void:
+	var text := FileAccess.get_file_as_string("res://project.godot")
+	assert_str(text).contains("config/use_custom_user_dir=true")
+	assert_str(text).contains("config/custom_user_dir_name=\"Tide and Timber\"")
 
 func test_main_scene_is_the_title_screen() -> void:
 	var path: String = ProjectSettings.get_setting("application/run/main_scene", "")

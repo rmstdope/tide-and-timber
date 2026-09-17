@@ -19,5 +19,8 @@
 # Release exports, written by scripts/gate-full
 /build/
 
+# Written by scripts/gate-fast while it runs, and removed when it exits.
+/override.cfg
+
 # MacOS
 .DS_Store
