@@ -2,10 +2,10 @@ class_name TitleMenu
 extends RefCounted
 ## The title menu's rules, with no nodes: which planks, the one highlight, the two boxes, and what a pick leads to.
 
-enum Choice { NEW_GAME, QUIT, CONTINUE }            # CONTINUE appended so existing values keep their numbers
+enum Choice { NEW_GAME, QUIT, CONTINUE, SETTINGS }  # appended so existing values keep their numbers
 enum Box { NONE, START_OVER, REPLACE }             # REPLACE: New Game over a save that cannot be read
 enum BoxButton { KEEP_MY_ISLAND, START_OVER, CANCEL }
-enum Action { NONE, QUIT, NEW_GAME, CONTINUE }      # what the view must do after a pick or press
+enum Action { NONE, QUIT, NEW_GAME, CONTINUE, OPEN_SETTINGS }  # what the view must do after a pick or press
 
 var choices: Array[Choice] = []                     # top to bottom
 var highlighted: Choice = Choice.NEW_GAME           # the one highlighted plank
@@ -14,6 +14,7 @@ var box: Box = Box.NONE
 var box_selected: BoxButton = BoxButton.KEEP_MY_ISLAND
 var save_exists := false
 var save_opens := false                             # the save loads and the beach accepts it
+var settings_open := false                          # the Settings board is over the menu
 var continue_dimmed := false                        # a save exists but cannot be read: Continue drawn, never selectable
 
 func _init(has_save := false, opens := false) -> void:
@@ -21,13 +22,13 @@ func _init(has_save := false, opens := false) -> void:
 	save_opens = has_save and opens
 	continue_dimmed = has_save and not opens
 	if has_save:
-		choices = [Choice.CONTINUE, Choice.NEW_GAME, Choice.QUIT]
+		choices = [Choice.CONTINUE, Choice.NEW_GAME, Choice.SETTINGS, Choice.QUIT]
 		highlighted = Choice.NEW_GAME if continue_dimmed else Choice.CONTINUE
 	else:
-		choices = [Choice.NEW_GAME, Choice.QUIT]
+		choices = [Choice.NEW_GAME, Choice.SETTINGS, Choice.QUIT]
 
 func move(step: int) -> void:
-	if locked or box != Box.NONE:
+	if locked or box != Box.NONE or settings_open:
 		return
 	var s := selectable()
 	highlighted = s[posmod(s.find(highlighted) + step, s.size())]
@@ -40,15 +41,18 @@ func selectable() -> Array[Choice]:
 	return s
 
 func hover(choice: Choice) -> void:
-	if locked or box != Box.NONE or not choice in selectable():
+	if locked or box != Box.NONE or settings_open or not choice in selectable():
 		return
 	highlighted = choice
 
 func pick(choice: Choice) -> Action:
-	if locked or box != Box.NONE or not choice in selectable():
+	if locked or box != Box.NONE or settings_open or not choice in selectable():
 		return Action.NONE
 	highlighted = choice
 	match choice:
+		Choice.SETTINGS:
+			settings_open = true
+			return Action.OPEN_SETTINGS
 		Choice.QUIT:
 			return Action.QUIT
 		Choice.NEW_GAME:
@@ -62,6 +66,13 @@ func pick(choice: Choice) -> Action:
 			return Action.NEW_GAME
 	locked = true   # CONTINUE is selectable only when the save opens
 	return Action.CONTINUE
+
+## Back from the Settings board: the menu takes input again, SETTINGS highlighted. Ignored unless settings_open.
+func close_settings() -> void:
+	if not settings_open:
+		return
+	settings_open = false
+	highlighted = Choice.SETTINGS
 
 func select_box(button: BoxButton) -> void:
 	if _in_box(button):

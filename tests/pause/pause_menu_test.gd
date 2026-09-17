@@ -149,3 +149,42 @@ func test_quit_locks_everything() -> void:
 func test_quit_warning_words() -> void:
 	assert_str(PauseMenu.quit_warning(true)).is_equal("Anything since this morning will be lost.")
 	assert_str(PauseMenu.quit_warning(false)).is_equal("Nothing has been saved yet.")
+
+func test_settings_blocks_the_board_until_closed() -> void:
+	m.open()
+	assert_int(m.pick(I.SETTINGS)).is_equal(O.OPEN_SETTINGS)
+	assert_bool(m.settings_open).is_true()
+	m.move(1)
+	assert_int(m.back()).is_equal(O.NONE)
+	assert_int(m.pick(I.RESUME)).is_equal(O.NONE)
+	assert_bool(m.is_open).is_true()
+	assert_int(m.highlighted).is_equal(I.SETTINGS)
+
+func test_close_settings_returns_on_settings() -> void:
+	m.open()
+	m.pick(I.SETTINGS)
+	m.close_settings()
+	assert_bool(m.settings_open).is_false()
+	assert_bool(m.is_open).is_true()
+	assert_int(m.highlighted).is_equal(I.SETTINGS)
+	m.move(1)
+	assert_int(m.highlighted).is_equal(I.QUIT_TO_TITLE)
+
+func test_resume_from_settings_closes_both() -> void:
+	m.open()
+	m.pick(I.SETTINGS)
+	assert_int(m.resume_from_settings()).is_equal(O.RESUMED)
+	assert_bool(m.is_open).is_false()
+	assert_bool(m.settings_open).is_false()
+
+func test_resume_from_settings_without_settings_does_nothing() -> void:
+	m.open()
+	assert_int(m.resume_from_settings()).is_equal(O.NONE)
+	assert_bool(m.is_open).is_true()
+
+func test_reopening_clears_settings() -> void:
+	m.open()
+	m.pick(I.SETTINGS)
+	m.resume_from_settings()
+	m.open()
+	assert_bool(m.settings_open).is_false()
