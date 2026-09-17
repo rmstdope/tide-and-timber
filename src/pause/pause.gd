@@ -278,7 +278,7 @@ func _item_extent(item: PauseMenu.Plank) -> Vector2:
 ## Sizes the heading and planks for Text size and sets rest_panel. Every plank takes the widest plank's
 ## width and the tallest plank's height. A plank's words wrap only when they are wider than the board
 ## may be on screen.
-func lay_out() -> void:
+func lay_out(retry: bool = true) -> void:
 	var ui := UiScale.current(Display.prefs, get_tree().root)
 	var rel := TextScale.relative(Display.prefs, get_tree().root)
 	var room := SettingsBoard.panel_width(ui) - 2.0 * PLANK_X - PLANK_STYLE.get_minimum_size().x
@@ -292,22 +292,34 @@ func lay_out() -> void:
 		plank_h = maxf(plank_h, m.y)
 	var top := PLANK_TOP + ceilf(WORD_HEIGHT * rel) - WORD_HEIGHT
 	var step := plank_h + PLANK_GAP
+	var settled := true          # false when a plank could not yet shrink to the height we just measured
 	for i in rules.items.size():
 		var plank := _plank(rules.items[i])
 		plank.position = Vector2(PLANK_X, top + i * step)
+		# A shrunken Label reaches its plank only on the next frame, and until then the engine clamps
+		# `size` to the height at the Text size before this one. `settled` catches that frame.
+		plank.update_minimum_size()
 		plank.size = Vector2(plank_w, plank_h)
+		if plank.size.y > plank_h:
+			settled = false
 	var board_w := plank_w + 2.0 * PLANK_X
 	var heading := %Heading as Label
 	heading.scale = Vector2.ONE * rel
 	heading.size = Vector2(board_w / rel, WORD_HEIGHT)
-	if debug_tools:
-		(%DevTag as Control).position.x = board_w - DEV_TAG_RIGHT
+	# The tag is freed in _ready in a release board, and debug_tools may have changed since; ask the node.
+	var dev_tag := get_node_or_null("%DevTag") as Control
+	if dev_tag != null:
+		dev_tag.position.x = board_w - DEV_TAG_RIGHT
 	var h := top + (rules.items.size() - 1) * step + plank_h + BOTTOM_MARGIN
 	rest_panel = Rect2(floorf((320.0 - board_w) / 2.0), floorf((BASE_HEIGHT - h) / 2.0), board_w, h)
 	(%Content as Control).size = rest_panel.size
+	if not settled and retry:
+		# Once, on the next frame, when the shrink has reached the planks. Never again: a plank whose
+		# words genuinely need the taller rect would otherwise re-queue itself every frame.
+		_frame.call_deferred(false)
 
-func _frame() -> void:
-	lay_out()
+func _frame(retry: bool = true) -> void:
+	lay_out(retry)
 	if not is_inside_tree() or strip == null:
 		frame(0.0, BASE_HEIGHT)
 		return
@@ -315,7 +327,8 @@ func _frame() -> void:
 	frame(b.x, b.y)
 
 func _frame_later() -> void:
-	_frame.call_deferred()
+	if is_inside_tree() and not is_queued_for_deletion():
+		_frame.call_deferred()
 
 ## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
 ## mark row kept at the panel's top or bottom.

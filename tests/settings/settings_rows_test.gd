@@ -64,11 +64,15 @@ func _open() -> void:
 func _row(unique: String) -> Control:
 	return board.get_node("%" + unique) as Control
 
+# The line under the list is a plain Label; every row cell is a GrownWords holder.
+func _line_text() -> String:
+	return (board.get_node("%Line") as Label).text
+
 func _text(path: String) -> String:
-	return (board.get_node("%" + path) as Label).text
+	return (board.get_node("%" + path + "/Words") as Label).text
 
 func _colour(path: String) -> Color:
-	return (board.get_node("%" + path) as Label).get_theme_color("font_color")
+	return (board.get_node("%" + path + "/Words") as Label).get_theme_color("font_color")
 
 func _highlighted(unique: String) -> void:
 	for r: String in ROWS:
@@ -96,19 +100,19 @@ func test_four_rows_in_order_with_their_words() -> void:
 func test_opens_on_ui_size_with_its_line() -> void:
 	await _open()
 	_highlighted("UiSize")
-	assert_str(_text("Line")).is_equal(LINE_UI)
+	assert_str(_line_text()).is_equal(LINE_UI)
 	assert_array(_values()).is_equal(["Normal", "Normal", "Standard"])
 
 func test_the_line_follows_the_highlight() -> void:
 	await _open()
 	await _tap(KEY_DOWN)
-	assert_str(_text("Line")).is_equal("Makes every word bigger.")
+	assert_str(_line_text()).is_equal("Makes every word bigger.")
 	await _tap(KEY_DOWN)
-	assert_str(_text("Line")).is_equal("Adds shapes to warnings shown in colour.")
+	assert_str(_line_text()).is_equal("Adds shapes to warnings shown in colour.")
 	await _tap(KEY_DOWN)
-	assert_str(_text("Line")).is_equal("Change any key or controller button.")
+	assert_str(_line_text()).is_equal("Change any key or controller button.")
 	await _tap(KEY_DOWN)
-	assert_str(_text("Line")).is_equal(LINE_UI)
+	assert_str(_line_text()).is_equal(LINE_UI)
 
 func test_board_geometry() -> void:
 	await _open()

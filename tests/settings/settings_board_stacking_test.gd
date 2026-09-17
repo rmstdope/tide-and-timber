@@ -167,7 +167,7 @@ func test_clicking_a_stacked_arrow_steps_the_value() -> void:
 	_click(_node("TextSize/Row/Next"))
 	assert_int(Display.prefs.text_size).is_equal(DisplayPrefs.Size.LARGE)
 	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.TEXT_SIZE)
-	assert_str((_node("TextSize/Row/Value") as Label).text).is_equal("Large")
+	assert_str((_node("TextSize/Row/Value/Words") as Label).text).is_equal("Large")
 
 # --- pause ---
 

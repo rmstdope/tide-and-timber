@@ -48,9 +48,9 @@ func _ready() -> void:
 
 ## Re-measures the words at the current Text size and max_width, sets the minimum size, and places the Label.
 func refit() -> void:
-	if not is_node_ready():
+	if not is_node_ready() or not is_inside_tree() or is_queued_for_deletion():
 		return
-	rel = TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
+	rel = TextScale.relative(Display.prefs, get_tree().root)
 	var w := words()
 	w.autowrap_mode = TextServer.AUTOWRAP_OFF
 	w.scale = Vector2.ONE
