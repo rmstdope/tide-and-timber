@@ -58,6 +58,12 @@ func test_menu_top_at_keeps_clear_of_the_strip() -> void:
 	assert_float(TitleScreen.menu_top_at(83, 81, 1.5)).is_equal(34.0)
 	assert_float(TitleScreen.menu_top_at(83, 81, 2.0)).is_equal(0.0)
 
+func test_menu_top_at_a_grown_menu_at_normal_ui() -> void:
+	assert_float(TitleScreen.menu_top_at(83, 104, 1.0, 81, 164)).is_equal(58.0)
+	assert_float(TitleScreen.menu_top_at(83, 81, 1.0, 81, 164)).is_equal(83.0)
+	assert_float(TitleScreen.menu_top_at(75, 154, 1.0, 92, 164)).is_equal(8.0)
+	assert_float(TitleScreen.menu_top_at(97, 60, 1.5, 60, 158)).is_equal(66.0)
+
 func test_menu_grows_centred_and_clear_of_the_strip() -> void:
 	_open()
 	_step(2)

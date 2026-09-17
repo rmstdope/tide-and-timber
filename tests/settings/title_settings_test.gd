@@ -96,7 +96,7 @@ func _assert_back_on_settings() -> void:
 	assert_bool(_is_highlighted(_plank("Quit"))).override_failure_message("Quit is not highlighted").is_true()
 
 func test_no_save_order_and_words() -> void:
-	assert_str((screen.get_node("MenuClip/Menu/Settings/Label") as Label).text).is_equal("Settings")
+	assert_str((screen.get_node("MenuClip/Menu/Settings/Label/Words") as Label).text).is_equal("Settings")
 	var order: Array[String] = []
 	for child in screen.get_node("%Menu").get_children():
 		if child is PanelContainer:
