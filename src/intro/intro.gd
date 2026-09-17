@@ -24,6 +24,9 @@ func _ready() -> void:
 		story.skip()
 		_refresh())
 	_refresh()
+	var debug: DebugMenu = %Pause.debug_menu()
+	if debug != null:
+		DebugPlaces.add_rows(debug, Callable())
 
 func _process(delta: float) -> void:
 	tick(delta)

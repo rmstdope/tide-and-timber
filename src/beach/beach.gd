@@ -67,6 +67,19 @@ func _obstacles() -> Array[Rect2]:
 func set_day_night(day_night: DayNight) -> void:
 	%Builder.day_night = day_night
 
+## Puts the man on `cell`'s centre facing `facing`, standing still, with any click-walk dropped,
+## the use prompt hidden until the Interactor next picks, and the camera snapped onto him.
+## Works while the tree is paused. Checks nothing: the cell may be solid.
+func put_player(cell: Vector2i, facing: Walk.Facing) -> void:
+	(%ClickWalker as ClickWalker).cancel()
+	%Player.global_position = BeachLayout.cell_centre(cell)
+	%Player.facing = facing
+	%Player.velocity = Vector2.ZERO
+	%Player.moving = false
+	%Player.play_pose(Walk.animation_for(facing, false))
+	%Prompt.hide()
+	%Camera.snap_to_target()
+
 func _on_added(kind: Item.Kind, amount: int) -> void:
 	RisingLine.show_over(%Player, Item.gain_line(kind, amount))
 
