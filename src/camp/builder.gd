@@ -80,9 +80,18 @@ func back_to_list() -> void:
 	open_list()
 
 func placing_cells() -> Array[Vector2i]:
-	return BuildSite.cells_for(placing, BuildSite.cell_of(%Player.global_position), %Player.facing)
+	return cells_in_front(placing)
 
 func can_place_now() -> bool:
+	return can_place(placing)
+
+## The cells `thing` would take in front of him now.
+func cells_in_front(thing: BuildMenu.Thing) -> Array[Vector2i]:
+	return BuildSite.cells_for(thing, BuildSite.cell_of(%Player.global_position), %Player.facing)
+
+## Whether `thing` may go in front of him now, by the rules of play (ground, props, usables, the lean-to,
+## his feet, a fire only on the lean-to's fire spot).
+func can_place(thing: BuildMenu.Thing) -> bool:
 	var taken := _props.duplicate()
 	for node in get_tree().get_nodes_in_group(Usable.GROUP):
 		var usable := node as Usable
@@ -91,8 +100,36 @@ func can_place_now() -> bool:
 	if lean_to:
 		for c in lean_to.cells:
 			taken[c] = true
-	return BuildSite.can_place(placing, placing_cells(), taken, BuildSite.feet_rect(%Player.global_position),
+	return BuildSite.can_place(thing, cells_in_front(thing), taken, BuildSite.feet_rect(%Player.global_position),
 		lean_to != null, lean_to.anchor() if lean_to else Vector2i.ZERO)
+
+## Puts `thing` in front of him at once: no driftwood, no black, no time, no sound, no shelter line.
+## A fire is lit, going out at FireLife.out_at(now) when there is a clock (INF without one), replacing any fire standing.
+## False, placing nothing, unless mode is CLOSED and can_place(thing); a LEAN_TO is also refused while a lean-to stands.
+func place_now(thing: BuildMenu.Thing) -> bool:
+	if mode != Mode.CLOSED:
+		return false
+	if thing == BuildMenu.Thing.LEAN_TO and lean_to != null:
+		return false
+	if not can_place(thing):
+		return false
+	var cells := cells_in_front(thing)
+	if thing == BuildMenu.Thing.LEAN_TO:
+		_add_lean_to(cells)
+	else:
+		var f := _add_fire(cells[0])
+		if day_night:
+			f.out_at = FireLife.out_at(day_night.clock.total_minutes)
+	return true
+
+## Frees the lean-to and the fire, if any, and forgets them. Harmless when nothing stands.
+func remove_builds() -> void:
+	if lean_to != null:
+		lean_to.queue_free()
+		lean_to = null
+	if fire != null:
+		fire.queue_free()
+		fire = null
 
 func try_place() -> bool:
 	if mode != Mode.PLACING or not can_place_now():
@@ -289,12 +326,7 @@ static func camp_fits(data: SaveData) -> bool:
 
 ## Rebuilds the camp from data (assumes camp_fits). Frees any lean-to or fire already standing.
 func restore_camp(data: SaveData) -> void:
-	if lean_to != null:
-		lean_to.queue_free()
-		lean_to = null
-	if fire != null:
-		fire.queue_free()
-		fire = null
+	remove_builds()
 	if not data.lean_to_cells.is_empty():
 		_add_lean_to(data.lean_to_cells.duplicate())
 	if data.has_fire:

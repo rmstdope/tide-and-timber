@@ -31,6 +31,7 @@ func _ready() -> void:
 		DebugPlaces.add_rows(debug, Callable())
 		DebugShow.add_rows(debug)
 		DebugShow.attach(self, null, null)
+		DebugSurvival.add_rows(debug)
 	_refresh()
 
 func _process(delta: float) -> void:

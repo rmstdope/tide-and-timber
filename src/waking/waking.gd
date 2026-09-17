@@ -48,6 +48,7 @@ func _ready() -> void:
 		DebugPlaces.add_rows(debug, go_to_place)
 		DebugShow.add_rows(debug)
 		DebugShow.attach(self, %Beach, %DayNight)
+		DebugSurvival.add_rows(debug, builder.place_now, builder.remove_builds, %Night.collapse_now)
 
 func _process(delta: float) -> void:
 	tick(delta)
