@@ -8,6 +8,8 @@ const SHEET := preload("res://assets/man/man.png")
 const MOVE_ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"move_up", &"move_down"]
 const MOVED_EPSILON := 0.05             # px moved in one physics tick that counts as walking
 const RUN_ACTION := &"run"
+const SOLID_MASK := 1                   # the physics layer of tiles, props and builds (player.tscn, beach_tile_set.gd)
+const WALK_THROUGH_MASK := 0            # nothing stops him
 
 var facing: Walk.Facing = Walk.Facing.DOWN
 var moving := false
@@ -24,6 +26,7 @@ func _ready() -> void:
 	_show()
 
 func _physics_process(delta: float) -> void:
+	collision_mask = WALK_THROUGH_MASK if DebugSwitches.walk_through else SOLID_MASK
 	if not control_enabled:
 		return
 	var dir := Walk.direction(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))

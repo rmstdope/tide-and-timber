@@ -40,6 +40,9 @@ func _ready() -> void:
 		return player.control_enabled and wake.cover_alpha() <= 0.0 \
 			and builder.mode == Builder.Mode.CLOSED and %Night.collapse == null
 	%Pause.has_saved = func() -> bool: return %DayNight.clock.dawns_passed() >= 1
+	var debug: DebugMenu = %Pause.debug_menu()
+	if debug != null:
+		DebugPlaces.add_rows(debug, go_to_place)
 
 func _process(delta: float) -> void:
 	tick(delta)
@@ -54,6 +57,14 @@ func _on_control_given() -> void:
 	player.give_control()
 	_last_position = player.global_position
 	%DayNight.start()
+
+## Puts him on a named place (the Debug panel's Place page).
+func go_to_place(place: DebugPlaces.Place) -> void:
+	var builder: Builder = %Beach.get_node("%Builder")
+	var has_lean_to := builder.lean_to != null
+	var anchor := builder.lean_to.anchor() if has_lean_to else Vector2i.ZERO
+	%Beach.put_player(DebugPlaces.cell_for(place, has_lean_to, anchor), DebugPlaces.facing_for(place))
+	_last_position = player.global_position
 
 func _refresh() -> void:
 	%Cover.modulate.a = wake.cover_alpha()
