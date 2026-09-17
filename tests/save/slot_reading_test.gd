@@ -65,13 +65,11 @@ func _make_older() -> void:
 func _assert_broken(reading: SlotReading) -> void:
 	assert_int(reading.state).is_equal(SlotReading.State.BROKEN)
 	assert_object(reading.data).is_null()
-	assert_str(reading.game_version).is_equal("")
 
 func test_no_folder_is_none() -> void:
 	var reading := SlotReading.open(DIR)
 	assert_int(reading.state).is_equal(SlotReading.State.NONE)
 	assert_object(reading.data).is_null()
-	assert_str(reading.game_version).is_equal("")
 
 func test_current_save_is_ready() -> void:
 	SaveStore.save_slot(_sample(), DIR)
@@ -85,7 +83,6 @@ func test_older_save_migrates_and_is_ready() -> void:
 	var reading := SlotReading.open(DIR, _older_steps())
 	assert_int(reading.state).is_equal(SlotReading.State.READY)
 	assert_int(reading.data.player_facing).is_equal(_sample().player_facing)
-	assert_str(reading.game_version).is_equal("")
 
 func test_older_save_unmigrated_is_broken() -> void:
 	_make_older()
@@ -108,27 +105,14 @@ func test_refusing_step_is_broken() -> void:
 	var steps: Dictionary[int, Callable] = {0: func(_f: Dictionary) -> Variant: return null}
 	_assert_broken(SlotReading.open(DIR, steps))
 
-func test_newer_save_names_its_game_version() -> void:
+func test_newer_save_is_newer_whatever_its_game_version() -> void:
 	SaveStore.save_slot(_sample(), DIR)
-	_write_meta({"version": 2, "game_version": "0.4"})
-	var reading := SlotReading.open(DIR)
-	assert_int(reading.state).is_equal(SlotReading.State.NEWER)
-	assert_str(reading.game_version).is_equal("0.4")
-	assert_object(reading.data).is_null()
-
-func test_newer_save_without_readable_version_is_broken() -> void:
-	SaveStore.save_slot(_sample(), DIR)
-	for meta: Dictionary in [{"version": 2}, {"version": 2, "game_version": ""}, {"version": 2, "game_version": 4},
-			{"version": 2, "game_version": "0.4\nx"}, {"version": 2, "game_version": "0.4\n"}, {"version": 2, "game_version": "12345678901234567"}]:
+	for meta: Dictionary in [{"version": 2, "game_version": "0.4"}, {"version": 2}, {"version": 2, "game_version": ""},
+			{"version": 2, "game_version": 4}, {"version": 999, "game_version": "1.2.3-beta+4567-and-much-longer"}]:
 		_write_meta(meta)
-		_assert_broken(SlotReading.open(DIR))
-
-func test_longest_readable_version_is_newer() -> void:
-	SaveStore.save_slot(_sample(), DIR)
-	_write_meta({"version": 2, "game_version": "1.2.3-beta+4567"})
-	var reading := SlotReading.open(DIR)
-	assert_int(reading.state).is_equal(SlotReading.State.NEWER)
-	assert_str(reading.game_version).is_equal("1.2.3-beta+4567")
+		var reading := SlotReading.open(DIR)
+		assert_int(reading.state).override_failure_message("meta %s" % meta).is_equal(SlotReading.State.NEWER)
+		assert_object(reading.data).is_null()
 
 func test_unparsable_meta_is_broken() -> void:
 	SaveStore.save_slot(_sample(), DIR)

@@ -4,13 +4,8 @@ extends RefCounted
 
 enum State { NONE, READY, NEWER, BROKEN }
 
-const GAME_VERSION_PATTERN := "^[0-9A-Za-z.+-]{1,16}\\z"
-
-static var _game_version_regex: RegEx = RegEx.create_from_string(GAME_VERSION_PATTERN)
-
 var state: State = State.NONE
 var data: SaveData = null          # set only when READY: migrated, parsed, accepted by the beach
-var game_version := ""             # set only when NEWER: e.g. "0.4", without the "v"
 
 static func open(dir: String = SaveStore.SLOT_DIR,
 		steps: Dictionary[int, Callable] = SaveMigrations.chain()) -> SlotReading:
@@ -23,10 +18,7 @@ static func open(dir: String = SaveStore.SLOT_DIR,
 	if not meta is Dictionary or not SaveMigrations.is_whole(meta.get("version")):
 		return reading
 	if int(meta["version"]) > SaveData.VERSION:
-		var named: Variant = meta.get("game_version")
-		if named is String and _game_version_regex.search(named) != null:
-			reading.state = State.NEWER
-			reading.game_version = named
+		reading.state = State.NEWER   # whatever meta.game_version says: the title shows no version
 		return reading
 	var migrated: Variant = SaveMigrations.migrate(files, steps)
 	if migrated == null:

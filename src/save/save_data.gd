@@ -86,17 +86,6 @@ static func from_files(files: Dictionary) -> SaveData:
 func day() -> int:
 	return _day_at(clock_minutes)
 
-## The saved day read straight from a slot's files, for a save that will not load:
-## 0 when files has no "clock" Dictionary or its "total_minutes" is not a number >= 0.
-static func day_in(files: Dictionary) -> int:
-	var clock: Variant = files.get("clock")
-	if not clock is Dictionary:
-		return 0
-	var minutes: Variant = clock.get("total_minutes")
-	if not _is_number(minutes) or float(minutes) < 0.0:
-		return 0
-	return _day_at(float(minutes))
-
 static func _day_at(minutes: float) -> int:
 	var clock := GameClock.new()
 	clock.total_minutes = minutes
