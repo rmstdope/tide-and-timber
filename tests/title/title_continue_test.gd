@@ -41,7 +41,7 @@ func _write_meta(text: String) -> void:
 	f.store_string(text)
 	f.close()
 
-func _open(dir: String) -> void:
+func _open(dir: String, steps: Dictionary[int, Callable] = SaveMigrations.chain()) -> void:
 	calls = []
 	runner = scene_runner(SCENE)
 	screen = runner.scene() as TitleScreen
@@ -49,7 +49,28 @@ func _open(dir: String) -> void:
 	screen.quit_game = func() -> void: recorded.append("quit")
 	screen.start_new_game = func() -> void: recorded.append("new_game")
 	screen.start_continue = func() -> void: recorded.append("continue")
+	screen.migration_steps = steps
 	screen.read_save(dir)
+
+static func _looking_to_facing(f: Dictionary) -> Variant:
+	f.player["facing"] = f.player["looking"]
+	f.player.erase("looking")
+	return f
+
+func _make_older() -> void:
+	SaveStore.save_slot(_sample(), DIR)
+	var player: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(DIR.path_join("player.json")))
+	player["looking"] = player["facing"]
+	player.erase("facing")
+	var f := FileAccess.open(DIR.path_join("player.json"), FileAccess.WRITE)
+	f.store_string(JSON.stringify(player))
+	f.close()
+	_write_meta(JSON.stringify({"version": 0, "game_version": "0.0"}))
+
+func _open_older() -> void:
+	_make_older()
+	var steps: Dictionary[int, Callable] = {0: _looking_to_facing}
+	_open(DIR, steps)
 
 func _saved() -> void:
 	SaveStore.save_slot(_sample(), DIR)
@@ -310,3 +331,32 @@ func test_box_words_fit() -> void:
 	for path in ["StartOverBox/KeepMyIsland/Label", "StartOverBox/StartOver/Label", "CannotOpenBox/Ok/Label"]:
 		var label := _node(path) as Label
 		assert_float(label.get_minimum_size().x).override_failure_message("%s too wide" % path).is_less_equal(label.size.x)
+
+func test_older_save_looks_like_any_save() -> void:
+	_open_older()
+	assert_bool(_visible("%Continue")).is_true()
+	assert_highlighted("Continue")
+	assert_str(_text("%DayLine")).is_equal("DAY 4")
+	for box in ["%Dim", "%StartOverBox", "%CannotOpenBox"]:
+		assert_bool(_visible(box)).is_false()
+
+func test_older_save_continues_with_nothing_said() -> void:
+	_open_older()
+	var meta := FileAccess.get_file_as_string(DIR.path_join("meta.json"))
+	await _press(KEY_ENTER)
+	for box in ["%Dim", "%StartOverBox", "%CannotOpenBox"]:
+		assert_bool(_visible(box)).is_false()
+	await await_millis(1300)
+	assert_array(calls).is_equal(["continue"])
+	var game: Waking = auto_free(screen.make_continued_game())
+	assert_int(game.resume_data.player_facing).is_equal(Walk.Facing.LEFT)
+	assert_float(game.resume_data.clock_minutes).is_equal(4680.0)
+	assert_str(FileAccess.get_file_as_string(DIR.path_join("meta.json"))).is_equal(meta)
+
+## tr-asx.4.2 replaces this test.
+func test_newer_save_still_cannot_open_until_part_2() -> void:
+	SaveStore.save_slot(_sample(), DIR)
+	_write_meta(JSON.stringify({"version": 2, "game_version": "0.4"}))
+	_open(DIR)
+	await _press(KEY_ENTER)
+	assert_bool(_visible("%CannotOpenBox")).is_true()

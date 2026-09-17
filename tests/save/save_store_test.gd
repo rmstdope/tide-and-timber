@@ -121,3 +121,16 @@ func test_next_save_after_an_interrupted_one_is_clean() -> void:
 	files.sort()
 	assert_array(files).is_equal(["clock.json", "inventory.json", "meta.json", "player.json", "world.json"])
 	assert_vector(SaveStore.load_slot(DIR).player_position).is_equal(Vector2(7, 8))
+
+func _write_meta(text: String) -> void:
+	var f := FileAccess.open(DIR.path_join("meta.json"), FileAccess.WRITE)
+	f.store_string(text)
+	f.close()
+
+func test_load_slot_goes_through_the_chain() -> void:
+	SaveStore.save_slot(_sample(), DIR)
+	_write_meta('{"version": 0}')
+	assert_object(SaveStore.load_slot(DIR)).is_null()
+	assert_str(FileAccess.get_file_as_string(DIR.path_join("meta.json"))).is_equal('{"version": 0}')
+	_write_meta('{"version": 1}')
+	assert_object(SaveStore.load_slot(DIR)).is_not_null()

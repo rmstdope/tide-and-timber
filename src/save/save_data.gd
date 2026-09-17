@@ -4,6 +4,7 @@ extends RefCounted
 
 ## The save format's version. Before the first public release, new state is added to the format
 ## in place without bumping it. After a release, every change bumps it and adds a migration (tr-asx.4).
+## Loading an older version goes through SaveMigrations; bumping VERSION needs a step there.
 const VERSION := 1
 
 var player_position := Vector2.ZERO
@@ -24,7 +25,7 @@ func to_files() -> Dictionary:
 			cells.append([cell.x, cell.y])
 		world[id] = cells
 	return {
-		"meta": {"version": VERSION},
+		"meta": {"version": VERSION, "game_version": str(ProjectSettings.get_setting("application/config/version"))},
 		"player": {"x": player_position.x, "y": player_position.y, "facing": Walk.facing_name(player_facing)},
 		"inventory": {"slots": slots},
 		"world": {"taken": world},
@@ -32,6 +33,7 @@ func to_files() -> Dictionary:
 	}
 
 ## The reverse. Returns null when any file is missing or malformed, or when meta.version != VERSION.
+## meta.game_version is ignored: absent or of any type, it changes nothing.
 static func from_files(files: Dictionary) -> SaveData:
 	for stem in ["meta", "player", "inventory", "world", "clock"]:
 		if not files.get(stem) is Dictionary:
