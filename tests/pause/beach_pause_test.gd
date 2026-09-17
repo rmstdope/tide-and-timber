@@ -8,6 +8,7 @@ var builder: Builder
 var calls: Array[String] = []
 
 func before_test() -> void:
+	Pause.debug_tools = false   # the release board; tests/debug covers the debug one
 	InputDevice.reset()
 	calls = []
 	runner = scene_runner("res://src/waking/waking.tscn")
@@ -21,6 +22,7 @@ func before_test() -> void:
 	(waking.get_node("%Autosave") as Autosave).save_game = func() -> Error: return OK
 
 func after_test() -> void:
+	Pause.debug_tools = OS.is_debug_build()
 	get_tree().paused = false
 	InputDevice.reset()
 	InputDevice.use_controls(Controls.new())

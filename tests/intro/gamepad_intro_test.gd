@@ -9,6 +9,7 @@ var intro: Intro
 var calls: Array[String] = []
 
 func before_test() -> void:
+	Pause.debug_tools = false   # the release board; tests/debug covers the debug one
 	calls = []
 	runner = scene_runner(SCENE)
 	intro = runner.scene() as Intro
@@ -16,6 +17,7 @@ func before_test() -> void:
 	intro.end_story = func() -> void: recorded.append("end")
 
 func after_test() -> void:
+	Pause.debug_tools = OS.is_debug_build()
 	get_tree().paused = false
 	InputDevice.reset()
 	_stick(JOY_AXIS_RIGHT_Y, 0.0)

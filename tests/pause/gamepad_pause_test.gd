@@ -8,6 +8,7 @@ var waking: Waking
 var pause: Pause
 
 func before_test() -> void:
+	Pause.debug_tools = false   # the release board; tests/debug covers the debug one
 	InputDevice.reset()
 	runner = scene_runner("res://src/waking/waking.tscn")
 	waking = runner.scene() as Waking
@@ -20,6 +21,7 @@ func before_test() -> void:
 	await _tap(JOY_BUTTON_START)
 
 func after_test() -> void:
+	Pause.debug_tools = OS.is_debug_build()
 	get_tree().paused = false
 	InputDevice.reset()
 	_send_stick(JOY_AXIS_RIGHT_Y, 0.0)

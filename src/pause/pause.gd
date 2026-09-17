@@ -21,22 +21,32 @@ const BASE_HEIGHT := 180.0
 
 @export var with_skip_story := false
 
+static var debug_tools := OS.is_debug_build()   # tests set false to see the release board
+
 var rules: PauseMenu
 var can_pause: Callable = func() -> bool: return true      # the scene says when play is happening
 var has_saved: Callable = func() -> bool: return false     # the scene says whether this run has saved
 var open_settings: Callable = _open_settings                # tests replace it
 var quit_to_title: Callable = _quit_to_title               # tests replace it
+var open_debug: Callable = _open_debug                      # tests replace it
 var strip: MenuStrip
 
 func _ready() -> void:
-	rules = PauseMenu.new(with_skip_story)
+	rules = PauseMenu.new(with_skip_story, debug_tools)
+	if debug_tools:
+		%DebugPanel.closed.connect(_on_debug_closed)
+		%DebugPanel.resume_requested.connect(_on_debug_resume)
+	else:
+		%Debug.queue_free()
+		%DevTag.queue_free()
+		%DebugPanel.queue_free()
 	%SettingsBoard.closed.connect(_on_settings_closed)
 	%SettingsBoard.resume_requested.connect(_on_settings_resume)
 	strip = MenuStrip.new()
 	%Board.add_child(strip)   # last child: above the quit box's dim, shown exactly when the board is
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
 	%SkipStory.visible = with_skip_story
-	var h := BOARD_H_THREE + (PLANK_STEP if with_skip_story else 0.0)
+	var h := BOARD_H_THREE + PLANK_STEP * (rules.items.size() - 3)
 	%Panel.position = Vector2(BOARD_X, (BASE_HEIGHT - h) / 2.0)
 	%Panel.size = Vector2(BOARD_W, h)
 	for i in rules.items.size():
@@ -62,6 +72,10 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_refresh()
 
+## The Debug panel's rules, where a scene adds its rows; null in a release build.
+func debug_menu() -> DebugMenu:
+	return %DebugPanel.rules if debug_tools else null
+
 ## Opens the board if play is happening: not open, not quitting, the tree not already paused, can_pause true.
 func try_open() -> bool:
 	if rules.is_open or rules.quitting or get_tree().paused or not can_pause.call():
@@ -83,8 +97,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if not rules.is_open:
 		return
-	if rules.settings_open:
-		return   # the Settings board, a child, reads it
+	if rules.settings_open or rules.debug_open:
+		return   # the Settings board or the Debug panel, a child, reads it
 	var step := InputDevice.menu_step(event)
 	if rules.box_open:
 		match step:
@@ -132,6 +146,8 @@ func _apply(outcome: PauseMenu.Outcome) -> void:
 			skip_story_chosen.emit()
 		PauseMenu.Outcome.OPEN_SETTINGS:
 			open_settings.call()
+		PauseMenu.Outcome.OPEN_DEBUG:
+			open_debug.call()
 		PauseMenu.Outcome.QUITTING:
 			%Fade.visible = true
 			var t := create_tween()
@@ -143,7 +159,7 @@ func _exit_tree() -> void:
 
 func _refresh() -> void:
 	InputDevice.set_menu_open(self, rules.is_open or rules.quitting)
-	%Board.visible = (rules.is_open and not rules.settings_open) or rules.quitting
+	%Board.visible = (rules.is_open and not rules.settings_open and not rules.debug_open) or rules.quitting
 	%QuitBox.visible = rules.box_open
 	for item: PauseMenu.Plank in rules.items:
 		_plank(item).add_theme_stylebox_override("panel", _style(rules.highlighted == item))
@@ -162,6 +178,16 @@ func _on_settings_closed() -> void:
 func _on_settings_resume() -> void:
 	_apply(rules.resume_from_settings())
 
+func _open_debug() -> void:
+	%DebugPanel.open(with_skip_story)
+
+func _on_debug_closed() -> void:
+	rules.close_debug()
+	_refresh()
+
+func _on_debug_resume() -> void:
+	_apply(rules.resume_from_debug())
+
 func _plank(item: PauseMenu.Plank) -> Control:
 	match item:
 		PauseMenu.Plank.RESUME:
@@ -170,6 +196,8 @@ func _plank(item: PauseMenu.Plank) -> Control:
 			return %SkipStory
 		PauseMenu.Plank.SETTINGS:
 			return %Settings
+		PauseMenu.Plank.DEBUG:
+			return %Debug
 	return %QuitToTitle
 
 func _button(choice: PauseMenu.Choice) -> Control:
