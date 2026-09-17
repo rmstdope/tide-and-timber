@@ -116,3 +116,105 @@ func test_can_restore() -> void:
 	twice[1] = {"kind": Item.Kind.DRIFTWOOD, "count": 1}
 	assert_bool(Beach.can_restore(_data(twice, {}))).is_false()
 	assert_bool(Beach.can_restore(_data(_empty_slots(7), {}))).is_false()
+	assert_bool(Beach.can_restore(_with_camp(_data(_empty_slots(8), {}), _good_cells(), true, FIRE_CELL))).is_true()
+	for bad: SaveData in _bad_camps():
+		assert_bool(Beach.can_restore(bad)).is_false()
+
+const LEAN := BuildMenu.Thing.LEAN_TO
+const FIRE_CELL := Vector2i(92, 14)
+
+func _builder(b: Beach) -> Builder:
+	return b.get_node("%Builder") as Builder
+
+func _good_cells() -> Array[Vector2i]:
+	return BuildSite.cells_for(LEAN, Vector2i(92, 11), Walk.Facing.DOWN)
+
+func _lean_to(b: Beach) -> void:
+	var l := LeanTo.new()
+	l.cells = _good_cells()
+	l.position = BuildSite.origin_for(LEAN, l.cells)
+	b.get_node("%World").add_child(l)
+	_builder(b).lean_to = l
+
+func _fire(b: Beach) -> void:
+	var f := CampFire.new()
+	f.cell = FIRE_CELL
+	f.position = Vector2(1480, 240)
+	b.get_node("%World").add_child(f)
+	_builder(b).fire = f
+
+func _with_camp(d: SaveData, cells: Array[Vector2i], fire: bool, fire_cell: Vector2i) -> SaveData:
+	d.lean_to_cells = cells
+	d.has_fire = fire
+	d.fire_cell = fire_cell
+	d.fire_lit = fire
+	return d
+
+func _bad_camps() -> Array[SaveData]:
+	var none: Array[Vector2i] = []
+	var swapped := _good_cells()
+	var first := swapped[0]
+	swapped[0] = swapped[1]
+	swapped[1] = first
+	return [
+		_with_camp(_data(_empty_slots(8), {}), none, true, FIRE_CELL),
+		_with_camp(_data(_empty_slots(8), {}), swapped, false, FIRE_CELL),
+		_with_camp(_data(_empty_slots(8), {}), BuildSite.cells_for(LEAN, Vector2i(92, 13), Walk.Facing.DOWN), false, FIRE_CELL),
+		_with_camp(_data(_empty_slots(8), {}), _good_cells(), true, Vector2i(93, 14)),
+		_with_camp(_data(_empty_slots(8), {}), _good_cells().slice(0, 5), false, FIRE_CELL),
+	]
+
+func test_camp_restores_into_a_fresh_beach() -> void:
+	_lean_to(beach)
+	_fire(beach)
+	_builder(beach).fire.out_at = 1860.0
+	var data := beach.capture()
+	var b := scene_runner(SCENE).scene() as Beach
+	assert_bool(b.restore(data)).is_true()
+	var builder := _builder(b)
+	assert_array(builder.lean_to.cells).is_equal(_good_cells())
+	assert_vector(builder.lean_to.position).is_equal(BuildSite.origin_for(LEAN, _good_cells()))
+	assert_vector(builder.fire.cell).is_equal(FIRE_CELL)
+	assert_bool(builder.fire.lit).is_true()
+	assert_float(builder.fire.out_at).is_equal(1860.0)
+	assert_bool(builder.fire.glow.visible).is_true()
+	assert_object(builder.lean_to.get_parent()).is_same(b.get_node("%World"))
+	assert_object(builder.fire.get_parent()).is_same(b.get_node("%World"))
+
+func test_ash_fire_restores_as_ash() -> void:
+	_lean_to(beach)
+	_fire(beach)
+	_builder(beach).fire.put_out()
+	var data := beach.capture()
+	var b := scene_runner(SCENE).scene() as Beach
+	assert_bool(b.restore(data)).is_true()
+	var builder := _builder(b)
+	assert_bool(builder.fire.lit).is_false()
+	assert_bool(builder.fire.glow.visible).is_false()
+	b.inventory.add(Item.Kind.DRIFTWOOD, 4)
+	builder.open_list()
+	assert_bool(builder.menu.can_build(BuildMenu.Thing.FIRE)).is_true()
+	builder.close_list()
+
+func test_lean_to_alone_restores_with_no_fire() -> void:
+	_lean_to(beach)
+	var data := beach.capture()
+	var b := scene_runner(SCENE).scene() as Beach
+	assert_bool(b.restore(data)).is_true()
+	assert_object(_builder(b).lean_to).is_not_null()
+	assert_object(_builder(b).fire).is_null()
+
+func test_fresh_beach_captures_no_camp() -> void:
+	var d := beach.capture()
+	assert_array(d.lean_to_cells).is_empty()
+	assert_bool(d.has_fire).is_false()
+
+func test_restore_refuses_bad_camp_unchanged() -> void:
+	for bad: SaveData in _bad_camps():
+		bad.player_position = Vector2(400, 200)
+		bad.inventory_slots[0] = {"kind": Item.Kind.DRIFTWOOD, "count": 3}
+		assert_bool(beach.restore(bad)).is_false()
+		assert_vector(_player(beach).global_position).is_equal(BeachLayout.cell_centre(BeachLayout.SPAWN_CELL))
+		assert_object(_builder(beach).lean_to).is_null()
+		assert_object(_builder(beach).fire).is_null()
+		assert_int(beach.inventory.slot_kind(0)).is_equal(Inventory.EMPTY)

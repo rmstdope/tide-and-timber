@@ -291,6 +291,8 @@ func test_older_save_continues_with_nothing_said() -> void:
 	var game: Waking = auto_free(screen.make_continued_game())
 	assert_int(game.resume_data.player_facing).is_equal(Walk.Facing.LEFT)
 	assert_float(game.resume_data.clock_minutes).is_equal(4680.0)
+	assert_array(game.resume_data.lean_to_cells).is_empty()
+	assert_bool(game.resume_data.has_fire).is_false()
 	assert_str(FileAccess.get_file_as_string(DIR.path_join("meta.json"))).is_equal(meta)
 
 func _assert_dimmed() -> void:

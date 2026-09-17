@@ -98,13 +98,14 @@ func capture() -> SaveData:
 			if _live_prop(id, cell) == null:
 				cells.append(cell)
 		data.taken[id] = cells
+	%Builder.capture_camp(data)
 	return data
 
-## Puts `data` back: the man's place and facing, the bar, and the taken props removed.
+## Puts `data` back: the man's place and facing, the bar, the taken props removed, and the camp.
 ## Returns false and changes nothing when the inventory is refused, a prop id is not in TAKEABLE,
-## or a cell is not one of that prop's layout cells.
+## a cell is not one of that prop's layout cells, or the camp does not fit (Builder.camp_fits).
 func restore(data: SaveData) -> bool:
-	if not _taken_fits(data):
+	if not _taken_fits(data) or not Builder.camp_fits(data):
 		return false
 	if not inventory.restore(data.inventory_slots):
 		return false
@@ -113,6 +114,7 @@ func restore(data: SaveData) -> bool:
 			var prop := _live_prop(id, cell)
 			if prop:
 				prop.queue_free()
+	%Builder.restore_camp(data)
 	%Player.global_position = data.player_position
 	%Player.facing = data.player_facing
 	%Player.velocity = Vector2.ZERO
@@ -120,9 +122,10 @@ func restore(data: SaveData) -> bool:
 	return true
 
 ## Whether restore(data) would accept `data`: every key of data.taken is in TAKEABLE, every cell is
-## one of that prop's layout cells, and a new Inventory accepts data.inventory_slots. No nodes touched.
+## one of that prop's layout cells, the camp fits, and a new Inventory accepts data.inventory_slots.
+## No nodes touched.
 static func can_restore(data: SaveData) -> bool:
-	return _taken_fits(data) and Inventory.new().restore(data.inventory_slots)
+	return _taken_fits(data) and Builder.camp_fits(data) and Inventory.new().restore(data.inventory_slots)
 
 static func _taken_fits(data: SaveData) -> bool:
 	for id: String in data.taken:

@@ -110,18 +110,52 @@ func test_collapse_abandons_placing_with_nothing_spent() -> void:
 	night.tick(2.5)
 	assert_int(inventory.count(K.DRIFTWOOD)).is_equal(5)
 
-func test_built_things_stay_and_fire_keeps_its_rules() -> void:
+func test_lit_fire_and_lean_to_stand_at_0600_and_fire_goes_out_at_0700() -> void:
+	_lean_to()
+	_fire()
+	builder.fire.out_at = FireLife.out_at(1250.0)
+	var l := builder.lean_to
+	var f := builder.fire
+	var cells := l.cells.duplicate()
+	var l_at := l.position
+	var f_at := f.position
+	_collapse_now()
+	night.tick(2.5)
+	assert_float(dn.clock.total_minutes).is_equal(1800.0)
+	assert_object(builder.lean_to).is_same(l)
+	assert_array(l.cells).is_equal(cells)
+	assert_vector(l.position).is_equal(l_at)
+	assert_object(builder.fire).is_same(f)
+	assert_bool(f.lit).is_true()
+	assert_bool(f.glow.visible).is_true()
+	assert_vector(f.position).is_equal(f_at)
+	_at(1860.0)
+	builder.tick(0.0)
+	assert_bool(f.lit).is_false()
+
+func test_ash_stays_ash_through_a_collapse() -> void:
+	_lean_to()
+	_fire()
+	builder.fire.put_out()
+	var f := builder.fire
+	_collapse_now()
+	night.tick(2.5)
+	assert_object(builder.fire).is_same(f)
+	assert_bool(f.lit).is_false()
+	assert_vector(f.cell).is_equal(Vector2i(92, 14))
+
+func test_dawn_save_at_black_holds_the_camp() -> void:
 	_lean_to()
 	_fire()
 	builder.fire.out_at = 1860.0
-	player.global_position = Vector2(1300, 232)
-	_at(1300.0)
-	night.tick(0.0)
-	night.tick(4.5)
-	night.tick(0.5)
+	_collapse_now()
 	night.tick(2.5)
-	assert_object(builder.lean_to).is_not_null()
-	assert_bool(builder.fire.lit).is_true()
+	assert_int(saves.size()).is_equal(1)
+	assert_array(saves[0].lean_to_cells).is_equal(builder.lean_to.cells)
+	assert_bool(saves[0].has_fire).is_true()
+	assert_bool(saves[0].fire_lit).is_true()
+	assert_float(saves[0].fire_out_at).is_equal(1860.0)
+	assert_vector(saves[0].fire_cell).is_equal(Vector2i(92, 14))
 
 func test_can_collapse_again_next_night() -> void:
 	_collapse_now()

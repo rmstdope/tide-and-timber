@@ -86,3 +86,73 @@ func test_day() -> void:
 	assert_int(d.day()).is_equal(2)
 	d.clock_minutes = 4680.0
 	assert_int(d.day()).is_equal(4)
+
+func _camp_sample() -> SaveData:
+	var d := _sample()
+	d.lean_to_cells = BuildSite.cells_for(BuildMenu.Thing.LEAN_TO, Vector2i(92, 11), Walk.Facing.DOWN)
+	d.has_fire = true
+	d.fire_cell = Vector2i(92, 14)
+	d.fire_lit = true
+	d.fire_out_at = 1860.0
+	return d
+
+func _camp_json(d: SaveData) -> Dictionary:
+	var files := d.to_files()
+	var out := {}
+	for stem: String in files:
+		out[stem] = JSON.parse_string(JSON.stringify(files[stem]))
+	return out
+
+func test_camp_round_trip_through_json_text() -> void:
+	var s := _camp_sample()
+	var d := SaveData.from_files(_camp_json(s))
+	assert_object(d).is_not_null()
+	assert_array(d.lean_to_cells).is_equal(s.lean_to_cells)
+	assert_int(typeof(d.lean_to_cells[0])).is_equal(TYPE_VECTOR2I)
+	assert_bool(d.has_fire).is_true()
+	assert_vector(d.fire_cell).is_equal(Vector2i(92, 14))
+	assert_bool(d.fire_lit).is_true()
+	assert_float(d.fire_out_at).is_equal(1860.0)
+
+func test_camp_exact_shape() -> void:
+	assert_dict(_camp_sample().to_files()["world"]["camp"]).is_equal({
+		"lean_to": [[91, 12], [92, 12], [93, 12], [91, 13], [92, 13], [93, 13]],
+		"fire": {"x": 92, "y": 14, "lit": true, "out_at": 1860.0}})
+	assert_dict(SaveData.new().to_files()["world"]["camp"]).is_equal({})
+
+func test_ash_fire_writes_no_out_at() -> void:
+	var s := _camp_sample()
+	s.fire_lit = false
+	assert_dict(s.to_files()["world"]["camp"]["fire"]).is_equal({"x": 92, "y": 14, "lit": false})
+	assert_bool(SaveData.from_files(_camp_json(s)).fire_lit).is_false()
+	var files := _camp_json(s)
+	files["world"]["camp"]["fire"]["out_at"] = 1860.0
+	assert_float(SaveData.from_files(files).fire_out_at).is_equal(INF)
+
+func test_lit_fire_without_clock_writes_no_out_at() -> void:
+	var s := _camp_sample()
+	s.fire_out_at = INF
+	assert_bool(s.to_files()["world"]["camp"]["fire"].has("out_at")).is_false()
+	assert_float(SaveData.from_files(_camp_json(s)).fire_out_at).is_equal(INF)
+
+func test_save_without_camp_loads_with_no_camp() -> void:
+	var files := _camp_json(_camp_sample())
+	files["world"].erase("camp")
+	var d := SaveData.from_files(files)
+	assert_object(d).is_not_null()
+	assert_array(d.lean_to_cells).is_empty()
+	assert_bool(d.has_fire).is_false()
+
+func _camp_rejected(mutate: Callable) -> void:
+	var files := _camp_json(_camp_sample())
+	mutate.call(files)
+	assert_object(SaveData.from_files(files)).is_null()
+
+func test_camp_rejects() -> void:
+	_rejected(func(f: Dictionary) -> void: f["world"]["camp"] = [])
+	_camp_rejected(func(f: Dictionary) -> void: f["world"]["camp"]["lean_to"].pop_back())
+	_camp_rejected(func(f: Dictionary) -> void: f["world"]["camp"]["lean_to"][0] = [1])
+	_camp_rejected(func(f: Dictionary) -> void: f["world"]["camp"]["fire"] = "x")
+	_camp_rejected(func(f: Dictionary) -> void: f["world"]["camp"]["fire"]["lit"] = 1)
+	_camp_rejected(func(f: Dictionary) -> void: f["world"]["camp"]["fire"]["x"] = 1.5)
+	_camp_rejected(func(f: Dictionary) -> void: f["world"]["camp"]["fire"]["out_at"] = "1860")
