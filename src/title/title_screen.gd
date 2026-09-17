@@ -6,11 +6,17 @@ const INTRO_SCENE := "res://src/intro/intro.tscn"
 const GAME_SCENE := "res://src/waking/waking.tscn"
 const MENU_TOP := 118.0                 # the menu's place with no save
 const MENU_TOP_WITH_SAVE := 104.0       # three planks still clear the bottom edge
+const MENU_TOP_DIMMED := 96.0           # Continue, reason line, New Game, Quit clear the bottom edge
+const REASON_NEWER := "Save is from a newer version"
+const REASON_BROKEN := "This save couldn't be opened"
 const FADE_SECONDS := 1.0
 const WAVE_AMPLITUDE_PX := 4.0
 const WAVE_PERIOD_SECONDS := 3.0
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
+const PLANK_DIMMED_STYLE := preload("res://src/title/plank_dimmed.tres")
+const LABEL_COLOR := Color(1.0, 0.956863, 0.839216, 1)             # the plank label colour in the scene
+const LABEL_DIMMED_COLOR := Color(0.737255, 0.658824, 0.560784, 1)  # #bca88f
 
 var menu := TitleMenu.new()
 var _time := 0.0
@@ -31,7 +37,8 @@ func _ready() -> void:
 	_connect_plank(%Quit, TitleMenu.Choice.QUIT)
 	_connect_box_button(%KeepMyIsland, TitleMenu.BoxButton.KEEP_MY_ISLAND)
 	_connect_box_button(%StartOver, TitleMenu.BoxButton.START_OVER)
-	_connect_box_button(%Ok, TitleMenu.BoxButton.OK)
+	_connect_box_button(%Cancel, TitleMenu.BoxButton.CANCEL)
+	_connect_box_button(%ReplaceStartOver, TitleMenu.BoxButton.START_OVER)
 	read_save(SaveStore.SLOT_DIR)
 
 ## Reads the slot once and sets the menu up for it. Writes nothing, ever.
@@ -40,12 +47,11 @@ func read_save(dir: String) -> void:
 	var exists := reading.state != SlotReading.State.NONE
 	var opens := reading.state == SlotReading.State.READY
 	saved_game = reading.data
-	if saved_game:
-		saved_day = saved_game.day()
-	else:
-		saved_day = SaveData.day_in(SaveStore.read(dir)) if exists else 0
+	saved_day = saved_game.day() if saved_game else 0
 	menu = TitleMenu.new(exists, opens)
-	%Menu.position.y = MENU_TOP_WITH_SAVE if exists else MENU_TOP
+	%Menu.position.y = MENU_TOP_DIMMED if menu.continue_dimmed else (MENU_TOP_WITH_SAVE if exists else MENU_TOP)
+	%Reason.text = REASON_NEWER if reading.state == SlotReading.State.NEWER else REASON_BROKEN
+	%Reason.visible = menu.continue_dimmed
 	%DayLine.text = "DAY %d" % saved_day
 	%DayLine.visible = saved_day > 0
 	_refresh()
@@ -95,7 +101,8 @@ func _input(event: InputEvent) -> void:
 	if menu.box != TitleMenu.Box.NONE:
 		match step:
 			MenuPush.Step.LEFT:
-				menu.select_box(TitleMenu.BoxButton.KEEP_MY_ISLAND)
+				menu.select_box(TitleMenu.BoxButton.KEEP_MY_ISLAND if menu.box == TitleMenu.Box.START_OVER
+						else TitleMenu.BoxButton.CANCEL)
 			MenuPush.Step.RIGHT:
 				menu.select_box(TitleMenu.BoxButton.START_OVER)
 			MenuPush.Step.SELECT:
@@ -134,15 +141,19 @@ func _fade_then(done: Callable) -> void:
 
 func _refresh() -> void:
 	%Continue.visible = TitleMenu.Choice.CONTINUE in menu.choices
-	%Continue.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.CONTINUE))
+	%Continue.add_theme_stylebox_override("panel",
+			PLANK_DIMMED_STYLE if menu.continue_dimmed else _style_for(TitleMenu.Choice.CONTINUE))
+	$Menu/Continue/Lines/Label.add_theme_color_override("font_color",
+			LABEL_DIMMED_COLOR if menu.continue_dimmed else LABEL_COLOR)
 	%NewGame.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.NEW_GAME))
 	%Quit.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.QUIT))
 	%Dim.visible = menu.box != TitleMenu.Box.NONE
 	%StartOverBox.visible = menu.box == TitleMenu.Box.START_OVER
-	%CannotOpenBox.visible = menu.box == TitleMenu.Box.CANNOT_OPEN
+	%ReplaceBox.visible = menu.box == TitleMenu.Box.REPLACE
 	%KeepMyIsland.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.KEEP_MY_ISLAND))
 	%StartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
-	%Ok.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.OK))
+	%Cancel.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.CANCEL))
+	%ReplaceStartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
 	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE

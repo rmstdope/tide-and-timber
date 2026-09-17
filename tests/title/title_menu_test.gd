@@ -102,7 +102,7 @@ func test_select_box() -> void:
 	var menu := _start_over_open()
 	menu.select_box(B.START_OVER)
 	assert_int(menu.box_selected).is_equal(B.START_OVER)
-	menu.select_box(B.OK)
+	menu.select_box(B.CANCEL)
 	assert_int(menu.box_selected).is_equal(B.START_OVER)
 	var closed := _save_menu()
 	closed.select_box(B.START_OVER)
@@ -129,36 +129,84 @@ func test_start_over_starts_a_new_game() -> void:
 	assert_int(menu.box).is_equal(TitleMenu.Box.NONE)
 	assert_bool(menu.locked).is_true()
 
-func test_continue_that_cannot_open_explains() -> void:
-	var menu := TitleMenu.new(true, false)
-	assert_int(menu.highlighted).is_equal(C.CONTINUE)
-	assert_int(menu.pick(C.CONTINUE)).is_equal(A.NONE)
-	assert_int(menu.box).is_equal(TitleMenu.Box.CANNOT_OPEN)
-	assert_int(menu.box_selected).is_equal(B.OK)
-	assert_bool(menu.locked).is_false()
-	_assert_kept(menu, menu.press_box(B.OK))
-	assert_bool(C.CONTINUE in menu.choices).is_true()
-
-func test_cancel_cannot_open_box() -> void:
-	var menu := TitleMenu.new(true, false)
-	menu.pick(C.CONTINUE)
-	_assert_kept(menu, menu.cancel_box())
-	assert_bool(C.CONTINUE in menu.choices).is_true()
-
 func test_box_buttons_outside_their_box_ignored() -> void:
-	var menu := TitleMenu.new(true, false)
-	menu.pick(C.CONTINUE)
-	assert_int(menu.press_box(B.START_OVER)).is_equal(A.NONE)
-	assert_int(menu.box).is_equal(TitleMenu.Box.CANNOT_OPEN)
+	var menu := _replace_open()
+	assert_int(menu.press_box(B.KEEP_MY_ISLAND)).is_equal(A.NONE)
+	assert_int(menu.box).is_equal(TitleMenu.Box.REPLACE)
 	assert_bool(menu.locked).is_false()
 	var closed := _save_menu()
-	assert_int(closed.press_box(B.OK)).is_equal(A.NONE)
+	assert_int(closed.press_box(B.CANCEL)).is_equal(A.NONE)
 	assert_int(closed.cancel_box()).is_equal(A.NONE)
 	assert_int(closed.highlighted).is_equal(C.CONTINUE)
 
-func test_new_game_after_cannot_open_asks_first() -> void:
-	var menu := TitleMenu.new(true, false)
-	menu.pick(C.CONTINUE)
-	menu.press_box(B.OK)
+func _dimmed_menu() -> TitleMenu:
+	return TitleMenu.new(true, false)
+
+func _replace_open() -> TitleMenu:
+	var menu := _dimmed_menu()
+	menu.pick(C.NEW_GAME)
+	return menu
+
+func test_unreadable_save_dims_continue() -> void:
+	var menu := _dimmed_menu()
+	assert_bool(menu.continue_dimmed).is_true()
+	assert_array(menu.choices).is_equal([C.CONTINUE, C.NEW_GAME, C.QUIT])
+	assert_array(menu.selectable()).is_equal([C.NEW_GAME, C.QUIT])
+	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
+	assert_bool(TitleMenu.new(true, true).continue_dimmed).is_false()
+	assert_bool(TitleMenu.new().continue_dimmed).is_false()
+
+func test_dimmed_continue_is_skipped() -> void:
+	var menu := _dimmed_menu()
+	menu.move(-1)
+	assert_int(menu.highlighted).is_equal(C.QUIT)
+	menu.move(-1)
+	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
+	menu.move(1)
+	assert_int(menu.highlighted).is_equal(C.QUIT)
+	menu.move(1)
+	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
+
+func test_dimmed_continue_ignores_hover_and_pick() -> void:
+	var menu := _dimmed_menu()
+	menu.hover(C.CONTINUE)
+	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
+	assert_int(menu.pick(C.CONTINUE)).is_equal(A.NONE)
+	assert_int(menu.box).is_equal(TitleMenu.Box.NONE)
+	assert_bool(menu.locked).is_false()
+	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
+
+func test_new_game_over_unreadable_save_opens_replace_box() -> void:
+	var menu := _dimmed_menu()
+	assert_int(menu.pick(C.NEW_GAME)).is_equal(A.NONE)
+	assert_int(menu.box).is_equal(TitleMenu.Box.REPLACE)
+	assert_int(menu.box_selected).is_equal(B.CANCEL)
+	assert_bool(menu.locked).is_false()
+
+func test_replace_box_select() -> void:
+	var menu := _replace_open()
+	menu.select_box(B.START_OVER)
+	assert_int(menu.box_selected).is_equal(B.START_OVER)
+	menu.select_box(B.KEEP_MY_ISLAND)
+	assert_int(menu.box_selected).is_equal(B.START_OVER)
+	menu.select_box(B.CANCEL)
+	assert_int(menu.box_selected).is_equal(B.CANCEL)
+
+func test_replace_box_cancel() -> void:
+	var menu := _replace_open()
+	_assert_kept(menu, menu.press_box(B.CANCEL))
+	menu.pick(C.NEW_GAME)
+	menu.select_box(B.START_OVER)
+	_assert_kept(menu, menu.cancel_box())
+
+func test_replace_box_start_over() -> void:
+	var menu := _replace_open()
+	assert_int(menu.press_box(B.START_OVER)).is_equal(A.NEW_GAME)
+	assert_int(menu.box).is_equal(TitleMenu.Box.NONE)
+	assert_bool(menu.locked).is_true()
+
+func test_readable_save_still_opens_start_over_box() -> void:
+	var menu := TitleMenu.new(true, true)
 	menu.pick(C.NEW_GAME)
 	assert_int(menu.box).is_equal(TitleMenu.Box.START_OVER)
+	assert_int(menu.box_selected).is_equal(B.KEEP_MY_ISLAND)

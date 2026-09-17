@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## The title screen with a save on disk: Continue, the start-over box and the cannot-open box.
+## The title screen with a save on disk: Continue, the start-over box, and a dimmed Continue with its replace box.
 
 const SCENE := "res://src/title/title_screen.tscn"
 const ROOT := "user://test_saves"
@@ -76,8 +76,13 @@ func _saved() -> void:
 	SaveStore.save_slot(_sample(), DIR)
 	_open(DIR)
 
-func _unopenable() -> void:
-	_write_meta('{"version": 1}')
+func _newer() -> void:
+	SaveStore.save_slot(_sample(), DIR)
+	_write_meta(JSON.stringify({"version": 2, "game_version": "0.4"}))
+	_open(DIR)
+
+func _broken() -> void:
+	_write_meta(JSON.stringify({"version": 1}))
 	_open(DIR)
 
 func _node(path: String) -> Node:
@@ -94,7 +99,8 @@ func assert_highlighted(unique: String) -> void:
 			.is_same(want)
 
 func _box_highlighted(unique: String) -> void:
-	for button: String in ["KeepMyIsland", "StartOver", "Ok"]:
+	var buttons := ["KeepMyIsland", "StartOver"] if unique in ["KeepMyIsland", "StartOver"] else ["Cancel", "ReplaceStartOver"]
+	for button: String in buttons:   # only the open box's buttons: both Start over buttons share one BoxButton
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if button == unique else TitleScreen.PLANK_STYLE
 		assert_object(_plank(button).get_theme_stylebox("panel")) \
 			.override_failure_message("%s should%s be highlighted" % [button, "" if button == unique else " not"]) \
@@ -124,8 +130,8 @@ func _open_start_over_box() -> void:
 	await _press(KEY_DOWN)
 	await _press(KEY_ENTER)
 
-func _open_cannot_open_box() -> void:
-	_unopenable()
+func _open_replace_box() -> void:
+	_newer()
 	await _press(KEY_ENTER)
 
 func test_save_shows_continue_with_the_day() -> void:
@@ -179,7 +185,7 @@ func test_new_game_asks_first() -> void:
 	await _open_start_over_box()
 	assert_bool(_visible("%Dim")).is_true()
 	assert_bool(_visible("%StartOverBox")).is_true()
-	assert_bool(_visible("%CannotOpenBox")).is_false()
+	assert_bool(_visible("%ReplaceBox")).is_false()
 	assert_str(_text("StartOverBox/FirstLine")).is_equal("Wash up on a new island?")
 	assert_str(_text("StartOverBox/SecondLine")).is_equal("Everything you built will be lost to the sea.")
 	assert_str(_text("StartOverBox/KeepMyIsland/Label")).is_equal("Keep my island")
@@ -248,87 +254,17 @@ func test_click_outside_the_box_does_nothing() -> void:
 	assert_bool(_visible("%StartOverBox")).is_true()
 	assert_array(calls).is_empty()
 
-func test_unopenable_save_still_offers_continue() -> void:
-	_unopenable()
-	assert_bool(_visible("%Continue")).is_true()
-	assert_highlighted("Continue")
-	assert_bool(_visible("%DayLine")).is_false()
-
-func test_newer_save_shows_its_day() -> void:
-	SaveStore.save_slot(_sample(), DIR)
-	_write_meta('{"version": 999}')
-	_open(DIR)
-	assert_highlighted("Continue")
-	assert_bool(_visible("%DayLine")).is_true()
-	assert_str(_text("%DayLine")).is_equal("DAY 4")
-
-func test_beach_refused_save_cannot_open() -> void:
-	var data := _sample()
-	var bad: Array[Vector2i] = [Vector2i(0, 0)]
-	data.taken = {"driftwood": bad}
-	SaveStore.save_slot(data, DIR)
-	_open(DIR)
-	await _press(KEY_ENTER)
-	assert_bool(_visible("%CannotOpenBox")).is_true()
-	assert_array(calls).is_empty()
-
-func _assert_cannot_open_closed(meta: String) -> void:
-	assert_bool(_visible("%CannotOpenBox")).is_false()
-	assert_bool(_visible("%Dim")).is_false()
-	assert_highlighted("NewGame")
-	assert_bool(_visible("%Continue")).is_true()
-	assert_array(calls).is_empty()
-	assert_str(FileAccess.get_file_as_string(DIR.path_join("meta.json"))).is_equal(meta)
-	assert_array(Array(DirAccess.get_files_at(DIR))).is_equal(["meta.json"])
-
-func test_continue_on_an_unopenable_save_explains() -> void:
-	await _open_cannot_open_box()
-	var meta := FileAccess.get_file_as_string(DIR.path_join("meta.json"))
-	assert_bool(_visible("%Dim")).is_true()
-	assert_bool(_visible("%CannotOpenBox")).is_true()
-	assert_bool(_visible("%StartOverBox")).is_false()
-	assert_str(_text("CannotOpenBox/FirstLine")).is_equal("The tide has blurred this journal.")
-	assert_str(_text("CannotOpenBox/SecondLine")).is_equal("Your saved island couldn't be opened.")
-	assert_str(_text("CannotOpenBox/Ok/Label")).is_equal("OK")
-	_box_highlighted("Ok")
-	assert_float(_fade_alpha()).is_equal(0.0)
-	assert_array(calls).is_empty()
-	await _press(KEY_ENTER)
-	_assert_cannot_open_closed(meta)
-
-func test_cannot_open_box_closes_by_escape() -> void:
-	await _open_cannot_open_box()
-	await _press(KEY_ESCAPE)
-	_assert_cannot_open_closed('{"version": 1}')
-
-func test_cannot_open_box_closes_by_click() -> void:
-	await _open_cannot_open_box()
-	_click("Ok", MOUSE_BUTTON_LEFT)
-	_assert_cannot_open_closed('{"version": 1}')
-
-func test_cannot_open_box_closes_by_b() -> void:
-	await _open_cannot_open_box()
-	runner.simulate_action_pressed("menu_cancel")
-	await runner.await_input_processed()
-	_assert_cannot_open_closed('{"version": 1}')
-
-func test_new_game_after_cannot_open_asks_first() -> void:
-	await _open_cannot_open_box()
-	await _press(KEY_ENTER)
-	await _press(KEY_ENTER)
-	assert_bool(_visible("%StartOverBox")).is_true()
-
 func test_box_words_fit() -> void:
 	_saved()
 	await await_idle_frame()
 	var view := Rect2(0, 0, 320, 180)
-	for box in ["StartOverBox", "CannotOpenBox"]:
+	for box in ["StartOverBox", "ReplaceBox"]:
 		var panel := _node(box) as Control
 		assert_bool(view.encloses(panel.get_global_rect())).is_true()
 		var first := _node(box + "/FirstLine") as Label
 		assert_float(first.get_minimum_size().x).override_failure_message("%s FirstLine too wide" % box).is_less_equal(first.size.x)
-		assert_int((_node(box + "/SecondLine") as Label).get_line_count()).is_less_equal(2)
-	for path in ["StartOverBox/KeepMyIsland/Label", "StartOverBox/StartOver/Label", "CannotOpenBox/Ok/Label"]:
+		assert_int((_node(box + "/SecondLine") as Label).get_line_count()).is_less_equal(3)
+	for path in ["StartOverBox/KeepMyIsland/Label", "StartOverBox/StartOver/Label", "ReplaceBox/Cancel/Label", "ReplaceBox/ReplaceStartOver/Label"]:
 		var label := _node(path) as Label
 		assert_float(label.get_minimum_size().x).override_failure_message("%s too wide" % path).is_less_equal(label.size.x)
 
@@ -337,14 +273,14 @@ func test_older_save_looks_like_any_save() -> void:
 	assert_bool(_visible("%Continue")).is_true()
 	assert_highlighted("Continue")
 	assert_str(_text("%DayLine")).is_equal("DAY 4")
-	for box in ["%Dim", "%StartOverBox", "%CannotOpenBox"]:
+	for box in ["%Dim", "%StartOverBox", "%ReplaceBox", "%Reason"]:
 		assert_bool(_visible(box)).is_false()
 
 func test_older_save_continues_with_nothing_said() -> void:
 	_open_older()
 	var meta := FileAccess.get_file_as_string(DIR.path_join("meta.json"))
 	await _press(KEY_ENTER)
-	for box in ["%Dim", "%StartOverBox", "%CannotOpenBox"]:
+	for box in ["%Dim", "%StartOverBox", "%ReplaceBox", "%Reason"]:
 		assert_bool(_visible(box)).is_false()
 	await await_millis(1300)
 	assert_array(calls).is_equal(["continue"])
@@ -353,10 +289,173 @@ func test_older_save_continues_with_nothing_said() -> void:
 	assert_float(game.resume_data.clock_minutes).is_equal(4680.0)
 	assert_str(FileAccess.get_file_as_string(DIR.path_join("meta.json"))).is_equal(meta)
 
-## tr-asx.4.2 replaces this test.
-func test_newer_save_still_cannot_open_until_part_2() -> void:
-	SaveStore.save_slot(_sample(), DIR)
-	_write_meta(JSON.stringify({"version": 2, "game_version": "0.4"}))
+func _assert_dimmed() -> void:
+	assert_bool(_visible("%Continue")).is_true()
+	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_DIMMED_STYLE)
+	assert_object((_node("Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_DIMMED_COLOR)
+	assert_bool(_visible("%DayLine")).is_false()
+	for plank: String in ["NewGame", "Quit"]:
+		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == "NewGame" else TitleScreen.PLANK_STYLE
+		assert_object(_plank(plank).get_theme_stylebox("panel")).override_failure_message(plank).is_same(want)
+
+func test_newer_save_dims_continue_with_its_reason() -> void:
+	_newer()
+	_assert_dimmed()
+	assert_bool(_visible("%Reason")).is_true()
+	assert_str(_text("%Reason")).is_equal("Save is from a newer version")
+	assert_float((_node("%Menu") as Control).position.y).is_equal(96.0)
+
+func test_broken_save_dims_continue_with_its_reason() -> void:
+	_broken()
+	_assert_dimmed()
+	assert_bool(_visible("%Reason")).is_true()
+	assert_str(_text("%Reason")).is_equal("This save couldn't be opened")
+
+func test_beach_refused_save_is_broken() -> void:
+	var data := _sample()
+	var bad: Array[Vector2i] = [Vector2i(0, 0)]
+	data.taken = {"driftwood": bad}
+	SaveStore.save_slot(data, DIR)
 	_open(DIR)
+	_assert_dimmed()
+	assert_str(_text("%Reason")).is_equal("This save couldn't be opened")
+
+func test_readable_save_has_no_reason() -> void:
+	_saved()
+	assert_bool(_visible("%Reason")).is_false()
+	assert_highlighted("Continue")
+	assert_object((_node("Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(104.0)
+
+func test_no_save_has_no_reason() -> void:
+	_open("user://test_saves/none")
+	assert_bool(_visible("%Reason")).is_false()
+	assert_bool(_visible("%Continue")).is_false()
+	assert_float((_node("%Menu") as Control).position.y).is_equal(118.0)
+
+func test_dimmed_menu_fits() -> void:
+	_newer()
+	await await_idle_frame()
+	var view := Rect2(0, 0, 320, 180)
+	var version := (_node("%Version") as Control).get_global_rect()
+	for plank: String in ["Continue", "NewGame", "Quit"]:
+		var rect := _plank(plank).get_global_rect()
+		assert_float(rect.size.x).override_failure_message("%s width" % plank).is_equal(90.0)
+		assert_float(rect.position.x).override_failure_message("%s x" % plank).is_equal(115.0)
+		assert_bool(view.encloses(rect)).override_failure_message("%s at %s" % [plank, rect]).is_true()
+		assert_bool(rect.intersects(version)).is_false()
+	var reason := _node("%Reason") as Label
+	assert_float(reason.get_minimum_size().x).is_less_equal(reason.size.x)
+	var r := reason.get_global_rect()
+	assert_float(_plank("Continue").get_global_rect().end.y).is_less_equal(r.position.y)
+	assert_float(r.end.y).is_less_equal(_plank("NewGame").get_global_rect().position.y)
+	assert_bool(r.intersects(version)).is_false()
+
+func test_keys_skip_dimmed_continue() -> void:
+	_newer()
+	await _press(KEY_UP)
+	_assert_menu_highlight("Quit")
+	await _press(KEY_UP)
+	_assert_menu_highlight("NewGame")
+	await _press(KEY_DOWN)
+	_assert_menu_highlight("Quit")
+	await _press(KEY_DOWN)
+	_assert_menu_highlight("NewGame")
+	runner.simulate_action_pressed("menu_up")
+	await runner.await_input_processed()
+	_assert_menu_highlight("Quit")
+
+func _assert_menu_highlight(unique: String) -> void:
+	for plank: String in ["NewGame", "Quit"]:
+		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == unique else TitleScreen.PLANK_STYLE
+		assert_object(_plank(plank).get_theme_stylebox("panel")).override_failure_message(plank).is_same(want)
+	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_DIMMED_STYLE)
+
+func test_mouse_on_dimmed_continue_does_nothing() -> void:
+	_newer()
+	_plank("Continue").mouse_entered.emit()
+	_assert_menu_highlight("NewGame")
+	_click("Continue", MOUSE_BUTTON_LEFT)
+	assert_array(calls).is_empty()
+	assert_float(_fade_alpha()).is_equal(0.0)
+	for box in ["%Dim", "%StartOverBox", "%ReplaceBox"]:
+		assert_bool(_visible(box)).is_false()
+	_assert_menu_highlight("NewGame")
+
+func test_new_game_over_unreadable_save_asks_to_replace() -> void:
+	await _open_replace_box()
+	assert_bool(_visible("%Dim")).is_true()
+	assert_bool(_visible("%ReplaceBox")).is_true()
+	assert_bool(_visible("%StartOverBox")).is_false()
+	assert_str(_text("ReplaceBox/FirstLine")).is_equal("Start a new game?")
+	assert_str(_text("ReplaceBox/SecondLine")).is_equal("Your saved island will be replaced, even though this version can't open it.")
+	assert_str(_text("ReplaceBox/Cancel/Label")).is_equal("Cancel")
+	assert_str(_text("ReplaceBox/ReplaceStartOver/Label")).is_equal("Start over")
+	_box_highlighted("Cancel")
+	assert_array(calls).is_empty()
+
+func test_replace_box_highlight_moves() -> void:
+	await _open_replace_box()
+	await _press(KEY_RIGHT)
+	_box_highlighted("ReplaceStartOver")
+	await _press(KEY_LEFT)
+	_box_highlighted("Cancel")
+	_plank("ReplaceStartOver").mouse_entered.emit()
+	_box_highlighted("ReplaceStartOver")
+
+func _assert_replace_cancelled() -> void:
+	assert_bool(_visible("%ReplaceBox")).is_false()
+	assert_bool(_visible("%Dim")).is_false()
+	_assert_menu_highlight("NewGame")
+	assert_array(calls).is_empty()
+	assert_str(FileAccess.get_file_as_string(DIR.path_join("meta.json"))).is_equal(JSON.stringify({"version": 2, "game_version": "0.4"}))
+
+func test_cancel_by_enter() -> void:
+	await _open_replace_box()
 	await _press(KEY_ENTER)
-	assert_bool(_visible("%CannotOpenBox")).is_true()
+	_assert_replace_cancelled()
+
+func test_cancel_by_escape() -> void:
+	await _open_replace_box()
+	await _press(KEY_ESCAPE)
+	_assert_replace_cancelled()
+
+func test_cancel_by_click() -> void:
+	await _open_replace_box()
+	_click("Cancel", MOUSE_BUTTON_LEFT)
+	_assert_replace_cancelled()
+
+func test_cancel_by_b() -> void:
+	await _open_replace_box()
+	await _press(KEY_RIGHT)
+	runner.simulate_action_pressed("menu_cancel")
+	await runner.await_input_processed()
+	_assert_replace_cancelled()
+
+func test_start_over_replaces_by_starting_a_new_game() -> void:
+	await _open_replace_box()
+	var meta := FileAccess.get_file_as_string(DIR.path_join("meta.json"))
+	await _press(KEY_RIGHT)
+	await _press(KEY_ENTER)
+	assert_bool(_visible("%ReplaceBox")).is_false()
+	assert_bool(screen.menu.locked).is_true()
+	await await_millis(1300)
+	assert_array(calls).is_equal(["new_game"])
+	assert_str(FileAccess.get_file_as_string(DIR.path_join("meta.json"))).is_equal(meta)
+
+func test_replace_box_words_fit() -> void:
+	_newer()
+	await await_idle_frame()
+	for path in ["ReplaceBox/FirstLine", "ReplaceBox/Cancel/Label", "ReplaceBox/ReplaceStartOver/Label"]:
+		var label := _node(path) as Label
+		assert_float(label.get_minimum_size().x).override_failure_message("%s too wide" % path).is_less_equal(label.size.x)
+	var second := _node("ReplaceBox/SecondLine") as Label
+	assert_int(second.get_line_count()).is_less_equal(3)
+	assert_float(float(second.get_line_count() * second.get_line_height())).is_less_equal(second.size.y)
+	assert_float(second.get_global_rect().end.y).is_less_equal(_plank("Cancel").get_global_rect().position.y)
+	assert_bool(Rect2(0, 0, 320, 180).encloses((_node("%ReplaceBox") as Control).get_global_rect())).is_true()
+
+func test_readable_save_new_game_box_unchanged() -> void:
+	await _open_start_over_box()
+	assert_bool(_visible("%StartOverBox")).is_true()
+	assert_bool(_visible("%ReplaceBox")).is_false()

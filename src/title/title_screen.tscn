@@ -173,10 +173,10 @@ horizontal_alignment = 1
 [node name="Menu" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 115.0
 offset_top = 118.0
-offset_right = 205.0
+offset_right = 320.0
 offset_bottom = 157.0
+mouse_filter = 2
 theme_override_constants/separation = 3
 
 [node name="Continue" type="PanelContainer" parent="Menu"]
@@ -184,6 +184,7 @@ unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(90, 18)
 layout_mode = 2
+size_flags_horizontal = 4
 focus_mode = 0
 mouse_filter = 0
 
@@ -218,10 +219,24 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Reason" type="Label" parent="Menu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(1.0, 0.913725, 0.752941, 1)
+theme_override_colors/font_shadow_color = Color(0.227451, 0.141176, 0.094118, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 1
+
 [node name="NewGame" type="PanelContainer" parent="Menu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 18)
 layout_mode = 2
+size_flags_horizontal = 4
 focus_mode = 0
 mouse_filter = 0
 
@@ -240,6 +255,7 @@ vertical_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 18)
 layout_mode = 2
+size_flags_horizontal = 4
 focus_mode = 0
 mouse_filter = 0
 
@@ -371,7 +387,7 @@ text = "Start over"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CannotOpenBox" type="Panel" parent="."]
+[node name="ReplaceBox" type="Panel" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
@@ -382,50 +398,50 @@ offset_bottom = 138.0
 mouse_filter = 0
 theme_override_styles/panel = ExtResource("2_plank")
 
-[node name="FirstLine" type="Label" parent="CannotOpenBox"]
+[node name="FirstLine" type="Label" parent="ReplaceBox"]
 layout_mode = 0
 offset_left = 8.0
-offset_top = 8.0
+offset_top = 6.0
 offset_right = 288.0
-offset_bottom = 20.0
+offset_bottom = 18.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
 theme_override_colors/font_shadow_color = Color(0.227451, 0.141176, 0.094118, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 8
-text = "The tide has blurred this journal."
+text = "Start a new game?"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SecondLine" type="Label" parent="CannotOpenBox"]
+[node name="SecondLine" type="Label" parent="ReplaceBox"]
 layout_mode = 0
 offset_left = 8.0
-offset_top = 24.0
+offset_top = 20.0
 offset_right = 288.0
-offset_bottom = 52.0
+offset_bottom = 62.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
 theme_override_colors/font_shadow_color = Color(0.227451, 0.141176, 0.094118, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 8
-text = "Your saved island couldn't be opened."
+text = "Your saved island will be replaced, even though this version can't open it."
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Ok" type="PanelContainer" parent="CannotOpenBox"]
+[node name="Cancel" type="PanelContainer" parent="ReplaceBox"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 88.0
+offset_left = 24.0
 offset_top = 66.0
-offset_right = 208.0
+offset_right = 144.0
 offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="CannotOpenBox/Ok"]
+[node name="Label" type="Label" parent="ReplaceBox/Cancel"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
@@ -433,7 +449,29 @@ theme_override_colors/font_shadow_color = Color(0.227451, 0.141176, 0.094118, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 8
-text = "OK"
+text = "Cancel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReplaceStartOver" type="PanelContainer" parent="ReplaceBox"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 152.0
+offset_top = 66.0
+offset_right = 272.0
+offset_bottom = 86.0
+focus_mode = 0
+mouse_filter = 0
+
+[node name="Label" type="Label" parent="ReplaceBox/ReplaceStartOver"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
+theme_override_colors/font_shadow_color = Color(0.227451, 0.141176, 0.094118, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 8
+text = "Start over"
 horizontal_alignment = 1
 vertical_alignment = 1
 
