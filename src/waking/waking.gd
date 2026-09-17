@@ -60,7 +60,14 @@ func _ready() -> void:
 
 ## Keeps the move hint at its rest top, lifted above a grown item bar when it would cover it.
 func _place_move_hint() -> void:
-	HintLift.place(%MoveHint, MOVE_HINT_TOP, MOVE_HINT_HEIGHT)
+	var hint := %MoveHint as Control
+	var line := hint.get_node("Line") as HintView
+	var h := MOVE_HINT_HEIGHT + line.grown_by()
+	var band_size := Vector2(hint.size.x, h)
+	hint.size = band_size
+	(hint.get_node("Band") as Control).size = band_size
+	line.size = band_size
+	HintLift.place(hint, MOVE_HINT_TOP + MOVE_HINT_HEIGHT - h, MOVE_HINT_HEIGHT)
 
 func _place_move_hint_later() -> void:
 	_place_move_hint.call_deferred()

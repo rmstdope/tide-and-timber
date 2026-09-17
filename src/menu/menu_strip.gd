@@ -9,9 +9,10 @@ const BOTTOM := 176.0  # level with the bottom of the title's version number
 
 var view: HintView
 
-## The strip's on-screen transform at UI scale s: scale s, bottom-left corner at (LEFT, BOTTOM).
-static func screen_transform(s: float) -> Transform2D:
-	return Transform2D(0.0, Vector2(s, s), 0.0, Vector2(LEFT, BOTTOM - KeyHint.HEIGHT * s))
+## The strip's on-screen transform at UI scale s: scale s, bottom-left corner at (LEFT, BOTTOM),
+## for a band `height` tall in its own units.
+static func screen_transform(s: float, height: float = KeyHint.HEIGHT) -> Transform2D:
+	return Transform2D(0.0, Vector2(s, s), 0.0, Vector2(LEFT, BOTTOM - height * s))
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
@@ -38,9 +39,9 @@ func _layout() -> void:
 	if not is_inside_tree():
 		return
 	var w := view.line_width() + 8
-	size = Vector2(w, KeyHint.HEIGHT)
+	size = Vector2(w, KeyHint.HEIGHT + view.grown_by())
 	var s := UiScale.current(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
-	var want := screen_transform(s)
+	var want := screen_transform(s, size.y)
 	var host := get_parent() as CanvasItem
 	var local := want if host == null or not is_inside_tree() \
 			else host.get_global_transform_with_canvas().affine_inverse() * want
