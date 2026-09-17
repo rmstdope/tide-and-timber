@@ -248,3 +248,20 @@ func test_space_still_taps_after_rebinding() -> void:
 	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, _key(KEY_F))
 	await _tap(KEY_SPACE)
 	assert_int(_node("Picture").picture).is_equal(1)
+
+func test_start_in_settings_resumes_the_story() -> void:
+	await _tap(KEY_ESCAPE)
+	await _tap(KEY_DOWN)
+	await _tap(KEY_DOWN)
+	await _tap(KEY_ENTER)
+	assert_bool((_pause_node("SettingsBoard") as Control).visible).is_true()
+	for pressed: bool in [true, false]:
+		var e := InputEventJoypadButton.new()
+		e.device = 0
+		e.button_index = JOY_BUTTON_START
+		e.pressed = pressed
+		Input.parse_input_event(e)
+		Input.flush_buffered_events()
+		await runner.await_input_processed()
+	assert_bool(get_tree().paused).is_false()
+	assert_int(intro.story.phase).is_equal(IntroStory.Phase.PLAYING)

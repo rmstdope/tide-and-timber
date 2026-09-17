@@ -26,7 +26,7 @@ func _plank(unique: String) -> PanelContainer:
 	return screen.get_node("%" + unique) as PanelContainer
 
 func assert_highlighted(unique: String) -> void:
-	for plank: String in ["Continue", "NewGame", "Quit"]:
+	for plank: String in ["Continue", "NewGame", "Settings", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == unique else TitleScreen.PLANK_STYLE
 		assert_object(_plank(plank).get_theme_stylebox("panel")) \
 			.override_failure_message("%s should%s be highlighted" % [plank, "" if plank == unique else " not"]) \
@@ -79,11 +79,11 @@ func test_moving_the_mouse_shows_it_again() -> void:
 
 func test_resting_pointer_does_not_pull_the_highlight() -> void:
 	await _press(KEY_DOWN)
-	assert_highlighted("Quit")
+	assert_highlighted("Settings")
 	_plank("NewGame").mouse_entered.emit()
-	assert_highlighted("Quit")
+	assert_highlighted("Settings")
 	_move_over(_plank("NewGame"), Vector2.ZERO)
-	assert_highlighted("Quit")
+	assert_highlighted("Settings")
 
 func test_moving_over_a_plank_highlights_it() -> void:
 	await _press(KEY_DOWN)

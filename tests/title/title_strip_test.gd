@@ -26,7 +26,7 @@ func _plank(unique: String) -> PanelContainer:
 	return screen.get_node("%" + unique) as PanelContainer
 
 func assert_highlighted(unique: String) -> void:
-	for plank: String in ["Continue", "NewGame", "Quit"]:
+	for plank: String in ["Continue", "NewGame", "Settings", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == unique else TitleScreen.PLANK_STYLE
 		assert_object(_plank(plank).get_theme_stylebox("panel")) \
 			.override_failure_message("%s should%s be highlighted" % [plank, "" if plank == unique else " not"]) \
@@ -96,10 +96,10 @@ func test_back_changes_nothing() -> void:
 
 func test_unplugging_the_last_pad_shows_keys_and_leaves_the_menu() -> void:
 	await _pad(JOY_BUTTON_DPAD_DOWN)
-	assert_highlighted("Quit")
+	assert_highlighted("Settings")
 	InputDevice.tracker.pad_disconnected(0, PackedStringArray())
 	assert_str(screen.strip.text()).is_equal("[Enter] Select")
-	assert_highlighted("Quit")
+	assert_highlighted("Settings")
 
 func test_sits_above_the_boxes_and_under_the_fade() -> void:
 	assert_int(screen.strip.get_index()).is_greater(screen.get_node("%ReplaceBox").get_index())

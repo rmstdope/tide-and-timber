@@ -24,12 +24,14 @@ const BASE_HEIGHT := 180.0
 var rules: PauseMenu
 var can_pause: Callable = func() -> bool: return true      # the scene says when play is happening
 var has_saved: Callable = func() -> bool: return false     # the scene says whether this run has saved
-var open_settings: Callable = func() -> void: pass         # the settings screen, when it exists
+var open_settings: Callable = _open_settings                # tests replace it
 var quit_to_title: Callable = _quit_to_title               # tests replace it
 var strip: MenuStrip
 
 func _ready() -> void:
 	rules = PauseMenu.new(with_skip_story)
+	%SettingsBoard.closed.connect(_on_settings_closed)
+	%SettingsBoard.resume_requested.connect(_on_settings_resume)
 	strip = MenuStrip.new()
 	%Board.add_child(strip)   # last child: above the quit box's dim, shown exactly when the board is
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
@@ -81,6 +83,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if not rules.is_open:
 		return
+	if rules.settings_open:
+		return   # the Settings board, a child, reads it
 	var step := InputDevice.menu_step(event)
 	if rules.box_open:
 		match step:
@@ -139,7 +143,7 @@ func _exit_tree() -> void:
 
 func _refresh() -> void:
 	InputDevice.set_menu_open(self, rules.is_open or rules.quitting)
-	%Board.visible = rules.is_open or rules.quitting
+	%Board.visible = (rules.is_open and not rules.settings_open) or rules.quitting
 	%QuitBox.visible = rules.box_open
 	for item: PauseMenu.Plank in rules.items:
 		_plank(item).add_theme_stylebox_override("panel", _style(rules.highlighted == item))
@@ -147,6 +151,16 @@ func _refresh() -> void:
 	%Quit.add_theme_stylebox_override("panel", _style(rules.box_selected == PauseMenu.Choice.QUIT))
 	if rules.box_open:
 		%SecondLine.text = PauseMenu.quit_warning(has_saved.call())
+
+func _open_settings() -> void:
+	%SettingsBoard.open(true)
+
+func _on_settings_closed() -> void:
+	rules.close_settings()
+	_refresh()
+
+func _on_settings_resume() -> void:
+	_apply(rules.resume_from_settings())
 
 func _plank(item: PauseMenu.Plank) -> Control:
 	match item:
