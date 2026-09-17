@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Debug tools — agreed</title><script src="common.js"></script></head><body><script>
+const S=()=>beach()+dial(.5,'16:30','DAY 3');
+const LEAN=(x,y)=>r(x,y,20,3,P.wood)+r(x+2,y+3,16,10,P.woodDk,'opacity=".8"'), FIRE=(x,y)=>r(x,y+4,10,3,P.woodDk)+r(x+3,y,4,5,'#ffb03b');
+const PL=[['Walk through things','Off'],['Where he woke',''],['Wreck',''],['Beach',''],['Spring',''],['Camp','']];
+const IT=[['Driftwood','5'],['Shellfish','0'],['Coconut','2'],['Empty shell','1'],['Fresh water','0'],['Empty his bag','']];
+const ST=[['Shipwreck story',''],['Waking on the beach',''],['First day','★'],['First night',''],['Morning after','']];
+const SV=[['Place lean-to',''],['Place fire',''],['Remove builds',''],['Collapse now','']];
+const SH=[['Readout','On'],['Collision areas','On'],['Use areas','Off']];
+const flash=w=>r(110,6,100,14,'#000','opacity=".6"')+t(160,16,w,5,'#9fe89f','middle');
+function storyBoard(sel){const it=['Resume','Skip story','Settings','Debug','Quit to title'],x=105,y=24,w=110,h=134;return dim()+r(x,y,w,h,P.plankDk)+r(x+2,y+2,w-4,h-4,'#6d4527')+t(160,y+16,'Paused',7,P.text,'middle')+it.map((l,i)=>plank(x+12,y+28+i*20,w-24,l,i==sel)).join('')+r(x+w-20,y+4,16,7,'#b8462e')+t(x+w-12,y+9.5,'DEV',3.5,P.text,'middle')}
+function storyPic(){return r(0,0,320,180,'#2a3550')+r(0,110,320,70,'#1f4a66')+r(160,30,4,45,P.woodDk)+r(164,32,30,24,'#d8c9a8')}
+page('Debug tools — agreed','Debug builds only. Esc / Start pauses; the pause board gains a Debug plank that opens one panel down the right side with six pages (Q / E, LB / RB). The world to the left stays visible and every change shows at once while still paused. A release export shows the pause board exactly as today and none of this exists. Each picture is the 320×180 screen; art is indicative.',[
+ fig('1. Pause board, debug build','Debug above Quit to title; DEV tag on the board. Release build: unchanged board, no tag.',S()+dbgPause(2)+HSB),
+ fig('2. Pause board in the shipwreck story','Skip story stays second; Debug above Quit to title.',storyPic()+storyBoard(3)+HSB),
+ fig('3. Time page','Day 1–99; Time in 30-minute steps (hold to repeat); Speed x0.25 x0.5 x1 x2 x4 x8 x16 x32.',beach()+tint('#1a2a55',.45)+dial(.9,'21:00','DAY 3')+panelB(0,[['Day','3'],['Time','21:00'],['Speed','x1']],1)+HTAB),
+ fig('4. Items page','Left/Right change how many he carries, 0–99 each. Empty his bag clears all. Every item the game has is listed; a longer list scrolls with the highlight.',S()+panelB(1,IT,0)+HTAB),
+ fig('5. Place page','Select moves him there; the view follows behind the panel, still paused. Walk through things lets him pass through anything solid.',r(0,0,320,180,P.grass)+r(40,50,60,40,P.shallow)+r(83,112,6,6,P.skin)+r(82,118,8,7,P.shirt)+panelB(2,PL,4)+HTAB),
+ fig('6. Story page','★ marks where the story is. Select closes panel and pause, short fade, and the world is set as a player would have it at that point (day, time, bag, builds); what was there is replaced.',S()+panelB(3,ST,3)+HTAB),
+ fig('7. Story point chosen','Fade (~1 s) then playing at that point.',r(0,0,320,180,'#000')),
+ fig('8. Survival page','Place lean-to / Place fire put one right in front of him. Remove builds clears every build. Collapse now closes panel and pause and he collapses on the spot. His needs join this page when the game has them.',S()+LEAN(146,100)+panelB(4,SV,1)+HTAB),
+ fig('9. Survival — cannot place here','Ground in front of him will not take it: the row shakes, nothing is placed.',beach()+r(0,0,320,48,P.shallow)+r(153,52,6,6,P.skin)+r(152,58,8,7,P.shirt)+panelB(4,SV,0)+HTAB),
+ fig('10. Show page','Readout (top-right: day and time, speed, FPS, position), Collision areas (red), Use areas (blue).',S()+collision()+readout()+panelB(5,SH,1)+HTAB),
+ fig('11. Esc / B on the panel','One step back: pause board, Debug highlighted. Esc again resumes; Start resumes from anywhere.',S()+dbgPause(2)+HSB),
+ fig('12. In the shipwreck story','Only Story and Show work; rows on other pages are dimmed and do nothing.',storyPic()+panelB(2,PL,1)+r(182,36,132,84,'#000','opacity=".45"')+HTAB),
+ fig('13. F3 while playing','F1 Readout, F2 Collision areas, F3 speed x1→x2→x4→x8→x16→x32→x1, F4 Walk through things. Keyboard only, debug builds only. A line top-centre for 1 s.',S()+readout()+flash('Speed x4')),
+ fig('14. F1 / F2 / F4 lines','"Readout on" / "Readout off", "Collision areas on" / "…off", "Walk through things on" / "…off".',S()+flash('Walk through things on')),
+ fig('15. Next launch','Readout, collision, use areas and walk-through are off, speed x1. World changes made with Debug are kept by the dawn save like any play.',S())]);
+</script></body></html>
