@@ -61,11 +61,7 @@ static func stacks(widest_row: float, s: float) -> bool:
 
 ## How many lines text takes wrapped at width, as an autowrap-smart Label draws it.
 static func line_count(text: String, width: float, font: Font, font_size: int) -> int:
-	var p := TextParagraph.new()
-	p.add_string(text, font, font_size)
-	p.break_flags = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
-	p.width = width
-	return p.get_line_count()
+	return GrownWords.line_count(text, width, font, font_size)
 
 ## The widest plank's width with its row on one line: PLANK_SIZE.x, or more if its words need it.
 ## Reads each Row child's combined minimum width, so call it only with every Row/Label's custom_minimum_size.x at 0.
