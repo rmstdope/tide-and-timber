@@ -188,3 +188,43 @@ func test_reopening_clears_settings() -> void:
 	m.resume_from_settings()
 	m.open()
 	assert_bool(m.settings_open).is_false()
+
+func test_items_with_debug_on_the_beach_and_in_the_story() -> void:
+	assert_array(PauseMenu.new(false, true).items).is_equal([I.RESUME, I.SETTINGS, I.DEBUG, I.QUIT_TO_TITLE])
+	assert_array(PauseMenu.new(true, true).items).is_equal([I.RESUME, I.SKIP_STORY, I.SETTINGS, I.DEBUG, I.QUIT_TO_TITLE])
+
+func test_pick_debug_opens_debug_and_board_stops_taking_input() -> void:
+	var d := PauseMenu.new(false, true)
+	d.open()
+	assert_int(d.pick(I.DEBUG)).is_equal(O.OPEN_DEBUG)
+	assert_bool(d.debug_open).is_true()
+	d.move(1)
+	assert_int(d.highlighted).is_equal(I.DEBUG)
+
+func test_close_debug_highlights_debug() -> void:
+	var d := PauseMenu.new(false, true)
+	d.open()
+	d.pick(I.DEBUG)
+	d.close_debug()
+	assert_bool(d.debug_open).is_false()
+	assert_bool(d.is_open).is_true()
+	assert_int(d.highlighted).is_equal(I.DEBUG)
+
+func test_resume_from_debug_closes_both() -> void:
+	var d := PauseMenu.new(false, true)
+	d.open()
+	assert_int(d.resume_from_debug()).is_equal(O.NONE)
+	d.pick(I.DEBUG)
+	assert_int(d.resume_from_debug()).is_equal(O.RESUMED)
+	assert_bool(d.is_open).is_false()
+	assert_bool(d.debug_open).is_false()
+
+func test_open_clears_debug_open() -> void:
+	var d := PauseMenu.new(false, true)
+	d.open()
+	d.pick(I.DEBUG)
+	d.resume_from_debug()
+	d.debug_open = true
+	d.is_open = false
+	d.open()
+	assert_bool(d.debug_open).is_false()
