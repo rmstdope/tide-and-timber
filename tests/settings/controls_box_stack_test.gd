@@ -103,8 +103,9 @@ func _rect(unique: String) -> Rect2:
 	var n := _box_node(unique)
 	return Rect2(n.position, n.size)
 
+# The rest layout: what _fit_box laid out, before the box is framed to the room above the strip.
 func _panel_rect() -> Rect2:
-	return Rect2(_panel().position, _panel().size)
+	return page._box_layout.panel
 
 func _assert_normal_box() -> void:
 	assert_that(_panel_rect()).is_equal(Rect2(12, 42, 296, 96))
@@ -158,26 +159,6 @@ func test_window_resize_refits() -> void:
 	assert_float(_panel().size.x).is_equal(152.0)
 	get_tree().root.size = Vector2i(640, 360)
 
-func test_up_down_move_between_stacked_buttons() -> void:
-	_size_up(2)
-	await _open_reset()
-	await _tap(KEY_DOWN)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	assert_bool(_is_highlighted(_box_node("Other"))).is_true()
-	await _tap(KEY_DOWN)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	await _tap(KEY_UP)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_bool(_is_highlighted(_box_node("Safe"))).is_true()
-	await _tap(KEY_UP)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	await _tap(KEY_RIGHT)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	await _tap(KEY_LEFT)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_bool(_box_node("Box").visible).is_true()
-	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
-
 func test_up_down_do_nothing_side_by_side() -> void:
 	await _open_reset()
 	await _tap(KEY_DOWN)
@@ -191,7 +172,7 @@ func test_up_down_do_nothing_side_by_side() -> void:
 func test_select_when_stacked() -> void:
 	_size_up(2)
 	await _open_leaving()
-	await _tap(KEY_DOWN)
+	await _tap(KEY_RIGHT)
 	await _tap(KEY_ENTER)
 	assert_bool(page.visible).is_false()
 	assert_bool(board.visible).is_true()
@@ -216,8 +197,9 @@ func test_stacked_buttons_do_not_overlap() -> void:
 	var safe := _box_node("Safe").get_global_rect()
 	var other := _box_node("Other").get_global_rect()
 	assert_bool(safe.intersects(other)).is_false()
-	assert_bool(_panel().get_global_rect().encloses(safe)).is_true()
-	assert_bool(_panel().get_global_rect().encloses(other)).is_true()
+	var content := page.get_node("%Box/Panel/Clip/Content") as Control
+	assert_bool(content.get_global_rect().encloses(safe)).is_true()
+	assert_bool(content.get_global_rect().encloses(other)).is_true()
 
 func test_ok_alone_side_by_side_is_todays_layout() -> void:
 	await _open_no_pad()

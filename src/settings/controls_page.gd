@@ -52,7 +52,10 @@ var change_slot: Callable = _change_slot   # tests swap in a recorder
 var capture := SlotCapture.new()
 var pad_connected: Callable = func() -> bool: return not Input.get_connected_joypads().is_empty()   # tests replace it
 var _box_normal: BoxLayout   # the box as the scene draws it at Normal, captured once in _ready
-var _box_layout: BoxLayout   # the layout drawn now; input reads its `stacked`
+var _box_layout: BoxLayout   # the layout drawn now, as the box rests: the rest layout
+var _box_frame: BoxLayout    # _box_layout framed to the room above the strip; null until first framed while up
+var _box_offset := 0         # whole units the box's content is scrolled; owned by _push_box and _frame_box
+var _box_was_up := false     # to reset the offset each time a box opens
 
 func _ready() -> void:
 	var box_lines: Array[Control] = [%Lines]
@@ -78,6 +81,9 @@ func _ready() -> void:
 	get_tree().root.size_changed.connect(_restack_later)
 	Display.changed.connect(_fit_box)
 	get_tree().root.size_changed.connect(_fit_box)
+	Display.changed.connect(_frame_box_later)
+	get_tree().root.size_changed.connect(_frame_box_later)
+	_box_panel().get_node("Marks").draw.connect(_draw_box_marks)
 	_fit_box()
 	_refresh()
 
@@ -91,6 +97,59 @@ func _fit_box() -> void:
 	if rules.box == ControlsMenu.Box.NO_PAD:
 		_box_layout = _box_layout.one_button()
 	_box_layout.place(%Box.get_node("Panel"), nodes, %Safe, %Other)
+
+## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
+func _wheel_push(event: InputEvent) -> int:
+	var click := event as InputEventMouseButton
+	if click == null or not click.pressed:
+		return -1
+	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
+		return BoxLayout.Push.WHEEL_UP
+	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		return BoxLayout.Push.WHEEL_DOWN
+	return -1
+
+## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
+func _push_box(push: BoxLayout.Push) -> void:
+	if _box_frame == null:
+		return
+	var side := BoxLayout.Side.LEFT if rules.box_selected == ControlsMenu.BoxButton.SAFE \
+			else BoxLayout.Side.RIGHT
+	var after := _box_frame.pushed(push, side)
+	rules.box_select(ControlsMenu.BoxButton.SAFE if after.x == BoxLayout.Side.LEFT \
+			else ControlsMenu.BoxButton.OTHER)
+	_box_offset = after.y
+
+## Frames the laid-out box to the room between the screen top and the strip. Only while a box is up.
+func _frame_box() -> void:
+	if rules == null or not rules.is_open or _box_layout == null or strip == null or not is_inside_tree():
+		return
+	if rules.box == ControlsMenu.Box.NONE or rules.box == ControlsMenu.Box.WAITING:
+		return
+	var b := ScrollWindow.band((%Box as Control).get_global_transform_with_canvas(), strip.screen_top())
+	_box_frame = _box_layout.framed(b.x, b.y, _box_offset)
+	_box_offset = _box_frame.offset
+	var panel := _box_panel()
+	_box_frame.place_frame(panel, panel.get_node("Clip"), panel.get_node("Clip/Content"),
+			panel.get_node("Marks"))
+
+# Deferred, so the pause layer's or the title's own scale handler, and the strip's layout, have run first.
+func _frame_box_later() -> void:
+	_frame_box.call_deferred()
+
+func _box_panel() -> Control:
+	return %Box.get_node("Panel")
+
+func _draw_box_marks() -> void:
+	if _box_frame == null or rules == null or rules.box == ControlsMenu.Box.NONE \
+			or rules.box == ControlsMenu.Box.WAITING:
+		return
+	var marks: Control = _box_panel().get_node("Marks")
+	if _box_frame.shows_mark_above():
+		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+	if _box_frame.shows_mark_below():
+		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0),
+				false)
 
 func _restack() -> void:
 	var now := stacks_at(get_global_transform_with_canvas().get_scale().x) if is_inside_tree() else false
@@ -271,21 +330,26 @@ func _input(event: InputEvent) -> void:
 		_take(capture.read(event))
 		get_viewport().set_input_as_handled()
 		return
+	# The wheel is not a menu step: read it first, or the _ arm swallows it. Only while a box is up,
+	# and after the capture and WAITING guards, so a notch can never be taken for a key being captured.
+	if rules.box != ControlsMenu.Box.NONE:
+		var wheel := _wheel_push(event)
+		if wheel != -1:
+			_push_box(wheel as BoxLayout.Push)
+			_refresh()
+			get_viewport().set_input_as_handled()
+			return
 	var step := InputDevice.menu_step(event)
 	if rules.box != ControlsMenu.Box.NONE:
 		match step:
 			MenuPush.Step.LEFT:
-				rules.box_select(ControlsMenu.BoxButton.SAFE)
+				_push_box(BoxLayout.Push.LEFT)
 			MenuPush.Step.RIGHT:
-				rules.box_select(ControlsMenu.BoxButton.OTHER)
+				_push_box(BoxLayout.Push.RIGHT)
 			MenuPush.Step.UP:
-				if not _box_layout.stacked:
-					return   # side by side, Up and Down do nothing in a box, as before
-				rules.box_select(ControlsMenu.BoxButton.SAFE)
+				_push_box(BoxLayout.Push.UP)
 			MenuPush.Step.DOWN:
-				if not _box_layout.stacked:
-					return
-				rules.box_select(ControlsMenu.BoxButton.OTHER)
+				_push_box(BoxLayout.Push.DOWN)
 			MenuPush.Step.SELECT:
 				_apply(rules.box_press(rules.box_selected))
 			MenuPush.Step.BACK:
@@ -410,6 +474,11 @@ func _refresh() -> void:
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if box_up else DeviceHints.Hint.CONTROLS_PAGE)
 	if rules.is_open:   # after show_hint, so the strip's on-screen top is current
 		_frame()
+	if box_up and not _box_was_up:
+		_box_offset = 0   # a newly opened box always starts showing its words
+	if box_up:
+		_frame_box()
+	_box_was_up = box_up
 	queue_redraw()
 
 func _exit_tree() -> void:
