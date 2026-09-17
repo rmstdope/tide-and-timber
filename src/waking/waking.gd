@@ -12,6 +12,7 @@ var wake := WakeUp.new()
 var player: Player
 var _last_position := Vector2.ZERO
 var resume_data: SaveData = null        # set before the node enters the tree; null means a new game's waking
+var enter_story: Callable = _enter_story   # tests replace it
 
 func _ready() -> void:
 	player = %Beach.get_node("%Player")
@@ -49,6 +50,9 @@ func _ready() -> void:
 		DebugShow.add_rows(debug)
 		DebugShow.attach(self, %Beach, %DayNight)
 		DebugSurvival.add_rows(debug, builder.place_now, builder.remove_builds, %Night.collapse_now)
+		StoryPoints.add_rows(debug,
+				func() -> StoryPoints.Point: return StoryPoints.current(false, %DayNight.clock.total_minutes),
+				jump_to_story)
 
 func _process(delta: float) -> void:
 	tick(delta)
@@ -63,6 +67,13 @@ func _on_control_given() -> void:
 	player.give_control()
 	_last_position = player.global_position
 	%DayNight.start()
+
+## The Debug panel's Story page: fade out, then start the game again at `point`.
+func jump_to_story(point: StoryPoints.Point) -> void:
+	%Pause.leave(enter_story.bind(point))
+
+func _enter_story(point: StoryPoints.Point) -> void:
+	StoryPoints.enter(get_tree(), point)
 
 ## Puts him on a named place (the Debug panel's Place page).
 func go_to_place(place: DebugPlaces.Place) -> void:
