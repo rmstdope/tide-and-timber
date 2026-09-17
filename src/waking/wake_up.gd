@@ -17,8 +17,22 @@ var phase: Phase = Phase.FADING_IN
 var phase_elapsed := 0.0
 var walked := 0.0                       # px walked since control; only counted in CONTROL
 var hint_fade_elapsed := 0.0
+var resumed := false
+var resume_fade_elapsed := 0.0
+
+## Straight to control with no story: the cover fades up over FADE_IN_SECONDS, no pose, no move hint.
+## Does not emit control_given.
+func resume() -> void:
+	resumed = true
+	phase = Phase.CONTROL
+	phase_elapsed = 0.0
+	resume_fade_elapsed = 0.0
+	walked = HINT_WALK_PIXELS
+	hint_fade_elapsed = HINT_FADE_SECONDS
 
 func advance(delta: float) -> void:
+	if resumed:
+		resume_fade_elapsed = minf(FADE_IN_SECONDS, resume_fade_elapsed + delta)
 	if phase == Phase.CONTROL:
 		if walked >= HINT_WALK_PIXELS:
 			hint_fade_elapsed = minf(HINT_FADE_SECONDS, hint_fade_elapsed + delta)
@@ -36,6 +50,8 @@ func add_walked(pixels: float) -> void:
 		walked += pixels
 
 func cover_alpha() -> float:
+	if resumed:
+		return 1.0 - resume_fade_elapsed / FADE_IN_SECONDS
 	if phase == Phase.FADING_IN:
 		return 1.0 - clampf(phase_elapsed / FADE_IN_SECONDS, 0.0, 1.0)
 	return 0.0
