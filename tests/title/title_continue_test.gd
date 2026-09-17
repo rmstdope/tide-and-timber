@@ -190,10 +190,10 @@ func test_new_game_asks_first() -> void:
 	assert_bool(_visible("%Dim")).is_true()
 	assert_bool(_visible("%StartOverBox")).is_true()
 	assert_bool(_visible("%ReplaceBox")).is_false()
-	assert_str(_text("StartOverBox/FirstLine")).is_equal("Wash up on a new island?")
-	assert_str(_text("StartOverBox/SecondLine")).is_equal("Everything you built will be lost to the sea.")
-	assert_str(_text("StartOverBox/KeepMyIsland/Label")).is_equal("Keep my island")
-	assert_str(_text("StartOverBox/StartOver/Label")).is_equal("Start over")
+	assert_str(_text("StartOverBox/Clip/Content/FirstLine")).is_equal("Wash up on a new island?")
+	assert_str(_text("StartOverBox/Clip/Content/SecondLine")).is_equal("Everything you built will be lost to the sea.")
+	assert_str(_text("StartOverBox/Clip/Content/KeepMyIsland/Label")).is_equal("Keep my island")
+	assert_str(_text("StartOverBox/Clip/Content/StartOver/Label")).is_equal("Start over")
 	_box_highlighted("KeepMyIsland")
 	assert_array(calls).is_empty()
 	assert_float(_fade_alpha()).is_equal(0.0)
@@ -265,10 +265,10 @@ func test_box_words_fit() -> void:
 	for box in ["StartOverBox", "ReplaceBox"]:
 		var panel := _node(box) as Control
 		assert_bool(view.encloses(panel.get_global_rect())).is_true()
-		var first := _node(box + "/FirstLine") as Label
+		var first := _node(box + "/Clip/Content/FirstLine") as Label
 		assert_float(first.get_minimum_size().x).override_failure_message("%s FirstLine too wide" % box).is_less_equal(first.size.x)
-		assert_int((_node(box + "/SecondLine") as Label).get_line_count()).is_less_equal(3)
-	for path in ["StartOverBox/KeepMyIsland/Label", "StartOverBox/StartOver/Label", "ReplaceBox/Cancel/Label", "ReplaceBox/ReplaceStartOver/Label"]:
+		assert_int((_node(box + "/Clip/Content/SecondLine") as Label).get_line_count()).is_less_equal(3)
+	for path in ["StartOverBox/Clip/Content/KeepMyIsland/Label", "StartOverBox/Clip/Content/StartOver/Label", "ReplaceBox/Clip/Content/Cancel/Label", "ReplaceBox/Clip/Content/ReplaceStartOver/Label"]:
 		var label := _node(path) as Label
 		assert_float(label.get_minimum_size().x).override_failure_message("%s too wide" % path).is_less_equal(label.size.x)
 
@@ -393,10 +393,10 @@ func test_new_game_over_unreadable_save_asks_to_replace() -> void:
 	assert_bool(_visible("%Dim")).is_true()
 	assert_bool(_visible("%ReplaceBox")).is_true()
 	assert_bool(_visible("%StartOverBox")).is_false()
-	assert_str(_text("ReplaceBox/FirstLine")).is_equal("Start a new game?")
-	assert_str(_text("ReplaceBox/SecondLine")).is_equal("Your saved island will be replaced, even though this version can't open it.")
-	assert_str(_text("ReplaceBox/Cancel/Label")).is_equal("Cancel")
-	assert_str(_text("ReplaceBox/ReplaceStartOver/Label")).is_equal("Start over")
+	assert_str(_text("ReplaceBox/Clip/Content/FirstLine")).is_equal("Start a new game?")
+	assert_str(_text("ReplaceBox/Clip/Content/SecondLine")).is_equal("Your saved island will be replaced, even though this version can't open it.")
+	assert_str(_text("ReplaceBox/Clip/Content/Cancel/Label")).is_equal("Cancel")
+	assert_str(_text("ReplaceBox/Clip/Content/ReplaceStartOver/Label")).is_equal("Start over")
 	_box_highlighted("Cancel")
 	assert_array(calls).is_empty()
 
@@ -452,10 +452,10 @@ func test_start_over_replaces_by_starting_a_new_game() -> void:
 func test_replace_box_words_fit() -> void:
 	_newer()
 	await await_idle_frame()
-	for path in ["ReplaceBox/FirstLine", "ReplaceBox/Cancel/Label", "ReplaceBox/ReplaceStartOver/Label"]:
+	for path in ["ReplaceBox/Clip/Content/FirstLine", "ReplaceBox/Clip/Content/Cancel/Label", "ReplaceBox/Clip/Content/ReplaceStartOver/Label"]:
 		var label := _node(path) as Label
 		assert_float(label.get_minimum_size().x).override_failure_message("%s too wide" % path).is_less_equal(label.size.x)
-	var second := _node("ReplaceBox/SecondLine") as Label
+	var second := _node("ReplaceBox/Clip/Content/SecondLine") as Label
 	assert_int(second.get_line_count()).is_less_equal(3)
 	assert_float(float(second.get_line_count() * second.get_line_height())).is_less_equal(second.size.y)
 	assert_float(second.get_global_rect().end.y).is_less_equal(_plank("Cancel").get_global_rect().position.y)

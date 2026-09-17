@@ -120,15 +120,21 @@ func _rect(path: String) -> Rect2:
 	var n := _control(path)
 	return Rect2(n.position, n.size)
 
+## The box's rest panel: the node now carries the framed rect, so the rest layout is read from the screen.
+func _panel_rect(box: String) -> Rect2:
+	return screen._start_over_box.panel if box == "StartOver" else screen._replace_box.panel
+
 func _assert_box(box: String, want: Array[Rect2]) -> void:
 	var paths: Array[String]
 	if box == "StartOver":
-		paths = ["%StartOverBox", "StartOverBox/FirstLine", "StartOverBox/SecondLine", "%KeepMyIsland", "%StartOver"]
+		paths = ["StartOverBox/Clip/Content/FirstLine", "StartOverBox/Clip/Content/SecondLine", "%KeepMyIsland", "%StartOver"]
 	else:
-		paths = ["%ReplaceBox", "ReplaceBox/FirstLine", "ReplaceBox/SecondLine", "%Cancel", "%ReplaceStartOver"]
+		paths = ["ReplaceBox/Clip/Content/FirstLine", "ReplaceBox/Clip/Content/SecondLine", "%Cancel", "%ReplaceStartOver"]
+	assert_that(_panel_rect(box)).override_failure_message("%s panel is %s, want %s" % [box, _panel_rect(box), want[0]]) \
+		.is_equal(want[0])
 	for i in paths.size():
-		assert_that(_rect(paths[i])).override_failure_message("%s is %s, want %s" % [paths[i], _rect(paths[i]), want[i]]) \
-			.is_equal(want[i])
+		assert_that(_rect(paths[i])).override_failure_message("%s is %s, want %s" % [paths[i], _rect(paths[i]), want[i + 1]]) \
+			.is_equal(want[i + 1])
 
 func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
 	var move := InputEventMouseMotion.new()
@@ -169,16 +175,18 @@ func test_replace_stacks_at_large() -> void:
 func test_stacked_box_stays_centred_on_screen() -> void:
 	await _open_start_over_box()
 	_largest()
+	await get_tree().process_frame   # the boxes are framed once the strip's own deferred layout has run
 	for unique: String in ["%StartOverBox", "%ReplaceBox"]:
 		var c := _control(unique)
 		assert_vector(c.position + c.pivot_offset).is_equal(Vector2(160, 90))
 		assert_vector(c.scale).is_equal(Vector2(2, 2))
-		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Vector2(160, 91), EPS)
+		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Vector2(160, 76), EPS)
 	Display.use_prefs(DisplayPrefs.new())
 	_large()
+	await get_tree().process_frame
 	var box := _control("%StartOverBox")
-	assert_vector(box.pivot_offset).is_equal(Vector2(102, 66))
-	assert_vector(box.get_global_rect().get_center()).is_equal_approx(Vector2(160, 90.75), EPS)
+	assert_vector(box.pivot_offset).is_equal(Vector2(102, 58))
+	assert_vector(box.get_global_rect().get_center()).is_equal_approx(Vector2(160, 79.5), EPS)
 
 func test_stacking_while_up_keeps_the_highlight() -> void:
 	await _open_start_over_box()
@@ -214,7 +222,7 @@ func test_stacked_buttons_do_not_overlap() -> void:
 	await _open_start_over_box()
 	_largest()
 	for pair: Array in [["%StartOverBox", "%KeepMyIsland", "%StartOver"], ["%ReplaceBox", "%Cancel", "%ReplaceStartOver"]]:
-		var box := _control(pair[0]).get_global_rect()
+		var box := _control(pair[0] + "/Clip/Content").get_global_rect()
 		var top := _control(pair[1]).get_global_rect()
 		var bottom := _control(pair[2]).get_global_rect()
 		assert_bool(top.intersects(bottom)).override_failure_message("%s overlaps %s" % [pair[1], pair[2]]).is_false()

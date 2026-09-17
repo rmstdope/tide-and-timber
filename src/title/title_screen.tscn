@@ -348,7 +348,20 @@ offset_bottom = 138.0
 mouse_filter = 0
 theme_override_styles/panel = ExtResource("2_plank")
 
-[node name="FirstLine" type="Label" parent="StartOverBox"]
+[node name="Clip" type="Control" parent="StartOverBox"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+clip_contents = true
+
+[node name="Content" type="Control" parent="StartOverBox/Clip"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+
+[node name="FirstLine" type="Label" parent="StartOverBox/Clip/Content"]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -365,7 +378,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="SecondLine" type="Label" parent="StartOverBox"]
+[node name="SecondLine" type="Label" parent="StartOverBox/Clip/Content"]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 24.0
@@ -382,7 +395,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="KeepMyIsland" type="PanelContainer" parent="StartOverBox"]
+[node name="KeepMyIsland" type="PanelContainer" parent="StartOverBox/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 24.0
@@ -392,7 +405,7 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="StartOverBox/KeepMyIsland"]
+[node name="Label" type="Label" parent="StartOverBox/Clip/Content/KeepMyIsland"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
@@ -404,7 +417,7 @@ text = "Keep my island"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StartOver" type="PanelContainer" parent="StartOverBox"]
+[node name="StartOver" type="PanelContainer" parent="StartOverBox/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 152.0
@@ -414,7 +427,7 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="StartOverBox/StartOver"]
+[node name="Label" type="Label" parent="StartOverBox/Clip/Content/StartOver"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
@@ -425,6 +438,12 @@ theme_override_font_sizes/font_size = 8
 text = "Start over"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Marks" type="Control" parent="StartOverBox"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
 
 [node name="ReplaceBox" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -437,7 +456,20 @@ offset_bottom = 138.0
 mouse_filter = 0
 theme_override_styles/panel = ExtResource("2_plank")
 
-[node name="FirstLine" type="Label" parent="ReplaceBox"]
+[node name="Clip" type="Control" parent="ReplaceBox"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+clip_contents = true
+
+[node name="Content" type="Control" parent="ReplaceBox/Clip"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+
+[node name="FirstLine" type="Label" parent="ReplaceBox/Clip/Content"]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 6.0
@@ -454,7 +486,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="SecondLine" type="Label" parent="ReplaceBox"]
+[node name="SecondLine" type="Label" parent="ReplaceBox/Clip/Content"]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 20.0
@@ -471,7 +503,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Cancel" type="PanelContainer" parent="ReplaceBox"]
+[node name="Cancel" type="PanelContainer" parent="ReplaceBox/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 24.0
@@ -481,7 +513,7 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="ReplaceBox/Cancel"]
+[node name="Label" type="Label" parent="ReplaceBox/Clip/Content/Cancel"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
@@ -493,7 +525,7 @@ text = "Cancel"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ReplaceStartOver" type="PanelContainer" parent="ReplaceBox"]
+[node name="ReplaceStartOver" type="PanelContainer" parent="ReplaceBox/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 152.0
@@ -503,7 +535,7 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="ReplaceBox/ReplaceStartOver"]
+[node name="Label" type="Label" parent="ReplaceBox/Clip/Content/ReplaceStartOver"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1.0, 0.956863, 0.839216, 1)
@@ -514,6 +546,12 @@ theme_override_font_sizes/font_size = 8
 text = "Start over"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Marks" type="Control" parent="ReplaceBox"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
 
 [node name="SettingsBoard" parent="." instance=ExtResource("3_settings")]
 unique_name_in_owner = true

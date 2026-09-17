@@ -71,11 +71,12 @@ func test_menu_grows_centred_and_clear_of_the_strip() -> void:
 func test_boxes_and_board_grow_about_the_centre() -> void:
 	_open()
 	_step(2)
-	for unique: String in ["StartOverBox", "ReplaceBox"]:   # stacked at Largest: odd heights sit half a unit low
+	await get_tree().process_frame   # the boxes are framed once the strip's own deferred layout has run
+	for unique: String in ["StartOverBox", "ReplaceBox"]:   # framed to the room above the strip, so centred on it
 		var c := screen.get_node("%" + unique) as Control
 		assert_vector(c.scale).is_equal(Vector2(2, 2))
 		assert_vector(c.position + c.pivot_offset).is_equal(Vector2(160, 90))
-		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Vector2(160, 91), EPS)
+		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Vector2(160, 76), EPS)
 	var settings := screen.get_node("%SettingsBoard") as Control
 	assert_vector(settings.scale).is_equal(Vector2(2, 2))
 	assert_vector(settings.get_global_rect().get_center()).is_equal_approx(Vector2(160, 90), EPS)
