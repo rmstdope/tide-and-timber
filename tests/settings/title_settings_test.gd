@@ -14,10 +14,12 @@ var calls: Array[String] = []
 
 func before_test() -> void:
 	InputDevice.reset()
+	Display.use_prefs(DisplayPrefs.new())
 	_open(NO_SAVE)
 
 func after_test() -> void:
 	InputDevice.reset()
+	Display.use_prefs(DisplayPrefs.new())
 	_rm(ROOT)
 
 func _open(dir: String) -> void:
@@ -78,9 +80,9 @@ func _plank(unique: String) -> Control:
 func _is_highlighted(plank: Control) -> bool:
 	return is_same(plank.get_theme_stylebox("panel"), TitleScreen.PLANK_HIGHLIGHT_STYLE)
 
-func _controls_highlighted() -> void:
-	assert_bool(_is_highlighted(board.get_node("%Controls") as Control)) \
-		.override_failure_message("Controls is not highlighted").is_true()
+func _row_highlighted(unique: String) -> void:
+	assert_bool(_is_highlighted(board.get_node("%" + unique) as Control)) \
+		.override_failure_message("%s is not highlighted" % unique).is_true()
 
 func _open_board() -> void:
 	await _press(KEY_DOWN)
@@ -107,19 +109,20 @@ func test_down_from_new_game_is_settings() -> void:
 	await _press(KEY_DOWN)
 	assert_bool(_is_highlighted(_plank("Settings"))).is_true()
 
-func test_enter_on_settings_opens_the_board_on_controls() -> void:
+func test_enter_on_settings_opens_the_board_on_ui_size() -> void:
 	await _open_board()
 	assert_bool(board.visible).is_true()
-	_controls_highlighted()
+	_row_highlighted("UiSize")
 	assert_bool(screen.strip.visible).is_false()
 	assert_array(calls).is_empty()
 
 func test_board_ignores_the_title_behind_it() -> void:
 	await _open_board()
 	await _press(KEY_DOWN)
-	await _press(KEY_UP)
-	_controls_highlighted()
+	_row_highlighted("TextSize")
 	assert_int(screen.menu.highlighted).is_equal(C.SETTINGS)
+	await _press(KEY_UP)
+	_row_highlighted("UiSize")
 	_left_click(_plank("Quit"))
 	assert_array(calls).is_empty()
 
@@ -137,7 +140,7 @@ func test_start_does_nothing_from_the_title() -> void:
 	await _open_board()
 	await _pad(JOY_BUTTON_START)
 	assert_bool(board.visible).is_true()
-	_controls_highlighted()
+	_row_highlighted("UiSize")
 	assert_array(calls).is_empty()
 
 func test_click_on_settings_opens_the_board() -> void:
