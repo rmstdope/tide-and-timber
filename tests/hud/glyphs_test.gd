@@ -9,7 +9,7 @@ func test_three_digits_fit_the_slot_corner() -> void:
 	assert_bool(15 - Glyphs.width("999") >= 1).is_true()
 
 func test_order_has_the_hint_letters() -> void:
-	assert_str(Glyphs.ORDER).is_equal("0123456789EABDLSWXYsc✕○△CFGHIJKMNOPQRTUVZabdefghijklmnopqrtuvwxyz-=[]\\;',./`+*□↑↓←→—!:")
+	assert_str(Glyphs.ORDER).is_equal("0123456789EABDLSWXYsc✕○△CFGHIJKMNOPQRTUVZabdefghijklmnopqrtuvwxyz-=[]\\;',./`+*□↑↓←→—!:★")
 
 func test_bang_is_the_last_glyph() -> void:
 	assert_int(Glyphs.ORDER.find("!")).is_equal(84)
@@ -71,3 +71,12 @@ func test_colon_pixels() -> void:
 
 func test_time_width() -> void:
 	assert_int(Glyphs.width("21:00")).is_equal(19)
+
+func test_star_pixels() -> void:
+	var i := Glyphs.ORDER.find("★")
+	assert_int(i).is_greater_equal(0)
+	var img := Glyphs.SHEET.get_image()
+	var pattern := [".#.", "###", ".#.", "#.#", "..."]
+	for y in 5:
+		for x in 3:
+			assert_bool(img.get_pixel(4 * i + x, y).a > 0.5).is_equal(pattern[y][x] == "#")

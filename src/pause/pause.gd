@@ -83,9 +83,19 @@ func _ready() -> void:
 func debug_menu() -> DebugMenu:
 	return %DebugPanel.rules if debug_tools else null
 
+## A Debug story jump: board and panel gone, the tree stays paused, the screen fades to black
+## over TitleScreen.FADE_SECONDS, then `then` is called. Input is swallowed until then.
+func leave(then: Callable) -> void:
+	rules.leave()
+	_refresh()
+	%Fade.visible = true
+	var t := create_tween()
+	t.tween_property(%Fade, "modulate:a", 1.0, TitleScreen.FADE_SECONDS).from(0.0)
+	t.tween_callback(func() -> void: then.call())
+
 ## Opens the board if play is happening: not open, not quitting, the tree not already paused, can_pause true.
 func try_open() -> bool:
-	if rules.is_open or rules.quitting or get_tree().paused or not can_pause.call():
+	if rules.is_open or rules.quitting or rules.leaving or get_tree().paused or not can_pause.call():
 		return false
 	rules.open()
 	get_tree().paused = true
@@ -99,7 +109,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _input(event: InputEvent) -> void:
-	if rules.quitting:
+	if rules.quitting or rules.leaving:
 		get_viewport().set_input_as_handled()
 		return
 	if not rules.is_open:
@@ -173,7 +183,7 @@ func _exit_tree() -> void:
 	InputDevice.set_menu_open(self, false)
 
 func _refresh() -> void:
-	InputDevice.set_menu_open(self, rules.is_open or rules.quitting)
+	InputDevice.set_menu_open(self, rules.is_open or rules.quitting or rules.leaving)
 	%Board.visible = (rules.is_open and not rules.settings_open and not rules.debug_open) or rules.quitting
 	%QuitBox.visible = rules.box_open
 	for item: PauseMenu.Plank in rules.items:
