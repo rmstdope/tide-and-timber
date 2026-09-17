@@ -181,3 +181,12 @@ func test_refits_on_text_size_changed() -> void:
 	assert_float(line.size.x).is_equal(296.0)
 	assert_float(line.size.y).is_equal(16.0)
 	assert_vector((line.get_node("Text") as Label).scale).is_equal(Vector2.ONE)
+
+func test_text_left_is_kept_when_the_line_narrows() -> void:
+	var line := _band_line(16)
+	line.say("Another morning. Still here.")
+	line.fit(2.0, 2.0)
+	var text := line.get_node("Text") as Control
+	assert_float(line.size.x).is_equal(156.0)
+	assert_float(text.position.x).is_equal(16.0)
+	assert_float(text.size.x).is_equal((156.0 - 16.0) / 2.0)

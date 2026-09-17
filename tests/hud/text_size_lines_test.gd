@@ -26,8 +26,8 @@ func _scene(path: String) -> Node:
 func _assert_words_grown(line: Node, words: Node) -> void:
 	assert_vector((words as Node2D).scale if words is Node2D else (words as Control).scale).is_equal(Vector2(1.5, 1.5))
 	var layer := line.get_parent() as CanvasLayer
-	if layer:
-		assert_bool(layer.transform == Transform2D.IDENTITY).is_true()
+	assert_object(layer).is_not_null()        # every line hangs from its own layer; Text size never scales one
+	assert_bool(layer.transform == Transform2D.IDENTITY).is_true()
 
 func test_every_line_grows_its_words() -> void:
 	var dn := _scene("res://src/day_night/day_night.tscn")
@@ -45,6 +45,7 @@ func test_dawn_journal_keeps_ui_scale() -> void:
 	var waking := _scene("res://src/waking/waking.tscn")
 	var journal := waking.get_node("%Autosave").get_node("%Dawn").get_node("Journal") as Control
 	assert_vector(journal.scale).is_equal(Vector2.ONE)
+	assert_float(journal.position.y).is_equal(2.0)      # its offsets are kept; the taller band does not move it
 
 func test_rising_line_words_grow() -> void:
 	var beach := _scene("res://src/beach/beach.tscn")
