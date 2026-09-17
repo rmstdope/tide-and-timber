@@ -9,7 +9,10 @@ const SPAWN_CELL := Vector2i(92, 11)
 const PALMS: Array[Vector2i] = [Vector2i(20, 9), Vector2i(33, 9), Vector2i(47, 9), Vector2i(58, 9), Vector2i(71, 9), Vector2i(84, 9), Vector2i(101, 9), Vector2i(113, 9), Vector2i(126, 9), Vector2i(139, 9), Vector2i(150, 9), Vector2i(163, 9)]
 const ROCKS: Array[Vector2i] = [Vector2i(26, 12), Vector2i(40, 13), Vector2i(55, 11), Vector2i(66, 14), Vector2i(78, 12), Vector2i(99, 13), Vector2i(108, 11), Vector2i(121, 14), Vector2i(134, 12), Vector2i(147, 13), Vector2i(158, 11)]
 const BOULDERS: Array[Vector2i] = [Vector2i(17, 10), Vector2i(17, 15), Vector2i(62, 10), Vector2i(118, 10), Vector2i(166, 10), Vector2i(166, 15)]
-const DRIFTWOOD: Array[Vector2i] = [Vector2i(30, 13), Vector2i(69, 12), Vector2i(88, 13), Vector2i(130, 13), Vector2i(155, 12)]
+const DRIFTWOOD: Array[Vector2i] = [Vector2i(30, 13), Vector2i(69, 12), Vector2i(88, 13), Vector2i(130, 13), Vector2i(155, 12),
+	Vector2i(19, 12), Vector2i(23, 12), Vector2i(37, 13), Vector2i(44, 13), Vector2i(50, 12), Vector2i(53, 13), Vector2i(61, 13),
+	Vector2i(64, 13), Vector2i(74, 12), Vector2i(80, 13), Vector2i(107, 13), Vector2i(111, 13), Vector2i(116, 12), Vector2i(124, 13),
+	Vector2i(137, 13), Vector2i(142, 12), Vector2i(152, 13), Vector2i(161, 12), Vector2i(164, 12)]
 const SHELLFISH: Array[Vector2i] = [Vector2i(24, 14), Vector2i(51, 14), Vector2i(75, 14), Vector2i(96, 14), Vector2i(116, 14), Vector2i(143, 14), Vector2i(160, 14)]
 const SPRINGS: Array[Vector2i] = [Vector2i(96, 9)]
 
