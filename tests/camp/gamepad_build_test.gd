@@ -21,6 +21,8 @@ func before_test() -> void:
 func after_test() -> void:
 	InputDevice.reset()
 	_send_stick(JOY_AXIS_LEFT_X, 0.0)
+	_send_stick(JOY_AXIS_LEFT_Y, 0.0)
+	InputDevice.reset()
 
 func _n(unique: String) -> Node:
 	return beach.get_node("%" + unique)
@@ -146,3 +148,33 @@ func test_disconnect_while_placing_stops_the_outline() -> void:
 	assert_float((_n("Ghost") as Node2D).position.x).is_equal(ghost_x)
 	assert_int(builder.mode).is_equal(M.PLACING)
 	await _stick(JOY_AXIS_LEFT_X, 0.0)
+
+func _list_after_one_down() -> int:
+	var want := BuildMenu.new()
+	want.set_state(9, false, false)
+	want.open()
+	want.move(1)
+	return want.highlighted
+
+func test_d_pad_moves_the_list_highlight() -> void:
+	_driftwood(9)
+	await _tap(JOY_BUTTON_Y)
+	await _tap(JOY_BUTTON_DPAD_DOWN)
+	assert_int(builder.menu.highlighted).is_equal(_list_after_one_down())
+
+func test_held_stick_moves_the_list_one_line() -> void:
+	_driftwood(9)
+	await _tap(JOY_BUTTON_Y)
+	for v: float in [0.6, 0.7, 0.9, 1.0]:   # an even count: on two lines, four steps would land back where it started
+		await _stick(JOY_AXIS_LEFT_Y, v)
+	assert_int(builder.menu.highlighted).is_equal(_list_after_one_down())
+	await _stick(JOY_AXIS_LEFT_Y, 0.0)
+
+func test_stick_in_the_list_does_not_walk() -> void:
+	_driftwood(9)
+	await _tap(JOY_BUTTON_Y)
+	var at := player.global_position
+	await _stick(JOY_AXIS_LEFT_X, 1.0)
+	await await_millis(200)
+	await _stick(JOY_AXIS_LEFT_X, 0.0)
+	assert_vector(player.global_position).is_equal(at)

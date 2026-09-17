@@ -142,13 +142,7 @@ func _shortcut_input(event: InputEvent) -> void:
 				open_list()
 				_handled()
 		Mode.LIST:
-			if event.is_action_pressed(&"menu_up", false):
-				menu.move(-1)
-				%BuildList.show_menu(menu)
-				_handled()
-			elif event.is_action_pressed(&"menu_down", false):
-				menu.move(1)
-				%BuildList.show_menu(menu)
+			if _list_step(InputDevice.menu_step(event)):
 				_handled()
 			elif event.is_action_pressed(&"build_accept", false):
 				if menu.highlighted >= 0:
@@ -170,11 +164,27 @@ func _shortcut_input(event: InputEvent) -> void:
 func _input(event: InputEvent) -> void:
 	if mode == Mode.BUILDING:
 		_handled()
+	elif mode == Mode.LIST and event is InputEventJoypadMotion:
+		# The only way the stick reaches the list: _shortcut_input never gets motion.
+		if _list_step(InputDevice.menu_step(event)):
+			_handled()
 	elif mode == Mode.PLACING:
 		var click := event as InputEventMouseButton
 		if click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
 			try_place()
 			_handled()
+
+## Up and down on the open list, one line per push; false for any other step.
+func _list_step(step: MenuPush.Step) -> bool:
+	match step:
+		MenuPush.Step.UP:
+			menu.move(-1)
+		MenuPush.Step.DOWN:
+			menu.move(1)
+		_:
+			return false
+	%BuildList.show_menu(menu)
+	return true
 
 func _handled() -> void:
 	get_viewport().set_input_as_handled()

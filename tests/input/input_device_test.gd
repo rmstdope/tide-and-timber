@@ -13,6 +13,18 @@ func before_test() -> void:
 
 func after_test() -> void:
 	InputDevice.reset()
+	_stick(JOY_AXIS_LEFT_X, 0.0)
+	_stick(JOY_AXIS_LEFT_Y, 0.0)
+	InputDevice.reset()
+
+func _stick(axis: JoyAxis, value: float) -> InputEventJoypadMotion:
+	var e := InputEventJoypadMotion.new()
+	e.device = 0
+	e.axis = axis
+	e.axis_value = value
+	Input.parse_input_event(e)
+	Input.flush_buffered_events()
+	return e
 
 func _pad(button: JoyButton, pressed: bool) -> void:
 	var e := InputEventJoypadButton.new()
@@ -57,3 +69,19 @@ func test_reset_emits_changed() -> void:
 	monitor_signals(InputDevice, false)
 	InputDevice.reset()
 	await assert_signal(InputDevice).is_emitted("changed")
+
+func test_menu_step_is_worked_out_before_handlers() -> void:
+	var e := _stick(JOY_AXIS_LEFT_Y, 1.0)
+	assert_int(InputDevice.menu_step(e)).is_equal(MenuPush.Step.DOWN)
+	assert_int(InputDevice.menu_step(e)).is_equal(MenuPush.Step.DOWN)
+
+func test_menu_step_held_stick_is_one_push() -> void:
+	_stick(JOY_AXIS_LEFT_Y, 1.0)
+	var e := _stick(JOY_AXIS_LEFT_Y, 0.9)
+	assert_int(InputDevice.menu_step(e)).is_equal(MenuPush.Step.NONE)
+
+func test_reset_rearms_the_stick() -> void:
+	_stick(JOY_AXIS_LEFT_Y, 1.0)
+	InputDevice.reset()
+	var e := _stick(JOY_AXIS_LEFT_Y, 1.0)
+	assert_int(InputDevice.menu_step(e)).is_equal(MenuPush.Step.DOWN)
