@@ -10,4 +10,4 @@
 
 **Prevent by:** For a single-suite run, keep `-rd` inside the git-ignored `reports/` directory (for example `-rd res://reports`). Alternatively, `.gitignore` could ignore everything the gate writes. Either way, check `git status` for unexpected directories before `git add -A`.
 
-**Seen before:** No.
+**Seen before:** Yes, in `tr-eg9.3.md` ("gdUnit4 report paths land inside the project, even absolute ones"), with the same cause and the same fix. The second time it happened, this time in a PR under review, suggests the fix belongs in a check (for example `.gitignore` or a gate step) rather than in memory.
