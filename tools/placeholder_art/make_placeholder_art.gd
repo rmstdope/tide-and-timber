@@ -1,29 +1,8 @@
 extends SceneTree
-## Draws the placeholder art in the mockup's palette. Real art replaces the PNGs at the same paths.
+## Draws the placeholder art still waiting for the pack: the man, the item icons and the glyphs.
 ## Run: godot --headless --path . --script res://tools/placeholder_art/make_placeholder_art.gd
 
-const TILE_COLOURS := [   # base, accent, in BeachLayout.Kind order
-	["#3f7a33", "#5a9a3e"], ["#e9c27f", "#f3d99c"], ["#d2a86a", "#c09658"], ["#bfe9ef", "#ffffff"],
-	["#5fb3c9", "#7fc6d8"], ["#2c6d91", "#245c7c"], ["#7a6a5a", "#5a4a3c"],
-]
-
 func _init() -> void:
-	var tiles := _blank(112, 16)
-	for i in TILE_COLOURS.size():
-		_rects(tiles, Vector2i(16 * i, 0), [[0, 0, 16, 16, TILE_COLOURS[i][0]],
-			[3, 4, 2, 2, TILE_COLOURS[i][1]], [11, 10, 2, 2, TILE_COLOURS[i][1]]])
-	_save(tiles, "res://assets/beach/tiles.png")
-
-	_save(_drawn(16, 16, [[2, 8, 12, 8, "#8a8378"], [4, 6, 8, 2, "#b1aa9c"]]), "res://assets/beach/rock.png")
-	_save(_drawn(32, 32, [[2, 10, 28, 22, "#7a6a5a"], [6, 4, 20, 6, "#8a8378"], [2, 28, 28, 4, "#5a4a3c"]]),
-		"res://assets/beach/boulder.png")
-	_save(_drawn(32, 48, [[13, 16, 6, 32, "#7a4a2a"], [2, 6, 28, 8, "#3f8a3a"], [6, 2, 20, 4, "#2f6e2d"],
-		[0, 14, 10, 4, "#3f8a3a"], [22, 14, 10, 4, "#3f8a3a"]]), "res://assets/beach/palm.png")
-	_save(_drawn(32, 8, [[1, 2, 30, 4, "#9c7048"], [4, 1, 6, 1, "#b8906a"]]), "res://assets/beach/driftwood.png")
-	_save(_drawn(4, 4, [[1, 0, 2, 4, "#fff8e8"], [0, 1, 4, 2, "#fff8e8"]]), "res://assets/beach/puff.png")
-	_save(_drawn(12, 4, [[2, 0, 8, 1, "#e6f7fb"], [0, 1, 2, 2, "#e6f7fb"], [10, 1, 2, 2, "#e6f7fb"],
-		[2, 3, 8, 1, "#e6f7fb"]]), "res://assets/beach/ripple.png")
-
 	var man := _blank(64, 96)
 	var faces := [   # per Walk.Facing row
 		[[6, 7, 1, 1, "#2a1a10"], [9, 7, 1, 1, "#2a1a10"]],
@@ -52,8 +31,6 @@ func _init() -> void:
 		_rects(wake, Vector2i(24 * i, 0), poses[i])
 	_save(wake, "res://assets/man/man_wake.png")
 
-	_save(_drawn(12, 6, [[1, 0, 10, 5, "#f1d6c8"], [2, 5, 8, 1, "#c98f86"], [4, 1, 1, 4, "#c98f86"],
-		[7, 1, 1, 4, "#c98f86"]]), "res://assets/beach/shellfish.png")
 	_save(_drawn(10, 10, [[0, 5, 10, 3, "#9c7048"], [1, 7, 8, 1, "#6e4a2c"], [6, 2, 2, 4, "#9c7048"]]),
 		"res://assets/items/driftwood.png")
 	_save(_drawn(10, 10, [[1, 3, 8, 5, "#f1d6c8"], [2, 7, 6, 1, "#c98f86"], [3, 4, 1, 3, "#c98f86"],
@@ -113,11 +90,6 @@ func _init() -> void:
 	for i in patterns.size():
 		_pattern(glyphs, Vector2i(4 * i, 0), patterns[i], Color("#ffffff"))
 	_save(glyphs, "res://assets/hud/glyphs.png")
-	_save(_drawn(10, 4, [[0, 0, 4, 4, "#6b4226"], [6, 0, 4, 4, "#6b4226"], [1, 1, 1, 1, "#8b5a36"],
-		[7, 1, 1, 1, "#8b5a36"]]), "res://assets/beach/palm_coconuts.png")
-	_save(_drawn(6, 6, [[0, 0, 6, 6, "#6b4226"], [1, 1, 2, 1, "#8b5a36"]]), "res://assets/beach/coconut.png")
-	_save(_drawn(32, 24, [[2, 0, 28, 14, "#8a8378"], [6, 3, 20, 8, "#7fd3e6"], [8, 4, 6, 1, "#cff3fa"],
-		[2, 11, 28, 3, "#625c53"], [14, 14, 3, 10, "#7fd3e6"]]), "res://assets/beach/spring.png")
 
 	quit()
 

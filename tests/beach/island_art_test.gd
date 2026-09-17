@@ -65,3 +65,54 @@ func test_rock_and_boulder_are_pack_crops() -> void:
 func test_vegetation_is_pack_crops() -> void:
 	_assert_crop("res://src/beach/props/bush.tscn", VEGETATION, Rect2(0, 0, 32, 32), Vector2(0, -16))
 	_assert_crop("res://src/beach/props/tuft.tscn", VEGETATION, Rect2(64, 144, 16, 16), Vector2(0, -8))
+
+const REPAINTED := [
+	"res://assets/beach/palm.png", "res://assets/beach/palm_coconuts.png", "res://assets/beach/coconut.png",
+	"res://assets/beach/driftwood.png", "res://assets/beach/spring.png", "res://assets/beach/shellfish.png",
+	"res://assets/beach/ripple.png", "res://assets/beach/puff.png",
+]
+const OUTLINED := [
+	"res://assets/beach/palm.png", "res://assets/beach/palm_coconuts.png", "res://assets/beach/coconut.png",
+	"res://assets/beach/driftwood.png", "res://assets/beach/spring.png", "res://assets/beach/shellfish.png",
+]
+
+func test_repainted_pieces_use_only_pack_colours() -> void:
+	for path: String in REPAINTED + [TILES]:
+		var image := _image(path)
+		var bad := ""
+		for y in image.get_height():
+			for x in image.get_width():
+				var c := image.get_pixel(x, y)
+				if bad == "" and ((c.a != 0.0 and c.a != 1.0) or (c.a == 1.0 and not PackPalette.has(c))):
+					bad = "%s (%d, %d) is #%s" % [path, x, y, c.to_html()]
+		assert_str(bad).is_empty()
+
+static func _luma(c: Color) -> float:
+	var lin := func(v: float) -> float: return v / 12.92 if v <= 0.04045 else pow((v + 0.055) / 1.055, 2.4)
+	return 0.2126 * lin.call(c.r) + 0.7152 * lin.call(c.g) + 0.0722 * lin.call(c.b)
+
+func test_outlined_pieces_are_shaded_like_the_pack() -> void:
+	for path: String in OUTLINED:
+		var image := _image(path)
+		var w := image.get_width()
+		var h := image.get_height()
+		var colours := {}
+		var edge: Array[Color] = []
+		for y in h:
+			for x in w:
+				var c := image.get_pixel(x, y)
+				if c.a != 1.0:
+					continue
+				colours[c.to_html(false)] = c
+				for d: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+					var n := Vector2i(x, y) + d
+					if n.x < 0 or n.y < 0 or n.x >= w or n.y >= h or image.get_pixelv(n).a != 1.0:
+						edge.append(c)
+						break
+		assert_int(colours.size()).override_failure_message(path).is_greater_equal(3)
+		var by_luma: Array = colours.keys()
+		by_luma.sort_custom(func(a: String, b: String) -> bool: return _luma(Color(a)) < _luma(Color(b)))
+		var darkest := by_luma.slice(0, 2)
+		var dark_edge := edge.filter(func(c: Color) -> bool: return darkest.has(c.to_html(false))).size()
+		assert_bool(dark_edge * 4 >= edge.size() * 3) \
+			.override_failure_message("%s: %d of %d edge pixels dark" % [path, dark_edge, edge.size()]).is_true()
