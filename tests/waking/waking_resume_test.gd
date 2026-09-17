@@ -85,3 +85,36 @@ func test_esc_pauses_after_continue_and_quit_warns_about_this_morning() -> void:
 	assert_bool((pause.get_node("%QuitBox") as Control).visible).is_true()
 	assert_str((pause.get_node("%SecondLine") as Label).text).is_equal("Anything since this morning will be lost.")
 
+
+func test_no_camp_in_the_save_no_camp_on_the_beach() -> void:
+	var b := _node("Beach").get_node("%Builder") as Builder
+	assert_object(b.lean_to).is_null()
+	assert_object(b.fire).is_null()
+
+func test_the_camp_comes_back_lit_and_goes_out_at_0700() -> void:
+	var data := _sample()
+	data.lean_to_cells = BuildSite.cells_for(BuildMenu.Thing.LEAN_TO, Vector2i(92, 11), Walk.Facing.DOWN)
+	data.has_fire = true
+	data.fire_cell = Vector2i(92, 14)
+	data.fire_lit = true
+	data.fire_out_at = 4680.0 + 60.0
+	data.clock_minutes = 4680.0
+	var g := auto_free(load("res://src/waking/waking.tscn").instantiate()) as Waking
+	g.resume_data = data
+	scene_runner(g)
+	g.set_process(false)
+	var d := g.get_node("%DayNight") as DayNight
+	d.set_process(false)
+	g.get_node("%Autosave").set_process(false)
+	var b := g.get_node("%Beach").get_node("%Builder") as Builder
+	assert_array(b.lean_to.cells).is_equal(data.lean_to_cells)
+	assert_vector(b.fire.cell).is_equal(Vector2i(92, 14))
+	assert_bool(b.fire.lit).is_true()
+	assert_bool(b.fire.glow.visible).is_true()
+	assert_float(d.clock.total_minutes).is_equal(4680.0)
+	d.clock.total_minutes = 4739.0
+	b.tick(0.0)
+	assert_bool(b.fire.lit).is_true()
+	d.clock.total_minutes = 4740.0
+	b.tick(0.0)
+	assert_bool(b.fire.lit).is_false()
