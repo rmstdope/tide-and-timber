@@ -24,7 +24,7 @@ var _shelter_line_pending := false       # lit, waiting for the sunset line to g
 func setup(p_inventory: Inventory) -> void:
 	inventory = p_inventory
 	_props = BuildSite.prop_cells()
-	%ShelterLine.get_node("Text").text = SHELTER_TEXT
+	(%ShelterLine as SpokenLine).say(SHELTER_TEXT)
 	%BuildList.row_hovered.connect(_on_row_hovered)
 	%BuildList.row_clicked.connect(_on_row_clicked)
 

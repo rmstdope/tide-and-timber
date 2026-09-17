@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://src/camp/build_list.gd" id="10_list"]
 [ext_resource type="Script" path="res://src/camp/key_hint.gd" id="11_hint"]
 [ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
+[ext_resource type="Script" path="res://src/hud/spoken_line.gd" id="spoken_line"]
 
 [node name="Beach" type="Node2D"]
 script = ExtResource("1_beach")
@@ -112,6 +113,7 @@ offset_top = 150.0
 offset_right = 308.0
 offset_bottom = 166.0
 mouse_filter = 2
+script = ExtResource("spoken_line")
 
 [node name="Band" type="ColorRect" parent="ShelterLineLayer/ShelterLine"]
 offset_right = 296.0

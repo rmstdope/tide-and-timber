@@ -1,0 +1,100 @@
+extends GdUnitTestSuite
+
+var _saved_size: Vector2i
+var _saved_mode: Window.ContentScaleMode
+
+func before_test() -> void:
+	_saved_size = get_tree().root.size
+	_saved_mode = get_tree().root.content_scale_mode
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	Display.use_prefs(DisplayPrefs.new())
+
+func after_test() -> void:
+	get_tree().root.size = _saved_size
+	get_tree().root.content_scale_mode = _saved_mode
+	Display.use_prefs(DisplayPrefs.new())
+
+func _label(n: String, w: float) -> Label:
+	var l := Label.new()
+	l.name = n
+	l.size = Vector2(w, 16)
+	l.add_theme_font_size_override(&"font_size", 8)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return l
+
+func _band_line(text_left := 0.0) -> SpokenLine:
+	var line := SpokenLine.new()
+	line.position = Vector2(12, 150)
+	line.size = Vector2(296, 16)
+	var band := ColorRect.new()
+	band.name = "Band"
+	band.size = Vector2(296, 16)
+	line.add_child(band)
+	var text := _label("Text", 296 - text_left)
+	text.position.x = text_left
+	line.add_child(text)
+	add_child(line)
+	auto_free(line)
+	return line
+
+func _bare_line() -> Label:
+	var l := _label("BlackLine", 320)
+	l.set_script(preload("res://src/hud/spoken_line.gd"))
+	l.set("grows_up", false)
+	l.position = Vector2(0, 82)
+	add_child(l)
+	auto_free(l)
+	return l
+
+func test_width_at_keeps_normal_width_while_it_fits() -> void:
+	assert_float(SpokenLine.width_at(296, 1.0)).is_equal(296.0)
+	assert_float(SpokenLine.width_at(320, 1.0)).is_equal(320.0)
+	assert_float(SpokenLine.width_at(296, 1.5)).is_equal(208.0)
+	assert_float(SpokenLine.width_at(296, 2.0)).is_equal(156.0)
+	assert_float(SpokenLine.width_at(296, 5.0 / 3.0)).is_equal(187.0)
+
+func test_normal_is_unchanged() -> void:
+	var line := _band_line()
+	line.say("That should see me through the night.")
+	line.fit(1.0)
+	var text := line.get_node("Text") as Label
+	assert_vector(line.position).is_equal(Vector2(12, 150))
+	assert_vector(line.size).is_equal(Vector2(296, 16))
+	assert_int(text.autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
+	assert_vector((line.get_node("Band") as Control).size).is_equal(Vector2(296, 16))
+
+func test_largest_wraps_and_grows_up() -> void:
+	var line := _band_line()
+	line.say("That should see me through the night.")
+	line.fit(2.0)
+	var text := line.get_node("Text") as Label
+	assert_float(line.size.x).is_equal(156.0)
+	assert_float(line.position.x).is_equal(82.0)
+	assert_int(text.get_line_count()).is_greater_equal(2)
+	assert_float(line.position.y + line.size.y).is_equal(166.0)
+	assert_vector((line.get_node("Band") as Control).size).is_equal(line.size)
+	assert_float(text.get_minimum_size().y).is_less_equal(text.size.y)
+
+func test_centred_line_grows_about_its_centre() -> void:
+	var l := _bare_line()
+	(l as Object).call("say", "So cold... just... rest a moment...")
+	(l as Object).call("fit", 2.0)
+	assert_float(l.size.x).is_equal(156.0)
+	assert_float(l.position.y + l.size.y / 2.0).is_equal_approx(90.0, 0.5)
+
+func test_text_left_is_kept() -> void:
+	var line := _band_line(16)
+	line.say("Another morning. Still here.")
+	line.fit(2.0)
+	assert_float((line.get_node("Text") as Control).size.x).is_equal(line.size.x - 16)
+
+func test_refits_on_display_changed() -> void:
+	get_tree().root.size = Vector2i(640, 360)
+	var line := _band_line()
+	line.say("That should see me through the night.")
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
+	assert_float(line.size.x).is_equal(156.0)
+	Display.use_prefs(DisplayPrefs.new())
+	assert_float(line.size.x).is_equal(296.0)
+	assert_float(line.size.y).is_equal(16.0)

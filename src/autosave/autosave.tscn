@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://src/autosave/journal_icon.gd" id="2_journal"]
 [ext_resource type="StyleBox" path="res://src/title/plank.tres" id="3_plank"]
 [ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
+[ext_resource type="Script" path="res://src/hud/spoken_line.gd" id="spoken_line"]
 
 [node name="Autosave" type="Node"]
 process_mode = 3
@@ -22,6 +23,7 @@ offset_top = 150.0
 offset_right = 308.0
 offset_bottom = 166.0
 mouse_filter = 2
+script = ExtResource("spoken_line")
 
 [node name="Band" type="ColorRect" parent="Line/Dawn"]
 layout_mode = 0
