@@ -11,17 +11,27 @@ const SURF_VOLUME := 0.6                # the intro's surf volume, so the cut fr
 var wake := WakeUp.new()
 var player: Player
 var _last_position := Vector2.ZERO
+var resume_data: SaveData = null        # set before the node enters the tree; null means a new game's waking
 
 func _ready() -> void:
 	player = %Beach.get_node("%Player")
 	%Beach.set_day_night(%DayNight)
-	ManFrames.add_waking(player.get_node("%Sprite").sprite_frames, WAKE_SHEET)
-	player.control_enabled = false
-	player.global_position = BeachLayout.cell_centre(WAKE_CELL)
-	(%Beach.get_node("%Camera") as LooseCamera).snap_to_target()
-	%Beach.get_node("%Decor").add_child(WaveWash.new())
-	_last_position = player.global_position
-	wake.control_given.connect(_on_control_given)
+	if resume_data == null:
+		ManFrames.add_waking(player.get_node("%Sprite").sprite_frames, WAKE_SHEET)
+		player.control_enabled = false
+		player.global_position = BeachLayout.cell_centre(WAKE_CELL)
+		(%Beach.get_node("%Camera") as LooseCamera).snap_to_target()
+		%Beach.get_node("%Decor").add_child(WaveWash.new())
+		_last_position = player.global_position
+		wake.control_given.connect(_on_control_given)
+	else:
+		player.give_control()   # before restore: it resets facing to DOWN
+		if not %Beach.restore(resume_data):
+			push_error("Waking: the save was refused")
+		%DayNight.clock.total_minutes = resume_data.clock_minutes
+		wake.resume()
+		_last_position = player.global_position
+		%DayNight.start()
 	%DayNight.time_scale = Preview.parse_args(OS.get_cmdline_user_args()).speed   # --clock-speed=N, a developer speed-up
 	_refresh()
 	%Autosave.watch(%Beach, %DayNight)
