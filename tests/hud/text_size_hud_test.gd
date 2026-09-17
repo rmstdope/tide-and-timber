@@ -87,3 +87,39 @@ func test_move_hint_band_grows_and_lifts_above_the_bar() -> void:
 	await get_tree().process_frame
 	assert_vector(move_hint.size).is_equal_approx(Vector2(320, 14), Vector2(0.01, 0.01))
 	assert_float(move_hint.position.y).is_equal_approx(166.0, 0.01)
+
+# --- the clock ---
+
+func test_clock_plank_widens_and_grows_taller() -> void:
+	var dn := _scene("res://src/day_night/day_night.tscn")
+	var plank := dn.get_node("%Plank") as Control
+	var day := dn.get_node("%DayLabel") as Label
+	var dial := dn.get_node("%Dial") as Control
+	var time := dn.get_node("%TimeLabel") as Label
+	Display.prefs.step(Setting.TEXT_SIZE, 1)
+	assert_vector(plank.size).is_equal_approx(Vector2(68, 62), Vector2(0.01, 0.01))
+	assert_vector(day.scale).is_equal_approx(Vector2(1.5, 1.5), Vector2(0.01, 0.01))
+	assert_vector(day.position).is_equal_approx(Vector2(0, 5), Vector2(0.01, 0.01))
+	assert_vector(dial.position).is_equal_approx(Vector2(2, 18), Vector2(0.01, 0.01))
+	assert_vector(dial.size).is_equal_approx(Vector2(64, 28), Vector2(0.01, 0.01))
+	assert_vector(time.position).is_equal_approx(Vector2(0, 47), Vector2(0.01, 0.01))
+	assert_vector(time.scale).is_equal_approx(Vector2(1.5, 1.5), Vector2(0.01, 0.01))
+	Display.prefs.step(Setting.TEXT_SIZE, 1)
+	assert_vector(plank.size).is_equal_approx(Vector2(88, 70), Vector2(0.01, 0.01))
+	assert_vector(dial.position).is_equal_approx(Vector2(12, 22), Vector2(0.01, 0.01))
+	assert_float(time.position.y).is_equal_approx(51.0, 0.01)
+	Display.use_prefs(DisplayPrefs.new())
+	assert_vector(plank.size).is_equal_approx(Vector2(64, 54), Vector2(0.01, 0.01))
+	assert_vector(dial.position).is_equal_approx(Vector2(0, 14), Vector2(0.01, 0.01))
+	assert_vector(time.position).is_equal_approx(Vector2(0, 43), Vector2(0.01, 0.01))
+	assert_vector(day.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
+	assert_vector(time.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
+	assert_vector(plank.position).is_equal_approx(Vector2(4, 4), Vector2(0.01, 0.01))
+	assert_bool((dn.get_node("%Hud") as CanvasLayer).transform == Transform2D.IDENTITY).is_true()
+
+func test_clock_refits_when_the_day_gets_a_digit() -> void:
+	var dn := _scene("res://src/day_night/day_night.tscn")
+	Display.prefs.step(Setting.TEXT_SIZE, 2)
+	dn.set_minutes(GameClock.START_MINUTES + 9 * GameClock.MINUTES_PER_DAY)
+	assert_str((dn.get_node("%DayLabel") as Label).text).is_equal("DAY 10")
+	assert_float((dn.get_node("%Plank") as Control).size.x).is_equal_approx(104.0, 0.01)
