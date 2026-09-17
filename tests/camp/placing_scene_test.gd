@@ -12,6 +12,7 @@ var builder: Builder
 var inventory: Inventory
 
 func before_test() -> void:
+	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
 	runner = scene_runner(SCENE)
 	beach = runner.scene() as Beach
@@ -111,6 +112,21 @@ func test_red_on_rock_and_press_ignored() -> void:
 	assert_int(builder.mode).is_equal(M.PLACING)
 	assert_int(inventory.count(Item.Kind.DRIFTWOOD)).is_equal(9)
 
+func test_shapes_cross_on_rock() -> void:
+	Display.prefs.step(DisplayPrefs.Setting.CUES, 1)
+	await _choose_lean_to_at(Vector2i(99, 11), F.DOWN)
+	assert_bool((_n("Ghost") as BuildGhost).ok).is_false()
+	assert_bool((_n("Ghost") as BuildGhost).shows_cross()).is_true()
+	await _press(KEY_E)
+	assert_int(builder.mode).is_equal(M.PLACING)
+	assert_int(inventory.count(Item.Kind.DRIFTWOOD)).is_equal(9)
+
+func test_shapes_leaves_a_good_spot_plain() -> void:
+	Display.prefs.step(DisplayPrefs.Setting.CUES, 1)
+	await _choose_lean_to_at(Vector2i(92, 11), F.DOWN)
+	assert_bool((_n("Ghost") as BuildGhost).ok).is_true()
+	assert_bool((_n("Ghost") as BuildGhost).shows_cross()).is_false()
+
 func test_red_over_driftwood() -> void:
 	await _choose_lean_to_at(Vector2i(88, 11), F.DOWN)
 	assert_bool(_n("Ghost").ok).is_false()
@@ -158,6 +174,7 @@ func test_e_while_placing_does_not_take_things() -> void:
 	assert_int(wood.size()).is_equal(BeachLayout.DRIFTWOOD.size())
 
 func after_test() -> void:
+	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.use_controls(Controls.new())
 
 func _key(code: Key) -> InputEventKey:
