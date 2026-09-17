@@ -50,3 +50,5 @@ func test_story_has_no_outline_layer() -> void:
 	await _tap(KEY_ENTER)
 	assert_bool(DebugSwitches.collision_areas).is_true()
 	await runner.simulate_frames(2)
+	assert_object(intro.get_node_or_null("DebugOutlineLayer")).is_null()
+	assert_bool((intro.get_node("DebugReadoutLayer/Readout") as DebugReadout).visible).is_false()

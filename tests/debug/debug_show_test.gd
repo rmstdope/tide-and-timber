@@ -84,7 +84,8 @@ func test_tile_edges_outline_a_solid_block() -> void:
 	assert_bool(found).is_true()
 
 func test_tile_edges_off_map_neighbour_is_open() -> void:
-	var solid := func(c: Vector2i) -> bool: return c == Vector2i.ZERO
+	var solid := func(c: Vector2i) -> bool: \
+		return c == Vector2i.ZERO or not Rect2i(Vector2i.ZERO, BeachLayout.MAP_SIZE).has_point(c)   # off-map asks true; the guard must ignore it
 	assert_int(DebugShow.tile_edges(Rect2i(0, 0, 1, 1), solid).size()).is_equal(8)
 
 func test_solid_rects_include_shapes_under_world() -> void:
