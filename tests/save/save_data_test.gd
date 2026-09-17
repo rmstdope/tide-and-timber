@@ -125,6 +125,9 @@ func test_ash_fire_writes_no_out_at() -> void:
 	s.fire_lit = false
 	assert_dict(s.to_files()["world"]["camp"]["fire"]).is_equal({"x": 92, "y": 14, "lit": false})
 	assert_bool(SaveData.from_files(_camp_json(s)).fire_lit).is_false()
+	var files := _camp_json(s)
+	files["world"]["camp"]["fire"]["out_at"] = 1860.0
+	assert_float(SaveData.from_files(files).fire_out_at).is_equal(INF)
 
 func test_lit_fire_without_clock_writes_no_out_at() -> void:
 	var s := _camp_sample()

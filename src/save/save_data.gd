@@ -127,7 +127,8 @@ static func _read_camp(world: Dictionary, data: SaveData) -> bool:
 		if fire.has("out_at"):
 			if not _is_number(fire["out_at"]):
 				return false
-			data.fire_out_at = float(fire["out_at"])
+			if fire["lit"]:
+				data.fire_out_at = float(fire["out_at"])
 		data.has_fire = true
 		data.fire_cell = Vector2i(int(fire["x"]), int(fire["y"]))
 		data.fire_lit = fire["lit"]

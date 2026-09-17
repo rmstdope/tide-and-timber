@@ -161,6 +161,7 @@ func _bad_camps() -> Array[SaveData]:
 		_with_camp(_data(_empty_slots(8), {}), swapped, false, FIRE_CELL),
 		_with_camp(_data(_empty_slots(8), {}), BuildSite.cells_for(LEAN, Vector2i(92, 13), Walk.Facing.DOWN), false, FIRE_CELL),
 		_with_camp(_data(_empty_slots(8), {}), _good_cells(), true, Vector2i(93, 14)),
+		_with_camp(_data(_empty_slots(8), {}), _good_cells().slice(0, 5), false, FIRE_CELL),
 	]
 
 func test_camp_restores_into_a_fresh_beach() -> void:
