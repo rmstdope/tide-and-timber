@@ -8,14 +8,27 @@ signal resume_requested    # the Pause input, opened from the pause board: the o
 
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
-const BOARD_X := 88.0
-const BOARD_W := 144.0
-const BOARD_H_ONE := 56.0      # heading, one plank, bottom margin; plus PLANK_STEP per extra plank
-const PLANK_X := 12.0
+const BOARD_X := 8.0
+const BOARD_W := 304.0
+const BOARD_H := 138.0          # heading, four rows, the two-line explaining line, bottom margin
+const PLANK_X := 52.0           # rows centred: (304 - 200) / 2
 const PLANK_TOP := 28.0
 const PLANK_STEP := 20.0
-const PLANK_SIZE := Vector2(120, 16)
+const PLANK_SIZE := Vector2(200, 16)
 const BASE_HEIGHT := 180.0
+const TEXT := Color(1, 0.964706, 0.878431, 1)
+const ARROW_DIM := Color(0.627451, 0.501961, 0.376471, 1)   # #a08060, an end's arrow
+const VALUE_WORDS := {
+	DisplayPrefs.Setting.UI_SIZE: ["Normal", "Large", "Largest"],
+	DisplayPrefs.Setting.TEXT_SIZE: ["Normal", "Large", "Largest"],
+	DisplayPrefs.Setting.CUES: ["Standard", "Shapes"],
+}
+const LINES := {
+	SettingsMenu.Plank.UI_SIZE: "Makes the clock, item bar, hints and menus bigger.",
+	SettingsMenu.Plank.TEXT_SIZE: "Makes every word bigger.",
+	SettingsMenu.Plank.COLOUR_CUES: "Adds shapes to warnings shown in colour.",
+	SettingsMenu.Plank.CONTROLS: "Change any key or controller button.",
+}
 
 var rules := SettingsMenu.new()
 var strip: MenuStrip
@@ -24,9 +37,8 @@ var open_controls: Callable = _open_controls   # tests replace it
 func _ready() -> void:
 	%ControlsPage.closed.connect(_on_controls_closed)
 	%ControlsPage.resume_requested.connect(_on_controls_resume)
-	var h := BOARD_H_ONE + (rules.items.size() - 1) * PLANK_STEP
-	%Panel.position = Vector2(BOARD_X, (BASE_HEIGHT - h) / 2.0)
-	%Panel.size = Vector2(BOARD_W, h)
+	%Panel.position = Vector2(BOARD_X, (BASE_HEIGHT - BOARD_H) / 2.0)
+	%Panel.size = Vector2(BOARD_W, BOARD_H)
 	for i in rules.items.size():
 		var item := rules.items[i]
 		var plank := _plank(item)
@@ -39,9 +51,23 @@ func _ready() -> void:
 			elif _is_left_press(event):
 				_apply(rules.pick(item))
 				_refresh())
+	# The arrows stop the mouse, so they carry their row's hover as well as their own step.
+	for item: SettingsMenu.Plank in SettingsMenu.SETTING_OF:
+		for pair: Array in [[_plank(item).get_node("Row/Prev"), -1], [_plank(item).get_node("Row/Next"), 1]]:
+			var arrow: Control = pair[0]
+			var delta: int = pair[1]
+			arrow.gui_input.connect(func(event: InputEvent) -> void:
+				if PointerRule.is_move(event):
+					rules.hover(item)
+					_refresh()
+				elif _is_left_press(event):
+					rules.change(item, delta, Display.prefs)
+					_refresh()
+					arrow.accept_event())
 	strip = MenuStrip.new()
 	add_child(strip)   # last child: above the panel
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
+	Display.changed.connect(_refresh)
 	_refresh()
 
 ## Opens the board. from_pause: opened from the Paused board.
@@ -70,6 +96,10 @@ func _input(event: InputEvent) -> void:
 		rules.move(-1)
 	elif step == MenuPush.Step.DOWN:
 		rules.move(1)
+	elif step == MenuPush.Step.LEFT:
+		rules.change(rules.highlighted, -1, Display.prefs)   # handled even at an end: the board is modal
+	elif step == MenuPush.Step.RIGHT:
+		rules.change(rules.highlighted, 1, Display.prefs)
 	elif step == MenuPush.Step.SELECT:
 		_apply(rules.pick(rules.highlighted))
 	elif step == MenuPush.Step.BACK:
@@ -103,12 +133,27 @@ func _refresh() -> void:
 	for item: SettingsMenu.Plank in rules.items:
 		_plank(item).add_theme_stylebox_override("panel",
 				PLANK_HIGHLIGHT_STYLE if rules.highlighted == item else PLANK_STYLE)
+	for item: SettingsMenu.Plank in SettingsMenu.SETTING_OF:
+		var s: DisplayPrefs.Setting = SettingsMenu.SETTING_OF[item]
+		var v := Display.prefs.value(s)
+		var row := _plank(item)
+		(row.get_node("Row/Value") as Label).text = VALUE_WORDS[s][v]
+		row.get_node("Row/Prev").add_theme_color_override("font_color", ARROW_DIM if v == 0 else TEXT)
+		row.get_node("Row/Next").add_theme_color_override("font_color",
+				ARROW_DIM if v == DisplayPrefs.count(s) - 1 else TEXT)
+	%Line.text = LINES[rules.highlighted]
 
 func _exit_tree() -> void:
 	InputDevice.set_menu_open(self, false)
 
 func _plank(item: SettingsMenu.Plank) -> Control:
 	match item:
+		SettingsMenu.Plank.UI_SIZE:
+			return %UiSize
+		SettingsMenu.Plank.TEXT_SIZE:
+			return %TextSize
+		SettingsMenu.Plank.COLOUR_CUES:
+			return %ColourCues
 		SettingsMenu.Plank.CONTROLS:
 			return %Controls
 	assert(false, "no node for plank %d" % item)

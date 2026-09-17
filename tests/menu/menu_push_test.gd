@@ -35,6 +35,9 @@ func _steps(events: Array) -> Array:
 		out.append(push.read(e))
 	return out
 
+func test_a_and_d_step_left_and_right() -> void:
+	assert_array(_steps([_key(KEY_A), _key(KEY_D)])).is_equal([S.LEFT, S.RIGHT])
+
 func test_keys_give_their_step() -> void:
 	assert_array(_steps([_key(KEY_UP), _key(KEY_W), _key(KEY_DOWN), _key(KEY_S), _key(KEY_LEFT),
 			_key(KEY_RIGHT), _key(KEY_ENTER), _key(KEY_SPACE), _key(KEY_ESCAPE)])) \

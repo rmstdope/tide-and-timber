@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 const EXPECTED := {
 	"display/window/size/viewport_width": 320,
 	"display/window/size/viewport_height": 180,
-	"display/window/stretch/mode": "viewport",
+	"display/window/stretch/mode": "canvas_items",
 	"display/window/stretch/aspect": "keep",
 	"display/window/stretch/scale_mode": "integer",
 	"rendering/textures/canvas_textures/default_texture_filter": 0,
@@ -65,10 +65,12 @@ func test_pause_action_is_bound() -> void:
 	assert_bool(InputMap.event_is_action(event, "pause")).is_true()
 
 func test_box_actions_are_bound() -> void:
-	var keys := {"menu_left": KEY_LEFT, "menu_right": KEY_RIGHT, "menu_cancel": KEY_ESCAPE}
-	for action: String in keys:
+	var keys := [["menu_left", KEY_LEFT], ["menu_left", KEY_A], ["menu_right", KEY_RIGHT], ["menu_right", KEY_D],
+			["menu_cancel", KEY_ESCAPE]]
+	for pair: Array in keys:
+		var action: String = pair[0]
 		var e := InputEventKey.new()
-		e.physical_keycode = keys[action]
+		e.physical_keycode = pair[1]
 		e.pressed = true
 		assert_bool(InputMap.has_action(action) and InputMap.event_is_action(e, action)) \
 			.override_failure_message("%s key" % action).is_true()
