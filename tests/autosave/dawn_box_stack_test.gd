@@ -39,9 +39,9 @@ func _n(unique: String) -> Control:
 func _rect(unique: String) -> Rect2:
 	return Rect2(_n(unique).position, _n(unique).size)
 
+## The rest layout, before framing: the box now scrolls whenever it stacks.
 func _panel_rect() -> Rect2:
-	var p: Control = autosave.get_node("BoxLayer/Box/Panel")
-	return Rect2(p.position, p.size)
+	return autosave._box.panel
 
 func _fail_dawn(more: Array = []) -> void:
 	results.append(ERR_FILE_CANT_WRITE)
@@ -88,19 +88,15 @@ func test_stacks_at_large() -> void:
 func test_unstacks_keeping_the_highlight() -> void:
 	_size_up(2)
 	_fail_dawn()
-	await _key(KEY_DOWN)
+	await _key(KEY_RIGHT)
 	Display.use_prefs(DisplayPrefs.new())
 	_assert_normal()
 	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
 	_highlighted("KeepPlaying")
 
-func test_up_down_move_between_stacked_buttons() -> void:
+func test_left_right_move_between_stacked_buttons() -> void:
 	_size_up(2)
 	_fail_dawn()
-	await _key(KEY_DOWN)
-	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
-	await _key(KEY_UP)
-	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
 	await _key(KEY_RIGHT)
 	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
 	await _key(KEY_LEFT)
