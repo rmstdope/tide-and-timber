@@ -18,7 +18,7 @@ const SIZES := {
 	"res://assets/beach/palm_coconuts.png": Vector2i(10, 4),
 	"res://assets/beach/coconut.png": Vector2i(6, 6),
 	"res://assets/beach/spring.png": Vector2i(32, 24),
-	"res://assets/hud/glyphs.png": Vector2i(344, 5),
+	"res://assets/hud/glyphs.png": Vector2i(348, 5),
 }
 
 func test_art_sizes() -> void:
