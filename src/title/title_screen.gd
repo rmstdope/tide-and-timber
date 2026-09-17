@@ -153,11 +153,9 @@ func _input(event: InputEvent) -> void:
 	var step := InputDevice.menu_step(event)
 	if menu.box != TitleMenu.Box.NONE:
 		# Wheel events are not menu steps, so they are read before the match, never inside it.
-		var click := event as InputEventMouseButton
-		if click != null and click.pressed and \
-				(click.button_index == MOUSE_BUTTON_WHEEL_UP or click.button_index == MOUSE_BUTTON_WHEEL_DOWN):
-			_push_box(BoxLayout.Push.WHEEL_UP if click.button_index == MOUSE_BUTTON_WHEEL_UP \
-					else BoxLayout.Push.WHEEL_DOWN)
+		var wheel := BoxLayout.wheel_push(event)
+		if wheel != -1:
+			_push_box(wheel as BoxLayout.Push)
 			_refresh()
 			get_viewport().set_input_as_handled()
 			return
@@ -294,9 +292,7 @@ func _push_box(push: BoxLayout.Push) -> void:
 ## The centre one mark is drawn on, in that box's Marks units: the box's horizontal centre, in the
 ## top mark row (up) or the bottom one.
 func box_mark_centre(which: TitleMenu.Box, up: bool) -> Vector2:
-	var marks := _box_marks(which)
-	return Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0) if up \
-			else Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0)
+	return ScrollWindow.mark_centre(Rect2(Vector2.ZERO, _box_marks(which).size), up)
 
 func _box_marks(which: TitleMenu.Box) -> Control:
 	return (%StartOverBox if which == TitleMenu.Box.START_OVER else %ReplaceBox).get_node("Marks") as Control
@@ -398,11 +394,8 @@ func _choice_extent(choice: TitleMenu.Choice) -> Vector2:
 			break
 		y += h
 	var selectable := menu.selectable()
-	if choice == selectable[0]:
-		top = 0.0
-	if choice == selectable[selectable.size() - 1]:
-		bottom = m.size.y
-	return Vector2(top, bottom)
+	return ScrollWindow.stretch_ends(Vector2(top, bottom), m.size.y,
+			choice == selectable[0], choice == selectable[selectable.size() - 1])
 
 func _plank_for(choice: TitleMenu.Choice) -> Control:
 	match choice:
@@ -417,9 +410,9 @@ func _plank_for(choice: TitleMenu.Choice) -> Control:
 func _draw_menu_marks() -> void:
 	var marks := %MenuMarks as Control
 	if shows_menu_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(160, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
 	if shows_menu_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(160, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
 	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE

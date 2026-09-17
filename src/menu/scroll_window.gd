@@ -39,6 +39,17 @@ static func band(canvas_transform: Transform2D, strip_top: float) -> Vector2:
 	return Vector2(ceilf((inv * Vector2(0, EDGE)).y - EPSILON),
 			floorf((inv * Vector2(0, strip_top - EDGE)).y + EPSILON))
 
+## An end item's extent reaches the content's edge, so moving to it brings what frames the list into view.
+## span is the item's own (top, bottom) in content units; the result is what follow() should be given.
+static func stretch_ends(span: Vector2, content_height: float, first: bool, last: bool) -> Vector2:
+	return Vector2(0.0 if first else span.x, content_height if last else span.y)
+
+## The centre of the ▲ (up) or ▼ mark row inside area: horizontally centred on area, vertically in the
+## MARK_ROW-deep row just inside area's top or bottom edge. area is in the units the mark is drawn in.
+static func mark_centre(area: Rect2, up: bool) -> Vector2:
+	var y := (area.position.y + MARK_ROW / 2.0) if up else (area.end.y - MARK_ROW / 2.0)
+	return Vector2(area.position.x + area.size.x / 2.0, y)
+
 ## The baseline origin that centres one mark glyph on centre.
 static func mark_origin(font: Font, centre: Vector2, up: bool) -> Vector2:
 	var glyph := "▲" if up else "▼"

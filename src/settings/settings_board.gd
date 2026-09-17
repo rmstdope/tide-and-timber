@@ -167,12 +167,8 @@ func _content_height() -> float:
 func _item_extent(item: SettingsMenu.Plank) -> Vector2:
 	var p := _plank(item)
 	var top := p.position.y - HEADING_TOP
-	var bottom := top + p.size.y
-	if item == rules.items[0]:
-		top = 0.0
-	if item == rules.items[rules.items.size() - 1]:
-		bottom = _content_height()
-	return Vector2(top, bottom)
+	return ScrollWindow.stretch_ends(Vector2(top, top + p.size.y), _content_height(),
+			item == rules.items[0], item == rules.items[rules.items.size() - 1])
 
 func _frame() -> void:
 	if not is_inside_tree() or strip == null:
@@ -184,9 +180,7 @@ func _frame() -> void:
 ## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
 ## mark row kept at the panel's top or bottom.
 func mark_centre(up: bool) -> Vector2:
-	var marks := %Marks as Control
-	var y := ScrollWindow.MARK_ROW / 2.0 if up else marks.size.y - ScrollWindow.MARK_ROW / 2.0
-	return Vector2(marks.size.x / 2.0, y)
+	return ScrollWindow.mark_centre(Rect2(Vector2.ZERO, (%Marks as Control).size), up)
 
 func _draw_marks() -> void:
 	var marks := %Marks as Control

@@ -136,10 +136,9 @@ func _content_height() -> float:
 
 ## Row i's top and bottom in the content's own units. The first row reaches the title, the last the bottom.
 func _item_extent(i: int) -> Vector2:
-	var top := 0.0 if i == 0 else _row_tops()[i] - CONTENT_TOP
-	var bottom := _content_height() if i == BuildMenu.LINE_COUNT - 1 \
-			else _row_tops()[i] + _row_size().y - CONTENT_TOP
-	return Vector2(top, bottom)
+	var top := _row_tops()[i] - CONTENT_TOP
+	return ScrollWindow.stretch_ends(Vector2(top, top + _row_size().y), _content_height(),
+			i == 0, i == BuildMenu.LINE_COUNT - 1)
 
 ## True when a list side_by_side_width wide, drawn at scale s, is wider than the screen.
 static func stacks(side_by_side_width: float, s: float) -> bool:
@@ -241,9 +240,9 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, box), BORDER)
 	draw_rect(Rect2(1, 1, box.x - 2, box.y - 2), FILL)
 	if shows_mark_above():
-		ScrollWindow.draw_mark(self, Vector2(box.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, box), true), true)
 	if shows_mark_below():
-		ScrollWindow.draw_mark(self, Vector2(box.x / 2.0, box.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, box), false), false)
 
 ## The highlight line, drawn on content so it scrolls and clips with the rows.
 func _draw_highlight() -> void:

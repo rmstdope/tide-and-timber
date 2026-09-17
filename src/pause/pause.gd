@@ -137,7 +137,7 @@ func _input(event: InputEvent) -> void:
 	var step := InputDevice.menu_step(event)
 	if rules.box_open:
 		# The wheel is not a menu step: read it before the match, or the _ arm swallows it.
-		var wheel := _wheel_push(event)
+		var wheel := BoxLayout.wheel_push(event)
 		if wheel != -1:
 			_push_quit_box(wheel as BoxLayout.Push)
 			_refresh()
@@ -270,12 +270,8 @@ func _content_height() -> float:
 func _item_extent(item: PauseMenu.Plank) -> Vector2:
 	var p := _plank(item)
 	var top := p.position.y - HEADING_TOP
-	var bottom := top + p.size.y
-	if item == rules.items[0]:
-		top = 0.0
-	if item == rules.items[rules.items.size() - 1]:
-		bottom = _content_height()
-	return Vector2(top, bottom)
+	return ScrollWindow.stretch_ends(Vector2(top, top + p.size.y), _content_height(),
+			item == rules.items[0], item == rules.items[rules.items.size() - 1])
 
 func _frame() -> void:
 	if not is_inside_tree() or strip == null:
@@ -290,9 +286,7 @@ func _frame_later() -> void:
 ## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
 ## mark row kept at the panel's top or bottom.
 func mark_centre(up: bool) -> Vector2:
-	var marks := %Marks as Control
-	var y := ScrollWindow.MARK_ROW / 2.0 if up else marks.size.y - ScrollWindow.MARK_ROW / 2.0
-	return Vector2(marks.size.x / 2.0, y)
+	return ScrollWindow.mark_centre(Rect2(Vector2.ZERO, (%Marks as Control).size), up)
 
 func _draw_marks() -> void:
 	var marks := %Marks as Control
@@ -307,17 +301,6 @@ func _fit_quit_box() -> void:
 	var nodes: Array[Control] = [%FirstLine, %SecondLine]
 	_quit_box = _quit_normal.at(UiScale.current(Display.prefs, get_tree().root), %Stay.size, %Quit.size, BoxLayout.label_heights(labels))
 	_quit_box.place(%QuitBox.get_node("Panel"), nodes, %Stay, %Quit)
-
-## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
-func _wheel_push(event: InputEvent) -> int:
-	var click := event as InputEventMouseButton
-	if click == null or not click.pressed:
-		return -1
-	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
-		return BoxLayout.Push.WHEEL_UP
-	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-		return BoxLayout.Push.WHEEL_DOWN
-	return -1
 
 ## One push or wheel notch on the open quit box: the highlight and the scroll, by BoxLayout's rule.
 func _push_quit_box(push: BoxLayout.Push) -> void:
@@ -349,9 +332,9 @@ func _draw_quit_marks() -> void:
 		return
 	var marks: Control = _quit_panel().get_node("Marks")
 	if _quit_frame.shows_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
 	if _quit_frame.shows_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _open_settings() -> void:
 	%SettingsBoard.open(true)

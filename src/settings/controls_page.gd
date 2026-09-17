@@ -98,17 +98,6 @@ func _fit_box() -> void:
 		_box_layout = _box_layout.one_button()
 	_box_layout.place(%Box.get_node("Panel"), nodes, %Safe, %Other)
 
-## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
-func _wheel_push(event: InputEvent) -> int:
-	var click := event as InputEventMouseButton
-	if click == null or not click.pressed:
-		return -1
-	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
-		return BoxLayout.Push.WHEEL_UP
-	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-		return BoxLayout.Push.WHEEL_DOWN
-	return -1
-
 ## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
 func _push_box(push: BoxLayout.Push) -> void:
 	if _box_frame == null:
@@ -146,10 +135,9 @@ func _draw_box_marks() -> void:
 		return
 	var marks: Control = _box_panel().get_node("Marks")
 	if _box_frame.shows_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
 	if _box_frame.shows_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0),
-				false)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _restack() -> void:
 	var now := stacks_at(get_global_transform_with_canvas().get_scale().x) if is_inside_tree() else false
@@ -204,9 +192,8 @@ static func content_bottom(p_stacked := false) -> float:
 ## and tabs; the Reset row reaches down to include the no-key line and the fixed lines.
 static func row_extent(r: int, p_stacked := false) -> Vector2:
 	var rect := row_rect(r, p_stacked)
-	var top := 0.0 if r == 0 else rect.position.y - CONTENT_TOP
-	var bottom := content_bottom(p_stacked) - CONTENT_TOP if r == ControlsMenu.RESET_ROW else rect.end.y - CONTENT_TOP
-	return Vector2(top, bottom)
+	return ScrollWindow.stretch_ends(Vector2(rect.position.y - CONTENT_TOP, rect.end.y - CONTENT_TOP),
+			content_bottom(p_stacked) - CONTENT_TOP, r == 0, r == ControlsMenu.RESET_ROW)
 
 ## How far content is drawn down from where it sits unscrolled (negative when scrolled): 0 while it fits.
 func shift() -> float:
@@ -333,7 +320,7 @@ func _input(event: InputEvent) -> void:
 	# The wheel is not a menu step: read it first, or the _ arm swallows it. Only while a box is up,
 	# and after the capture and WAITING guards, so a notch can never be taken for a key being captured.
 	if rules.box != ControlsMenu.Box.NONE:
-		var wheel := _wheel_push(event)
+		var wheel := BoxLayout.wheel_push(event)
 		if wheel != -1:
 			_push_box(wheel as BoxLayout.Push)
 			_refresh()
@@ -546,10 +533,13 @@ func _draw() -> void:
 		return
 	draw_rect(Rect2(0, 0, 320, view.position.y), BACKGROUND)                   # covers content scrolled above the view
 	draw_rect(Rect2(0, view.end.y, 320, 180.0 - view.end.y), BACKGROUND)       # and below it, strip gap included
+	# The mark rows sit just outside the view, one MARK_ROW deep above it and one below.
+	var rows := Rect2(view.position - Vector2(0, ScrollWindow.MARK_ROW),
+			view.size + Vector2(0, 2.0 * ScrollWindow.MARK_ROW))
 	if shows_mark_above():
-		ScrollWindow.draw_mark(self, Vector2(160, view.position.y - ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, true), true)
 	if shows_mark_below():
-		ScrollWindow.draw_mark(self, Vector2(160, view.end.y + ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, false), false)
 
 func _width(font: Font, text: String) -> float:
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
