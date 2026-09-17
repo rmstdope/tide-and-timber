@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Marks — A</title><script src="common.js"></script></head><body><script>
+const out=(ok,shape)=>`<rect x="176" y="92" width="36" height="22" fill="${ok?'#fff6e0':'#c0433a'}" opacity=".35" stroke="${ok?'#fff6e0':'#c0433a'}" stroke-width="2"/>`+(!ok&&shape?`<path d="M186 97 L202 109 M202 97 L186 109" stroke="#fff6e0" stroke-width="3"/>`:'')+(ok&&shape?`<path d="M186 103 L192 109 L203 97" stroke="#fff6e0" stroke-width="3" fill="none"/>`:'');
+const row=r(40,70,240,20,P.plankDk)+r(41,71,238,18,P.plank)+t(48,83,'Build list',5)+t(200,84,'! —',7,'#ff9a3a')+t(160,110,'! Build list has no key',5,'#ff9a3a','middle');
+page('Option A — a mark on both kinds of spot','With Shapes on: a cross where he cannot build and a tick where he can; a "!" on an action with no key and in front of its line.',[
+ fig('Cannot build here','Cross.',beach()+out(0,1)),fig('Can build here','Tick.',beach()+out(1,1)),fig('Controls: no key','"!" on the dash and the line.',settingsBg()+row)]);
+</script></body></html>

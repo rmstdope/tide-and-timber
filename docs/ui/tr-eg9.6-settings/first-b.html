@@ -1,0 +1,5 @@
+<!doctype html><html><head><meta charset="utf-8"><title>First launch — B</title><script src="common.js"></script></head><body><script>
+const pick=sel=>r(0,0,320,180,'#2c1d16')+t(160,40,'Is this easy to read?',7,P.text,'middle')+t(160,60,'You can change this any time in Settings.',4,'#d9c7a3','middle')+vrow(60,80,200,'UI size','Normal',sel==0,1,0)+vrow(60,98,200,'Text size','Normal',sel==1,1,0)+vrow(60,116,200,'Colour cues','Standard',sel==2,1,0)+plank(125,140,70,'Done',sel==3)+hint([['ENTER','Select']]);
+page('Option B — the very first launch shows the three choices once, before the title screen','Only on the first launch ever. The same rows as Settings, then Done opens the title screen. Helps a player who cannot read the title menu, but adds a step before the game for everyone once.',[
+ fig('First launch ever','Done highlighted after a change.',pick(3)),fig('Every later launch','Straight to the title.',r(0,0,320,180,'#3a5f8a')+t(160,50,'Tide and Timber',10,P.text,'middle'))]);
+</script></body></html>

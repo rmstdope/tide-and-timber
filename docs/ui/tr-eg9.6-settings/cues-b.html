@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Colour cues — option B</title><script src="common.js"></script></head><body><script>
+const out=c=>`<rect x="176" y="92" width="36" height="22" fill="${c}" opacity=".35" stroke="${c}" stroke-width="2"/>`;
+page('Option B — "Colour vision": Standard, Red-green, Blue-yellow','The player picks their type and warning colours change to ones that type can tell apart. No shapes are added. Players must know their type, and a colour still has to be told apart from the sand and night.',[
+ fig('Standard','Red outline.',beach()+out('#c0433a')),
+ fig('Red-green','Outline turns magenta.',beach()+out('#d040d0')),
+ fig('Blue-yellow','Outline turns deep red.',beach()+out('#a01818')),
+ fig('The row','Three values instead of two.',settingsBg()+vrow(60,80,200,'Colour vision','Red-green',1,0,0))]);
+</script></body></html>
