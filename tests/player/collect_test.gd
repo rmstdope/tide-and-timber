@@ -69,3 +69,22 @@ func test_give_control_drops_the_gathering_move() -> void:
 	assert_bool(player.collecting).is_true()
 	player.give_control()
 	assert_bool(player.collecting).is_false()
+
+func test_he_gathers_in_the_shallows_with_his_legs_hidden() -> void:
+	await _stand(_driftwood() + Vector2(-10, 0), Walk.Facing.RIGHT)
+	player.wading = true
+	player.collect()
+	await await_millis(50)
+	assert_bool(player.collecting).is_true()
+	assert_that(_sprite().animation).is_equal(&"wade_collect_right")
+	var cut := _sprite().sprite_frames.get_frame_texture(&"wade_collect_right", 0) as AtlasTexture
+	assert_that(cut.region.size).is_equal(Vector2(64, 44))
+
+func test_the_gathering_move_is_ignored_while_control_is_off() -> void:
+	await _stand(_driftwood() + Vector2(-10, 0), Walk.Facing.RIGHT)
+	player.control_enabled = false
+	# Stands in for a collapse or the waking, which drive the sprite themselves while control is off.
+	player.play_pose(&"still_up")
+	player.collect()
+	assert_bool(player.collecting).override_failure_message("a pose he cannot control was cut short").is_false()
+	assert_that(_sprite().animation).is_equal(&"still_up")

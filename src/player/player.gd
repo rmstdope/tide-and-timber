@@ -77,8 +77,11 @@ func give_control() -> void:
 	collecting = false
 	_show()
 
-## Plays the gathering move once from where he stands; walking cuts it short.
+## Plays the gathering move once from where he stands; walking cuts it short. Ignored while control
+## is off, so a collapse or the waking keeps the pose it is playing.
 func collect() -> void:
+	if not control_enabled:
+		return
 	collecting = true
 	%Sprite.play(Walk.collect_animation_for(facing, wading))
 
@@ -89,6 +92,7 @@ func _on_sprite_finished() -> void:
 		_show()
 
 func _show() -> void:
+	%Sprite.speed_scale = Walk.animation_scale(wading)
 	if collecting:
 		if not moving:
 			return
@@ -96,7 +100,6 @@ func _show() -> void:
 	var anim := Walk.animation_for(facing, moving, wading, running)
 	if %Sprite.animation != anim:
 		%Sprite.play(anim)
-	%Sprite.speed_scale = Walk.animation_scale(wading)
 
 func _emit_trail(delta: float, dir: Vector2) -> void:
 	var kind := Walk.trail_for(moving, running, wading)

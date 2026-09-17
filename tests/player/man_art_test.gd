@@ -59,12 +59,15 @@ const RAMPS := {"shirt": SHIRT, "trousers": TROUSERS, "hair": HAIR}
 const WORN := {"shirt": 12, "trousers": 12, "hair": 6}
 ## Skin left below his head: his swinging arms, his shins and his bare feet.
 const BARE := 8
+## His torso is 8 px across at its widest; his arms swing outside that. A sleeve reaching an arm
+## would carry the shirt to 11 px or more, so this is what "sleeveless" means in a measurement.
+const TORSO_WIDTH := 8
 const HEAD_ROWS := 14                   # his head is the same rigid block in every frame the pack draws
 
-## How many pixels of frame `frame` of `row` are one of `wanted`.
-func _tally(sheet: Image, row: int, frame: int, wanted: Array, from_y := 0) -> int:
+## How many pixels of rows `from_y`..`to_y` of frame `frame` of `row` are one of `wanted`.
+func _tally(sheet: Image, row: int, frame: int, wanted: Array, from_y := 0, to_y := 63) -> int:
 	var n := 0
-	for y in range(from_y, 64):
+	for y in range(from_y, to_y + 1):
 		for x in 64:
 			var c := sheet.get_pixel(frame * 64 + x, row * 64 + y)
 			if c.a == 1.0 and wanted.has(c.to_html(false)):
@@ -163,7 +166,50 @@ func test_his_arms_and_feet_are_bare() -> void:
 		var bare := _tally(ours, row, frame, SKIN, extent.x + HEAD_ROWS)
 		assert_int(bare).override_failure_message(
 			"%s row %d frame %d: only %d bare pixels below his head, wanted at least %d"
-			% [name_, row, frame, bare, BARE]).is_greater_equal(BARE))
+			% [name_, row, frame, bare, BARE]).is_greater_equal(BARE)
+		# Sleeveless: no row of the shirt ever reaches past his torso onto an arm.
+		for y in 64:
+			var worn := []
+			for x in 64:
+				var c := ours.get_pixel(frame * 64 + x, row * 64 + y)
+				if c.a == 1.0 and SHIRT.has(c.to_html(false)):
+					worn.append(x)
+			if worn.is_empty():
+				continue
+			var span: int = worn.max() - worn.min() + 1
+			if span > TORSO_WIDTH:
+				assert_int(span).override_failure_message(
+					"%s row %d frame %d row %d: the shirt is %d px across, wider than his torso - a sleeve"
+					% [name_, row, frame, y, span]).is_less_equal(TORSO_WIDTH)
+				return)
+
+## The fact the whole dressing scheme rests on: the pack draws him with the same rigid head in every
+## frame, so a frame's top plus a fixed block is always where his head ends and his body begins. His
+## eyes are the landmark, being pixels no band ever repaints. A pose that broke this - a collapse,
+## say - would move them, and the tool would paint hair onto a cheek.
+func test_his_head_is_the_same_block_in_every_frame() -> void:
+	for name_: String in SHEETS:
+		var anim: String = SHEETS[name_][0]
+		for facing: String in ["Down", "Up", "Side"]:
+			var pack := _pack(anim, facing)
+			for frame in pack.get_width() / 64:
+				var top := 64
+				var eyes: Array[int] = []
+				for y in 64:
+					for x in 64:
+						var c := pack.get_pixel(frame * 64 + x, y)
+						if c.a > 0.0:
+							top = mini(top, y)
+						if c.a == 1.0 and EYES.has(c.to_html(false)):
+							eyes.append(y)
+				if eyes.is_empty():
+					continue                    # he is facing away, or his eyes are shut
+				assert_int(eyes.min() - top).override_failure_message(
+					"%s_%s frame %d: his eyes start %d rows below the top of him, not 9 or 10"
+					% [anim, facing, frame, eyes.min() - top]).is_between(9, 10)
+				assert_int(eyes.max() - top).override_failure_message(
+					"%s_%s frame %d: his eyes end %d rows below the top of him, not 10"
+					% [anim, facing, frame, eyes.max() - top]).is_equal(10)
 
 func test_left_is_right_mirrored() -> void:
 	for name_: String in SHEETS:

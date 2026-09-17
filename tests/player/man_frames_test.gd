@@ -73,3 +73,15 @@ func test_wading_hides_legs() -> void:
 	var cut := frames.get_frame_texture(&"wade_collect_down", 0) as AtlasTexture
 	assert_that(cut.region).is_equal(Rect2(0, 0, 64, 44))
 	assert_that(cut.margin).is_equal(Rect2(0, 0, 0, 20))
+
+## His feet sit on the node origin, which is what makes the map, collisions, the camera, y-sorting,
+## trail marks, saves and every BeachLayout cell go on meaning what they did. The sprite is centred,
+## so the top of its frame is offset.y - half a frame, and the footline has to land on 0 from there.
+func test_his_feet_stand_on_the_node_origin() -> void:
+	var player := (load("res://src/player/player.tscn") as PackedScene).instantiate() as Player
+	auto_free(player)
+	var sprite := player.get_node("%Sprite") as AnimatedSprite2D
+	assert_vector(sprite.offset).is_equal(Vector2(0, -16))
+	var frame_top := sprite.offset.y - ManFrames.FRAME_SIZE.y / 2.0
+	assert_float(frame_top + ManFrames.FOOTLINE).override_failure_message(
+		"his footline sits at y %.1f, not on the origin" % (frame_top + ManFrames.FOOTLINE)).is_equal(0.0)
