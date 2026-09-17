@@ -40,6 +40,36 @@ func remove(kind: Item.Kind, amount: int = 1) -> bool:
 	changed.emit()
 	return true
 
+## Makes him carry exactly `amount` of `kind` and returns true.
+## amount 0 empties that kind's slot; a kind not carried takes the first empty slot, as add does.
+## Emits `changed` once when the count changed, nothing when it was already `amount`; never `added`.
+## Returns false, changing nothing, when amount < 0 or a new kind finds no empty slot.
+func set_count(kind: Item.Kind, amount: int) -> bool:
+	if amount < 0:
+		return false
+	var have := count(kind)
+	if amount == have:
+		return true
+	if amount == 0:
+		return remove(kind, have)
+	if have == 0:
+		var slot := _slots.find(EMPTY)
+		if slot < 0:
+			push_error("Inventory.set_count: no empty slot for %s" % Item.name_of(kind))
+			return false
+		_slots[slot] = kind
+	_counts[kind] = amount
+	changed.emit()
+	return true
+
+## Empties every slot. Emits `changed` once when anything was carried; nothing when already empty; never `added`.
+func clear() -> void:
+	if _counts.is_empty():
+		return
+	_slots.fill(EMPTY)
+	_counts.clear()
+	changed.emit()
+
 func count(kind: Item.Kind) -> int:
 	return _counts.get(kind, 0)
 

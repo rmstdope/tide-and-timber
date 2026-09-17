@@ -116,3 +116,69 @@ func test_restore_refuses_bad_shapes_unchanged() -> void:
 	for bad: Array[Dictionary] in [seven, bad_kind, zero, twice]:
 		assert_bool(inv.restore(bad)).is_false()
 		assert_array(_slots_of(inv)).is_equal(before)
+
+func _counter(sig: Signal) -> Array[int]:
+	var n: Array[int] = [0]
+	sig.connect(func(_a: Variant = null, _b: Variant = null) -> void: n[0] += 1)
+	return n
+
+func test_set_count_up_from_nothing_takes_first_empty_slot() -> void:
+	var inv := Inventory.new()
+	inv.add(K.SHELLFISH)
+	assert_bool(inv.set_count(K.DRIFTWOOD, 5)).is_true()
+	assert_int(inv.slot_kind(1)).is_equal(K.DRIFTWOOD)
+	assert_int(inv.slot_count(1)).is_equal(5)
+	assert_int(inv.count(K.DRIFTWOOD)).is_equal(5)
+
+func test_set_count_changes_a_carried_count_in_place() -> void:
+	var inv := Inventory.new()
+	inv.add(K.DRIFTWOOD)
+	inv.add(K.SHELLFISH)
+	assert_bool(inv.set_count(K.DRIFTWOOD, 3)).is_true()
+	assert_int(inv.slot_kind(0)).is_equal(K.DRIFTWOOD)
+	assert_int(inv.slot_count(0)).is_equal(3)
+
+func test_set_count_zero_frees_the_slot() -> void:
+	var inv := Inventory.new()
+	inv.add(K.DRIFTWOOD, 2)
+	assert_bool(inv.set_count(K.DRIFTWOOD, 0)).is_true()
+	assert_int(inv.slot_kind(0)).is_equal(Inventory.EMPTY)
+	assert_int(inv.count(K.DRIFTWOOD)).is_equal(0)
+
+func test_set_count_emits_changed_once_and_never_added() -> void:
+	var inv := Inventory.new()
+	var changed := _counter(inv.changed)
+	var added := _counter(inv.added)
+	inv.set_count(K.COCONUT, 4)
+	assert_int(changed[0]).is_equal(1)
+	assert_int(added[0]).is_equal(0)
+	inv.set_count(K.COCONUT, 4)
+	assert_int(changed[0]).is_equal(1)
+	inv.set_count(K.COCONUT, 0)
+	assert_int(changed[0]).is_equal(2)
+	assert_int(added[0]).is_equal(0)
+
+func test_set_count_negative_is_refused() -> void:
+	var inv := Inventory.new()
+	var changed := _counter(inv.changed)
+	assert_bool(inv.set_count(K.COCONUT, -1)).is_false()
+	assert_int(inv.count(K.COCONUT)).is_equal(0)
+	assert_int(changed[0]).is_equal(0)
+
+func test_clear_empties_every_slot_and_emits_changed_once() -> void:
+	var inv := _three()
+	var changed := _counter(inv.changed)
+	var added := _counter(inv.added)
+	inv.clear()
+	for i in Inventory.SLOT_COUNT:
+		assert_int(inv.slot_kind(i)).is_equal(Inventory.EMPTY)
+	for kind: K in K.values():
+		assert_int(inv.count(kind)).is_equal(0)
+	assert_int(changed[0]).is_equal(1)
+	assert_int(added[0]).is_equal(0)
+
+func test_clear_on_an_empty_bag_emits_nothing() -> void:
+	var inv := Inventory.new()
+	var changed := _counter(inv.changed)
+	inv.clear()
+	assert_int(changed[0]).is_equal(0)
