@@ -112,6 +112,7 @@ func test_select_on_hidden_try_again_retries() -> void:
 func test_normal_fits_unchanged() -> void:
 	await _fail_dawn()
 	assert_that(_rect(_panel())).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_content().position).is_equal(Vector2.ZERO)
 	assert_bool(_frame().shows_mark_above()).is_false()
 	assert_bool(_frame().shows_mark_below()).is_false()
 

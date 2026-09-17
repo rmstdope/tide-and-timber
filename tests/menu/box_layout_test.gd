@@ -183,6 +183,15 @@ func test_a_hidden_highlight_is_scrolled_towards() -> void:
 	assert_that(_at(0).pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 11))
 	assert_that(_at(74).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 63))
 
+## A button taller than the view is hidden above and below at once: the push goes up, towards its top.
+func test_a_button_taller_than_the_view_is_scrolled_up_to() -> void:
+	var l := _largest()
+	l.right = Rect2(24, 94, 104, 60)
+	var f := l.framed(46, 98, 100)
+	assert_float(f.clip.size.y).is_equal(32.0)
+	assert_int(f.offset).is_equal(100)
+	assert_that(f.pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 89))
+
 func test_left_right_move_and_show_just_enough() -> void:
 	assert_that(_at(0).pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
 	assert_that(_at(74).pushed(BoxLayout.Push.LEFT, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))

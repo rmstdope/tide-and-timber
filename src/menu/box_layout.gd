@@ -209,10 +209,12 @@ func _has_above(side: BoxLayout.Side) -> bool:
 func _toward(side: BoxLayout.Side) -> int:
 	var span := _span(side)
 	var o := 0
-	if span.y > offset + clip.size.y:
-		o = mini(offset + int(LINE_STEP), ceili(span.y - clip.size.y))
-	else:
+	# Hidden above wins: a button taller than the view is hidden on both sides at once, and scrolling
+	# down would walk away from its top, which is the end the reader needs.
+	if span.x < offset:
 		o = maxi(offset - int(LINE_STEP), floori(span.x))
+	else:
+		o = mini(offset + int(LINE_STEP), ceili(span.y - clip.size.y))
 	return clampi(o, 0, _max_offset())
 
 ## The offset that shows side wholly, as if it were highlighted.
