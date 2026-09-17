@@ -81,7 +81,7 @@ func _values() -> Array[String]:
 
 func test_four_rows_in_order_with_their_words() -> void:
 	await _open()
-	assert_str((board.get_node("Panel/Heading") as Label).text).is_equal("Settings")
+	assert_str((board.get_node("%Heading") as Label).text).is_equal("Settings")
 	assert_str(_text("UiSize/Row/Label")).is_equal("UI size")
 	assert_str(_text("TextSize/Row/Label")).is_equal("Text size")
 	assert_str(_text("ColourCues/Row/Label")).is_equal("Colour cues")
