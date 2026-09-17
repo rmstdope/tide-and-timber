@@ -138,7 +138,7 @@ func _draw_box_marks() -> void:
 
 func _restack() -> void:
 	var ui := get_global_transform_with_canvas().get_scale().x if is_inside_tree() else 1.0
-	var rel := 1.0
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 	if ui != layout.ui or rel != layout.rel:   # Display.changed already queued a redraw; a second would draw twice
 		layout = ControlsLayout.make(ControlsLayout.stacks(ui, rel), rel, ui)
 		stacked = layout.stacked
@@ -155,9 +155,9 @@ func _restack_later() -> void:
 static func _at_text_normal(p_stacked: bool) -> ControlsLayout:
 	return ControlsLayout.make(p_stacked, 1.0, ControlsLayout.STACKED_UI if p_stacked else 1.0)
 
-## True when the rows, with the screen margins, do not fit across at on-screen scale s.
-static func stacks_at(s: float) -> bool:
-	return ControlsLayout.stacks(s, 1.0)
+## True when the rows, with the screen margins, do not fit across at on-screen scale s with words grown by rel.
+static func stacks_at(s: float, rel := 1.0) -> bool:
+	return ControlsLayout.stacks(s, rel)
 
 ## The tab's rectangle.
 static func tab_rect(i: int, p_stacked := false) -> Rect2:
@@ -271,9 +271,11 @@ const SHAPES_EMPTY := "! —"   # an empty slot of an action with no key, while 
 static func empty_slot_mark(orange: bool, cues: DisplayPrefs.Cues) -> String:
 	return SHAPES_EMPTY if orange and cues == DisplayPrefs.Cues.SHAPES else "—"
 
-## Top-left of an empty slot's mark in cell: the "—" keeps today's place, so any prefix sits to its left.
-static func empty_slot_at(cell: Rect2, mark: String) -> Vector2:
-	return (cell.get_center() - Vector2(1, 2)).round() - Vector2((mark.length() - 1) * (Glyphs.W + Glyphs.GAP), 0)
+## Top-left of an empty slot's mark in cell, grown by rel about the dash: the "—" keeps today's place,
+## so any prefix sits to its left.
+static func empty_slot_at(cell: Rect2, mark: String, rel := 1.0) -> Vector2:
+	return (cell.get_center() - Vector2(1, 2) * rel).round() \
+			- Vector2(roundf((mark.length() - 1) * (Glyphs.W + Glyphs.GAP) * rel), 0)
 
 ## The slot's cell rectangle (row r, slot s).
 static func slot_rect(r: int, s: int, p_stacked := false) -> Rect2:
@@ -476,7 +478,7 @@ func _draw() -> void:
 			else:
 				var orange := rules.is_orange(r)
 				var mark := empty_slot_mark(orange, Display.prefs.cues)
-				_glyphs(mark, empty_slot_at(cell, mark), ORANGE if orange else QUIET)
+				_glyphs(mark, empty_slot_at(cell, mark, layout.rel), ORANGE if orange else QUIET)
 			if r == rules.row and s == rules.slot:
 				draw_rect(cell, SLOT_OUTLINE, false, 1.0)
 	if rules.no_key_line != "":

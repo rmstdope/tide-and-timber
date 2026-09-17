@@ -85,3 +85,52 @@ func test_largest_ui_page_wraps_the_lines_under_the_list() -> void:
 	assert_bool(page.stacked).is_true()
 	assert_int(page.layout.fixed_lines).is_equal(3)
 	assert_float(page.layout.content_bottom()).is_equal(273.0)
+
+func test_text_largest_page_uses_the_grown_layout() -> void:
+	_text(2)
+	await _open_page()
+	await _settle()
+	assert_float(page.layout.rel).is_equal(2.0)
+	assert_bool(page.stacked).is_true()
+	assert_float(page.layout.row_h).is_equal(38.0)
+	assert_float(page.layout.list_w).is_equal(272.0)
+	assert_bool(page.scrolls).is_true()
+
+func test_text_size_change_relays_out_with_the_highlight_unmoved() -> void:
+	await _open_page()
+	await _settle()
+	for i in 3:
+		await _press(KEY_DOWN)
+	_text(2)
+	await _settle()
+	assert_bool(page.stacked).is_true()
+	assert_float(page.layout.rel).is_equal(2.0)
+	assert_int(page.rules.row).is_equal(3)
+	_text(-2)
+	await _settle()
+	assert_bool(page.stacked).is_false()
+	assert_float(page.layout.row_h).is_equal(11.0)
+	assert_int(page.rules.row).is_equal(3)
+
+func test_hover_and_click_land_on_grown_rows() -> void:
+	_text(2)
+	await _open_page()
+	await _settle()
+	for i in 2:
+		await _press(KEY_DOWN)
+	_motion(page, page.to_page(page.layout.slot_rect(2, 1).get_center()))
+	assert_int(page.rules.row).is_equal(2)
+	assert_int(page.rules.slot).is_equal(1)
+	_left_click(page, page.to_page(page.layout.tab_rect(1).get_center()))
+	assert_int(page.rules.device).is_equal(Controls.Device.CONTROLLER)
+
+func test_largest_ui_and_text_keep_the_highlighted_slot_in_view() -> void:
+	_size(2)
+	_text(2)
+	await _open_page()
+	await _settle()
+	for r in 8:
+		assert_int(page.rules.row).is_equal(r)
+		var c := page.layout.slot_rect(r, page.rules.slot)
+		assert_bool(page.view.encloses(Rect2(page.to_page(c.position), c.size))).is_true()
+		await _press(KEY_DOWN)

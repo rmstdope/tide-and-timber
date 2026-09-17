@@ -146,3 +146,7 @@ func test_grown_hit_and_tabs() -> void:
 	assert_that(l.hit(Vector2(30, l.row_rect(2).get_center().y), D.KEYBOARD)).is_equal(Vector2i(-1, -1))
 	assert_int(l.tab_at(l.tab_rect(1).get_center())).is_equal(1)
 	assert_int(l.tab_at(Vector2(5, 5))).is_equal(-1)
+
+func test_empty_slot_grows_about_the_dash() -> void:
+	assert_that(ControlsPage.empty_slot_at(Rect2(96, 71, 60, 9), "—", 2.0)).is_equal(Vector2(124, 72))
+	assert_that(ControlsPage.empty_slot_at(Rect2(96, 71, 60, 9), "! —", 2.0)).is_equal(Vector2(108, 72))
