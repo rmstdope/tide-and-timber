@@ -233,3 +233,31 @@ func test_left_is_right_mirrored() -> void:
 							"%s frame %d (%d, %d): left %s, right mirrored %s"
 							% [name_, frame, x, y, left.to_html(), right.to_html()]).is_equal(right.to_html())
 						return
+
+
+## assets/man/death.png: the pack's own Death frames, dressed. It is kept out of SHEETS above
+## because those tests measure the standing figure - his shirt's width, his bare bottom two rows,
+## his rigid head block - and none of that survives him lying down. The fall's own invariants,
+## below, are the four that do: the silhouette, the outline and eyes, the palette, and dressed.
+const DEATH_FRAMES := 8
+
+func _death() -> Image:
+	return _sheet("death")
+
+func test_the_fall_is_the_pack_s_frames() -> void:
+	var ours := _death()
+	if ours == null:
+		return
+	assert_vector(Vector2(ours.get_size())).is_equal(Vector2(DEATH_FRAMES * 64, 256))
+	for row: int in ROWS:
+		var pack := _pack("Death", ROWS[row])
+		for frame in DEATH_FRAMES:
+			for y in 64:
+				for x in 64:
+					var mine := ours.get_pixel(frame * 64 + x, row * 64 + y)
+					var theirs := _source(pack, row, frame, x, y)
+					if mine.a != theirs.a:
+						assert_float(mine.a).override_failure_message(
+							"death row %d frame %d (%d, %d): alpha %.2f, pack has %.2f"
+							% [row, frame, x, y, mine.a, theirs.a]).is_equal(theirs.a)
+						return

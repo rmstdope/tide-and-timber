@@ -19,6 +19,11 @@ const LEFT := 2
 const RIGHT := 3
 const SOURCE_FACING := {DOWN: "Down", UP: "Up", RIGHT: "Side"}
 
+## The fall is its own sheet: 8 frames of Death_<facing>, the same four rows. It is built apart from
+## SHEETS because from frame 3 on he leaves the upright body box, so the shared band table - which
+## dresses a standing figure by head and body zone - says nothing useful about him.
+const DEATH_FRAMES := 8
+
 ## The pack's own four body tones, light to dark. Never written out: his skin stays the pack's.
 const SKIN: Array[String] = ["fac895", "d9a066", "a26543", "763d2b"]
 ## What he is dressed in, each light to dark against SKIN. Every one is a colour PackPalette already
@@ -71,7 +76,22 @@ const BANDS := {
 func _init() -> void:
 	for name_: String in SHEETS:
 		_save(_sheet(SHEETS[name_][0], SHEETS[name_][1]), "res://assets/man/%s.png" % name_)
+	_save(_death_sheet(), "res://assets/man/death.png")
 	quit()
+
+## The fall's four rows: the pack's Death Down, Up and Side frames, then Side mirrored for LEFT.
+func _death_sheet() -> Image:
+	var sheet := Image.create(FRAME * DEATH_FRAMES, FRAME * 4, false, Image.FORMAT_RGBA8)
+	for row: int in [DOWN, UP, RIGHT]:
+		var facing: String = SOURCE_FACING[row]
+		var source := _pack("Death", facing)
+		for frame in DEATH_FRAMES:
+			sheet.blit_rect(source, Rect2i(FRAME * frame, 0, FRAME, FRAME),
+				Vector2i(FRAME * frame, FRAME * row))
+	for frame in DEATH_FRAMES:
+		sheet.blit_rect(_mirrored(sheet, frame, RIGHT), Rect2i(0, 0, FRAME, FRAME),
+			Vector2i(FRAME * frame, FRAME * LEFT))
+	return sheet
 
 ## One animation's four rows: the pack's Down, Up and Side frames, then Side mirrored for LEFT.
 func _sheet(anim: String, frames: int) -> Image:
