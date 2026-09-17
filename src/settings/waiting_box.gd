@@ -38,6 +38,7 @@ class Layout extends RefCounted:
 
 var lines := PackedStringArray()        # [action name, "Press a new key" / "Press a new button"]
 var items: Array = []                   # [HOLD, Picture, TO_CANCEL]
+var layout: Layout = null               # the measured layout drawn right now
 var ring: SkipRing
 
 func _ready() -> void:
@@ -46,14 +47,25 @@ func _ready() -> void:
 	ring.mouse_filter = MOUSE_FILTER_IGNORE
 	ring.visible = false
 	add_child(ring)
+	Display.changed.connect(_relayout)
+	get_tree().root.size_changed.connect(_relayout)
 
 ## What to show; progress 0..1 fills the ring, which is hidden at 0.
 func show_for(p_lines: PackedStringArray, p_items: Array, progress: float) -> void:
 	lines = p_lines
 	items = p_items
-	var font := get_theme_default_font()
-	ring.position = Vector2(roundi(160 + hold_width(items, font) / 2.0 + RING_GAP), roundi(HOLD_TOP - 0.5))
+	_relayout()
 	set_progress(progress)
+
+## Re-measures the box for the current Text size, UI size and window, and moves the ring.
+func _relayout() -> void:
+	if lines.is_empty() or not is_inside_tree():
+		return
+	var root := get_tree().root
+	var ui := UiScale.current(Display.prefs, root)
+	layout = layout_at(lines, items, TextScale.relative(Display.prefs, root), ui,
+			get_theme_default_font())
+	ring.position = layout.ring
 	queue_redraw()
 
 ## Only the ring changed (every frame while held).
@@ -78,25 +90,44 @@ static func _word(s: String, font: Font) -> int:
 	return ceili(font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE).x)
 
 func _draw() -> void:
-	if lines.is_empty():
+	if lines.is_empty() or layout == null:
 		return
 	var font := get_theme_default_font()
-	draw_rect(Rect2(0, 0, 320, 180), DIM)
-	draw_style_box(PLANK_STYLE, PANEL)
-	_centred(font, lines[0], NAME_BASELINE)
-	_centred(font, lines[1], PRESS_BASELINE)
-	var x := roundi(160 - hold_width(items, font) / 2.0)
-	draw_string(font, Vector2(x, HOLD_TOP + 8), HOLD, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE, ControlsPage.TEXT)
-	x += _word(HOLD, font) + GAP
-	HintLine.draw_picture(self, items[1], Vector2(x, HOLD_TOP))
-	x += HintLine.picture_width(items[1]) + GAP
-	draw_string(font, Vector2(x, HOLD_TOP + 8), TO_CANCEL, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE, ControlsPage.TEXT)
+	draw_rect(Rect2(Vector2.ZERO, SCREEN), DIM)
+	draw_style_box(PLANK_STYLE, layout.panel)
+	var y := layout.panel.position.y + TOP_PAD
+	for line in layout.names:
+		_centred(font, line, y + ceilf(BASELINE_IN_ROW * layout.rel), layout.rel)
+		y += layout.step
+	for line in layout.presses:
+		_centred(font, line, y + ceilf(BASELINE_IN_ROW * layout.rel), layout.rel)
+		y += layout.step
+	y += HOLD_GAP
+	for row: Array in layout.hold:
+		var x := roundf(160.0 - _row_width(row, layout.rel, font) / 2.0)
+		for i in row.size():
+			if i > 0:
+				x += GAP
+			var item: Variant = row[i]
+			if item is String:
+				_grown(font, item as String,
+					Vector2(x, y + ceilf(HOLD_BASELINE_IN_ROW * layout.rel)), layout.rel)
+				x += ceilf(_word(item as String, font) * layout.rel)
+			else:
+				HintLine.draw_picture(self, item as DeviceHints.Picture, Vector2(x, y + layout.pic_dy))
+				x += HintLine.picture_width(item as DeviceHints.Picture)
+		y += layout.hold_h
 
-func _centred(font: Font, text: String, baseline: float) -> void:
-	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE).x
-	draw_string(font, Vector2(roundf(160 - w / 2.0), baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE,
+## Draws one word at `at` (its baseline-left) grown by `rel`. The transform is reset at once, so
+## nothing else - pictures, glyphs, the ring - is ever scaled by it.
+func _grown(font: Font, text: String, at: Vector2, rel: float) -> void:
+	draw_set_transform(at, 0.0, Vector2.ONE * rel)
+	draw_string(font, Vector2.ZERO, text, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE,
 		ControlsPage.TEXT)
+	draw_set_transform_matrix(Transform2D.IDENTITY)
 
+func _centred(font: Font, text: String, baseline: float, rel: float) -> void:
+	_grown(font, text, Vector2(roundf(160.0 - ceilf(_word(text, font) * rel) / 2.0), baseline), rel)
 ## A hold row's width in page units: its items at `rel`, one GAP between each adjacent pair. The
 ## ring is not part of it: the row is centred on its words and picture, and the ring follows.
 static func _row_width(row: Array, rel: float, font: Font) -> float:
