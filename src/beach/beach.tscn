@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://src/camp/build_sound.gd" id="9_sound"]
 [ext_resource type="Script" path="res://src/camp/build_list.gd" id="10_list"]
 [ext_resource type="Script" path="res://src/camp/key_hint.gd" id="11_hint"]
+[ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
+[ext_resource type="Script" path="res://src/hud/spoken_line.gd" id="spoken_line"]
 
 [node name="Beach" type="Node2D"]
 script = ExtResource("1_beach")
@@ -57,12 +59,19 @@ script = ExtResource("9_sound")
 unique_name_in_owner = true
 script = ExtResource("3_camera")
 
-[node name="Hud" type="CanvasLayer" parent="."]
+[node name="BarLayer" type="CanvasLayer" parent="."]
 layer = 10
 
-[node name="ItemBar" type="Control" parent="Hud"]
+[node name="ItemBar" type="Control" parent="BarLayer"]
 unique_name_in_owner = true
 script = ExtResource("6_bar")
+
+[node name="UiScale" type="Node" parent="BarLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 180)
+
+[node name="Hud" type="CanvasLayer" parent="."]
+layer = 10
 
 [node name="BuildBlocker" type="Control" parent="Hud"]
 unique_name_in_owner = true
@@ -78,13 +87,23 @@ layout_mode = 3
 anchors_preset = 0
 script = ExtResource("10_list")
 
-[node name="KeyHint" type="Control" parent="Hud"]
+[node name="KeyHintLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="KeyHint" type="Control" parent="KeyHintLayer"]
 unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("11_hint")
 
-[node name="ShelterLine" type="Control" parent="Hud"]
+[node name="UiScale" type="Node" parent="KeyHintLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 148)
+
+[node name="ShelterLineLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="ShelterLine" type="Control" parent="ShelterLineLayer"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 3
@@ -94,14 +113,15 @@ offset_top = 150.0
 offset_right = 308.0
 offset_bottom = 166.0
 mouse_filter = 2
+script = ExtResource("spoken_line")
 
-[node name="Band" type="ColorRect" parent="Hud/ShelterLine"]
+[node name="Band" type="ColorRect" parent="ShelterLineLayer/ShelterLine"]
 offset_right = 296.0
 offset_bottom = 16.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.45)
 
-[node name="Text" type="Label" parent="Hud/ShelterLine"]
+[node name="Text" type="Label" parent="ShelterLineLayer/ShelterLine"]
 offset_right = 296.0
 offset_bottom = 16.0
 mouse_filter = 2
@@ -109,6 +129,10 @@ theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="UiScale" type="Node" parent="ShelterLineLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 166)
 
 [node name="Cover" type="CanvasLayer" parent="."]
 layer = 30

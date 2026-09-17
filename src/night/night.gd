@@ -31,7 +31,7 @@ func _ready() -> void:
 	watch.warned.connect(_say.bind(WARN_TEXT))
 	watch.stepped_out.connect(_say.bind(OUT_TEXT))
 	watch.collapsed.connect(_start_collapse)
-	%BlackLine.text = BLACK_TEXT
+	(%BlackLine as SpokenLine).say(BLACK_TEXT)
 	_refresh()
 
 func _process(delta: float) -> void:
@@ -69,7 +69,7 @@ func _advance_line(delta: float) -> void:
 	if line.is_showing() and builder.shelter_line.is_showing():
 		line = SunsetLine.new()
 	if _pending != "" and not _others_showing():
-		%NightLine.get_node("Text").text = _pending
+		(%NightLine as SpokenLine).say(_pending)
 		_pending = ""
 		line = SunsetLine.new()
 		line.start()
