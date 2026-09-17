@@ -10,6 +10,8 @@ const PALM := preload("res://src/beach/props/palm.tscn")
 const DRIFTWOOD := preload("res://src/beach/props/driftwood.tscn")
 const SHELLFISH := preload("res://src/beach/props/shellfish.tscn")
 const SPRING := preload("res://src/beach/props/spring.tscn")
+const BUSH := preload("res://src/beach/props/bush.tscn")
+const TUFT := preload("res://src/beach/props/tuft.tscn")
 const PUFF := preload("res://src/beach/marks/puff.tscn")
 const RIPPLE := preload("res://src/beach/marks/ripple.tscn")
 
@@ -29,6 +31,8 @@ func _ready() -> void:
 		for x in BeachLayout.MAP_SIZE.x:
 			var cell := Vector2i(x, y)
 			%Ground.set_cell(cell, 0, Vector2i(BeachLayout.kind_at(cell), 0))
+	_place(BUSH, BeachLayout.BUSHES, %Decor)
+	_place(TUFT, BeachLayout.TUFTS, %Decor)
 	for palm in _place(PALM, BeachLayout.PALMS, %World):
 		(palm.get_node("Shake") as Shake).drop_parent = %Decor
 	_place(ROCK, BeachLayout.ROCKS, %World)

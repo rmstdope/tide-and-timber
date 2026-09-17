@@ -52,6 +52,13 @@ func test_props_are_placed() -> void:
 	assert_bool(world.get_children().any(func(n: Node) -> bool:
 		return n.scene_file_path.ends_with("palm.tscn") and (n as Node2D).position == base)).is_true()
 
+func test_vegetation_is_placed() -> void:
+	var decor := beach.get_node("%Decor")
+	assert_int(_count(decor, "bush.tscn")).is_equal(BeachLayout.BUSHES.size())
+	assert_int(_count(decor, "tuft.tscn")).is_equal(BeachLayout.TUFTS.size())
+	var at := BeachLayout.cell_base(BeachLayout.BUSHES[0])
+	assert_bool(_from(decor, "bush.tscn").any(func(n: Node) -> bool: return (n as Node2D).position == at)).is_true()
+
 func test_tall_things_sort_with_him() -> void:
 	var world := beach.get_node("%World") as Node2D
 	assert_bool(world.y_sort_enabled).is_true()

@@ -61,3 +61,7 @@ func _assert_crop(scene_path: String, sheet: String, region: Rect2, offset: Vect
 func test_rock_and_boulder_are_pack_crops() -> void:
 	_assert_crop("res://src/beach/props/rock.tscn", ROCKS, Rect2(160, 16, 16, 16), Vector2(0, -8))
 	_assert_crop("res://src/beach/props/boulder.tscn", ROCKS, Rect2(128, 16, 32, 32), Vector2(0, -16))
+
+func test_vegetation_is_pack_crops() -> void:
+	_assert_crop("res://src/beach/props/bush.tscn", VEGETATION, Rect2(0, 0, 32, 32), Vector2(0, -16))
+	_assert_crop("res://src/beach/props/tuft.tscn", VEGETATION, Rect2(64, 144, 16, 16), Vector2(0, -8))

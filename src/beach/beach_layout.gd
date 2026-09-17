@@ -15,6 +15,8 @@ const DRIFTWOOD: Array[Vector2i] = [Vector2i(30, 13), Vector2i(69, 12), Vector2i
 	Vector2i(137, 13), Vector2i(142, 12), Vector2i(152, 13), Vector2i(161, 12), Vector2i(164, 12)]
 const SHELLFISH: Array[Vector2i] = [Vector2i(24, 14), Vector2i(51, 14), Vector2i(75, 14), Vector2i(96, 14), Vector2i(116, 14), Vector2i(143, 14), Vector2i(160, 14)]
 const SPRINGS: Array[Vector2i] = [Vector2i(96, 9)]
+const BUSHES: Array[Vector2i] = [Vector2i(14, 8), Vector2i(27, 8), Vector2i(40, 8), Vector2i(52, 8), Vector2i(65, 8), Vector2i(77, 8), Vector2i(90, 8), Vector2i(106, 8), Vector2i(119, 8), Vector2i(132, 8), Vector2i(145, 8), Vector2i(157, 8), Vector2i(170, 8), Vector2i(5, 14), Vector2i(178, 14)]
+const TUFTS: Array[Vector2i] = [Vector2i(22, 8), Vector2i(46, 8), Vector2i(71, 8), Vector2i(98, 8), Vector2i(125, 8), Vector2i(151, 8), Vector2i(9, 11), Vector2i(175, 11)]
 
 static func kind_at(cell: Vector2i) -> Kind:
 	if cell.y <= 8:
