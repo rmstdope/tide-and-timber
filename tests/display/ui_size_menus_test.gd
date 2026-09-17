@@ -90,11 +90,11 @@ func test_settings_board_grows_while_ui_size_changes_and_keeps_the_highlight() -
 func test_a_grown_row_is_where_it_is_drawn() -> void:
 	_step(2)
 	var board := await _open_settings()
-	var drawn := Vector2(160, 64)
+	var drawn := Vector2(160, 32)   # the stacked Text size row's centre (160, 61) on the board, grown 2x about (160, 90)
 	var text_row := board.get_node("%TextSize") as Control
 	var ui_row := board.get_node("%UiSize") as Control
 	var local := text_row.get_global_transform_with_canvas().affine_inverse() * drawn
-	assert_bool(Rect2(Vector2.ZERO, Vector2(200, 16)).has_point(local)).is_true()
+	assert_bool(Rect2(Vector2.ZERO, text_row.size).has_point(local)).is_true()
 	var in_ui := ui_row.get_global_transform_with_canvas().affine_inverse() * drawn
 	assert_bool(Rect2(Vector2.ZERO, ui_row.size).has_point(in_ui)).is_false()
 
