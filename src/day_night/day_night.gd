@@ -7,6 +7,9 @@ extends Node
 ## labels show it. A collapse applies its loss before add_minutes(), so the loss is what gets saved.
 signal dawn
 
+## Emitted by set_minutes(): the clock was set by hand, not run.
+signal moved
+
 var clock := GameClock.new()
 var sunset := SunsetLine.new()
 var running := false
@@ -61,3 +64,10 @@ func add_minutes(minutes: float) -> bool:
 	if clock.dawns_passed() > dawns_before:
 		dawn.emit()
 	return clock.sunsets_passed() > before
+
+
+## Sets the clock at once and repaints light, labels and dial. Emits moved; never dawn, never starts the 18:30 line.
+func set_minutes(total: float) -> void:
+	clock.total_minutes = total
+	_refresh()
+	moved.emit()

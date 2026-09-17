@@ -140,3 +140,17 @@ func test_add_minutes_across_06_00_emits_dawn_once() -> void:
 	dn.add_minutes(30.0)
 	dn.tick(1.0)
 	assert_int(seen.size()).is_equal(1)
+
+func test_set_minutes_repaints_without_dawn() -> void:
+	var dawns := [0]
+	var moves := [0]
+	dn.dawn.connect(func() -> void: dawns[0] += 1)
+	dn.moved.connect(func() -> void: moves[0] += 1)
+	dn.set_minutes(2 * 1440 + 390)
+	assert_str(_n("DayLabel").text).is_equal("DAY 3")
+	assert_str(_n("TimeLabel").text).is_equal("06:30")
+	assert_that(_n("Light").color).is_equal(Daylight.color_at(390))
+	assert_int(moves[0]).is_equal(1)
+	assert_int(dawns[0]).is_equal(0)
+	dn.tick(0.0)
+	assert_int(dawns[0]).is_equal(0)

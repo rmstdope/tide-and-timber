@@ -23,11 +23,13 @@ func _ready() -> void:
 	%Pause.skip_story_chosen.connect(func() -> void:
 		story.skip()
 		_refresh())
-	_refresh()
 	var debug: DebugMenu = %Pause.debug_menu()
 	if debug != null:
+		for row in DebugTime.rows(null):
+			debug.add_row(DebugMenu.Page.TIME, row)
 		DebugItems.add_rows(debug, Inventory.new())   # the story has no bag: every item at 0
 		DebugPlaces.add_rows(debug, Callable())
+	_refresh()
 
 func _process(delta: float) -> void:
 	tick(delta)

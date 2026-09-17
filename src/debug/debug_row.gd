@@ -8,6 +8,7 @@ var label: String
 var value: Callable    # () -> String; not valid when the row shows no value
 var step: Callable     # (delta: int) -> void, delta -1 or 1; not valid when Left/Right do nothing
 var select: Callable   # () -> Result; not valid when Select does nothing
+var repeats := false   # holding Left/Right keeps stepping
 
 func _init(p_label: String, p_value := Callable(), p_step := Callable(), p_select := Callable()) -> void:
 	label = p_label
