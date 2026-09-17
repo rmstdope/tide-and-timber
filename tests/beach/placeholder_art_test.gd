@@ -2,8 +2,6 @@ extends GdUnitTestSuite
 
 const SIZES := {
 	"res://assets/beach/tiles.png": Vector2i(112, 16),
-	"res://assets/beach/rock.png": Vector2i(16, 16),
-	"res://assets/beach/boulder.png": Vector2i(32, 32),
 	"res://assets/beach/palm.png": Vector2i(32, 48),
 	"res://assets/beach/driftwood.png": Vector2i(32, 8),
 	"res://assets/beach/puff.png": Vector2i(4, 4),

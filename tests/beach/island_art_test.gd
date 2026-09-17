@@ -47,3 +47,17 @@ func test_wave_wash_uses_the_foam_colours() -> void:
 	assert_bool(WaveWash.EDGE == Color("#a3c8ee")).is_true()
 	assert_bool(PackPalette.has(WaveWash.WATER)).is_true()
 	assert_bool(PackPalette.has(WaveWash.EDGE)).is_true()
+
+func _assert_crop(scene_path: String, sheet: String, region: Rect2, offset: Vector2) -> void:
+	var prop := auto_free((load(scene_path) as PackedScene).instantiate()) as Node
+	var sprite := prop.get_node("Sprite") as Sprite2D
+	var atlas := sprite.texture as AtlasTexture
+	assert_object(atlas).override_failure_message("%s is not an AtlasTexture" % scene_path).is_not_null()
+	if atlas:
+		assert_str(atlas.atlas.resource_path).is_equal(sheet)
+		assert_bool(atlas.region == region).override_failure_message("%s region %s" % [scene_path, atlas.region]).is_true()
+	assert_vector(sprite.offset).is_equal(offset)
+
+func test_rock_and_boulder_are_pack_crops() -> void:
+	_assert_crop("res://src/beach/props/rock.tscn", ROCKS, Rect2(160, 16, 16, 16), Vector2(0, -8))
+	_assert_crop("res://src/beach/props/boulder.tscn", ROCKS, Rect2(128, 16, 32, 32), Vector2(0, -16))
