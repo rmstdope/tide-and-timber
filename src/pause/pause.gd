@@ -137,7 +137,7 @@ func _input(event: InputEvent) -> void:
 	var step := InputDevice.menu_step(event)
 	if rules.box_open:
 		# The wheel is not a menu step: read it before the match, or the _ arm swallows it.
-		var wheel := _wheel_push(event)
+		var wheel := BoxLayout.wheel_push(event)
 		if wheel != -1:
 			_push_quit_box(wheel as BoxLayout.Push)
 			_refresh()
@@ -305,17 +305,6 @@ func _fit_quit_box() -> void:
 	var nodes: Array[Control] = [%FirstLine, %SecondLine]
 	_quit_box = _quit_normal.at(UiScale.current(Display.prefs, get_tree().root), %Stay.size, %Quit.size, BoxLayout.label_heights(labels))
 	_quit_box.place(%QuitBox.get_node("Panel"), nodes, %Stay, %Quit)
-
-## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
-func _wheel_push(event: InputEvent) -> int:
-	var click := event as InputEventMouseButton
-	if click == null or not click.pressed:
-		return -1
-	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
-		return BoxLayout.Push.WHEEL_UP
-	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-		return BoxLayout.Push.WHEEL_DOWN
-	return -1
 
 ## One push or wheel notch on the open quit box: the highlight and the scroll, by BoxLayout's rule.
 func _push_quit_box(push: BoxLayout.Push) -> void:

@@ -71,7 +71,7 @@ func _input(event: InputEvent) -> void:
 	if not rules.box_open:
 		return
 	# The wheel is not a menu step: read it first, or the _ arm swallows it.
-	var wheel := _wheel_push(event)
+	var wheel := BoxLayout.wheel_push(event)
 	if wheel != -1:
 		_push_box(wheel as BoxLayout.Push)
 		_after_rules()
@@ -101,17 +101,6 @@ func _fit_box() -> void:
 	var nodes: Array[Control] = [%FirstLine, %SecondLine]
 	_box = _box_normal.at(UiScale.current(Display.prefs, get_tree().root), %TryAgain.size, %KeepPlaying.size, BoxLayout.label_heights(labels))
 	_box.place(%Box.get_node("Panel"), nodes, %TryAgain, %KeepPlaying)
-
-## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
-func _wheel_push(event: InputEvent) -> int:
-	var click := event as InputEventMouseButton
-	if click == null or not click.pressed:
-		return -1
-	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
-		return BoxLayout.Push.WHEEL_UP
-	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-		return BoxLayout.Push.WHEEL_DOWN
-	return -1
 
 ## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
 func _push_box(push: BoxLayout.Push) -> void:

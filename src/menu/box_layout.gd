@@ -25,6 +25,18 @@ var offset := 0                     # set by framed(): whole units the content i
 var clip := Rect2()                 # set by framed(): the Clip node inside the panel
 var content := Rect2()              # set by framed(): the Content node inside the Clip; its size is the unframed panel's
 
+## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1. Kept here with the enum: a wheel notch is
+## one push on a framed box, and every box that scrolls reads it the same way.
+static func wheel_push(event: InputEvent) -> int:
+	var click := event as InputEventMouseButton
+	if click == null or not click.pressed:
+		return -1
+	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
+		return Push.WHEEL_UP
+	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		return Push.WHEEL_DOWN
+	return -1
+
 ## The Normal layout, read from the nodes' rects as the scene has them. Call it once, before any place().
 static func of(panel_node: Control, line_nodes: Array[Control], left_node: Control, right_node: Control) -> BoxLayout:
 	var n := BoxLayout.new()

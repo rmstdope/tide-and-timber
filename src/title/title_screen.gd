@@ -153,11 +153,9 @@ func _input(event: InputEvent) -> void:
 	var step := InputDevice.menu_step(event)
 	if menu.box != TitleMenu.Box.NONE:
 		# Wheel events are not menu steps, so they are read before the match, never inside it.
-		var click := event as InputEventMouseButton
-		if click != null and click.pressed and \
-				(click.button_index == MOUSE_BUTTON_WHEEL_UP or click.button_index == MOUSE_BUTTON_WHEEL_DOWN):
-			_push_box(BoxLayout.Push.WHEEL_UP if click.button_index == MOUSE_BUTTON_WHEEL_UP \
-					else BoxLayout.Push.WHEEL_DOWN)
+		var wheel := BoxLayout.wheel_push(event)
+		if wheel != -1:
+			_push_box(wheel as BoxLayout.Push)
 			_refresh()
 			get_viewport().set_input_as_handled()
 			return

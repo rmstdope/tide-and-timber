@@ -98,17 +98,6 @@ func _fit_box() -> void:
 		_box_layout = _box_layout.one_button()
 	_box_layout.place(%Box.get_node("Panel"), nodes, %Safe, %Other)
 
-## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
-func _wheel_push(event: InputEvent) -> int:
-	var click := event as InputEventMouseButton
-	if click == null or not click.pressed:
-		return -1
-	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
-		return BoxLayout.Push.WHEEL_UP
-	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-		return BoxLayout.Push.WHEEL_DOWN
-	return -1
-
 ## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
 func _push_box(push: BoxLayout.Push) -> void:
 	if _box_frame == null:
@@ -332,7 +321,7 @@ func _input(event: InputEvent) -> void:
 	# The wheel is not a menu step: read it first, or the _ arm swallows it. Only while a box is up,
 	# and after the capture and WAITING guards, so a notch can never be taken for a key being captured.
 	if rules.box != ControlsMenu.Box.NONE:
-		var wheel := _wheel_push(event)
+		var wheel := BoxLayout.wheel_push(event)
 		if wheel != -1:
 			_push_box(wheel as BoxLayout.Push)
 			_refresh()

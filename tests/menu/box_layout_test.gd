@@ -217,3 +217,15 @@ func test_fitting_pushes_are_todays() -> void:
 
 func test_one_button_right_keeps_the_left() -> void:
 	assert_int(_largest().one_button().framed(46, 98, 0).pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT).x).is_equal(BoxLayout.Side.LEFT)
+
+func test_wheel_push_reads_only_a_wheel_press() -> void:
+	var wheel := func(index: MouseButton, pressed: bool) -> InputEventMouseButton:
+		var e := InputEventMouseButton.new()
+		e.button_index = index
+		e.pressed = pressed
+		return e
+	assert_int(BoxLayout.wheel_push(wheel.call(MOUSE_BUTTON_WHEEL_UP, true))).is_equal(BoxLayout.Push.WHEEL_UP)
+	assert_int(BoxLayout.wheel_push(wheel.call(MOUSE_BUTTON_WHEEL_DOWN, true))).is_equal(BoxLayout.Push.WHEEL_DOWN)
+	assert_int(BoxLayout.wheel_push(wheel.call(MOUSE_BUTTON_WHEEL_UP, false))).is_equal(-1)
+	assert_int(BoxLayout.wheel_push(wheel.call(MOUSE_BUTTON_LEFT, true))).is_equal(-1)
+	assert_int(BoxLayout.wheel_push(InputEventKey.new())).is_equal(-1)
