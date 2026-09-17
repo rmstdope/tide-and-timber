@@ -212,7 +212,7 @@ static func _read_row(device: Device, entry: Variant) -> Variant:
 				return null
 			var key: Variant = item.get("key")
 			var location: Variant = item.get("location")
-			if not _whole(key) or key <= 0 or not _whole(location) or location < 0 or location > 2:
+			if not _whole(key) or key <= 0 or key >= KEY_SPECIAL << 1 or not _whole(location) or location < 0 or location > 2:
 				return null
 			row.append(_new_key(int(key), int(location)))
 		return row

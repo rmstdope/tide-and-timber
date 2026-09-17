@@ -159,3 +159,16 @@ func test_every_pad_label_is_drawable() -> void:
 				assert_bool(ch == " " or Glyphs.ORDER.find(ch) >= 0) \
 					.override_failure_message("%s not drawable" % ch).is_true()
 
+func test_build_hint_falls_back_when_a_menu_takes_the_use_key() -> void:
+	var c := Controls.new()
+	c.set_slot(CA.USE, CD.KEYBOARD, 0, _key(KEY_ESCAPE))
+	assert_str(_with(c, H.BUILD_LIST, K.KEYBOARD)).is_equal("[Enter] Build   [Esc] Close")
+	assert_str(_with(c, H.PLACING, K.KEYBOARD)).is_equal("[Enter] Place   [Esc] Back")
+	var d := Controls.new()
+	d.set_slot(CA.USE, CD.KEYBOARD, 0, _key(KEY_DOWN))
+	assert_str(_with(d, H.BUILD_LIST, K.KEYBOARD)).is_equal("[Enter] Build   [Esc] Close")
+	assert_str(_with(d, H.PLACING, K.KEYBOARD)).is_equal("[↓] Place   [Esc] Back")
+	var p := Controls.new()
+	p.set_slot(CA.USE, CD.CONTROLLER, 0, _button(JOY_BUTTON_B))
+	assert_str(_with(p, H.BUILD_LIST, K.XBOX)).is_equal("(A) Build   (B) Close")
+

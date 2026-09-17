@@ -119,6 +119,21 @@ static func _is_stick(controls: Controls, direction: Callable) -> bool:
 			return false
 	return true
 
+# True when a fixed menu action is checked before Use for the Use input shown on this device, so it never chooses.
+static func _menu_takes_use(controls: Controls, kind: DeviceTracker.Kind, list: bool) -> bool:
+	var device := Controls.Device.KEYBOARD if kind == DeviceTracker.Kind.KEYBOARD else Controls.Device.CONTROLLER
+	var use := (controls if controls != null else Controls.new()).first_input(Controls.Action.USE, device)
+	if use == null:
+		return false
+	var taken: Array[StringName] = [&"build_back"]
+	if list:
+		taken.append_array([&"menu_up", &"menu_down"])
+	for action in taken:
+		for fixed: InputEvent in InputMap.action_get_events(action):
+			if Controls.same_input(use, fixed):
+				return true
+	return false
+
 static func _pad_button(index: int) -> InputEventJoypadButton:
 	var e := InputEventJoypadButton.new()
 	e.button_index = index as JoyButton
@@ -137,6 +152,8 @@ static func line(hint: Hint, kind: DeviceTracker.Kind, verb: String = "", contro
 		Hint.BUILD_LIST, Hint.PLACING:
 			var list := hint == Hint.BUILD_LIST
 			var choose := pictures(kind, Slot.BOTTOM, controls)
+			if _menu_takes_use(controls, kind, list):
+				choose.clear()
 			if choose.is_empty():
 				# Enter and the bottom button always choose, whatever Use is set to.
 				if kind == DeviceTracker.Kind.KEYBOARD:

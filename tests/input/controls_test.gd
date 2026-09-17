@@ -208,6 +208,7 @@ func test_unreadable_files_give_defaults(case: String, text: String, test_parame
 	["missing action", "NO_USE"],
 	["keyboard array of 1", "KB1"],
 	["key 0", "KEY0"],
+	["key too large", "KEYBIG"],
 	["location 3", "LOC3"],
 	["button 200", "BTN200"],
 	["sign 0", "SIGN0"],
@@ -221,6 +222,7 @@ func test_unreadable_files_give_defaults(case: String, text: String, test_parame
 		"NO_USE": content = good.replace("\"use\":", "\"usex\":")
 		"KB1": content = good.replace("[{\"key\":69,\"location\":0},null]", "[{\"key\":69,\"location\":0}]")
 		"KEY0": content = good.replace("{\"key\":69,", "{\"key\":0,")
+		"KEYBIG": content = good.replace("{\"key\":69,", "{\"key\":1e30,")
 		"LOC3": content = good.replace("{\"key\":69,\"location\":0}", "{\"key\":69,\"location\":3}")
 		"BTN200": content = good.replace("{\"button\":0}", "{\"button\":200}")
 		"SIGN0": content = good.replace("{\"axis\":1,\"sign\":-1}", "{\"axis\":1,\"sign\":0}")

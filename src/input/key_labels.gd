@@ -20,11 +20,15 @@ static func label(key: InputEventKey) -> String:
 		return "Num %d" % (code - KEY_KP_0)
 	if code >= KEY_F1 and code <= KEY_F12:
 		return "F%d" % (code - KEY_F1 + 1)
-	var c: int = code
+	var printed := 0
 	if DisplayServer.get_name() != "headless":
-		var printed := DisplayServer.keyboard_get_label_from_physical(code)
-		if printed != 0:
-			c = printed
-	if c >= 33 and c <= 126:
-		return char(c).to_upper()
-	return OS.get_keycode_string(code)
+		printed = DisplayServer.keyboard_get_label_from_physical(code)
+	return printed_label(code, printed)
+
+## The label from the character the player's layout prints on the key (0 for unknown). A character outside
+## printable ASCII falls back to the US character for that physical key, which still fits a slot.
+static func printed_label(physical: int, printed: int) -> String:
+	for c: int in [printed, physical]:
+		if c >= 33 and c <= 126:
+			return char(c).to_upper()
+	return OS.get_keycode_string(physical)

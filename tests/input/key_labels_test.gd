@@ -49,6 +49,11 @@ func test_letters_and_symbols_print_as_on_the_key() -> void:
 	assert_str(_label(KEY_MINUS)).is_equal("-")
 	assert_str(_label(KEY_BRACKETLEFT)).is_equal("[")
 
+func test_a_printed_character_beyond_ascii_shows_the_us_character() -> void:
+	assert_str(KeyLabels.printed_label(KEY_BRACKETLEFT, 229)).is_equal("[")
+	assert_str(KeyLabels.printed_label(KEY_Q, KEY_A)).is_equal("A")
+	assert_str(KeyLabels.printed_label(KEY_Q, 0)).is_equal("Q")
+
 func test_arrows_are_arrows() -> void:
 	assert_str(_label(KEY_UP)).is_equal("↑")
 	assert_str(_label(KEY_DOWN)).is_equal("↓")
