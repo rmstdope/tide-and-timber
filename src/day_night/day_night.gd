@@ -90,6 +90,7 @@ func set_minutes(total: float) -> void:
 
 ## Widens and heightens the plank to fit the day and time at the current Text size, growing right and
 ## down from its top-left; the dial keeps its size and stays centred in the wider plank.
+## Resets both labels' scale to measure them, so never call it from a draw pass.
 func fit_clock() -> void:
 	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 	%DayLabel.scale = Vector2.ONE

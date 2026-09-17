@@ -42,6 +42,6 @@ func _draw() -> void:
 	draw_texture(Item.icon_of(kind as Item.Kind), Vector2(3, 2))
 	var text := count_text()
 	var rel := text_scale()
-	draw_set_transform(Vector2(15, 15), 0.0, Vector2.ONE * rel)
-	Glyphs.draw(self, text, Vector2(-Glyphs.width(text), -Glyphs.H), Color("#3a2414"))
+	draw_set_transform(count_rect(text, rel).position, 0.0, Vector2.ONE * rel)
+	Glyphs.draw(self, text, Vector2.ZERO, Color("#3a2414"))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
