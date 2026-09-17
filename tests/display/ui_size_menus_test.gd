@@ -117,3 +117,18 @@ func test_nothing_else_on_those_layers_moves_at_normal() -> void:
 	assert_bool(box_layer.transform == Transform2D.IDENTITY).is_true()
 	var card_layer := waking.get_node("%Card").get_parent() as CanvasLayer
 	assert_bool(card_layer.transform == Transform2D.IDENTITY).is_true()
+
+func test_build_list_grows_beside_him() -> void:
+	var beach := waking.get_node("%Beach")
+	var list := beach.get_node("%BuildList") as BuildList
+	var him := Vector2(100, 150)
+	list.place_beside(him)
+	assert_vector(list.scale).is_equal(Vector2.ONE)
+	assert_vector(list.position).is_equal(Vector2(112, 81))
+	_step(1)
+	assert_vector(list.scale).is_equal(Vector2(1.5, 1.5))
+	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 1.5))
+	_step(1)
+	assert_vector(list.scale).is_equal(Vector2(2, 2))
+	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 2.0))
+	assert_bool((list.get_parent() as CanvasLayer).transform == Transform2D.IDENTITY).is_true()

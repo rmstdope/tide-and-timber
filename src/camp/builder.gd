@@ -42,7 +42,7 @@ func open_list() -> void:
 	if walker:
 		walker.cancel()
 	%Ghost.hide()
-	%BuildList.position = BuildList.top_left_for(%Player.get_global_transform_with_canvas().origin)
+	%BuildList.place_beside(%Player.get_global_transform_with_canvas().origin)
 	%BuildList.show_menu(menu)
 	%BuildList.show()
 	%BuildBlocker.show()
