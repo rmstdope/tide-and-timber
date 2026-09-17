@@ -52,9 +52,11 @@ static func shapes(index: int) -> Array[Dictionary]:
 
 func _draw() -> void:
 	for shape in shapes(picture):
-		draw_set_transform(shape.pivot, deg_to_rad(shape.rotation_degrees))
-		draw_rect(Rect2(shape.rect.position - shape.pivot, shape.rect.size), shape.color)
-	draw_set_transform(Vector2.ZERO)
+		if shape.rotation_degrees == 0.0:
+			draw_rect(shape.rect, shape.color)
+			continue
+		for run in PixelRuns.turned_rect(shape.rect, shape.pivot, shape.rotation_degrees):
+			draw_rect(run, shape.color)
 
 static func _shape(rect: Rect2, color: Color, rotation := 0.0, pivot := Vector2.ZERO) -> Dictionary:
 	return { "rect": rect, "color": color, "rotation_degrees": rotation, "pivot": pivot }

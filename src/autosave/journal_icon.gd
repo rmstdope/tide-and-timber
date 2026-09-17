@@ -15,5 +15,5 @@ func _draw() -> void:
 	for r in [Rect2(4, 3, 6, 1), Rect2(4, 5, 6, 1), Rect2(4, 7, 4, 1)]:
 		draw_rect(r, Color("#8a7a6a"))
 	if crossed:
-		draw_line(Vector2(0, 0), Vector2(12, 12), Color("#c0392b"), 2.0)
-		draw_line(Vector2(12, 0), Vector2(0, 12), Color("#c0392b"), 2.0)
+		for run in PixelRuns.line(Vector2(0, 0), Vector2(12, 12), 2.0) + PixelRuns.line(Vector2(12, 0), Vector2(0, 12), 2.0):
+			draw_rect(run, Color("#c0392b"))
