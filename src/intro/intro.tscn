@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://src/intro/story_picture.gd" id="2_picture"]
 [ext_resource type="Script" path="res://src/intro/skip_ring.gd" id="3_ring"]
 [ext_resource type="Script" path="res://src/intro/surf_sound.gd" id="4_surf"]
+[ext_resource type="PackedScene" path="res://src/pause/pause.tscn" id="5_pause"]
 
 [node name="Intro" type="Control"]
 layout_mode = 3
@@ -124,90 +125,10 @@ modulate = Color(1, 1, 1, 0)
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="PauseDim" type="ColorRect" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-visible = false
-mouse_filter = 2
-color = Color(0, 0, 0, 0.5)
-
-[node name="PauseBox" type="ColorRect" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 100.0
-offset_top = 58.0
-offset_right = 220.0
-offset_bottom = 122.0
-visible = false
-mouse_filter = 2
-color = Color(0.047, 0.051, 0.078, 1)
-
-[node name="Heading" type="Label" parent="PauseBox"]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 8.0
-offset_right = 120.0
-offset_bottom = 16.0
-theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
-theme_override_font_sizes/font_size = 8
-text = "Paused"
-horizontal_alignment = 1
-
-[node name="Resume" type="Label" parent="PauseBox"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 0.0
-offset_top = 28.0
-offset_right = 120.0
-offset_bottom = 40.0
-mouse_filter = 0
-theme_override_font_sizes/font_size = 8
-text = "Resume"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ResumeMarker" type="Label" parent="PauseBox"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 24.0
-offset_top = 28.0
-offset_right = 32.0
-offset_bottom = 40.0
-theme_override_colors/font_color = Color(1, 0.835294, 0.541176, 1)
-theme_override_font_sizes/font_size = 8
-text = "▶"
-vertical_alignment = 1
-
-[node name="SkipStory" type="Label" parent="PauseBox"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 0.0
-offset_top = 44.0
-offset_right = 120.0
-offset_bottom = 56.0
-mouse_filter = 0
-theme_override_font_sizes/font_size = 8
-text = "Skip story"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="SkipMarker" type="Label" parent="PauseBox"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 8.0
-offset_top = 44.0
-offset_right = 16.0
-offset_bottom = 56.0
-theme_override_colors/font_color = Color(1, 0.835294, 0.541176, 1)
-theme_override_font_sizes/font_size = 8
-text = "▶"
-vertical_alignment = 1
-
 [node name="Surf" type="AudioStreamPlayer" parent="."]
 unique_name_in_owner = true
 script = ExtResource("4_surf")
+
+[node name="Pause" parent="." instance=ExtResource("5_pause")]
+unique_name_in_owner = true
+with_skip_story = true
