@@ -29,8 +29,13 @@ done
 if [ -n "${FAKE_OVERRIDE_SNAPSHOT:-}" ] && [ -n "$proj" ] && [ -f "$proj/override.cfg" ]; then
   cat "$proj/override.cfg" >> "$FAKE_OVERRIDE_SNAPSHOT"
 fi
+if [ -n "${FAKE_LOCK_SNAPSHOT:-}" ] && [ -n "$proj" ]; then
+  ls -a "$proj/gate-fast.gate.lock" >> "$FAKE_LOCK_SNAPSHOT" 2>/dev/null
+fi
 case "$*" in
-  *--import*) exit "${FAKE_IMPORT_EXIT:-0}" ;;
+  *--import*)
+    if [ -n "${FAKE_IMPORT_SLEEP:-}" ]; then sleep "$FAKE_IMPORT_SLEEP"; fi
+    exit "${FAKE_IMPORT_EXIT:-0}" ;;
   *GdUnitCmdTool.gd*)
     if [ -n "${FAKE_SUITE_KILL:-}" ]; then kill -TERM "$PPID"; exit 143; fi
     exit "${FAKE_SUITE_EXIT:-0}" ;;
@@ -210,6 +215,113 @@ test_stale_own_override_cfg_is_overwritten() {
   rm -rf "$S"
 }
 
+test_refuses_while_another_run_holds_the_lock() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  mkdir "$S/repo/gate-fast.gate.lock"
+  printf '%s\n' "$$" > "$S/repo/gate-fast.gate.lock/pid"
+  run_gate
+  if [ "$code" != 1 ]; then fail "$name" "exit $code"
+  elif ! grep -qF "gate-fast: another gate-fast is already running in $S/repo (pid $$); wait for it to finish" "$S/err"; then
+    fail "$name" "stderr: $(cat "$S/err")"
+  elif [ -e "$S/calls" ]; then fail "$name" "godot was called"
+  elif [ -e "$S/repo/override.cfg" ]; then fail "$name" "override.cfg written"
+  elif [ ! -d "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "the holder's lock was removed"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_lock_is_released_after_a_green_run() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_lock_is_released_after_a_suite_failure() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  FAKE_SUITE_EXIT=100 run_gate
+  if [ "$code" != 1 ]; then fail "$name" "exit $code"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_lock_is_released_when_the_run_is_signalled() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  FAKE_SUITE_KILL=1 run_gate
+  if [ "$code" = 0 ]; then fail "$name" "exit 0 after a signal"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_stale_lock_from_a_dead_holder_is_reclaimed() {
+  local name="${FUNCNAME[0]}"; local dead
+  sandbox; make_fake_godot
+  sh -c 'exit 0' & dead=$!
+  wait "$dead" 2>/dev/null
+  mkdir "$S/repo/gate-fast.gate.lock"
+  printf '%s\n' "$dead" > "$S/repo/gate-fast.gate.lock/pid"
+  run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif ! grep -qF "gate-fast: reclaiming a stale lock in $S/repo" "$S/err"; then
+    fail "$name" "stderr: $(cat "$S/err")"
+  elif [ "$(lines "$S/calls")" != 2 ]; then fail "$name" "calls: $(lines "$S/calls")"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_lock_dir_with_no_pid_file_is_reclaimed() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  mkdir "$S/repo/gate-fast.gate.lock"
+  run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif ! grep -qF "gate-fast: reclaiming a stale lock in $S/repo" "$S/err"; then
+    fail "$name" "stderr: $(cat "$S/err")"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_the_lock_dir_is_hidden_from_godots_importer() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  FAKE_LOCK_SNAPSHOT="$S/locksnap" run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif ! grep -qF '.gdignore' "$S/locksnap" 2>/dev/null; then
+    fail "$name" "no .gdignore in the lock while godot ran: $(cat "$S/locksnap" 2>/dev/null)"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_two_runs_in_one_checkout_do_not_overlap() {
+  local name="${FUNCNAME[0]}"; local apid acode bcode names
+  sandbox; make_fake_godot
+  (cd "$S/elsewhere" && GATE_GODOT="$S/bin/godot" FAKE_IMPORT_SLEEP=2 \
+    FAKE_OVERRIDE_SNAPSHOT="$S/snapA" bash "$S/repo/scripts/gate-fast" \
+    >/dev/null 2>"$S/errA") &
+  apid=$!
+  sleep 0.5
+  FAKE_OVERRIDE_SNAPSHOT="$S/snapB" run_gate
+  bcode=$code
+  wait "$apid"; acode=$?
+  names="$(grep -cF 'config/custom_user_dir_name=' "$S/snapA" 2>/dev/null)"
+  if [ "$acode" != 0 ]; then fail "$name" "run A exit $acode: $(cat "$S/errA")"
+  elif [ "$bcode" != 1 ]; then fail "$name" "run B exit $bcode: $(cat "$S/err")"
+  elif ! grep -qF "gate-fast: another gate-fast is already running in $S/repo (pid " "$S/err"; then
+    fail "$name" "run B stderr: $(cat "$S/err")"
+  elif [ -e "$S/snapB" ]; then fail "$name" "run B launched godot"
+  elif [ "$names" != 2 ]; then fail "$name" "run A saw $names user dir lines"
+  elif [ "$(grep -F 'config/custom_user_dir_name=' "$S/snapA" | sort -u | wc -l | tr -d ' ')" != 1 ]; then
+    fail "$name" "run A saw two different user dirs: $(grep -F 'config/custom_user_dir_name=' "$S/snapA")"
+  elif [ -e "$S/repo/override.cfg" ]; then fail "$name" "override.cfg left behind"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
 test_missing_godot_exits_1
 test_default_godot_comes_from_path
 test_arguments_exit_2
@@ -224,4 +336,12 @@ test_override_cfg_removed_when_the_run_is_signalled
 test_user_dir_name_is_stable_per_checkout_and_distinct_between_them
 test_foreign_override_cfg_refuses
 test_stale_own_override_cfg_is_overwritten
+test_refuses_while_another_run_holds_the_lock
+test_lock_is_released_after_a_green_run
+test_lock_is_released_after_a_suite_failure
+test_lock_is_released_when_the_run_is_signalled
+test_stale_lock_from_a_dead_holder_is_reclaimed
+test_lock_dir_with_no_pid_file_is_reclaimed
+test_the_lock_dir_is_hidden_from_godots_importer
+test_two_runs_in_one_checkout_do_not_overlap
 exit "$failed"
