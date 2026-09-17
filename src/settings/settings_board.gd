@@ -95,8 +95,10 @@ func _exit_tree() -> void:
 
 func _plank(item: SettingsMenu.Plank) -> Control:
 	match item:
-		_:
+		SettingsMenu.Plank.CONTROLS:
 			return %Controls
+	assert(false, "no node for plank %d" % item)
+	return null
 
 func _is_left_press(event: InputEvent) -> bool:
 	var click := event as InputEventMouseButton
