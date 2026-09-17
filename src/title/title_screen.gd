@@ -29,6 +29,10 @@ var start_new_game: Callable = _start_new_game
 var start_continue: Callable = _start_continue
 var migration_steps: Dictionary[int, Callable] = SaveMigrations.chain()   # tests replace it
 var strip: MenuStrip
+var _start_over_normal: BoxLayout   # the Start over box as the scene has it; captured once in _ready
+var _replace_normal: BoxLayout      # the Replace box as the scene has it; captured once in _ready
+var _start_over_box: BoxLayout      # the Start over box's layout drawn now
+var _replace_box: BoxLayout         # the Replace box's layout drawn now
 var _menu_top := MENU_TOP                # the menu's top at Normal, owned by read_save
 
 ## The title menu's top on screen when drawn at scale s. normal_top is its top at Normal, height its unscaled height.
@@ -43,6 +47,10 @@ static func menu_top_at(normal_top: float, height: float, s: float) -> float:
 	return maxf(0.0, minf(centred, clear))
 
 func _ready() -> void:
+	var start_over_lines: Array[Control] = [$StartOverBox/FirstLine, $StartOverBox/SecondLine]
+	_start_over_normal = BoxLayout.of(%StartOverBox, start_over_lines, %KeepMyIsland, %StartOver)
+	var replace_lines: Array[Control] = [$ReplaceBox/FirstLine, $ReplaceBox/SecondLine]
+	_replace_normal = BoxLayout.of(%ReplaceBox, replace_lines, %Cancel, %ReplaceStartOver)
 	%Version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
 	for wave: Control in %Waves.get_children():
 		_wave_home_x.append(wave.position.x)
@@ -196,12 +204,27 @@ func _refresh() -> void:
 
 ## The boxes and the Settings board grow about the screen centre; then the menu is placed.
 func _apply_ui_size() -> void:
+	_fit_boxes()   # first: the pivots below are set from where the boxes now are
 	var s := UiScale.current(Display.prefs, get_tree().root)
 	for c: Control in [%StartOverBox, %ReplaceBox, %SettingsBoard]:
 		c.pivot_offset = OverlayScale.ANCHOR_CENTRE - c.position
 		c.scale = Vector2(s, s)
 	(%SettingsBoard as SettingsBoard).strip.relayout()   # it was laid out before the board was scaled
 	_place_menu()
+
+## Lays both title boxes out for the current UI scale: side by side, or stacked when too wide.
+## Both are laid out whether shown or not, so a box opens already fitted.
+func _fit_boxes() -> void:
+	var s := UiScale.current(Display.prefs, get_tree().root)
+	_start_over_box = _fit_box(_start_over_normal, %StartOverBox, %KeepMyIsland, %StartOver, s)
+	_replace_box = _fit_box(_replace_normal, %ReplaceBox, %Cancel, %ReplaceStartOver, s)
+
+func _fit_box(normal: BoxLayout, panel: Control, left: Control, right: Control, s: float) -> BoxLayout:
+	var labels: Array[Label] = [panel.get_node("FirstLine"), panel.get_node("SecondLine")]
+	var lines: Array[Control] = [panel.get_node("FirstLine"), panel.get_node("SecondLine")]
+	var layout := normal.at(s, left.size, right.size, BoxLayout.label_heights(labels))
+	layout.place(panel, lines, left, right)
+	return layout
 
 ## The menu grows about its own centre and keeps clear of the strip. Runs after visibility is set.
 func _place_menu() -> void:
