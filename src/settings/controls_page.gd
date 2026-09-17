@@ -515,8 +515,8 @@ func _draw() -> void:
 		_centred(font, KEYBOARD_FIXED[1], 160.0, baselines[2], QUIET)
 	else:
 		var y: float = baselines[1]
-		var a := DeviceHints.picture_for(_pad_button(JOY_BUTTON_A), kind)
-		var b := DeviceHints.picture_for(_pad_button(JOY_BUTTON_B), kind)
+		var a := DeviceHints.picture_for(pad_button(JOY_BUTTON_A), kind)
+		var b := DeviceHints.picture_for(pad_button(JOY_BUTTON_B), kind)
 		var first := _width(font, CONTROLLER_FIXED_WORDS[0])
 		var second := _width(font, CONTROLLER_FIXED_WORDS[1])
 		var total := first + 4 + HintLine.picture_width(a) + 4 + second + 4 + HintLine.picture_width(b)
@@ -548,7 +548,7 @@ func _centred(font: Font, text: String, centre_x: float, baseline: float, colour
 	draw_string(font, Vector2(roundf(centre_x - _width(font, text) / 2.0), baseline), text, HORIZONTAL_ALIGNMENT_LEFT,
 		-1, FONT_SIZE, colour)
 
-static func _pad_button(index: JoyButton) -> InputEventJoypadButton:
+static func pad_button(index: JoyButton) -> InputEventJoypadButton:
 	var e := InputEventJoypadButton.new()
 	e.button_index = index
 	return e
