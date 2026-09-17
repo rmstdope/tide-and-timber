@@ -189,6 +189,10 @@ func test_his_shirt_has_no_sleeves() -> void:
 					"%s row %d frame %d row %d: the shirt is %d px across, wider than his torso - a sleeve"
 					% [name_, row, frame, y, span]).is_less_equal(TORSO_WIDTH)
 				return)
+
+## The fact the whole dressing scheme rests on: the pack draws him with the same rigid head in every
+## frame, so a frame's top plus a fixed block is always where his head ends and his body begins. His
+## eyes are the landmark, being pixels no band ever repaints. A pose that broke this - a collapse,
 ## say - would move them, and the tool would paint hair onto a cheek.
 func test_his_head_is_the_same_block_in_every_frame() -> void:
 	for name_: String in SHEETS:
