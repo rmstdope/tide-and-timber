@@ -115,3 +115,14 @@ func test_cell_at_floors() -> void:
 	assert_that(BeachLayout.cell_at(Vector2(1480, 184))).is_equal(Vector2i(92, 11))
 	assert_that(BeachLayout.cell_at(Vector2(1480, 256))).is_equal(Vector2i(92, 16))
 	assert_that(BeachLayout.cell_at(Vector2(1480, 255.9))).is_equal(Vector2i(92, 15))
+
+
+func test_enough_driftwood_for_camp() -> void:
+	var need: int = BuildMenu.COSTS[BuildMenu.Thing.LEAN_TO] + 2 * BuildMenu.COSTS[BuildMenu.Thing.FIRE] + 8
+	assert_int(BeachLayout.DRIFTWOOD.size()).is_greater_equal(need)
+	for i in BeachLayout.DRIFTWOOD.size():
+		var cell := BeachLayout.DRIFTWOOD[i]
+		assert_int(BeachLayout.kind_at(cell)).override_failure_message("%s not sand" % cell).is_equal(K.SAND)
+		# The first five are the original pieces; DRIFTWOOD[2] stands by spawn on purpose.
+		if i >= 5:
+			assert_bool(cell.x >= 83 and cell.x <= 103).override_failure_message("%s near the camp" % cell).is_false()
