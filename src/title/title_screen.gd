@@ -91,25 +91,29 @@ static func _is_left_press(event: InputEvent) -> bool:
 func _input(event: InputEvent) -> void:
 	if menu.locked:
 		return
+	var step := InputDevice.menu_step(event)
 	if menu.box != TitleMenu.Box.NONE:
-		if event.is_action_pressed("menu_left"):
-			menu.select_box(TitleMenu.BoxButton.KEEP_MY_ISLAND)
-		elif event.is_action_pressed("menu_right"):
-			menu.select_box(TitleMenu.BoxButton.START_OVER)
-		elif event.is_action_pressed("menu_accept"):
-			_act(menu.press_box(menu.box_selected))
-		elif event.is_action_pressed("menu_cancel"):
-			_act(menu.cancel_box())
-		else:
-			return
-	elif event.is_action_pressed("menu_up"):
-		menu.move(-1)
-	elif event.is_action_pressed("menu_down"):
-		menu.move(1)
-	elif event.is_action_pressed("menu_accept"):
-		_act(menu.pick(menu.highlighted))
+		match step:
+			MenuPush.Step.LEFT:
+				menu.select_box(TitleMenu.BoxButton.KEEP_MY_ISLAND)
+			MenuPush.Step.RIGHT:
+				menu.select_box(TitleMenu.BoxButton.START_OVER)
+			MenuPush.Step.SELECT:
+				_act(menu.press_box(menu.box_selected))
+			MenuPush.Step.BACK:
+				_act(menu.cancel_box())
+			_:
+				return
 	else:
-		return
+		match step:
+			MenuPush.Step.UP:
+				menu.move(-1)
+			MenuPush.Step.DOWN:
+				menu.move(1)
+			MenuPush.Step.SELECT:
+				_act(menu.pick(menu.highlighted))
+			_:
+				return   # BACK does nothing on the title menu
 	_refresh()
 	get_viewport().set_input_as_handled()
 

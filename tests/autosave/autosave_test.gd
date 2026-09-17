@@ -22,6 +22,10 @@ func before_test() -> void:
 
 func after_test() -> void:
 	autosave.get_tree().paused = false
+	InputDevice.reset()
+	_send_stick(JOY_AXIS_LEFT_X, 0.0)
+	_send_stick(JOY_AXIS_LEFT_Y, 0.0)
+	InputDevice.reset()
 
 func _n(unique: String) -> Node:
 	return autosave.get_node("%" + unique)
@@ -170,6 +174,37 @@ func _joy(button: JoyButton) -> void:
 	e.pressed = true
 	Input.parse_input_event(e)
 	await runner.await_input_processed()
+
+func _send_stick(axis: JoyAxis, value: float) -> void:
+	var e := InputEventJoypadMotion.new()
+	e.device = 0
+	e.axis = axis
+	e.axis_value = value
+	Input.parse_input_event(e)
+	Input.flush_buffered_events()
+
+func _stick(axis: JoyAxis, value: float) -> void:
+	_send_stick(axis, value)
+	await runner.await_input_processed()
+
+func test_stick_moves_between_the_buttons_and_stops_at_the_ends() -> void:
+	_fail_dawn()
+	await _stick(JOY_AXIS_LEFT_X, 1.0)
+	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
+	await _stick(JOY_AXIS_LEFT_X, 0.0)
+	await _stick(JOY_AXIS_LEFT_X, 1.0)
+	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
+	await _stick(JOY_AXIS_LEFT_X, 0.0)
+	await _stick(JOY_AXIS_LEFT_X, -1.0)
+	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
+	await _stick(JOY_AXIS_LEFT_X, 0.0)
+	await _stick(JOY_AXIS_LEFT_X, -1.0)
+	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
+
+func test_stick_inside_dead_zone_moves_nothing() -> void:
+	_fail_dawn()
+	await _stick(JOY_AXIS_LEFT_X, 0.2)
+	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
 
 func test_controller_moves_and_presses() -> void:
 	_fail_dawn([OK])

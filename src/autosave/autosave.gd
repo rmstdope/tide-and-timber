@@ -52,16 +52,17 @@ func tick(real_seconds: float) -> void:
 func _input(event: InputEvent) -> void:
 	if not rules.box_open:
 		return
-	if event.is_action_pressed("menu_left"):
-		rules.select(DawnSave.Choice.TRY_AGAIN)
-	elif event.is_action_pressed("menu_right"):
-		rules.select(DawnSave.Choice.KEEP_PLAYING)
-	elif event.is_action_pressed("menu_accept"):
-		rules.press(rules.selected)
-	elif event.is_action_pressed("menu_cancel"):
-		rules.cancel()
-	else:
-		return
+	match InputDevice.menu_step(event):
+		MenuPush.Step.LEFT:
+			rules.select(DawnSave.Choice.TRY_AGAIN)
+		MenuPush.Step.RIGHT:
+			rules.select(DawnSave.Choice.KEEP_PLAYING)
+		MenuPush.Step.SELECT:
+			rules.press(rules.selected)
+		MenuPush.Step.BACK:
+			rules.cancel()
+		_:
+			return
 	_after_rules()
 	get_viewport().set_input_as_handled()
 

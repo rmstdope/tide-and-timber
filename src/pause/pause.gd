@@ -77,24 +77,26 @@ func _input(event: InputEvent) -> void:
 		return
 	if not rules.is_open:
 		return
+	var step := InputDevice.menu_step(event)
 	if rules.box_open:
-		if event.is_action_pressed("menu_cancel", false):
-			rules.box_cancel()
-		elif event.is_action_pressed("menu_left", false):
-			rules.box_select(PauseMenu.Choice.STAY)
-		elif event.is_action_pressed("menu_right", false):
-			rules.box_select(PauseMenu.Choice.QUIT)
-		elif event.is_action_pressed("menu_accept", false):
-			_apply(rules.box_press(rules.box_selected))
-		else:
-			return
-	elif event.is_action_pressed("menu_up", false):
+		match step:
+			MenuPush.Step.BACK:
+				rules.box_cancel()
+			MenuPush.Step.LEFT:
+				rules.box_select(PauseMenu.Choice.STAY)
+			MenuPush.Step.RIGHT:
+				rules.box_select(PauseMenu.Choice.QUIT)
+			MenuPush.Step.SELECT:
+				_apply(rules.box_press(rules.box_selected))
+			_:
+				return   # Start does nothing in the box
+	elif step == MenuPush.Step.UP:
 		rules.move(-1)
-	elif event.is_action_pressed("menu_down", false):
+	elif step == MenuPush.Step.DOWN:
 		rules.move(1)
-	elif event.is_action_pressed("menu_accept", false):
+	elif step == MenuPush.Step.SELECT:
 		_apply(rules.pick(rules.highlighted))
-	elif event.is_action_pressed("pause", false) or event.is_action_pressed("menu_cancel", false):
+	elif step == MenuPush.Step.BACK or event.is_action_pressed("pause", false):
 		_apply(rules.back())
 	else:
 		return
