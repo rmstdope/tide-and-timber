@@ -29,7 +29,23 @@ offset_bottom = 159.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_board")
 
-[node name="Heading" type="Label" parent="Panel"]
+[node name="Clip" type="Control" parent="Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 304.0
+offset_bottom = 138.0
+mouse_filter = 2
+clip_contents = true
+
+[node name="Content" type="Control" parent="Panel/Clip"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 304.0
+offset_bottom = 138.0
+mouse_filter = 2
+
+[node name="Heading" type="Label" parent="Panel/Clip/Content"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_top = 8.0
 offset_right = 304.0
@@ -41,7 +57,7 @@ text = "Settings"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="UiSize" type="PanelContainer" parent="Panel"]
+[node name="UiSize" type="PanelContainer" parent="Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 16)
 layout_mode = 0
@@ -52,19 +68,19 @@ offset_bottom = 44.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HFlowContainer" parent="Panel/UiSize"]
+[node name="Row" type="HFlowContainer" parent="Panel/Clip/Content/UiSize"]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
 theme_override_constants/h_separation = 0
 theme_override_constants/v_separation = 0
 
-[node name="Pad" type="Control" parent="Panel/UiSize/Row"]
+[node name="Pad" type="Control" parent="Panel/Clip/Content/UiSize/Row"]
 custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/UiSize/Row"]
+[node name="Label" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -74,7 +90,7 @@ theme_override_font_sizes/font_size = 8
 text = "UI size"
 vertical_alignment = 1
 
-[node name="Prev" type="Label" parent="Panel/UiSize/Row"]
+[node name="Prev" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
@@ -84,7 +100,7 @@ text = "◀"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Value" type="Label" parent="Panel/UiSize/Row"]
+[node name="Value" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
 custom_minimum_size = Vector2(64, 12)
 layout_mode = 2
 mouse_filter = 2
@@ -93,7 +109,7 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Next" type="Label" parent="Panel/UiSize/Row"]
+[node name="Next" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
@@ -103,7 +119,7 @@ text = "▶"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TextSize" type="PanelContainer" parent="Panel"]
+[node name="TextSize" type="PanelContainer" parent="Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 16)
 layout_mode = 0
@@ -114,19 +130,19 @@ offset_bottom = 64.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HFlowContainer" parent="Panel/TextSize"]
+[node name="Row" type="HFlowContainer" parent="Panel/Clip/Content/TextSize"]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
 theme_override_constants/h_separation = 0
 theme_override_constants/v_separation = 0
 
-[node name="Pad" type="Control" parent="Panel/TextSize/Row"]
+[node name="Pad" type="Control" parent="Panel/Clip/Content/TextSize/Row"]
 custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/TextSize/Row"]
+[node name="Label" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -136,7 +152,7 @@ theme_override_font_sizes/font_size = 8
 text = "Text size"
 vertical_alignment = 1
 
-[node name="Prev" type="Label" parent="Panel/TextSize/Row"]
+[node name="Prev" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
@@ -146,7 +162,7 @@ text = "◀"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Value" type="Label" parent="Panel/TextSize/Row"]
+[node name="Value" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
 custom_minimum_size = Vector2(64, 12)
 layout_mode = 2
 mouse_filter = 2
@@ -155,7 +171,7 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Next" type="Label" parent="Panel/TextSize/Row"]
+[node name="Next" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
@@ -165,7 +181,7 @@ text = "▶"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ColourCues" type="PanelContainer" parent="Panel"]
+[node name="ColourCues" type="PanelContainer" parent="Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 16)
 layout_mode = 0
@@ -176,19 +192,19 @@ offset_bottom = 84.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HFlowContainer" parent="Panel/ColourCues"]
+[node name="Row" type="HFlowContainer" parent="Panel/Clip/Content/ColourCues"]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
 theme_override_constants/h_separation = 0
 theme_override_constants/v_separation = 0
 
-[node name="Pad" type="Control" parent="Panel/ColourCues/Row"]
+[node name="Pad" type="Control" parent="Panel/Clip/Content/ColourCues/Row"]
 custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/ColourCues/Row"]
+[node name="Label" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -198,7 +214,7 @@ theme_override_font_sizes/font_size = 8
 text = "Colour cues"
 vertical_alignment = 1
 
-[node name="Prev" type="Label" parent="Panel/ColourCues/Row"]
+[node name="Prev" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
@@ -208,7 +224,7 @@ text = "◀"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Value" type="Label" parent="Panel/ColourCues/Row"]
+[node name="Value" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
 custom_minimum_size = Vector2(64, 12)
 layout_mode = 2
 mouse_filter = 2
@@ -217,7 +233,7 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Next" type="Label" parent="Panel/ColourCues/Row"]
+[node name="Next" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 0
@@ -227,7 +243,7 @@ text = "▶"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Controls" type="PanelContainer" parent="Panel"]
+[node name="Controls" type="PanelContainer" parent="Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 16)
 layout_mode = 0
@@ -238,19 +254,19 @@ offset_bottom = 104.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Row" type="HFlowContainer" parent="Panel/Controls"]
+[node name="Row" type="HFlowContainer" parent="Panel/Clip/Content/Controls"]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
 theme_override_constants/h_separation = 0
 theme_override_constants/v_separation = 0
 
-[node name="Pad" type="Control" parent="Panel/Controls/Row"]
+[node name="Pad" type="Control" parent="Panel/Clip/Content/Controls/Row"]
 custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/Controls/Row"]
+[node name="Label" type="Label" parent="Panel/Clip/Content/Controls/Row"]
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -260,7 +276,7 @@ theme_override_font_sizes/font_size = 8
 text = "Controls"
 vertical_alignment = 1
 
-[node name="Arrow" type="Label" parent="Panel/Controls/Row"]
+[node name="Arrow" type="Label" parent="Panel/Clip/Content/Controls/Row"]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 2
@@ -270,7 +286,7 @@ text = "›"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Line" type="Label" parent="Panel"]
+[node name="Line" type="Label" parent="Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 12.0
@@ -283,6 +299,13 @@ theme_override_constants/line_spacing = 2
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 autowrap_mode = 3
+
+[node name="Marks" type="Control" parent="Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 304.0
+offset_bottom = 138.0
+mouse_filter = 2
 
 [node name="ControlsPage" parent="." instance=ExtResource("3_controls_page")]
 unique_name_in_owner = true

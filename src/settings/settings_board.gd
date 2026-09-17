@@ -3,6 +3,8 @@ extends Control
 ## The Settings board over a dim: draws a SettingsMenu and turns input into its moves.
 ## Instanced by the title screen and by pause.tscn.
 ## At a scale where its rows no longer fit across the screen, every row goes onto two lines and the panel narrows to fit.
+## When its content is taller than the screen above its strip, the panel is framed to fit and the content scrolls
+## to the highlight, with ▲ / ▼ where rows are hidden.
 
 signal closed              # Back: the opener highlights its Settings plank again
 signal resume_requested    # the Pause input, opened from the pause board: the opener resumes play
@@ -28,6 +30,7 @@ const LINE_GAP := 8.0              # last plank's bottom to the line's top
 const BOTTOM_MARGIN := 8.0         # the line's bottom to the panel's bottom
 const STACKED_PLANK_H := 28.0      # two 12-unit lines inside the plank's 2-unit border
 const STACKED_STEP := 32.0
+const HEADING_TOP := 8.0           # panel top to the heading's top; the scrolled content starts here
 const VALUE_WORDS := {
 	DisplayPrefs.Setting.UI_SIZE: ["Normal", "Large", "Largest"],
 	DisplayPrefs.Setting.TEXT_SIZE: ["Normal", "Large", "Largest"],
@@ -44,6 +47,9 @@ var rules := SettingsMenu.new()
 var strip: MenuStrip
 var open_controls: Callable = _open_controls   # tests replace it
 var stacked := false               # the rows are on two lines; derived by lay_out, never set elsewhere
+var offset := 0                    # whole units the content is scrolled up; 0 while it fits. Owned by frame()
+var scrolls := false               # the content does not fit the band; derived by frame(), never set elsewhere
+var rest_panel := Rect2(BOARD_X, 21, BOARD_W, BOARD_H)   # lay_out's centred panel, before framing
 
 ## The panel's width at on-screen scale s: BOARD_W, or less so it fits the screen with SCREEN_MARGIN each side.
 static func panel_width(s: float) -> float:
@@ -106,14 +112,93 @@ func lay_out(s: float) -> void:
 	line.position = Vector2(LINE_SIDE, line_top)
 	line.size.x = line_w
 	line.size.y = line_h
-	($Panel/Heading as Control).size.x = panel_w
+	(%Heading as Control).size.x = panel_w
 	var panel_h := line_top + line_h + BOTTOM_MARGIN
-	%Panel.position = Vector2(floorf((320.0 - panel_w) / 2.0), floorf((BASE_HEIGHT - panel_h) / 2.0))
-	%Panel.size = Vector2(panel_w, panel_h)
+	rest_panel = Rect2(floorf((320.0 - panel_w) / 2.0), floorf((BASE_HEIGHT - panel_h) / 2.0), panel_w, panel_h)
+	(%Content as Control).size = rest_panel.size
+	_frame()
+
+## Frames the panel to the band [band_top, band_bottom] (board units) and scrolls the content so the
+## highlighted plank is wholly visible. Reads rest_panel and the planks' positions; sets offset and scrolls.
+func frame(band_top: float, band_bottom: float) -> void:
+	var band_h := band_bottom - band_top
+	var w := rest_panel.size.x
+	if rest_panel.size.y <= band_h:
+		scrolls = false
+		offset = 0
+		%Panel.position = Vector2(rest_panel.position.x,
+				clampf(rest_panel.position.y, band_top, band_bottom - rest_panel.size.y))
+		%Panel.size = rest_panel.size
+		(%Clip as Control).position = Vector2.ZERO
+		(%Clip as Control).size = rest_panel.size
+		(%Content as Control).position = Vector2.ZERO
+	else:
+		scrolls = true
+		var view_h := band_h - 2.0 * ScrollWindow.MARK_ROW
+		var e := _item_extent(rules.highlighted)
+		offset = ScrollWindow.follow(_content_height(), view_h, e.x, e.y, offset)
+		# The plank itself is made wholly visible, in case its extent was taller than the view.
+		var p := _plank(rules.highlighted)
+		offset = ScrollWindow.follow(_content_height(), view_h,
+				p.position.y - HEADING_TOP, p.position.y + p.size.y - HEADING_TOP, offset)
+		%Panel.position = Vector2(rest_panel.position.x, band_top)
+		%Panel.size = Vector2(w, band_h)
+		(%Clip as Control).position = Vector2(0, ScrollWindow.MARK_ROW)
+		(%Clip as Control).size = Vector2(w, view_h)
+		(%Content as Control).position = Vector2(0, -(HEADING_TOP + offset))
+	(%Marks as Control).position = Vector2.ZERO
+	(%Marks as Control).size = (%Panel as Control).size
+	%Marks.queue_redraw()
+
+## True while ▲ is drawn: scrolling, with content hidden above.
+func shows_mark_above() -> bool:
+	return scrolls and ScrollWindow.hidden_above(offset)
+
+## True while ▼ is drawn: scrolling, with content hidden below.
+func shows_mark_below() -> bool:
+	return scrolls and ScrollWindow.hidden_below(offset, _content_height(), (%Clip as Control).size.y)
+
+# The scrolled content: the heading's top to the line's bottom. The mark rows replace the panel's margins.
+func _content_height() -> float:
+	return rest_panel.size.y - HEADING_TOP - BOTTOM_MARGIN
+
+# The plank's extent within the scrolled content. The first reaches up to the heading, and the last down to
+# the line's bottom, so moving to an end brings what explains the list into view.
+func _item_extent(item: SettingsMenu.Plank) -> Vector2:
+	var p := _plank(item)
+	var top := p.position.y - HEADING_TOP
+	var bottom := top + p.size.y
+	if item == rules.items[0]:
+		top = 0.0
+	if item == rules.items[rules.items.size() - 1]:
+		bottom = _content_height()
+	return Vector2(top, bottom)
+
+func _frame() -> void:
+	if not is_inside_tree() or strip == null:
+		frame(0.0, BASE_HEIGHT)
+		return
+	var b := ScrollWindow.band(get_global_transform_with_canvas(), strip.screen_top())
+	frame(b.x, b.y)
+
+## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
+## mark row kept at the panel's top or bottom.
+func mark_centre(up: bool) -> Vector2:
+	var marks := %Marks as Control
+	var y := ScrollWindow.MARK_ROW / 2.0 if up else marks.size.y - ScrollWindow.MARK_ROW / 2.0
+	return Vector2(marks.size.x / 2.0, y)
+
+func _draw_marks() -> void:
+	var marks := %Marks as Control
+	if shows_mark_above():
+		ScrollWindow.draw_mark(marks, mark_centre(true), true)
+	if shows_mark_below():
+		ScrollWindow.draw_mark(marks, mark_centre(false), false)
 
 func _ready() -> void:
 	%ControlsPage.closed.connect(_on_controls_closed)
 	%ControlsPage.resume_requested.connect(_on_controls_resume)
+	%Marks.draw.connect(_draw_marks)
 	for i in rules.items.size():
 		var item := rules.items[i]
 		var plank := _plank(item)
@@ -156,6 +241,7 @@ func _lay_out_later() -> void:
 ## Opens the board. from_pause: opened from the Paused board.
 func open(from_pause: bool) -> void:
 	if rules.open(from_pause):
+		offset = 0
 		_lay_out()
 		_refresh()
 
@@ -226,6 +312,8 @@ func _refresh() -> void:
 		row.get_node("Row/Next").add_theme_color_override("font_color",
 				ARROW_DIM if v == DisplayPrefs.count(s) - 1 else TEXT)
 	%Line.text = LINES[rules.highlighted]
+	if rules.is_open:
+		_frame()
 
 func _exit_tree() -> void:
 	InputDevice.set_menu_open(self, false)
