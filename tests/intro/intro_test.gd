@@ -16,6 +16,7 @@ func before_test() -> void:
 
 func after_test() -> void:
 	get_tree().paused = false
+	InputDevice.use_controls(Controls.new())
 
 func _node(unique: String) -> Node:
 	return intro.get_node("%" + unique)
@@ -159,7 +160,7 @@ func test_up_wraps_in_the_pause_box() -> void:
 
 func test_hover_and_click_in_the_pause_box() -> void:
 	await _tap(KEY_ESCAPE)
-	(_pause_node("SkipStory") as Control).mouse_entered.emit()
+	_move_over(_pause_node("SkipStory") as Control)
 	_highlighted("SkipStory")
 	_click_item("Resume", MOUSE_BUTTON_LEFT)
 	assert_int(intro.story.phase).is_equal(IntroStory.Phase.PLAYING)
@@ -226,3 +227,24 @@ func test_story_ends_on_the_beach_waking() -> void:
 	assert_bool(ResourceLoader.exists(Intro.WAKING_SCENE)).is_true()
 	if ResourceLoader.exists(Intro.WAKING_SCENE):
 		assert_bool((load(Intro.WAKING_SCENE) as PackedScene).can_instantiate()).is_true()
+
+# A mouse movement straight to a control, as Godot delivers one over it.
+func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
+	var move := InputEventMouseMotion.new()
+	move.relative = relative
+	control.gui_input.emit(move)
+
+func _key(code: Key) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.physical_keycode = code
+	return e
+
+func test_the_players_use_key_taps() -> void:
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, _key(KEY_F))
+	await _tap(KEY_F)
+	assert_int(_node("Picture").picture).is_equal(1)
+
+func test_space_still_taps_after_rebinding() -> void:
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, _key(KEY_F))
+	await _tap(KEY_SPACE)
+	assert_int(_node("Picture").picture).is_equal(1)

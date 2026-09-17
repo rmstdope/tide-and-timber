@@ -18,6 +18,7 @@ func before_test() -> void:
 func after_test() -> void:
 	get_tree().paused = false
 	InputDevice.reset()
+	InputDevice.use_controls(Controls.new())
 
 func _node(unique: String) -> Node:
 	return intro.get_node("%" + unique)
@@ -127,3 +128,12 @@ func test_a_released_while_space_held_keeps_the_hold() -> void:
 	assert_float(_node("SkipRing").progress).is_greater(0.4)
 	runner.simulate_key_release(KEY_SPACE)
 	await runner.await_input_processed()
+
+func test_the_players_use_button_taps() -> void:
+	var y := InputEventJoypadButton.new()
+	y.button_index = JOY_BUTTON_Y
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.CONTROLLER, 0, y)
+	await _tap(JOY_BUTTON_Y)
+	assert_int(_node("Picture").picture).is_equal(1)
+	await _tap(JOY_BUTTON_A)
+	assert_int(_node("Picture").picture).is_equal(2)

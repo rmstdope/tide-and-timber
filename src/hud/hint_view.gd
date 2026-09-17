@@ -10,7 +10,7 @@ func _ready() -> void:
 	InputDevice.changed.connect(_on_device_changed)
 
 func items() -> Array:
-	return DeviceHints.line(hint, InputDevice.kind())
+	return DeviceHints.line(hint, InputDevice.kind(), "", InputDevice.controls)
 
 func text() -> String:
 	return DeviceHints.as_text(items())

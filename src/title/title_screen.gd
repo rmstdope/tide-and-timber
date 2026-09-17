@@ -40,6 +40,10 @@ func _ready() -> void:
 	_connect_box_button(%Cancel, TitleMenu.BoxButton.CANCEL)
 	_connect_box_button(%ReplaceStartOver, TitleMenu.BoxButton.START_OVER)
 	read_save(SaveStore.SLOT_DIR)
+	InputDevice.set_menu_open(self, true)
+
+func _exit_tree() -> void:
+	InputDevice.set_menu_open(self, false)
 
 ## Reads the slot once and sets the menu up for it. Writes nothing, ever.
 func read_save(dir: String) -> void:
@@ -69,7 +73,6 @@ func _process(delta: float) -> void:
 		(waves[i] as Control).position.x = _wave_home_x[i] + drift
 
 func _connect_plank(plank: Control, choice: TitleMenu.Choice) -> void:
-	plank.mouse_entered.connect(_on_plank_hovered.bind(choice))
 	plank.gui_input.connect(_on_plank_input.bind(choice))
 
 func _on_plank_hovered(choice: TitleMenu.Choice) -> void:
@@ -77,15 +80,17 @@ func _on_plank_hovered(choice: TitleMenu.Choice) -> void:
 	_refresh()
 
 func _on_plank_input(event: InputEvent, choice: TitleMenu.Choice) -> void:
-	if _is_left_press(event):
+	if PointerRule.is_move(event):
+		_on_plank_hovered(choice)
+	elif _is_left_press(event):
 		_act(menu.pick(choice))
 
 func _connect_box_button(button: Control, which: TitleMenu.BoxButton) -> void:
-	button.mouse_entered.connect(func() -> void:
-		menu.select_box(which)
-		_refresh())
 	button.gui_input.connect(func(event: InputEvent) -> void:
-		if _is_left_press(event):
+		if PointerRule.is_move(event):
+			menu.select_box(which)
+			_refresh()
+		elif _is_left_press(event):
 			_act(menu.press_box(which)))
 
 static func _is_left_press(event: InputEvent) -> bool:

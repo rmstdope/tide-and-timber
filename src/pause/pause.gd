@@ -37,20 +37,20 @@ func _ready() -> void:
 		var plank := _plank(rules.items[i])
 		plank.position = Vector2(PLANK_X, PLANK_TOP + i * PLANK_STEP)
 		plank.size = PLANK_SIZE
-		plank.mouse_entered.connect(func() -> void:
-			rules.hover(rules.items[i])
-			_refresh())
 		plank.gui_input.connect(func(event: InputEvent) -> void:
-			if _is_left_press(event):
+			if PointerRule.is_move(event):
+				rules.hover(rules.items[i])
+				_refresh()
+			elif _is_left_press(event):
 				_apply(rules.pick(rules.items[i]))
 				_refresh())
 	for choice: PauseMenu.Choice in [PauseMenu.Choice.STAY, PauseMenu.Choice.QUIT]:
 		var button := _button(choice)
-		button.mouse_entered.connect(func() -> void:
-			rules.box_select(choice)
-			_refresh())
 		button.gui_input.connect(func(event: InputEvent) -> void:
-			if _is_left_press(event):
+			if PointerRule.is_move(event):
+				rules.box_select(choice)
+				_refresh()
+			elif _is_left_press(event):
 				_apply(rules.box_press(choice))
 				_refresh())
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
@@ -130,7 +130,11 @@ func _apply(outcome: PauseMenu.Outcome) -> void:
 			t.tween_property(%Fade, "modulate:a", 1.0, TitleScreen.FADE_SECONDS).from(0.0)
 			t.tween_callback(func() -> void: quit_to_title.call())
 
+func _exit_tree() -> void:
+	InputDevice.set_menu_open(self, false)
+
 func _refresh() -> void:
+	InputDevice.set_menu_open(self, rules.is_open or rules.quitting)
 	%Board.visible = rules.is_open or rules.quitting
 	%QuitBox.visible = rules.box_open
 	for item: PauseMenu.Plank in rules.items:

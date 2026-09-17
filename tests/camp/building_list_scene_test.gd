@@ -160,3 +160,42 @@ func test_b_does_nothing_without_control() -> void:
 	await _press(KEY_B)
 	assert_int(builder.mode).is_equal(M.CLOSED)
 	assert_bool(_list().visible).is_false()
+
+func after_test() -> void:
+	InputDevice.use_controls(Controls.new())
+
+func _key(code: Key) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.physical_keycode = code
+	return e
+
+func _use_key(code: Key) -> void:
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, _key(code))
+
+func test_the_players_use_key_chooses() -> void:
+	_use_key(KEY_F)
+	_driftwood(9)
+	await _stand(Vector2i(92, 11), F.DOWN)
+	await _press(KEY_B)
+	await _press(KEY_E)
+	assert_int(builder.mode).is_equal(M.LIST)
+	await _press(KEY_F)
+	assert_int(builder.mode).is_equal(M.PLACING)
+
+func test_the_players_build_key_closes() -> void:
+	InputDevice.controls.set_slot(Controls.Action.BUILD_LIST, Controls.Device.KEYBOARD, 0, _key(KEY_G))
+	_driftwood(9)
+	await _press(KEY_G)
+	assert_int(builder.mode).is_equal(M.LIST)
+	await _press(KEY_B)
+	assert_int(builder.mode).is_equal(M.LIST)
+	await _press(KEY_G)
+	assert_int(builder.mode).is_equal(M.CLOSED)
+
+func test_menu_key_wins_over_use() -> void:
+	_use_key(KEY_ESCAPE)
+	_driftwood(9)
+	await _press(KEY_B)
+	assert_int(builder.mode).is_equal(M.LIST)
+	await _press(KEY_ESCAPE)
+	assert_int(builder.mode).is_equal(M.CLOSED)

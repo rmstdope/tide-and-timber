@@ -144,18 +144,28 @@ func _shortcut_input(event: InputEvent) -> void:
 		Mode.LIST:
 			if _list_step(InputDevice.menu_step(event)):
 				_handled()
+			# The fixed menu meaning is checked before the player's own keys, so it wins when they share one.
 			elif event.is_action_pressed(&"build_accept", false):
-				if menu.highlighted >= 0:
-					choose(menu.highlighted)
+				_choose_highlighted()
+			elif event.is_action_pressed(&"build_back", false):
+				close_list()
 				_handled()
-			elif event.is_action_pressed(&"build", false) or event.is_action_pressed(&"build_back", false):
+			elif event.is_action_pressed(&"use", false):
+				_choose_highlighted()
+			elif event.is_action_pressed(&"build", false):
 				close_list()
 				_handled()
 		Mode.PLACING:
 			if event.is_action_pressed(&"build_accept", false):
 				try_place()
 				_handled()
-			elif event.is_action_pressed(&"build", false) or event.is_action_pressed(&"build_back", false):
+			elif event.is_action_pressed(&"build_back", false):
+				back_to_list()
+				_handled()
+			elif event.is_action_pressed(&"use", false):
+				try_place()
+				_handled()
+			elif event.is_action_pressed(&"build", false):
 				back_to_list()
 				_handled()
 		Mode.BUILDING:
@@ -173,6 +183,11 @@ func _input(event: InputEvent) -> void:
 		if click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
 			try_place()
 			_handled()
+
+func _choose_highlighted() -> void:
+	if menu.highlighted >= 0:
+		choose(menu.highlighted)
+	_handled()
 
 ## Up and down on the open list, one line per push; false for any other step.
 func _list_step(step: MenuPush.Step) -> bool:

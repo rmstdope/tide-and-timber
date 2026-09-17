@@ -11,6 +11,7 @@ var results: Array = []
 var calls: Array = []
 
 func before_test() -> void:
+	InputDevice.reset()
 	results = []
 	calls = []
 	runner = scene_runner("res://src/autosave/autosave.tscn")
@@ -127,7 +128,7 @@ func test_escape_keeps_playing() -> void:
 func test_click_keep_playing() -> void:
 	_fail_dawn()
 	var button := _n("KeepPlaying") as Control
-	button.mouse_entered.emit()
+	_move_over(button)
 	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
 	runner.simulate_mouse_move(button.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
@@ -221,3 +222,38 @@ func test_controller_b_keeps_playing() -> void:
 	await _joy(JOY_BUTTON_B)
 	assert_bool(_n("Box").visible).is_false()
 	assert_bool(_paused()).is_false()
+
+# A mouse movement straight to a control, as Godot delivers one over it.
+func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
+	var move := InputEventMouseMotion.new()
+	move.relative = relative
+	control.gui_input.emit(move)
+
+# A mouse movement through the window, so InputDevice sees it.
+func _mouse_moved() -> void:
+	var move := InputEventMouseMotion.new()
+	move.position = Vector2(4, 4)
+	move.relative = Vector2(2, 0)
+	Input.parse_input_event(move)
+	Input.flush_buffered_events()
+	await runner.await_input_processed()
+
+func test_box_after_a_key_hides_the_pointer() -> void:
+	await _key(KEY_E)
+	_fail_dawn()
+	assert_bool(InputDevice.pointer.hidden).is_true()
+	await _mouse_moved()
+	assert_bool(InputDevice.pointer.hidden).is_false()
+
+func test_box_closing_shows_the_pointer() -> void:
+	_fail_dawn([])
+	await _key(KEY_LEFT)
+	assert_bool(InputDevice.pointer.hidden).is_true()
+	await _key(KEY_ESCAPE)
+	assert_bool(_n("Box").visible).is_false()
+	assert_bool(InputDevice.pointer.hidden).is_false()
+
+func test_resting_pointer_does_not_select() -> void:
+	_fail_dawn()
+	(_n("KeepPlaying") as Control).mouse_entered.emit()
+	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
