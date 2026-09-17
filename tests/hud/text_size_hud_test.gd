@@ -123,3 +123,22 @@ func test_clock_refits_when_the_day_gets_a_digit() -> void:
 	dn.set_minutes(GameClock.START_MINUTES + 9 * GameClock.MINUTES_PER_DAY)
 	assert_str((dn.get_node("%DayLabel") as Label).text).is_equal("DAY 10")
 	assert_float((dn.get_node("%Plank") as Control).size.x).is_equal_approx(104.0, 0.01)
+
+# --- the use prompt ---
+
+func test_use_prompt_plank_grows_with_its_verb() -> void:
+	var beach := _scene("res://src/beach/beach.tscn")
+	var prompt := beach.get_node("%Prompt") as UsePrompt
+	prompt.verb_label.text = "Take"
+	Display.prefs.step(Setting.TEXT_SIZE, 2)
+	assert_float(prompt.text_scale()).is_equal_approx(2.0, 0.01)
+	assert_int(prompt.height()).is_equal(21)
+	assert_int(prompt.width()).is_equal(81)
+	assert_vector(prompt.verb_label.scale).is_equal_approx(Vector2(2, 2), Vector2(0.01, 0.01))
+	assert_vector(prompt.verb_label.position).is_equal_approx(Vector2(-26, -18), Vector2(0.01, 0.01))
+	assert_vector(prompt.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
+	Display.use_prefs(DisplayPrefs.new())
+	assert_int(prompt.height()).is_equal(13)
+	assert_int(prompt.width()).is_equal(49)
+	assert_vector(prompt.verb_label.position).is_equal_approx(Vector2(-10, -10), Vector2(0.01, 0.01))
+	assert_vector(prompt.verb_label.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))

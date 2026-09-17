@@ -22,6 +22,15 @@ func _ready() -> void:
 # Grows with UI size about its own origin, the prompt's bottom centre.
 func _rescale() -> void:
 	scale = Vector2.ONE * UiScale.current(Display.prefs, get_tree().root)
+	_layout()
+
+## How much bigger the verb is than at Text size Normal; 1.0 out of the tree.
+func text_scale() -> float:
+	return TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
+
+## The plank's height at the current Text size; 13 at Normal.
+func height() -> int:
+	return HEIGHT + int(TextScale.extra(HintLine.FONT_SIZE, text_scale()))
 
 ## The player's Use key or button on the device in use, or null when Use has none there.
 func picture() -> DeviceHints.Picture:
@@ -39,7 +48,11 @@ func show_for(usable: Usable) -> void:
 	show()
 
 func width() -> int:
-	return 3 + _picture_room() + ceili(verb_label.get_minimum_size().x) + 3
+	return 3 + _picture_room() + _words_width() + 3
+
+# The verb's width once grown; get_minimum_size() ignores the label's scale, so multiply it here.
+func _words_width() -> int:
+	return ceili(verb_label.get_minimum_size().x * text_scale())
 
 # The picture's width and the gap after it; nothing without a picture.
 func _picture_room() -> int:
@@ -47,7 +60,8 @@ func _picture_room() -> int:
 	return 0 if p == null else HintLine.picture_width(p) + 2
 
 func _layout() -> void:
-	verb_label.position = Vector2(-width() / 2 + 3 + _picture_room(), -HEIGHT + 3)
+	verb_label.scale = Vector2.ONE * text_scale()
+	verb_label.position = Vector2(-width() / 2 + 3 + _picture_room(), -height() + 3)
 	queue_redraw()
 
 func _on_device_changed() -> void:
@@ -55,11 +69,12 @@ func _on_device_changed() -> void:
 
 func _draw() -> void:
 	var w := width()
+	var h := height()
 	var x0 := -w / 2
-	var y0 := -HEIGHT
-	draw_rect(Rect2(x0, y0, w, 13), Color("#7a5030"))
-	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 11), Color("#b07a45"))
+	var y0 := -h
+	draw_rect(Rect2(x0, y0, w, h), Color("#7a5030"))
+	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, h - 2), Color("#b07a45"))
 	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 1), Color("#d9a56b"))
 	var p := picture()
 	if p != null:
-		HintLine.draw_picture(self, p, Vector2(x0 + 3, y0 + 2))
+		HintLine.draw_picture(self, p, Vector2(x0 + 3, y0 + 2 + floori((h - HEIGHT) / 2.0)))
