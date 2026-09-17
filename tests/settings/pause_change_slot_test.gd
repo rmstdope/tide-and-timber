@@ -84,6 +84,7 @@ func _open_page() -> void:
 	await _tap(KEY_ESCAPE)
 	await _tap(KEY_DOWN)
 	await _tap(KEY_ENTER)
+	await _tap(KEY_UP)   # the board opens on UI size; Up wraps to Controls
 	await _tap(KEY_ENTER)
 	assert_bool(page.visible).is_true()
 

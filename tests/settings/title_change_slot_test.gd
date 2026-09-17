@@ -41,6 +41,7 @@ func _pad(button: JoyButton) -> void:
 func _open_page() -> void:
 	await _press(KEY_DOWN)
 	await _press(KEY_ENTER)
+	await _press(KEY_UP)   # the board opens on UI size; Up wraps to Controls
 	await _press(KEY_ENTER)
 	assert_bool(page.visible).is_true()
 
