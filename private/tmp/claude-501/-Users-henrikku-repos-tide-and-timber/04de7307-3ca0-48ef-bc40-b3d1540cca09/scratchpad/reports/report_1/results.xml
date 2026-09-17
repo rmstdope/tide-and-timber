@@ -1,63 +1,41 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites id="2026-09-17" name="report_1" tests="29" failures="0" skipped="0" flaky="0" time="0.000">
-	<testsuite id="0" name="pause_menu_test" package="tests/pause" timestamp="2026-09-17T12:27:06" hostname="localhost" tests="29" failures="0" errors="0" skipped="0" flaky="0" time="0.069">
-		<testcase name="test_open_starts_on_resume_with_the_box_closed" classname="pause_menu_test" time="0.002">
+<testsuites id="2026-09-17" name="report_1" tests="18" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="debug_menu_test" package="tests/debug" timestamp="2026-09-17T12:27:57" hostname="localhost" tests="18" failures="0" errors="0" skipped="0" flaky="0" time="0.079">
+		<testcase name="test_open_starts_on_time_first_row" classname="debug_menu_test" time="0.005">
 		</testcase>
-		<testcase name="test_open_while_open_is_refused" classname="pause_menu_test" time="0.001">
+		<testcase name="test_reopen_starts_on_time_again" classname="debug_menu_test" time="0.003">
 		</testcase>
-		<testcase name="test_items_on_the_beach_and_in_the_story" classname="pause_menu_test" time="0.002">
+		<testcase name="test_flip_wraps_round_six_pages_and_resets_highlight" classname="debug_menu_test" time="0.002">
 		</testcase>
-		<testcase name="test_move_wraps_round_three" classname="pause_menu_test" time="0.002">
+		<testcase name="test_flip_and_set_page_ignored_when_closed" classname="debug_menu_test" time="0.004">
 		</testcase>
-		<testcase name="test_move_wraps_round_four_with_skip_story" classname="pause_menu_test" time="0.002">
+		<testcase name="test_set_page" classname="debug_menu_test" time="0.004">
 		</testcase>
-		<testcase name="test_reopening_starts_on_resume_again" classname="pause_menu_test" time="0.002">
+		<testcase name="test_tab_names" classname="debug_menu_test" time="0.002">
 		</testcase>
-		<testcase name="test_nothing_works_while_closed" classname="pause_menu_test" time="0.002">
+		<testcase name="test_move_on_an_empty_page_does_nothing" classname="debug_menu_test" time="0.002">
 		</testcase>
-		<testcase name="test_hover_ignores_an_item_not_on_the_board" classname="pause_menu_test" time="0.001">
+		<testcase name="test_move_wraps_round_rows" classname="debug_menu_test" time="0.002">
 		</testcase>
-		<testcase name="test_pick_resume_closes" classname="pause_menu_test" time="0.001">
+		<testcase name="test_scroll_keeps_highlight_visible" classname="debug_menu_test" time="0.004">
 		</testcase>
-		<testcase name="test_back_is_resume" classname="pause_menu_test" time="0.001">
+		<testcase name="test_hover_highlights_in_range" classname="debug_menu_test" time="0.003">
 		</testcase>
-		<testcase name="test_pick_skip_story_closes" classname="pause_menu_test" time="0.002">
+		<testcase name="test_change_calls_step_with_delta" classname="debug_menu_test" time="0.005">
 		</testcase>
-		<testcase name="test_pick_settings_stays_open" classname="pause_menu_test" time="0.002">
+		<testcase name="test_pick_results" classname="debug_menu_test" time="0.003">
 		</testcase>
-		<testcase name="test_pick_quit_to_title_opens_the_box_on_stay" classname="pause_menu_test" time="0.001">
+		<testcase name="test_pick_on_an_empty_page" classname="debug_menu_test" time="0.004">
 		</testcase>
-		<testcase name="test_board_ignores_moves_and_back_while_the_box_is_open" classname="pause_menu_test" time="0.001">
+		<testcase name="test_in_story_only_story_and_show_work" classname="debug_menu_test" time="0.002">
 		</testcase>
-		<testcase name="test_box_select_stops_at_the_ends" classname="pause_menu_test" time="0.001">
+		<testcase name="test_dimmed_page_rows_are_inert_but_highlight_moves" classname="debug_menu_test" time="0.002">
 		</testcase>
-		<testcase name="test_stay_returns_to_quit_to_title" classname="pause_menu_test" time="0.001">
+		<testcase name="test_back_and_start" classname="debug_menu_test" time="0.005">
 		</testcase>
-		<testcase name="test_box_cancel_is_stay" classname="pause_menu_test" time="0.001">
+		<testcase name="test_rows_survive_close_and_reopen" classname="debug_menu_test" time="0.004">
 		</testcase>
-		<testcase name="test_quit_locks_everything" classname="pause_menu_test" time="0.001">
-		</testcase>
-		<testcase name="test_quit_warning_words" classname="pause_menu_test" time="0.001">
-		</testcase>
-		<testcase name="test_settings_blocks_the_board_until_closed" classname="pause_menu_test" time="0.001">
-		</testcase>
-		<testcase name="test_close_settings_returns_on_settings" classname="pause_menu_test" time="0.001">
-		</testcase>
-		<testcase name="test_resume_from_settings_closes_both" classname="pause_menu_test" time="0.002">
-		</testcase>
-		<testcase name="test_resume_from_settings_without_settings_does_nothing" classname="pause_menu_test" time="0.001">
-		</testcase>
-		<testcase name="test_reopening_clears_settings" classname="pause_menu_test" time="0.001">
-		</testcase>
-		<testcase name="test_items_with_debug_on_the_beach_and_in_the_story" classname="pause_menu_test" time="0.001">
-		</testcase>
-		<testcase name="test_pick_debug_opens_debug_and_board_stops_taking_input" classname="pause_menu_test" time="0.002">
-		</testcase>
-		<testcase name="test_close_debug_highlights_debug" classname="pause_menu_test" time="0.002">
-		</testcase>
-		<testcase name="test_resume_from_debug_closes_both" classname="pause_menu_test" time="0.002">
-		</testcase>
-		<testcase name="test_open_clears_debug_open" classname="pause_menu_test" time="0.001">
+		<testcase name="test_value_text" classname="debug_menu_test" time="0.004">
 		</testcase>
 	</testsuite>
 </testsuites>
