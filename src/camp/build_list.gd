@@ -272,6 +272,8 @@ func _layout() -> void:
 		name_labels[i].autowrap_mode = _wrap(_name_lines)
 		# else the unwrapped minimum width still clamps the narrower size (as SpokenLine does)
 		name_labels[i].update_minimum_size()
+		# The box is the lines alone; Godot clamps it up to the line_spacing between them, which
+		# _text_height() reserves in the row.
 		name_labels[i].size = Vector2(text_w, _name_lines * TEXT_LINE)
 		name_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		cost_labels[i].scale = Vector2.ONE * _rel

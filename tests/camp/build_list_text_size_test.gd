@@ -196,3 +196,35 @@ func test_godot_wraps_where_we_counted() -> void:
 				BuildList.wrapped_lines(list.cost_labels[i], list.cost_labels[i].text, 72.0))
 		assert_int(list.cost_labels[i].get_line_count()).is_equal(2)
 		assert_int(list.name_labels[i].get_line_count()).is_equal(1)
+
+func test_a_name_too_wide_for_the_list_wraps_and_pushes_the_cost_down() -> void:
+	var list := _open(2, 2)
+	list.name_labels[0].text = "Lean-to shelter"      # 120 units, wider than the 72 it has
+	list.place_beside(HIM)
+	assert_bool(list.stacked).is_true()
+	assert_int(list.name_labels[0].autowrap_mode).is_equal(TextServer.AUTOWRAP_WORD_SMART)
+	assert_float(list.name_labels[0].size.x).is_equal(72.0)
+	for i in BuildMenu.LINE_COUNT:
+		# Every row grows together: two name lines (2*8 + 3, doubled = 38) above the cost.
+		assert_vector(list.cost_labels[i].position).is_equal(Vector2(3, 2 + 38 + 1))
+		assert_vector(list.rows[i].size).is_equal(Vector2(150, 2 + 38 + 1 + 38 + 2))
+	await await_idle_frame()
+	await await_idle_frame()
+	assert_int(list.name_labels[0].get_line_count()).is_equal(2)
+
+func test_godot_wraps_where_we_counted_at_every_size() -> void:
+	# _text_width_available() is not rounded, so this is the pin that our line count and the engine's
+	# wrap are given the identical width and cannot disagree at any size the game can reach.
+	for ui_size in 3:
+		for text_size in 3:
+			var list := _open(ui_size, text_size)
+			var text_w: float = list._text_width_available()
+			await await_idle_frame()
+			await await_idle_frame()
+			for i in BuildMenu.LINE_COUNT:
+				for label: Label in [list.name_labels[i], list.cost_labels[i]]:
+					if label.autowrap_mode == TextServer.AUTOWRAP_OFF:
+						continue
+					assert_int(label.get_line_count()).is_equal(
+							BuildList.wrapped_lines(label, label.text, text_w))
+			remove_child(list)
