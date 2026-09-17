@@ -39,6 +39,9 @@ var scrolls := false          # the content does not fit the band; derived by fr
 var rest_panel := Rect2()     # the centred panel set in _ready, before framing
 var _quit_normal: BoxLayout   # the quit box as the scene has it, captured before anything places it
 var _quit_box: BoxLayout      # the quit box as drawn now
+var _quit_frame: BoxLayout    # the quit box framed to the room above the strip; null until first framed while open
+var _quit_offset := 0         # whole units the quit box's content is scrolled; owned by _push_quit_box and _frame_quit_box
+var _quit_was_open := false   # to reset the offset each time the box opens
 
 func _ready() -> void:
 	var box_lines: Array[Control] = [%FirstLine, %SecondLine]
@@ -59,9 +62,13 @@ func _ready() -> void:
 	strip = MenuStrip.new()
 	%Board.add_child(strip)   # last child: above the quit box's dim, shown exactly when the board is
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
+	# After add_child(strip): the strip's own deferred layout is queued first, so screen_top() is final.
 	%Marks.draw.connect(_draw_marks)
 	Display.changed.connect(_frame_later)
 	get_tree().root.size_changed.connect(_frame_later)
+	Display.changed.connect(_frame_quit_box_later)
+	get_tree().root.size_changed.connect(_frame_quit_box_later)
+	_quit_panel().get_node("Marks").draw.connect(_draw_quit_marks)
 	%SkipStory.visible = with_skip_story
 	var h := BOARD_H_THREE + PLANK_STEP * (rules.items.size() - 3)
 	rest_panel = Rect2(BOARD_X, (BASE_HEIGHT - h) / 2.0, BOARD_W, h)
@@ -129,23 +136,26 @@ func _input(event: InputEvent) -> void:
 		return   # the Settings board or the Debug panel, a child, reads it
 	var step := InputDevice.menu_step(event)
 	if rules.box_open:
+		# The wheel is not a menu step: read it before the match, or the _ arm swallows it.
+		var wheel := _wheel_push(event)
+		if wheel != -1:
+			_push_quit_box(wheel as BoxLayout.Push)
+			_refresh()
+			get_viewport().set_input_as_handled()
+			return
 		match step:
 			MenuPush.Step.BACK:
 				rules.box_cancel()
 			MenuPush.Step.LEFT:
-				rules.box_select(PauseMenu.Choice.STAY)
+				_push_quit_box(BoxLayout.Push.LEFT)
 			MenuPush.Step.RIGHT:
-				rules.box_select(PauseMenu.Choice.QUIT)
+				_push_quit_box(BoxLayout.Push.RIGHT)
 			MenuPush.Step.SELECT:
 				_apply(rules.box_press(rules.box_selected))
 			MenuPush.Step.UP:
-				if not _quit_box.stacked:
-					return
-				rules.box_select(PauseMenu.Choice.STAY)
+				_push_quit_box(BoxLayout.Push.UP)
 			MenuPush.Step.DOWN:
-				if not _quit_box.stacked:
-					return
-				rules.box_select(PauseMenu.Choice.QUIT)
+				_push_quit_box(BoxLayout.Push.DOWN)
 			_:
 				return   # Start does nothing in the box
 	elif step == MenuPush.Step.UP:
@@ -204,6 +214,10 @@ func _refresh() -> void:
 	if rules.box_open:
 		%SecondLine.text = PauseMenu.quit_warning(has_saved.call())
 		_fit_quit_box()
+		if not _quit_was_open:
+			_quit_offset = 0
+		_frame_quit_box()
+	_quit_was_open = rules.box_open
 	_frame()
 
 ## Frames the panel to the band [band_top, band_bottom] (board units) and scrolls the content so the
@@ -293,6 +307,51 @@ func _fit_quit_box() -> void:
 	var nodes: Array[Control] = [%FirstLine, %SecondLine]
 	_quit_box = _quit_normal.at(UiScale.current(Display.prefs, get_tree().root), %Stay.size, %Quit.size, BoxLayout.label_heights(labels))
 	_quit_box.place(%QuitBox.get_node("Panel"), nodes, %Stay, %Quit)
+
+## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
+func _wheel_push(event: InputEvent) -> int:
+	var click := event as InputEventMouseButton
+	if click == null or not click.pressed:
+		return -1
+	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
+		return BoxLayout.Push.WHEEL_UP
+	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		return BoxLayout.Push.WHEEL_DOWN
+	return -1
+
+## One push or wheel notch on the open quit box: the highlight and the scroll, by BoxLayout's rule.
+func _push_quit_box(push: BoxLayout.Push) -> void:
+	if _quit_frame == null:
+		return
+	var side := BoxLayout.Side.LEFT if rules.box_selected == PauseMenu.Choice.STAY else BoxLayout.Side.RIGHT
+	var after := _quit_frame.pushed(push, side)
+	rules.box_select(PauseMenu.Choice.STAY if after.x == BoxLayout.Side.LEFT else PauseMenu.Choice.QUIT)
+	_quit_offset = after.y
+
+## Frames the laid-out quit box to the room between the screen top and the strip. Only while the box is open.
+func _frame_quit_box() -> void:
+	if rules == null or not rules.box_open or _quit_box == null or strip == null or not is_inside_tree():
+		return
+	var b := ScrollWindow.band((%QuitBox as Control).get_global_transform_with_canvas(), strip.screen_top())
+	_quit_frame = _quit_box.framed(b.x, b.y, _quit_offset)
+	_quit_offset = _quit_frame.offset
+	_quit_frame.place_frame(_quit_panel(), _quit_panel().get_node("Clip"),
+			_quit_panel().get_node("Clip/Content"), _quit_panel().get_node("Marks"))
+
+func _frame_quit_box_later() -> void:
+	_frame_quit_box.call_deferred()
+
+func _quit_panel() -> Control:
+	return %QuitBox.get_node("Panel")
+
+func _draw_quit_marks() -> void:
+	if _quit_frame == null or not rules.box_open:
+		return
+	var marks: Control = _quit_panel().get_node("Marks")
+	if _quit_frame.shows_mark_above():
+		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+	if _quit_frame.shows_mark_below():
+		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
 
 func _open_settings() -> void:
 	%SettingsBoard.open(true)

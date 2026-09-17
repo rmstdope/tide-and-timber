@@ -49,8 +49,9 @@ func _rect(unique: String) -> Rect2:
 	var n := _node(unique)
 	return Rect2(n.position, n.size)
 
+## The rest layout, before framing: the box now scrolls whenever it stacks in the waking scene.
 func _panel_rect() -> Rect2:
-	return Rect2(_panel().position, _panel().size)
+	return pause._quit_box.panel
 
 func _tap(key: Key) -> void:
 	await runner.simulate_key_pressed(key)
@@ -128,26 +129,6 @@ func test_second_line_change_refits() -> void:
 	assert_that(_rect("Quit")).is_equal(Rect2(24, 96, 104, 20))
 	assert_that(_panel_rect()).is_equal(Rect2(84, 27, 152, 126))
 
-func test_up_down_move_between_stacked_buttons() -> void:
-	_size_up(2)
-	await _open_box()
-	await _tap(KEY_DOWN)
-	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)
-	_highlighted("Quit")
-	await _tap(KEY_DOWN)
-	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)
-	await _tap(KEY_UP)
-	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.STAY)
-	_highlighted("Stay")
-	await _tap(KEY_UP)
-	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.STAY)
-	await _tap(KEY_RIGHT)
-	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)
-	await _tap(KEY_LEFT)
-	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.STAY)
-	assert_bool(_node("QuitBox").visible).is_true()
-	assert_bool(pause.rules.quitting).is_false()
-
 func test_up_down_do_nothing_side_by_side() -> void:
 	await _open_box()
 	await _tap(KEY_DOWN)
@@ -162,15 +143,15 @@ func test_stacked_buttons_do_not_overlap() -> void:
 	await _open_box()
 	var stay := _node("Stay").get_global_rect()
 	var quit := _node("Quit").get_global_rect()
-	var panel := _panel().get_global_rect()
+	var content := (pause.get_node("%QuitBox/Panel/Clip/Content") as Control).get_global_rect()
 	assert_bool(stay.intersects(quit)).is_false()
-	assert_bool(panel.encloses(stay)).is_true()
-	assert_bool(panel.encloses(quit)).is_true()
+	assert_bool(content.encloses(stay)).is_true()
+	assert_bool(content.encloses(quit)).is_true()
 
 func test_select_when_stacked_quits() -> void:
 	_size_up(2)
 	await _open_box()
-	await _tap(KEY_DOWN)
+	await _tap(KEY_RIGHT)
 	await _tap(KEY_ENTER)
 	assert_bool(pause.rules.quitting).is_true()
 
