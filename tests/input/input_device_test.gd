@@ -12,6 +12,7 @@ func before_test() -> void:
 	beach = runner.scene() as Beach
 
 func after_test() -> void:
+	InputDevice.set_menu_open(self, false)
 	InputDevice.reset()
 	_stick(JOY_AXIS_LEFT_X, 0.0)
 	_stick(JOY_AXIS_LEFT_Y, 0.0)
@@ -85,3 +86,41 @@ func test_reset_rearms_the_stick() -> void:
 	InputDevice.reset()
 	var e := _stick(JOY_AXIS_LEFT_Y, 1.0)
 	assert_int(InputDevice.menu_step(e)).is_equal(MenuPush.Step.DOWN)
+
+# A mouse movement through the window, so InputDevice sees it.
+func _mouse_moved() -> void:
+	var move := InputEventMouseMotion.new()
+	move.position = Vector2(4, 4)
+	move.relative = Vector2(2, 0)
+	Input.parse_input_event(move)
+	Input.flush_buffered_events()
+	await runner.await_input_processed()
+
+func test_key_through_the_window_hides_the_pointer_in_a_menu() -> void:
+	InputDevice.set_menu_open(self, true)
+	runner.simulate_key_pressed(KEY_E)
+	await runner.await_input_processed()
+	assert_bool(InputDevice.pointer.hidden).is_true()
+
+func test_mouse_move_through_the_window_shows_it() -> void:
+	InputDevice.set_menu_open(self, true)
+	runner.simulate_key_pressed(KEY_E)
+	await runner.await_input_processed()
+	await _mouse_moved()
+	assert_bool(InputDevice.pointer.hidden).is_false()
+
+func test_no_menu_no_hiding() -> void:
+	runner.simulate_key_pressed(KEY_E)
+	await runner.await_input_processed()
+	assert_bool(InputDevice.pointer.hidden).is_false()
+
+func test_reset_forgets_the_device_but_keeps_menus() -> void:
+	InputDevice.set_menu_open(self, true)
+	runner.simulate_key_pressed(KEY_E)
+	await runner.await_input_processed()
+	assert_bool(InputDevice.pointer.hidden).is_true()
+	InputDevice.reset()
+	assert_bool(InputDevice.pointer.hidden).is_false()
+	_pad(JOY_BUTTON_A, true)
+	_pad(JOY_BUTTON_A, false)
+	assert_bool(InputDevice.pointer.hidden).is_true()

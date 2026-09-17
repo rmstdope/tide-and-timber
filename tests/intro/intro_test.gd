@@ -159,7 +159,7 @@ func test_up_wraps_in_the_pause_box() -> void:
 
 func test_hover_and_click_in_the_pause_box() -> void:
 	await _tap(KEY_ESCAPE)
-	(_pause_node("SkipStory") as Control).mouse_entered.emit()
+	_move_over(_pause_node("SkipStory") as Control)
 	_highlighted("SkipStory")
 	_click_item("Resume", MOUSE_BUTTON_LEFT)
 	assert_int(intro.story.phase).is_equal(IntroStory.Phase.PLAYING)
@@ -226,3 +226,9 @@ func test_story_ends_on_the_beach_waking() -> void:
 	assert_bool(ResourceLoader.exists(Intro.WAKING_SCENE)).is_true()
 	if ResourceLoader.exists(Intro.WAKING_SCENE):
 		assert_bool((load(Intro.WAKING_SCENE) as PackedScene).can_instantiate()).is_true()
+
+# A mouse movement straight to a control, as Godot delivers one over it.
+func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
+	var move := InputEventMouseMotion.new()
+	move.relative = relative
+	control.gui_input.emit(move)
