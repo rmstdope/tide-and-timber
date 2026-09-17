@@ -29,6 +29,7 @@ const STORY_DIM := Color(0, 0, 0, 0.45)
 const SHAKE_STEPS: Array[float] = [1.0, -1.0, 1.0, 0.0]   # px, each Shake.WIGGLE_STEP seconds
 
 var rules := DebugMenu.new()
+var repeat := HoldRepeat.new()   # Left/Right held on a repeating row
 var strip: MenuStrip
 var shaking_row := -1       # row index being shaken, -1 when none
 var shake_x := 0.0          # its current x offset
@@ -90,10 +91,13 @@ func _input(event: InputEvent) -> void:
 		rules.move(-1)
 	elif step == MenuPush.Step.DOWN:
 		rules.move(1)
-	elif step == MenuPush.Step.LEFT:
-		rules.change(-1)   # handled even when nothing changes: the panel is modal
-	elif step == MenuPush.Step.RIGHT:
-		rules.change(1)
+	elif step == MenuPush.Step.LEFT or step == MenuPush.Step.RIGHT:
+		var d := -1 if step == MenuPush.Step.LEFT else 1
+		rules.change(d)   # handled even when nothing changes: the panel is modal
+		if rules.highlighted_repeats():
+			repeat.press(d)
+		else:
+			repeat.release()
 	elif step == MenuPush.Step.SELECT:
 		_apply(rules.pick())
 	elif step == MenuPush.Step.BACK:
@@ -104,8 +108,24 @@ func _input(event: InputEvent) -> void:
 		_apply(rules.start())
 	else:
 		return
+	if step != MenuPush.Step.LEFT and step != MenuPush.Step.RIGHT:
+		repeat.release()
 	_refresh()
 	get_viewport().set_input_as_handled()
+
+# Holding Left/Right on a repeating row keeps stepping; the panel runs while the tree is paused.
+func _process(delta: float) -> void:
+	if repeat.direction == 0:
+		return
+	var action := &"menu_left" if repeat.direction < 0 else &"menu_right"
+	if not rules.is_open or not rules.highlighted_repeats() or not Input.is_action_pressed(action):
+		repeat.release()
+		return
+	var n := repeat.advance(delta)
+	for i in n:
+		rules.change(repeat.direction)
+	if n > 0:
+		queue_redraw()
 
 # The pointer: hovering a row highlights it, clicking a row selects it, clicking a tab opens that page.
 func _on_gui_input(event: InputEvent) -> void:
@@ -123,6 +143,7 @@ func _on_gui_input(event: InputEvent) -> void:
 			return
 		rules.hover(index)
 	elif click != null and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
+		repeat.release()
 		var tab := tab_at(m.position)
 		if tab >= 0:
 			rules.set_page(tab as DebugMenu.Page)
@@ -167,6 +188,8 @@ func _set_shake_x(x: float) -> void:
 	queue_redraw()
 
 func _refresh() -> void:
+	if not rules.is_open:
+		repeat.release()
 	InputDevice.set_menu_open(self, rules.is_open)
 	visible = rules.is_open
 	queue_redraw()

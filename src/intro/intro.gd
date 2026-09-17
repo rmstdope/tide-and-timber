@@ -23,6 +23,10 @@ func _ready() -> void:
 	%Pause.skip_story_chosen.connect(func() -> void:
 		story.skip()
 		_refresh())
+	var debug := (%Pause as Pause).debug_menu()
+	if debug:
+		for row in DebugTime.rows(null):
+			debug.add_row(DebugMenu.Page.TIME, row)
 	_refresh()
 	var debug: DebugMenu = %Pause.debug_menu()
 	if debug != null:

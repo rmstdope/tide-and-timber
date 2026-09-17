@@ -142,9 +142,10 @@ func test_each_opening_starts_on_time() -> void:
 
 func test_rows_added_through_the_seam_draw_and_act() -> void:
 	var got: Array[int] = []
-	pause.debug_menu().add_row(DebugMenu.Page.TIME,
+	pause.debug_menu().add_row(DebugMenu.Page.ITEMS,
 			DebugRow.new("Test", func() -> String: return "1", func(d: int) -> void: got.append(d)))
 	await _open_panel()
+	await _tap(KEY_E)   # Items: the Time page has its own rows
 	await _tap(KEY_RIGHT)
 	assert_array(got).is_equal([1])
 	await _tap(KEY_DOWN)
@@ -160,9 +161,10 @@ func test_list_scrolls() -> void:
 	assert_int(panel.rules.scroll).is_equal(1)
 
 func test_refused_row_shakes() -> void:
-	pause.debug_menu().add_row(DebugMenu.Page.TIME,
+	pause.debug_menu().add_row(DebugMenu.Page.ITEMS,
 			DebugRow.new("No", Callable(), Callable(), func() -> DebugRow.Result: return DebugRow.Result.REFUSED))
 	await _open_panel()
+	await _tap(KEY_E)   # Items: the Time page has its own rows
 	await _tap(KEY_ENTER)
 	assert_int(panel.shaking_row).is_equal(0)
 	await _real_seconds(0.4)
@@ -170,9 +172,10 @@ func test_refused_row_shakes() -> void:
 	assert_float(panel.shake_x).is_equal(0.0)
 
 func test_resume_row_closes_panel_and_pause() -> void:
-	pause.debug_menu().add_row(DebugMenu.Page.TIME,
+	pause.debug_menu().add_row(DebugMenu.Page.ITEMS,
 			DebugRow.new("Go", Callable(), Callable(), func() -> DebugRow.Result: return DebugRow.Result.RESUME))
 	await _open_panel()
+	await _tap(KEY_E)   # Items: the Time page has its own rows
 	await _tap(KEY_ENTER)
 	assert_bool(get_tree().paused).is_false()
 	assert_bool(panel.visible).is_false()
@@ -195,9 +198,10 @@ func test_mouse_clicks_a_tab_and_a_row() -> void:
 	assert_array(picked).is_equal(["x"])
 
 func test_a_second_refusal_restarts_the_shake() -> void:
-	pause.debug_menu().add_row(DebugMenu.Page.TIME,
+	pause.debug_menu().add_row(DebugMenu.Page.ITEMS,
 			DebugRow.new("No", Callable(), Callable(), func() -> DebugRow.Result: return DebugRow.Result.REFUSED))
 	await _open_panel()
+	await _tap(KEY_E)   # Items: the Time page has its own rows
 	await _tap(KEY_ENTER)
 	await _real_seconds(0.15)
 	await _tap(KEY_ENTER)
