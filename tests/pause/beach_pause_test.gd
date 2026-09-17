@@ -76,7 +76,7 @@ func test_esc_pauses_on_resume_with_the_agreed_words() -> void:
 	assert_bool(get_tree().paused).is_true()
 	assert_bool(_node("Board").visible).is_true()
 	assert_bool(_node("QuitBox").visible).is_false()
-	assert_str((_node("Panel").get_node("Heading") as Label).text).is_equal("Paused")
+	assert_str((_node("Heading") as Label).text).is_equal("Paused")
 	assert_str(_plank_text("Resume")).is_equal("Resume")
 	assert_str(_plank_text("Settings")).is_equal("Settings")
 	assert_str(_plank_text("QuitToTitle")).is_equal("Quit to title")

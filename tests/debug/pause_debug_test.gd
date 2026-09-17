@@ -212,3 +212,6 @@ func test_a_second_refusal_restarts_the_shake() -> void:
 	assert_int(panel.shaking_row).is_equal(panel.rules.rows_of(DebugMenu.Page.TIME).size() - 1)
 	await _real_seconds(0.5)
 	assert_int(panel.shaking_row).is_equal(-1)
+
+func test_dev_tag_is_not_scrolled() -> void:
+	assert_object(_node("DevTag").get_parent()).is_same(_node("Panel"))

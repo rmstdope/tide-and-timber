@@ -2,6 +2,8 @@ class_name Pause
 extends CanvasLayer
 ## Esc, Start, a lost window or a lost pad pauses the tree and opens the board; draws a PauseMenu.
 ## Instance pause.tscn in a scene where play happens and set can_pause.
+## When the board is taller than the screen above its strip, it is framed to fit and its planks scroll
+## to the highlight, with ▲ / ▼ where planks are hidden.
 
 signal opened               # after the tree pauses and the board shows
 signal resumed              # after RESUME (or Esc / Start / B) unpauses the tree
@@ -18,6 +20,8 @@ const PLANK_TOP := 28.0              # first plank's top inside the board
 const PLANK_STEP := 20.0
 const PLANK_SIZE := Vector2(120, 16)
 const BASE_HEIGHT := 180.0
+const HEADING_TOP := 8.0        # panel top to the heading's top; the scrolled content starts here
+const BOTTOM_MARGIN := 12.0     # last plank's bottom to the panel's bottom (96 - 84)
 
 @export var with_skip_story := false
 
@@ -30,6 +34,9 @@ var open_settings: Callable = _open_settings                # tests replace it
 var quit_to_title: Callable = _quit_to_title               # tests replace it
 var open_debug: Callable = _open_debug                      # tests replace it
 var strip: MenuStrip
+var scroll_offset := 0        # whole units the content is scrolled up; 0 while it fits. Owned by frame().
+var scrolls := false          # the content does not fit the band; derived by frame()
+var rest_panel := Rect2()     # the centred panel set in _ready, before framing
 var _quit_normal: BoxLayout   # the quit box as the scene has it, captured before anything places it
 var _quit_box: BoxLayout      # the quit box as drawn now
 
@@ -52,10 +59,13 @@ func _ready() -> void:
 	strip = MenuStrip.new()
 	%Board.add_child(strip)   # last child: above the quit box's dim, shown exactly when the board is
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
+	%Marks.draw.connect(_draw_marks)
+	Display.changed.connect(_frame_later)
+	get_tree().root.size_changed.connect(_frame_later)
 	%SkipStory.visible = with_skip_story
 	var h := BOARD_H_THREE + PLANK_STEP * (rules.items.size() - 3)
-	%Panel.position = Vector2(BOARD_X, (BASE_HEIGHT - h) / 2.0)
-	%Panel.size = Vector2(BOARD_W, h)
+	rest_panel = Rect2(BOARD_X, (BASE_HEIGHT - h) / 2.0, BOARD_W, h)
+	(%Content as Control).size = rest_panel.size
 	for i in rules.items.size():
 		var plank := _plank(rules.items[i])
 		plank.position = Vector2(PLANK_X, PLANK_TOP + i * PLANK_STEP)
@@ -98,6 +108,7 @@ func try_open() -> bool:
 	if rules.is_open or rules.quitting or rules.leaving or get_tree().paused or not can_pause.call():
 		return false
 	rules.open()
+	scroll_offset = 0
 	get_tree().paused = true
 	_refresh()
 	opened.emit()
@@ -193,6 +204,88 @@ func _refresh() -> void:
 	if rules.box_open:
 		%SecondLine.text = PauseMenu.quit_warning(has_saved.call())
 		_fit_quit_box()
+	_frame()
+
+## Frames the panel to the band [band_top, band_bottom] (board units) and scrolls the content so the
+## highlighted plank is wholly visible. Reads rest_panel and the planks' positions; sets scroll_offset
+## and scrolls.
+func frame(band_top: float, band_bottom: float) -> void:
+	var band_h := band_bottom - band_top
+	var w := rest_panel.size.x
+	if rest_panel.size.y <= band_h:
+		scrolls = false
+		scroll_offset = 0
+		%Panel.position = Vector2(rest_panel.position.x,
+				clampf(rest_panel.position.y, band_top, band_bottom - rest_panel.size.y))
+		%Panel.size = rest_panel.size
+		(%Clip as Control).position = Vector2.ZERO
+		(%Clip as Control).size = rest_panel.size
+		(%Content as Control).position = Vector2.ZERO
+	else:
+		scrolls = true
+		var view_h := band_h - 2.0 * ScrollWindow.MARK_ROW
+		var e := _item_extent(rules.highlighted)
+		scroll_offset = ScrollWindow.follow(_content_height(), view_h, e.x, e.y, scroll_offset)
+		# The plank itself is made wholly visible, in case its extent was taller than the view.
+		var p := _plank(rules.highlighted)
+		scroll_offset = ScrollWindow.follow(_content_height(), view_h,
+				p.position.y - HEADING_TOP, p.position.y + p.size.y - HEADING_TOP, scroll_offset)
+		%Panel.position = Vector2(rest_panel.position.x, band_top)
+		%Panel.size = Vector2(w, band_h)
+		(%Clip as Control).position = Vector2(0, ScrollWindow.MARK_ROW)
+		(%Clip as Control).size = Vector2(w, view_h)
+		(%Content as Control).position = Vector2(0, -(HEADING_TOP + scroll_offset))
+	(%Marks as Control).position = Vector2.ZERO
+	(%Marks as Control).size = (%Panel as Control).size
+	%Marks.queue_redraw()
+
+## True while ▲ is drawn: scrolling, with planks hidden above.
+func shows_mark_above() -> bool:
+	return scrolls and ScrollWindow.hidden_above(scroll_offset)
+
+## True while ▼ is drawn: scrolling, with planks hidden below.
+func shows_mark_below() -> bool:
+	return scrolls and ScrollWindow.hidden_below(scroll_offset, _content_height(), (%Clip as Control).size.y)
+
+# The scrolled content: the heading's top to the last plank's bottom. The mark rows replace the margins.
+func _content_height() -> float:
+	return rest_panel.size.y - HEADING_TOP - BOTTOM_MARGIN
+
+# The plank's extent within the scrolled content. The first reaches up to the heading, and the last down
+# to the board's bottom, so moving to an end brings what frames the list into view.
+func _item_extent(item: PauseMenu.Plank) -> Vector2:
+	var p := _plank(item)
+	var top := p.position.y - HEADING_TOP
+	var bottom := top + p.size.y
+	if item == rules.items[0]:
+		top = 0.0
+	if item == rules.items[rules.items.size() - 1]:
+		bottom = _content_height()
+	return Vector2(top, bottom)
+
+func _frame() -> void:
+	if not is_inside_tree() or strip == null:
+		frame(0.0, BASE_HEIGHT)
+		return
+	var b := ScrollWindow.band((%Board as Control).get_global_transform_with_canvas(), strip.screen_top())
+	frame(b.x, b.y)
+
+func _frame_later() -> void:
+	_frame.call_deferred()
+
+## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
+## mark row kept at the panel's top or bottom.
+func mark_centre(up: bool) -> Vector2:
+	var marks := %Marks as Control
+	var y := ScrollWindow.MARK_ROW / 2.0 if up else marks.size.y - ScrollWindow.MARK_ROW / 2.0
+	return Vector2(marks.size.x / 2.0, y)
+
+func _draw_marks() -> void:
+	var marks := %Marks as Control
+	if shows_mark_above():
+		ScrollWindow.draw_mark(marks, mark_centre(true), true)
+	if shows_mark_below():
+		ScrollWindow.draw_mark(marks, mark_centre(false), false)
 
 ## Lays the quit box out for the current UI scale and words: side by side, or stacked when too wide.
 func _fit_quit_box() -> void:

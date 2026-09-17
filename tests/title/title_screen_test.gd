@@ -41,8 +41,8 @@ func test_opens_with_new_game_highlighted() -> void:
 func test_shows_the_agreed_words() -> void:
 	assert_str((screen.get_node("Title") as Label).text).is_equal("TIDE & TIMBER")
 	assert_str((screen.get_node("Tagline") as Label).text).is_equal("a story of an island")
-	assert_str((screen.get_node("Menu/NewGame/Label") as Label).text).is_equal("New Game")
-	assert_str((screen.get_node("Menu/Quit/Label") as Label).text).is_equal("Quit")
+	assert_str((screen.get_node("MenuClip/Menu/NewGame/Label") as Label).text).is_equal("New Game")
+	assert_str((screen.get_node("MenuClip/Menu/Quit/Label") as Label).text).is_equal("Quit")
 	assert_str((screen.get_node("%Version") as Label).text).is_equal("v0.1")
 
 func test_whole_screen_fits_the_base_viewport() -> void:

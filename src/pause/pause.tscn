@@ -42,7 +42,23 @@ offset_bottom = 138.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_board")
 
-[node name="Heading" type="Label" parent="Board/Panel"]
+[node name="Clip" type="Control" parent="Board/Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 144.0
+offset_bottom = 96.0
+mouse_filter = 2
+clip_contents = true
+
+[node name="Content" type="Control" parent="Board/Panel/Clip"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 144.0
+offset_bottom = 96.0
+mouse_filter = 2
+
+[node name="Heading" type="Label" parent="Board/Panel/Clip/Content"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_top = 8.0
 offset_right = 144.0
@@ -54,7 +70,7 @@ text = "Paused"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Resume" type="PanelContainer" parent="Board/Panel"]
+[node name="Resume" type="PanelContainer" parent="Board/Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 16)
 layout_mode = 0
@@ -65,7 +81,7 @@ offset_bottom = 44.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Resume"]
+[node name="Label" type="Label" parent="Board/Panel/Clip/Content/Resume"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -74,7 +90,7 @@ text = "Resume"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SkipStory" type="PanelContainer" parent="Board/Panel"]
+[node name="SkipStory" type="PanelContainer" parent="Board/Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 16)
 layout_mode = 0
@@ -85,7 +101,7 @@ offset_bottom = 64.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/SkipStory"]
+[node name="Label" type="Label" parent="Board/Panel/Clip/Content/SkipStory"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -94,7 +110,7 @@ text = "Skip story"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Settings" type="PanelContainer" parent="Board/Panel"]
+[node name="Settings" type="PanelContainer" parent="Board/Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 16)
 layout_mode = 0
@@ -105,7 +121,7 @@ offset_bottom = 84.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Settings"]
+[node name="Label" type="Label" parent="Board/Panel/Clip/Content/Settings"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -114,7 +130,7 @@ text = "Settings"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Debug" type="PanelContainer" parent="Board/Panel"]
+[node name="Debug" type="PanelContainer" parent="Board/Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 16)
 layout_mode = 0
@@ -125,7 +141,7 @@ offset_bottom = 104.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Debug"]
+[node name="Label" type="Label" parent="Board/Panel/Clip/Content/Debug"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -134,7 +150,7 @@ text = "Debug"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="QuitToTitle" type="PanelContainer" parent="Board/Panel"]
+[node name="QuitToTitle" type="PanelContainer" parent="Board/Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 16)
 layout_mode = 0
@@ -145,7 +161,7 @@ offset_bottom = 104.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/QuitToTitle"]
+[node name="Label" type="Label" parent="Board/Panel/Clip/Content/QuitToTitle"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -163,6 +179,13 @@ offset_right = 140.0
 offset_bottom = 11.0
 mouse_filter = 2
 script = ExtResource("5_devtag")
+
+[node name="Marks" type="Control" parent="Board/Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 144.0
+offset_bottom = 96.0
+mouse_filter = 2
 
 [node name="QuitBox" type="Control" parent="Board"]
 unique_name_in_owner = true
