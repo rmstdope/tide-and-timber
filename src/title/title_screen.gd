@@ -35,6 +35,11 @@ var _start_over_normal: BoxLayout   # the Start over box as the scene has it; ca
 var _replace_normal: BoxLayout      # the Replace box as the scene has it; captured once in _ready
 var _start_over_box: BoxLayout      # the Start over box's layout drawn now
 var _replace_box: BoxLayout         # the Replace box's layout drawn now
+var _start_over_frame: BoxLayout   # the Start over box framed to the room above the strip; null until first framed
+var _replace_frame: BoxLayout      # the Replace box framed the same way
+var _start_over_offset := 0        # whole units the Start over box's content is scrolled up
+var _replace_offset := 0           # whole units the Replace box's content is scrolled up
+var _box_was: TitleMenu.Box = TitleMenu.Box.NONE   # to start each box at the top when it opens
 var _menu_top := MENU_TOP                # the menu's top at Normal, owned by read_save
 var menu_offset := 0          # whole menu units scrolled up; 0 while it fits. Owned by _place_menu.
 var menu_scrolls := false     # the menu does not fit the band; derived by _place_menu
@@ -51,9 +56,9 @@ static func menu_top_at(normal_top: float, height: float, s: float) -> float:
 	return maxf(0.0, minf(centred, clear))
 
 func _ready() -> void:
-	var start_over_lines: Array[Control] = [$StartOverBox/FirstLine, $StartOverBox/SecondLine]
+	var start_over_lines: Array[Control] = [$StartOverBox/Clip/Content/FirstLine, $StartOverBox/Clip/Content/SecondLine]
 	_start_over_normal = BoxLayout.of(%StartOverBox, start_over_lines, %KeepMyIsland, %StartOver)
-	var replace_lines: Array[Control] = [$ReplaceBox/FirstLine, $ReplaceBox/SecondLine]
+	var replace_lines: Array[Control] = [$ReplaceBox/Clip/Content/FirstLine, $ReplaceBox/Clip/Content/SecondLine]
 	_replace_normal = BoxLayout.of(%ReplaceBox, replace_lines, %Cancel, %ReplaceStartOver)
 	%Version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
 	for wave: Control in %Waves.get_children():
@@ -74,7 +79,12 @@ func _ready() -> void:
 	read_save(SaveStore.SLOT_DIR)
 	Display.changed.connect(_apply_ui_size)
 	get_tree().root.size_changed.connect(_apply_ui_size)
+	Display.changed.connect(_frame_boxes_later)
+	get_tree().root.size_changed.connect(_frame_boxes_later)
+	(%StartOverBox.get_node("Marks") as Control).draw.connect(_draw_marks.bind(TitleMenu.Box.START_OVER))
+	(%ReplaceBox.get_node("Marks") as Control).draw.connect(_draw_marks.bind(TitleMenu.Box.REPLACE))
 	_apply_ui_size()
+	_frame_boxes_later()   # again once the strip's own deferred layout has run, so screen_top() is final
 	InputDevice.set_menu_open(self, true)
 
 func _exit_tree() -> void:
@@ -142,19 +152,24 @@ func _input(event: InputEvent) -> void:
 		return   # the Settings board, a child, reads it
 	var step := InputDevice.menu_step(event)
 	if menu.box != TitleMenu.Box.NONE:
+		# Wheel events are not menu steps, so they are read before the match, never inside it.
+		var click := event as InputEventMouseButton
+		if click != null and click.pressed and \
+				(click.button_index == MOUSE_BUTTON_WHEEL_UP or click.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+			_push_box(BoxLayout.Push.WHEEL_UP if click.button_index == MOUSE_BUTTON_WHEEL_UP \
+					else BoxLayout.Push.WHEEL_DOWN)
+			_refresh()
+			get_viewport().set_input_as_handled()
+			return
 		match step:
 			MenuPush.Step.LEFT:
-				menu.select_box(_box_left_button())
+				_push_box(BoxLayout.Push.LEFT)
 			MenuPush.Step.RIGHT:
-				menu.select_box(TitleMenu.BoxButton.START_OVER)
+				_push_box(BoxLayout.Push.RIGHT)
 			MenuPush.Step.UP:
-				if not _open_box_layout().stacked:
-					return
-				menu.select_box(_box_left_button())
+				_push_box(BoxLayout.Push.UP)
 			MenuPush.Step.DOWN:
-				if not _open_box_layout().stacked:
-					return
-				menu.select_box(TitleMenu.BoxButton.START_OVER)
+				_push_box(BoxLayout.Push.DOWN)
 			MenuPush.Step.SELECT:
 				_act(menu.press_box(menu.box_selected))
 			MenuPush.Step.BACK:
@@ -196,6 +211,10 @@ func _fade_then(done: Callable) -> void:
 	fade.tween_callback(done)
 
 func _refresh() -> void:
+	if menu.box != _box_was:
+		_start_over_offset = 0    # a box always opens at the top, words showing
+		_replace_offset = 0
+	_box_was = menu.box
 	%Continue.visible = TitleMenu.Choice.CONTINUE in menu.choices
 	%Continue.add_theme_stylebox_override("panel",
 			PLANK_DIMMED_STYLE if menu.continue_dimmed else _style_for(TitleMenu.Choice.CONTINUE))
@@ -213,18 +232,84 @@ func _refresh() -> void:
 	%ReplaceStartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if menu.box != TitleMenu.Box.NONE else DeviceHints.Hint.SELECT)
 	strip.visible = not menu.settings_open   # the board shows its own Select / Back strip
+	_frame_boxes()
 	_place_menu()
 
 ## The boxes and the Settings board grow about the screen centre; then the menu is placed.
 func _apply_ui_size() -> void:
-	_fit_boxes()   # first: the pivots below are set from where the boxes now are
+	_fit_boxes()   # first: the frames and pivots below are set from where the boxes now are
 	var s := UiScale.current(Display.prefs, get_tree().root)
-	for c: Control in [%StartOverBox, %ReplaceBox, %SettingsBoard]:
-		c.pivot_offset = OverlayScale.ANCHOR_CENTRE - c.position
-		c.scale = Vector2(s, s)
+	_grow_about_centre(%SettingsBoard as Control, s)
 	(%SettingsBoard as SettingsBoard).strip.relayout()   # it was laid out before the board was scaled
+	_frame_boxes()
 	_place_menu()
 	_place_menu.call_deferred()   # decide again once the strip's own deferred layout has run
+
+## Scales c by s about the fixed screen point (160, 90), from wherever c now is.
+func _grow_about_centre(c: Control, s: float) -> void:
+	c.pivot_offset = OverlayScale.ANCHOR_CENTRE - c.position
+	c.scale = Vector2(s, s)
+
+## Frames both boxes to the room above the strip, whether shown or not, and grows them about the centre.
+## Does nothing before the first _fit_boxes().
+func _frame_boxes() -> void:
+	if _start_over_box == null or _replace_box == null or strip == null or not is_inside_tree():
+		return
+	var s := UiScale.current(Display.prefs, get_tree().root)
+	# The band is measured in the units _fit_boxes() works in: each box carries its own scale about
+	# (160, 90), so the panel's parent transform is that scale, not the box's own global transform.
+	var b := ScrollWindow.band(OverlayScale.layer_transform(s, OverlayScale.ANCHOR_CENTRE), strip.screen_top())
+	_start_over_frame = _frame_box(_start_over_box, %StartOverBox as Control, b, _start_over_offset, s)
+	_start_over_offset = _start_over_frame.offset
+	_replace_frame = _frame_box(_replace_box, %ReplaceBox as Control, b, _replace_offset, s)
+	_replace_offset = _replace_frame.offset
+
+func _frame_box(box: BoxLayout, panel: Control, b: Vector2, offset: int, s: float) -> BoxLayout:
+	var f := box.framed(b.x, b.y, offset)
+	f.place_frame(panel, panel.get_node("Clip") as Control,
+			panel.get_node("Clip/Content") as Control, panel.get_node("Marks") as Control)
+	_grow_about_centre(panel, s)   # after place_frame: the pivot follows the framed position
+	return f
+
+func _frame_boxes_later() -> void:
+	_frame_boxes.call_deferred()
+
+## The open box's framed layout, or null while no box is open or none has been framed yet.
+func _open_box_frame() -> BoxLayout:
+	return _start_over_frame if menu.box == TitleMenu.Box.START_OVER else _replace_frame
+
+## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
+func _push_box(push: BoxLayout.Push) -> void:
+	var f := _open_box_frame()
+	if f == null:
+		return
+	var left := _box_left_button()
+	var after := f.pushed(push, BoxLayout.Side.LEFT if menu.box_selected == left else BoxLayout.Side.RIGHT)
+	menu.select_box(left if after.x == BoxLayout.Side.LEFT else TitleMenu.BoxButton.START_OVER)
+	if menu.box == TitleMenu.Box.START_OVER:
+		_start_over_offset = after.y
+	else:
+		_replace_offset = after.y
+
+## The centre one mark is drawn on, in that box's Marks units: the box's horizontal centre, in the
+## top mark row (up) or the bottom one.
+func box_mark_centre(which: TitleMenu.Box, up: bool) -> Vector2:
+	var marks := _box_marks(which)
+	return Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0) if up \
+			else Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0)
+
+func _box_marks(which: TitleMenu.Box) -> Control:
+	return (%StartOverBox if which == TitleMenu.Box.START_OVER else %ReplaceBox).get_node("Marks") as Control
+
+func _draw_marks(which: TitleMenu.Box) -> void:
+	var f := _start_over_frame if which == TitleMenu.Box.START_OVER else _replace_frame
+	if f == null or menu.box != which:
+		return
+	var marks := _box_marks(which)
+	if f.shows_mark_above():
+		ScrollWindow.draw_mark(marks, box_mark_centre(which, true), true)
+	if f.shows_mark_below():
+		ScrollWindow.draw_mark(marks, box_mark_centre(which, false), false)
 
 ## Lays both title boxes out for the current UI scale: side by side, or stacked when too wide.
 ## Both are laid out whether shown or not, so a box opens already fitted.
@@ -234,15 +319,11 @@ func _fit_boxes() -> void:
 	_replace_box = _fit_box(_replace_normal, %ReplaceBox, %Cancel, %ReplaceStartOver, s)
 
 func _fit_box(normal: BoxLayout, panel: Control, left: Control, right: Control, s: float) -> BoxLayout:
-	var labels: Array[Label] = [panel.get_node("FirstLine"), panel.get_node("SecondLine")]
-	var lines: Array[Control] = [panel.get_node("FirstLine"), panel.get_node("SecondLine")]
+	var labels: Array[Label] = [panel.get_node("Clip/Content/FirstLine"), panel.get_node("Clip/Content/SecondLine")]
+	var lines: Array[Control] = [panel.get_node("Clip/Content/FirstLine"), panel.get_node("Clip/Content/SecondLine")]
 	var layout := normal.at(s, left.size, right.size, BoxLayout.label_heights(labels))
 	layout.place(panel, lines, left, right)
 	return layout
-
-## The open box's layout drawn now. Only called while a box is open.
-func _open_box_layout() -> BoxLayout:
-	return _start_over_box if menu.box == TitleMenu.Box.START_OVER else _replace_box
 
 ## The open box's left (stacked: top) button.
 func _box_left_button() -> TitleMenu.BoxButton:
