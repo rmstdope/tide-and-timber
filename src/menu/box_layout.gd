@@ -3,16 +3,27 @@ extends RefCounted
 ## Where a box's panel, lines and two buttons go at a UI scale. Side by side is the box's Normal layout
 ## unchanged. When side by side is wider than the screen, the box narrows to fit, its lines wrap and
 ## the buttons go one above the other, the left on top. Holds no nodes; place() writes a layout to them.
+## framed() fits a laid-out box to the room above its strip; pushed() says what a push does to its
+## highlight and scroll.
 
 const SCREEN_WIDTH := 320.0
 const SCREEN_CENTRE := Vector2(160, 90)
 const SCREEN_MARGIN := 4.0          # kept clear on each side of a stacked box, in 320x180 units
+const LINE_STEP := 11.0             # one line of size-8 words, with the labels' line spacing: one push or wheel notch
+
+enum Side { LEFT, RIGHT }                                  # which button is highlighted; LEFT is the top one when stacked
+enum Push { UP, DOWN, LEFT, RIGHT, WHEEL_UP, WHEEL_DOWN }
 
 var stacked := false
 var panel := Rect2()                # the panel, in its parent's 320x180 units
 var lines: Array[Rect2] = []        # each line of words, inside the panel, top to bottom
 var left := Rect2()                 # the left (stacked: top) button, inside the panel
 var right := Rect2()                # the right (stacked: bottom) button, inside the panel
+var right_shown := true             # false after one_button()
+var scrolls := false                # set by framed(): the unframed panel is taller than the band
+var offset := 0                     # set by framed(): whole units the content is moved up; always 0 unless scrolls
+var clip := Rect2()                 # set by framed(): the Clip node inside the panel
+var content := Rect2()              # set by framed(): the Content node inside the Clip; its size is the unframed panel's
 
 ## The Normal layout, read from the nodes' rects as the scene has them. Call it once, before any place().
 static func of(panel_node: Control, line_nodes: Array[Control], left_node: Control, right_node: Control) -> BoxLayout:
@@ -81,11 +92,133 @@ func one_button() -> BoxLayout:
 	l.lines = lines.duplicate()
 	l.left = left
 	l.right = right
+	l.right_shown = false
 	l.left.position.x = roundf((panel.size.x - left.size.x) / 2.0)
 	if stacked:
 		l.panel.size.y -= right.end.y - left.end.y
 		l.panel.position.y = roundf(SCREEN_CENTRE.y - l.panel.size.y / 2.0)
 	return l
+
+## Where the scrolled content starts inside the unframed panel: the first line's top.
+func content_top() -> float:
+	return lines[0].position.y
+
+## From the first line's top to the bottom of the lowest button shown.
+func content_height() -> float:
+	var bottom := maxf(left.end.y, right.end.y) if right_shown else left.end.y
+	return bottom - content_top()
+
+## This laid-out box (from at(), or one_button()) framed to the band [band_top, band_bottom], in the panel's
+## parent's units, with offset_now clamped. Returns a new BoxLayout: lines, left and right unchanged
+## (they stay in Content's units, which are the unframed panel's), stacked and right_shown copied.
+func framed(band_top: float, band_bottom: float, offset_now: int) -> BoxLayout:
+	var rest := panel
+	var band_h := band_bottom - band_top
+	var f := BoxLayout.new()
+	f.stacked = stacked
+	f.right_shown = right_shown
+	f.lines = lines.duplicate()
+	f.left = left
+	f.right = right
+	if rest.size.y <= band_h:
+		f.scrolls = false
+		f.offset = 0
+		f.panel = Rect2(Vector2(rest.position.x, clampf(rest.position.y, band_top, band_bottom - rest.size.y)), rest.size)
+		f.clip = Rect2(Vector2.ZERO, rest.size)
+		f.content = Rect2(Vector2.ZERO, rest.size)
+		return f
+	f.scrolls = true
+	var view_h := maxf(1.0, band_h - 2.0 * ScrollWindow.MARK_ROW)
+	f.panel = Rect2(Vector2(rest.position.x, band_top), Vector2(rest.size.x, band_h))
+	f.clip = Rect2(Vector2(0, ScrollWindow.MARK_ROW), Vector2(rest.size.x, view_h))
+	f.offset = clampi(offset_now, 0, maxi(0, ceili(content_height() - view_h)))
+	f.content = Rect2(Vector2(0, -(content_top() + f.offset)), rest.size)
+	return f
+
+## True while the ▲ mark is drawn. Call on a framed layout.
+func shows_mark_above() -> bool:
+	return scrolls and ScrollWindow.hidden_above(offset)
+
+## True while the ▼ mark is drawn. Call on a framed layout.
+func shows_mark_below() -> bool:
+	return scrolls and ScrollWindow.hidden_below(offset, content_height(), clip.size.y)
+
+## What one push does on this framed layout while `highlighted` is highlighted.
+## Returns Vector2i(the Side highlighted after, the offset after).
+func pushed(push: Push, highlighted: BoxLayout.Side) -> Vector2i:
+	var picked := Side.RIGHT if right_shown else Side.LEFT
+	if not scrolls:
+		match push:
+			Push.UP:
+				return Vector2i(Side.LEFT if _has_above(highlighted) else highlighted, 0)
+			Push.DOWN:
+				return Vector2i(Side.RIGHT if _has_below(highlighted) else highlighted, 0)
+			Push.LEFT:
+				return Vector2i(Side.LEFT, 0)
+			Push.RIGHT:
+				return Vector2i(picked, 0)
+		return Vector2i(highlighted, 0)
+	match push:
+		Push.UP:
+			if _has_above(highlighted):
+				if _in_view(highlighted):
+					return Vector2i(Side.LEFT, _show(Side.LEFT))
+				return Vector2i(highlighted, _toward(highlighted))
+			return Vector2i(highlighted, maxi(offset - int(LINE_STEP), 0))
+		Push.DOWN:
+			if not _in_view(highlighted):
+				return Vector2i(highlighted, _toward(highlighted))
+			if _has_below(highlighted):
+				return Vector2i(Side.RIGHT, _show(Side.RIGHT))
+			return Vector2i(highlighted, offset)
+		Push.LEFT:
+			return Vector2i(Side.LEFT, _show(Side.LEFT))
+		Push.RIGHT:
+			return Vector2i(picked, _show(picked))
+		Push.WHEEL_UP:
+			return Vector2i(highlighted, maxi(offset - int(LINE_STEP), 0))
+	return Vector2i(highlighted, mini(offset + int(LINE_STEP), _max_offset()))
+
+## Writes a framed layout's panel, clip and content to the nodes. Marks covers the whole panel and is redrawn.
+func place_frame(panel_node: Control, clip_node: Control, content_node: Control, marks_node: Control) -> void:
+	_put(panel_node, panel)
+	_put(clip_node, clip)
+	_put(content_node, content)
+	_put(marks_node, Rect2(Vector2.ZERO, panel.size))
+	marks_node.queue_redraw()
+
+## That button's own rect as (top, bottom) in content units.
+func _span(side: BoxLayout.Side) -> Vector2:
+	var r := left if side == Side.LEFT else right
+	return Vector2(r.position.y - content_top(), r.end.y - content_top())
+
+func _in_view(side: BoxLayout.Side) -> bool:
+	var span := _span(side)
+	return span.x >= offset and span.y <= offset + clip.size.y
+
+func _max_offset() -> int:
+	return maxi(0, ceili(content_height() - clip.size.y))
+
+func _has_below(side: BoxLayout.Side) -> bool:
+	return stacked and right_shown and side == Side.LEFT
+
+func _has_above(side: BoxLayout.Side) -> bool:
+	return stacked and right_shown and side == Side.RIGHT
+
+## One line towards a button not wholly in view, never past it.
+func _toward(side: BoxLayout.Side) -> int:
+	var span := _span(side)
+	var o := 0
+	if span.y > offset + clip.size.y:
+		o = mini(offset + int(LINE_STEP), ceili(span.y - clip.size.y))
+	else:
+		o = maxi(offset - int(LINE_STEP), floori(span.x))
+	return clampi(o, 0, _max_offset())
+
+## The offset that shows side wholly, as if it were highlighted.
+func _show(side: BoxLayout.Side) -> int:
+	var span := _span(side)
+	return ScrollWindow.follow(content_height(), clip.size.y, span.x, span.y, offset)
 
 ## Writes panel, lines, left and right to the nodes, as position and size.
 func place(panel_node: Control, line_nodes: Array[Control], left_node: Control, right_node: Control) -> void:
