@@ -124,3 +124,13 @@ func test_reset_forgets_the_device_but_keeps_menus() -> void:
 	_pad(JOY_BUTTON_A, true)
 	_pad(JOY_BUTTON_A, false)
 	assert_bool(InputDevice.pointer.hidden).is_true()
+
+func test_a_controls_change_tells_the_hints() -> void:
+	InputDevice.use_controls(Controls.new())
+	monitor_signals(InputDevice, false)
+	InputDevice.controls.clear_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0)
+	await assert_signal(InputDevice).is_emitted("changed")
+	InputDevice.use_controls(Controls.new())
+
+func test_the_gate_run_starts_at_defaults() -> void:
+	assert_str(InputDevice.controls.path).is_equal("")
