@@ -1,6 +1,8 @@
 class_name TitleScreen
 extends Control
 ## The title screen: draws the menu from a TitleMenu and turns input into its moves.
+## When the menu is taller than the screen above its strip, it scrolls to the highlight, with ▲ / ▼
+## where planks are hidden.
 
 const INTRO_SCENE := "res://src/intro/intro.tscn"
 const GAME_SCENE := "res://src/waking/waking.tscn"
@@ -34,6 +36,8 @@ var _replace_normal: BoxLayout      # the Replace box as the scene has it; captu
 var _start_over_box: BoxLayout      # the Start over box's layout drawn now
 var _replace_box: BoxLayout         # the Replace box's layout drawn now
 var _menu_top := MENU_TOP                # the menu's top at Normal, owned by read_save
+var menu_offset := 0          # whole menu units scrolled up; 0 while it fits. Owned by _place_menu.
+var menu_scrolls := false     # the menu does not fit the band; derived by _place_menu
 
 ## The title menu's top on screen when drawn at scale s. normal_top is its top at Normal, height its unscaled height.
 ## s <= 1: normal_top. Otherwise the menu grows about its own centre, then moves up until its bottom is at least
@@ -66,6 +70,7 @@ func _ready() -> void:
 	strip = MenuStrip.new()
 	add_child(strip)
 	move_child(strip, %Fade.get_index())   # above the dim and both boxes, under the fade
+	%MenuMarks.draw.connect(_draw_menu_marks)
 	read_save(SaveStore.SLOT_DIR)
 	Display.changed.connect(_apply_ui_size)
 	get_tree().root.size_changed.connect(_apply_ui_size)
@@ -88,6 +93,7 @@ func read_save(dir: String) -> void:
 	%Reason.visible = menu.continue_dimmed
 	%DayLine.text = "DAY %d" % saved_day
 	%DayLine.visible = saved_day > 0
+	menu_offset = 0   # a newly read menu opens at the top
 	_refresh()
 
 func make_continued_game() -> Waking:
@@ -193,7 +199,7 @@ func _refresh() -> void:
 	%Continue.visible = TitleMenu.Choice.CONTINUE in menu.choices
 	%Continue.add_theme_stylebox_override("panel",
 			PLANK_DIMMED_STYLE if menu.continue_dimmed else _style_for(TitleMenu.Choice.CONTINUE))
-	$Menu/Continue/Lines/Label.add_theme_color_override("font_color",
+	%Continue.get_node("Lines/Label").add_theme_color_override("font_color",
 			LABEL_DIMMED_COLOR if menu.continue_dimmed else LABEL_COLOR)
 	%NewGame.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.NEW_GAME))
 	%Settings.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.SETTINGS))
@@ -218,6 +224,7 @@ func _apply_ui_size() -> void:
 		c.scale = Vector2(s, s)
 	(%SettingsBoard as SettingsBoard).strip.relayout()   # it was laid out before the board was scaled
 	_place_menu()
+	_place_menu.call_deferred()   # decide again once the strip's own deferred layout has run
 
 ## Lays both title boxes out for the current UI scale: side by side, or stacked when too wide.
 ## Both are laid out whether shown or not, so a box opens already fitted.
@@ -249,7 +256,85 @@ func _place_menu() -> void:
 	m.scale = Vector2(s, s)
 	var height := m.get_combined_minimum_size().y
 	m.size.y = height   # a Container never shrinks by itself; keep its rect to the planks shown
-	m.position = Vector2(roundf(160.0 - 160.0 * s), menu_top_at(_menu_top, height, s))
+	var x := roundf(160.0 - 160.0 * s)
+	var b := ScrollWindow.band(Transform2D(0.0, Vector2(s, s), 0.0, Vector2.ZERO), strip.screen_top())
+	var band_h := b.y - b.x
+	if height <= band_h:
+		menu_scrolls = false
+		menu_offset = 0
+		(%MenuClip as Control).position = Vector2.ZERO
+		(%MenuClip as Control).size = Vector2(320, 180)
+		m.position = Vector2(x, menu_top_at(_menu_top, height, s))
+		%MenuMarks.visible = false
+	else:
+		menu_scrolls = true
+		var view_h := band_h - 2.0 * ScrollWindow.MARK_ROW
+		var e := _choice_extent(menu.highlighted)
+		menu_offset = ScrollWindow.follow(height, view_h, e.x, e.y, menu_offset)
+		(%MenuClip as Control).position = Vector2(0, (b.x + ScrollWindow.MARK_ROW) * s)
+		(%MenuClip as Control).size = Vector2(320, view_h * s)
+		m.position = Vector2(x, -menu_offset * s)   # relative to the clip
+		%MenuMarks.position = Vector2(x, b.x * s)
+		%MenuMarks.scale = Vector2(s, s)
+		(%MenuMarks as Control).size = Vector2(320, band_h)
+		%MenuMarks.visible = true
+		%MenuMarks.queue_redraw()
+
+## True while ▲ is drawn over the title menu.
+func shows_menu_mark_above() -> bool:
+	return menu_scrolls and ScrollWindow.hidden_above(menu_offset)
+
+## True while ▼ is drawn under the title menu.
+func shows_menu_mark_below() -> bool:
+	return menu_scrolls and ScrollWindow.hidden_below(menu_offset, (%Menu as Control).size.y,
+			(%MenuClip as Control).size.y / (%Menu as Control).scale.y)
+
+# The choice's extent in menu units, added up from the shown children's minimum sizes: a VBoxContainer
+# sorts later in the frame, so their positions are not readable yet. The first selectable choice reaches
+# the menu's top, so a dimmed Continue and its reason line come into view; the last reaches its bottom.
+func _choice_extent(choice: TitleMenu.Choice) -> Vector2:
+	var m := %Menu as Control
+	var wanted := _plank_for(choice)
+	var separation := float(m.get_theme_constant("separation"))
+	var y := 0.0
+	var top := 0.0
+	var bottom := m.size.y
+	var first := true
+	for child: Control in m.get_children():
+		if not child.visible:
+			continue
+		if not first:
+			y += separation
+		first = false
+		var h := child.get_combined_minimum_size().y
+		if child == wanted:
+			top = y
+			bottom = y + h
+			break
+		y += h
+	var selectable := menu.selectable()
+	if choice == selectable[0]:
+		top = 0.0
+	if choice == selectable[selectable.size() - 1]:
+		bottom = m.size.y
+	return Vector2(top, bottom)
+
+func _plank_for(choice: TitleMenu.Choice) -> Control:
+	match choice:
+		TitleMenu.Choice.CONTINUE:
+			return %Continue
+		TitleMenu.Choice.NEW_GAME:
+			return %NewGame
+		TitleMenu.Choice.SETTINGS:
+			return %Settings
+	return %Quit
+
+func _draw_menu_marks() -> void:
+	var marks := %MenuMarks as Control
+	if shows_menu_mark_above():
+		ScrollWindow.draw_mark(marks, Vector2(160, ScrollWindow.MARK_ROW / 2.0), true)
+	if shows_menu_mark_below():
+		ScrollWindow.draw_mark(marks, Vector2(160, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
 	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE

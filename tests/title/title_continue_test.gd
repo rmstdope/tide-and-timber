@@ -139,7 +139,7 @@ func _open_replace_box() -> void:
 func test_save_shows_continue_with_the_day() -> void:
 	_saved()
 	assert_bool(_visible("%Continue")).is_true()
-	assert_str(_text("Menu/Continue/Lines/Label")).is_equal("Continue")
+	assert_str(_text("MenuClip/Menu/Continue/Lines/Label")).is_equal("Continue")
 	assert_bool(_visible("%DayLine")).is_true()
 	assert_str(_text("%DayLine")).is_equal("DAY 4")
 	assert_highlighted("Continue")
@@ -151,7 +151,7 @@ func test_menu_fits_with_a_save() -> void:
 	var menu := (_node("%Menu") as Control).get_global_rect()
 	assert_bool(Rect2(0, 0, 320, 180).encloses(menu)).override_failure_message("menu at %s" % menu).is_true()
 	assert_bool(menu.intersects((_node("%Version") as Control).get_global_rect())).is_false()
-	for path in ["Menu/Continue/Lines/Label", "%DayLine"]:
+	for path in ["MenuClip/Menu/Continue/Lines/Label", "%DayLine"]:
 		var label := _node(path) as Label
 		assert_float(label.get_minimum_size().x).is_less_equal(label.size.x)
 
@@ -298,7 +298,7 @@ func test_older_save_continues_with_nothing_said() -> void:
 func _assert_dimmed() -> void:
 	assert_bool(_visible("%Continue")).is_true()
 	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_DIMMED_STYLE)
-	assert_object((_node("Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_DIMMED_COLOR)
+	assert_object((_node("MenuClip/Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_DIMMED_COLOR)
 	assert_bool(_visible("%DayLine")).is_false()
 	for plank: String in ["NewGame", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == "NewGame" else TitleScreen.PLANK_STYLE
@@ -330,7 +330,7 @@ func test_readable_save_has_no_reason() -> void:
 	_saved()
 	assert_bool(_visible("%Reason")).is_false()
 	assert_highlighted("Continue")
-	assert_object((_node("Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
+	assert_object((_node("MenuClip/Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
 	assert_float((_node("%Menu") as Control).position.y).is_equal(83.0)
 
 func test_no_save_has_no_reason() -> void:
