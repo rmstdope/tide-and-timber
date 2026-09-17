@@ -22,7 +22,7 @@ lock="$repo/gate-fast.gate.lock"
 
 take_lock() {
   local holder
-  if mkdir "$lock" 2>/dev/null; then return 0; fi
+  if mkdir "$lock" 2>/dev/null; then printf '%s\n' "$$" > "$lock/pid"; return 0; fi
   holder="$(cat "$lock/pid" 2>/dev/null || true)"
   case "$holder" in
     ''|*[!0-9]*) holder="" ;;
@@ -33,14 +33,13 @@ take_lock() {
   fi
   say "reclaiming a stale lock in $repo"
   rm -rf "$lock"
-  if mkdir "$lock" 2>/dev/null; then return 0; fi
+  if mkdir "$lock" 2>/dev/null; then printf '%s\n' "$$" > "$lock/pid"; return 0; fi
   say "another gate-fast took the lock in $repo; wait for it to finish"
   exit 1
 }
 
 take_lock
 : > "$lock/.gdignore"
-printf '%s\n' "$$" > "$lock/pid"
 trap 'rm -rf "$lock"' EXIT INT TERM
 
 slug="$(printf '%s' "$(basename "$repo")" | tr -c 'A-Za-z0-9._-' '_')-$(printf '%s' "$repo" | shasum | cut -c1-8)"
