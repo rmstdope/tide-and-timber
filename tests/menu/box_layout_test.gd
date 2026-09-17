@@ -73,3 +73,26 @@ func test_stacked_buttons_keep_their_own_widths_centred() -> void:
 	var l := _normal().at(2.0, Vector2(120, 20), B, fake)
 	assert_float(l.left.position.x).is_equal(16.0)
 	assert_float(l.right.position.x).is_equal(24.0)
+
+func test_one_button_side_by_side_centres_the_left_button() -> void:
+	var l := _normal().at(1.0, B, B, fake).one_button()
+	assert_bool(l.stacked).is_false()
+	assert_that(l.left).is_equal(Rect2(96, 66, 104, 20))
+	assert_that(l.panel).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(l.lines).is_equal(_normal().lines)
+
+func test_one_button_stacked_drops_the_second_row() -> void:
+	var s := _normal().at(2.0, B, B, fake)
+	var l := s.one_button()
+	assert_bool(l.stacked).is_true()
+	assert_that(l.panel).is_equal(Rect2(84, 41, 152, 98))
+	assert_that(l.left).is_equal(Rect2(24, 68, 104, 20))
+	assert_that(l.lines).is_equal(s.lines)
+
+func test_one_button_leaves_the_original_unchanged() -> void:
+	var s := _normal().at(2.0, B, B, fake)
+	var line0 := s.lines[0]
+	var o := s.one_button()
+	assert_that(s.panel).is_equal(Rect2(84, 27, 152, 126))
+	o.lines[0] = Rect2()
+	assert_that(s.lines[0]).is_equal(line0)
