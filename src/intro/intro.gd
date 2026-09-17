@@ -29,6 +29,8 @@ func _ready() -> void:
 			debug.add_row(DebugMenu.Page.TIME, row)
 		DebugItems.add_rows(debug, Inventory.new())   # the story has no bag: every item at 0
 		DebugPlaces.add_rows(debug, Callable())
+		DebugShow.add_rows(debug)
+		DebugShow.attach(self, null, null)
 	_refresh()
 
 func _process(delta: float) -> void:
