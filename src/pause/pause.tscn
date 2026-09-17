@@ -6,11 +6,16 @@
 [ext_resource type="PackedScene" path="res://src/settings/settings_board.tscn" id="4_settings"]
 [ext_resource type="Script" path="res://src/debug/dev_tag.gd" id="5_devtag"]
 [ext_resource type="Script" path="res://src/debug/debug_panel.gd" id="6_debugpanel"]
+[ext_resource type="Script" path="res://src/display/ui_scale.gd" id="7_ui_scale"]
 
 [node name="Pause" type="CanvasLayer"]
 process_mode = 3
 layer = 40
 script = ExtResource("1_pause")
+
+[node name="UiScale" type="Node" parent="."]
+script = ExtResource("7_ui_scale")
+anchor = Vector2(160, 90)
 
 [node name="Board" type="Control" parent="."]
 unique_name_in_owner = true

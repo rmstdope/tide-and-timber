@@ -20,12 +20,40 @@ var name_labels: Array[Label] = []
 var cost_labels: Array[Label] = []
 var _menu: BuildMenu
 
-## Above his head and to his right, kept on the 320x180 screen.
-static func top_left_for(man_on_screen: Vector2) -> Vector2:
-	return Vector2(clampf(roundf(man_on_screen.x) + 12, 4, 320 - 4 - SIZE.x), maxf(2, roundf(man_on_screen.y) - 69))
+const SCREEN_MARGIN := 4.0
+const ABOVE_HIM := 28.0                 # his screen point to the list's bottom edge
+const RIGHT_OF_HIM := 12.0
+
+var _man := Vector2.ZERO
+var _placed := false
+
+## Top-left on the 320x180 screen of the list drawn at scale s: its bottom-left corner RIGHT_OF_HIM right of
+## and ABOVE_HIM above him, kept on screen; when wider than the screen less both margins, centred instead.
+static func top_left_for(man_on_screen: Vector2, s: float = 1.0) -> Vector2:
+	var w := SIZE.x * s
+	var h := SIZE.y * s
+	var x := roundf((320.0 - w) / 2.0) if w > 320.0 - 2.0 * SCREEN_MARGIN \
+			else clampf(roundf(man_on_screen.x) + RIGHT_OF_HIM, SCREEN_MARGIN, 320.0 - SCREEN_MARGIN - w)
+	var y := maxf(2.0, roundf(roundf(man_on_screen.y) - ABOVE_HIM - h))
+	return Vector2(x, y)
+
+## Remembers his screen point and places and scales the list for the current UI size, now and after every change.
+func place_beside(man_on_screen: Vector2) -> void:
+	_man = man_on_screen
+	_placed = true
+	_place()
+
+func _place() -> void:
+	if not _placed or not is_inside_tree():
+		return
+	var s := UiScale.current(Display.prefs, get_tree().root)
+	scale = Vector2(s, s)
+	position = top_left_for(_man, s)
 
 func _ready() -> void:
 	hide()
+	Display.changed.connect(_place)
+	get_tree().root.size_changed.connect(_place)
 	size = SIZE
 	mouse_filter = MOUSE_FILTER_IGNORE
 	title_label = _label("Build", Vector2(0, 3), Vector2(SIZE.x, 8), HORIZONTAL_ALIGNMENT_CENTER)

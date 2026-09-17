@@ -61,6 +61,10 @@ anchor = Vector2(160, 166)
 [node name="BoxLayer" type="CanvasLayer" parent="."]
 layer = 30
 
+[node name="UiScale" type="Node" parent="BoxLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 90)
+
 [node name="Box" type="Control" parent="BoxLayer"]
 unique_name_in_owner = true
 visible = false
