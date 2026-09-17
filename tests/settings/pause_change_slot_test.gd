@@ -63,6 +63,19 @@ func _click(at: Vector2) -> void:
 	page.gui_input.emit(click)
 	await runner.await_input_processed()
 
+# A real click through the window, so ControlsPage._input sees it before any gui_input.
+func _window_click(at: Vector2) -> void:
+	var where := page.get_global_transform_with_canvas() * at
+	for pressed: bool in [true, false]:
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = pressed
+		click.position = where
+		click.global_position = where
+		Input.parse_input_event(click)
+		Input.flush_buffered_events()
+		await runner.await_input_processed()
+
 func _real_seconds(seconds: float) -> void:
 	await get_tree().create_timer(seconds, true).timeout
 
@@ -140,7 +153,7 @@ func test_esc_held_cancels() -> void:
 func test_click_and_pad_are_ignored_on_keyboard() -> void:
 	await _wait_on_use()
 	await _pad(JOY_BUTTON_A)
-	await _click(ControlsPage.slot_rect(0, 0).get_center())
+	await _window_click(ControlsPage.slot_rect(0, 0).get_center())
 	assert_bool(_box().visible).is_true()
 	assert_int(page.rules.row).is_equal(5)
 

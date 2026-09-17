@@ -143,7 +143,7 @@ func _input(event: InputEvent) -> void:
 		rules.switch_tab()
 	elif event.is_action_pressed("menu_clear", false):
 		rules.clear()
-	elif event.is_action_pressed("pause", false):
+	elif InputDevice.action_pressed(event, "pause"):
 		if not rules.from_pause:
 			return
 		_apply(rules.start())

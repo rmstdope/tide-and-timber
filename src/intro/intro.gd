@@ -35,9 +35,9 @@ func tick(delta: float) -> void:
 # _shortcut_input, not _unhandled_input: it gets keys and pad buttons, and gdUnit4 delivers it once.
 func _shortcut_input(event: InputEvent) -> void:
 	if story.phase == IntroStory.Phase.PLAYING:
-		if event.is_action_pressed("menu_accept") or event.is_action_pressed("use"):
+		if event.is_action_pressed("menu_accept") or InputDevice.action_pressed(event, "use"):
 			story.press()
-		elif event.is_action_released("menu_accept") or event.is_action_released("use"):
+		elif event.is_action_released("menu_accept") or InputDevice.action_released(event, "use"):
 			story.release()
 		else:
 			return
@@ -47,6 +47,9 @@ func _shortcut_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventJoypadMotion:   # _shortcut_input never gets motion: a stick-bound Use comes here
+		_shortcut_input(event)
+		return
 	var click := event as InputEventMouseButton
 	if story.phase != IntroStory.Phase.PLAYING or click == null or click.button_index != MOUSE_BUTTON_LEFT:
 		return

@@ -38,13 +38,13 @@ func read(event: InputEvent) -> Step:
 	if _held.get(key, 0) == dir:
 		return Step.NONE
 	for step: Step in ACTIONS:
-		if _binds_axis(ACTIONS[step], m.axis, v > 0.0):
+		if binds_axis(ACTIONS[step], m.axis, v > 0.0):
 			_held[key] = dir
 			return step
 	return Step.NONE
 
-# Not InputMap.event_is_action: on 4.7 it matches a motion of either sign.
-static func _binds_axis(action: StringName, axis: JoyAxis, positive: bool) -> bool:
+## Whether action has this axis bound in this direction. Not InputMap.event_is_action: on 4.7 it matches either sign.
+static func binds_axis(action: StringName, axis: JoyAxis, positive: bool) -> bool:
 	for bound: InputEvent in InputMap.action_get_events(action):
 		var b := bound as InputEventJoypadMotion
 		if b and b.axis == axis and (b.axis_value > 0.0) == positive:

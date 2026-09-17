@@ -74,7 +74,7 @@ func _input(event: InputEvent) -> void:
 		_apply(rules.pick(rules.highlighted))
 	elif step == MenuPush.Step.BACK:
 		_apply(rules.back())
-	elif event.is_action_pressed("pause", false):
+	elif InputDevice.action_pressed(event, "pause"):
 		var o := rules.start()
 		if o == SettingsMenu.Outcome.NONE:
 			return

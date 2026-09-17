@@ -74,7 +74,7 @@ func try_open() -> bool:
 
 # After _input and _shortcut_input, so the build list, the collapse and the save-failed box get Esc first.
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause", false) and try_open():
+	if InputDevice.action_pressed(event, "pause") and try_open():
 		get_viewport().set_input_as_handled()
 
 func _input(event: InputEvent) -> void:
@@ -104,7 +104,7 @@ func _input(event: InputEvent) -> void:
 		rules.move(1)
 	elif step == MenuPush.Step.SELECT:
 		_apply(rules.pick(rules.highlighted))
-	elif step == MenuPush.Step.BACK or event.is_action_pressed("pause", false):
+	elif step == MenuPush.Step.BACK or InputDevice.action_pressed(event, "pause"):
 		_apply(rules.back())
 	else:
 		return

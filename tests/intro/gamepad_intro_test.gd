@@ -18,6 +18,8 @@ func before_test() -> void:
 func after_test() -> void:
 	get_tree().paused = false
 	InputDevice.reset()
+	_stick(JOY_AXIS_RIGHT_Y, 0.0)
+	InputDevice.reset()
 	InputDevice.use_controls(Controls.new())
 
 func _node(unique: String) -> Node:
@@ -137,3 +139,24 @@ func test_the_players_use_button_taps() -> void:
 	assert_int(_node("Picture").picture).is_equal(1)
 	await _tap(JOY_BUTTON_A)
 	assert_int(_node("Picture").picture).is_equal(2)
+
+func _stick(axis: JoyAxis, value: float) -> void:
+	var e := InputEventJoypadMotion.new()
+	e.device = 0
+	e.axis = axis
+	e.axis_value = value
+	Input.parse_input_event(e)
+	Input.flush_buffered_events()
+	await runner.await_input_processed()
+
+func test_the_players_use_stick_holds_once() -> void:
+	var m := InputEventJoypadMotion.new()
+	m.axis = JOY_AXIS_RIGHT_Y
+	m.axis_value = -1.0
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.CONTROLLER, 0, m)
+	await _stick(JOY_AXIS_RIGHT_Y, -0.9)
+	await _stick(JOY_AXIS_RIGHT_Y, -1.0)
+	assert_int(intro.story.held_count).is_equal(1)
+	await _stick(JOY_AXIS_RIGHT_Y, 0.9)
+	assert_int(intro.story.held_count).is_equal(0)
+	assert_int(_node("Picture").picture).is_equal(1)

@@ -138,7 +138,7 @@ func _process(delta: float) -> void:
 func _shortcut_input(event: InputEvent) -> void:
 	match mode:
 		Mode.CLOSED:
-			if event.is_action_pressed(&"build", false) and %Player.control_enabled:
+			if InputDevice.action_pressed(event, &"build") and %Player.control_enabled:
 				open_list()
 				_handled()
 		Mode.LIST:
@@ -150,9 +150,9 @@ func _shortcut_input(event: InputEvent) -> void:
 			elif event.is_action_pressed(&"build_back", false):
 				close_list()
 				_handled()
-			elif event.is_action_pressed(&"use", false):
+			elif InputDevice.action_pressed(event, &"use"):
 				_choose_highlighted()
-			elif event.is_action_pressed(&"build", false):
+			elif InputDevice.action_pressed(event, &"build"):
 				close_list()
 				_handled()
 		Mode.PLACING:
@@ -162,10 +162,10 @@ func _shortcut_input(event: InputEvent) -> void:
 			elif event.is_action_pressed(&"build_back", false):
 				back_to_list()
 				_handled()
-			elif event.is_action_pressed(&"use", false):
+			elif InputDevice.action_pressed(event, &"use"):
 				try_place()
 				_handled()
-			elif event.is_action_pressed(&"build", false):
+			elif InputDevice.action_pressed(event, &"build"):
 				back_to_list()
 				_handled()
 		Mode.BUILDING:
@@ -175,9 +175,13 @@ func _input(event: InputEvent) -> void:
 	if mode == Mode.BUILDING:
 		_handled()
 	elif mode == Mode.LIST and event is InputEventJoypadMotion:
-		# The only way the stick reaches the list: _shortcut_input never gets motion.
+		# The only way the stick reaches the list or a stick-bound action: _shortcut_input never gets motion.
 		if _list_step(InputDevice.menu_step(event)):
 			_handled()
+		else:
+			_shortcut_input(event)
+	elif event is InputEventJoypadMotion and (mode == Mode.CLOSED or mode == Mode.PLACING):
+		_shortcut_input(event)
 	elif mode == Mode.PLACING:
 		var click := event as InputEventMouseButton
 		if click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:

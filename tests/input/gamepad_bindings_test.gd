@@ -121,3 +121,22 @@ func _scan(dir: String, offenders: Array[String]) -> void:
 			var text := FileAccess.get_file_as_string(dir.path_join(f))
 			if text.contains("KEY_") or text.contains("physical_keycode"):
 				offenders.append(dir.path_join(f))
+
+# A play action read straight off an event repeats on every stick motion and matches either sign.
+func test_play_actions_are_read_through_input_device() -> void:
+	var re := RegEx.create_from_string("event\\.is_action_(pressed|released)\\((?!\\s*(&?\"(menu_|build_accept|build_back)|ACTIONS\\[))")
+	var offenders: Array[String] = []
+	_scan_lines("res://src", re, offenders)
+	assert_array(offenders).is_empty()
+
+func _scan_lines(dir: String, re: RegEx, offenders: Array[String]) -> void:
+	if dir == "res://src/input":
+		return
+	for sub in DirAccess.get_directories_at(dir):
+		_scan_lines(dir.path_join(sub), re, offenders)
+	for f in DirAccess.get_files_at(dir):
+		if f.ends_with(".gd"):
+			var lines := FileAccess.get_file_as_string(dir.path_join(f)).split("\n")
+			for i in lines.size():
+				if re.search(lines[i]) != null:
+					offenders.append("%s:%d" % [dir.path_join(f), i + 1])
