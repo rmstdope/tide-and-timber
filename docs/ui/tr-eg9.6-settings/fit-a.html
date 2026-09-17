@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Too wide — A</title><script src="common.js"></script><script src="fit.js"></script></head><body><script>
+page('Option A — a row that no longer fits across stacks','Drawn at Largest. When a row of side-by-side things would be wider than the screen, it goes onto two lines: the name on top, the value, key slots or cost underneath; a box\'s buttons go one above the other. Everything keeps the size the player picked. The list gets taller, so it scrolls to keep the highlight on screen, as already agreed.',[
+ fig('The problem: Settings, side by side','At Largest the rows run off both sides.',sky()+settingsSide()+bigHint()),
+ fig('1. Settings, stacked','Name on top, ◀ value ▶ underneath. ▼ says more below.',settingsStack(0)),
+ fig('2. Settings, Colour cues highlighted','The list has scrolled so the highlight stays on screen.',settingsStack(2,40)),
+ fig('3. Controls page, stacked','Action name on top, its two key slots underneath.',controlsStack()),
+ fig('4. A box, buttons stacked','Left button on top, right button below. Up/down move between them.',boxStack()),
+ fig('5. Build list, stacked','Name on top, cost or reason underneath.',buildStack()),
+ fig('6. Large in a big window','It still fits, so rows stay side by side.',sky()+settingsSide(1.5)+g(1.5,4,179,hint([['ENTER','Select'],['ESC','Back']])))],
+ 'Recommended: stacking is the usual way a screen copes with being narrow, and the player keeps the size they asked for. Cost: at Largest these lists are about twice as tall, so they scroll more.');
+</script></body></html>
