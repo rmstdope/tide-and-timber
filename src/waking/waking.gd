@@ -42,6 +42,7 @@ func _ready() -> void:
 	%Pause.has_saved = func() -> bool: return %DayNight.clock.dawns_passed() >= 1
 	var debug: DebugMenu = %Pause.debug_menu()
 	if debug != null:
+		DebugItems.add_rows(debug, %Beach.inventory)
 		DebugPlaces.add_rows(debug, go_to_place)
 
 func _process(delta: float) -> void:
