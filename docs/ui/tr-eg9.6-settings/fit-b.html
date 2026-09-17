@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Too wide — B</title><script src="common.js"></script><script src="fit.js"></script></head><body><script>
+function capped(inner){return inner}
+page('Option B — a screen stops growing at the largest size that still fits','Drawn at Largest. Rows keep their shape, side by side. A menu, box or list whose rows would not fit grows only as far as it can while still fitting; the clock, item bar, hints and his lines still grow to Largest. In a small window that can mean the screen stays at Normal.',[
+ fig('The problem: Settings at full Largest','The rows run off both sides.',sky()+settingsSide()+bigHint()),
+ fig('1. Settings, big window','Stops at Large; the hint strip is still at Largest.',sky()+settingsSide(1.5)+bigHint()),
+ fig('2. Settings, small window','Large would not stay sharp, so it stays at Normal.',sky()+settingsSide(1)+bigHint()),
+ fig('3. A box, big window','Stops at Large, buttons side by side, over a Largest clock and bar.',beach()+hudBig()+dim(.55)+g(1.5,160,90,confirmBox(['Quit to title?','Anything since this morning will be lost.'],['Try again','Keep playing'],0)))],
+ 'Cost: the rows never change shape, but the very screen where the player picks Largest does not get bigger when they do, and menus end up smaller than the clock and hints around them.');
+</script></body></html>
