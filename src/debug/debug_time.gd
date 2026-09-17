@@ -43,3 +43,27 @@ static func speed_after(scale: float, delta: int) -> float:
 static func speed_text(scale: float) -> String:
 	var whole := roundf(scale) == scale   # String.num(1.0) is "1.0" in Godot 4.7
 	return "x" + (str(int(scale)) if whole else String.num(scale))
+
+## The three rows, in order Day, Time, Speed. With a DayNight: values read it on every call, steps
+## set it, and the Time row repeats while held. With null (the shipwreck story, no clock yet): the
+## new game's start ("1", "13:00", "x1") and no steps.
+static func rows(day_night: DayNight) -> Array[DebugRow]:
+	var list: Array[DebugRow] = []
+	if day_night == null:
+		var start := GameClock.new()
+		list.append(DebugRow.new(DAY_LABEL, func() -> String: return str(start.day())))
+		list.append(DebugRow.new(TIME_LABEL, func() -> String: return start.time_text()))
+		list.append(DebugRow.new(SPEED_LABEL, func() -> String: return speed_text(1.0)))
+		return list
+	list.append(DebugRow.new(DAY_LABEL,
+		func() -> String: return str(day_night.clock.day()),
+		func(d: int) -> void: day_night.set_minutes(day_after(day_night.clock.total_minutes, d))))
+	var time := DebugRow.new(TIME_LABEL,
+		func() -> String: return day_night.clock.time_text(),
+		func(d: int) -> void: day_night.set_minutes(time_after(day_night.clock.total_minutes, d)))
+	time.repeats = true
+	list.append(time)
+	list.append(DebugRow.new(SPEED_LABEL,
+		func() -> String: return speed_text(day_night.time_scale),
+		func(d: int) -> void: day_night.time_scale = speed_after(day_night.time_scale, d)))
+	return list

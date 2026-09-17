@@ -78,6 +78,11 @@ func change(delta: int) -> bool:
 	row.step.call(delta)
 	return true
 
+## True when Left/Right on the highlighted row would call a step that repeats while held.
+func highlighted_repeats() -> bool:
+	var row := _acting_row()
+	return row != null and row.step.is_valid() and row.repeats
+
 ## Select: calls the highlighted row's select(); REFUSED shakes, RESUME closes and resumes play.
 func pick() -> Outcome:
 	var row := _acting_row()

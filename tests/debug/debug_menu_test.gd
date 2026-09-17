@@ -178,3 +178,23 @@ func test_rows_survive_close_and_reopen() -> void:
 func test_value_text() -> void:
 	assert_str(DebugRow.new("A").value_text()).is_equal("")
 	assert_str(DebugRow.new("A", func() -> String: return "x1").value_text()).is_equal("x1")
+
+func test_highlighted_repeats() -> void:
+	var held := DebugRow.new("Held", Callable(), func(_d: int) -> void: pass)
+	held.repeats = true
+	m.add_row(P.TIME, held)
+	assert_bool(m.highlighted_repeats()).is_false()   # closed
+	m.open(false)
+	assert_bool(m.highlighted_repeats()).is_true()
+	held.repeats = false
+	assert_bool(m.highlighted_repeats()).is_false()
+	held.repeats = true
+	m.back()
+	m.open(true)
+	assert_bool(m.highlighted_repeats()).is_false()   # in_story on TIME
+	var m2 := DebugMenu.new()
+	var no_step := DebugRow.new("None")
+	no_step.repeats = true
+	m2.add_row(P.TIME, no_step)
+	m2.open(false)
+	assert_bool(m2.highlighted_repeats()).is_false()
