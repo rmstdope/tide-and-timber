@@ -94,7 +94,7 @@ func collect() -> void:
 	collecting = true
 	%Sprite.play(Walk.collect_animation_for(facing, wading))
 
-## Only the gathering move and the waking poses do not loop, and control is off while those play.
+## Only the gathering move and the fall do not loop, and control is off while the fall plays.
 func _on_sprite_finished() -> void:
 	collecting = false
 	if control_enabled:

@@ -1,21 +1,8 @@
 extends SceneTree
-## Draws the placeholder art still waiting for the pack: his waking poses, the item icons and the glyphs.
+## Draws the placeholder art still waiting for the pack: the item icons and the glyphs.
 ## Run: godot --headless --path . --script res://tools/placeholder_art/make_placeholder_art.gd
 
 func _init() -> void:
-	var wake := _blank(192, 64)   # frames in ManFrames.WAKE_POSES order: lie, push_up, sit
-	var poses := [
-		[[2, 20, 9, 4, "#3d5a80"], [11, 19, 8, 5, "#d9dccf"], [19, 19, 5, 5, "#f0c090"], [19, 19, 5, 3, "#6b3f22"]],
-		[[2, 20, 10, 4, "#3d5a80"], [10, 14, 7, 7, "#d9dccf"], [16, 18, 2, 6, "#f0c090"], [15, 9, 6, 5, "#f0c090"],
-			[15, 9, 6, 2, "#6b3f22"]],
-		[[6, 20, 12, 4, "#3d5a80"], [8, 13, 8, 7, "#d9dccf"], [9, 7, 6, 6, "#f0c090"], [9, 7, 6, 2, "#6b3f22"],
-			[10, 10, 1, 1, "#2a1a10"], [13, 10, 1, 1, "#2a1a10"]],
-	]
-	# Centred in the 64x64 frame with its bottom row on 47, the footline every man sheet shares.
-	for i in poses.size():
-		_rects(wake, Vector2i(64 * i + 20, 24), poses[i])
-	_save(wake, "res://assets/man/man_wake.png")
-
 	_save(_drawn(10, 10, [[0, 5, 10, 3, "#9c7048"], [1, 7, 8, 1, "#6e4a2c"], [6, 2, 2, 4, "#9c7048"]]),
 		"res://assets/items/driftwood.png")
 	_save(_drawn(10, 10, [[1, 3, 8, 5, "#f1d6c8"], [2, 7, 6, 1, "#c98f86"], [3, 4, 1, 3, "#c98f86"],

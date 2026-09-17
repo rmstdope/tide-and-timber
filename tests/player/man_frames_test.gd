@@ -54,15 +54,6 @@ func test_collect_animations() -> void:
 	assert_that(_region(frames, &"collect_down", 7)).is_equal(Rect2(448, 0, 64, 64))
 	assert_str(_atlas(frames, &"collect_down", 0)).is_equal("res://assets/man/collect.png")
 
-func test_waking_poses() -> void:
-	var frames := ManFrames.build()
-	ManFrames.add_waking(frames, load("res://assets/man/man_wake.png"))
-	for pose: StringName in [&"lie", &"push_up", &"sit"]:
-		assert_int(frames.get_frame_count(pose)).override_failure_message(pose).is_equal(1)
-		assert_bool(frames.get_animation_loop(pose)).override_failure_message(pose).is_false()
-	assert_that(_region(frames, &"push_up", 0)).is_equal(Rect2(64, 0, 64, 64))
-	assert_int(frames.get_animation_names().size()).is_equal(35)
-
 func test_the_fall_animations() -> void:
 	var frames := ManFrames.build()
 	assert_int(frames.get_frame_count(&"death_left")).is_equal(8)

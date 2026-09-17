@@ -25,8 +25,9 @@ func test_art_sizes() -> void:
 		if texture:
 			assert_vector(Vector2(texture.get_size())).override_failure_message(path).is_equal(Vector2(SIZES[path]))
 
-func test_wake_art_size() -> void:
-	var texture := load("res://assets/man/man_wake.png") as Texture2D
-	assert_object(texture).is_not_null()
-	if texture:
-		assert_vector(Vector2(texture.get_size())).is_equal(Vector2(192, 64))
+## Every sheet of the man is generated pack art now: the fall was the last placeholder pose of him.
+func test_no_placeholder_art_of_the_man_is_left() -> void:
+	assert_bool(ResourceLoader.exists("res://assets/man/man_wake.png")).is_false()
+	for path: String in SIZES:
+		assert_bool(path.begins_with("res://assets/man/")).override_failure_message(
+			"%s is placeholder art of the man" % path).is_false()
