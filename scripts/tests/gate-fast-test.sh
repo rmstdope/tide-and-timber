@@ -252,6 +252,35 @@ test_lock_is_released_when_the_run_is_signalled() {
   rm -rf "$S"
 }
 
+test_stale_lock_from_a_dead_holder_is_reclaimed() {
+  local name="${FUNCNAME[0]}"; local dead
+  sandbox; make_fake_godot
+  sh -c 'exit 0' & dead=$!
+  wait "$dead" 2>/dev/null
+  mkdir "$S/repo/gate-fast.gate.lock"
+  printf '%s\n' "$dead" > "$S/repo/gate-fast.gate.lock/pid"
+  run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif ! grep -qF "gate-fast: reclaiming a stale lock in $S/repo" "$S/err"; then
+    fail "$name" "stderr: $(cat "$S/err")"
+  elif [ "$(lines "$S/calls")" != 2 ]; then fail "$name" "calls: $(lines "$S/calls")"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_lock_dir_with_no_pid_file_is_reclaimed() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  mkdir "$S/repo/gate-fast.gate.lock"
+  run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif ! grep -qF "gate-fast: reclaiming a stale lock in $S/repo" "$S/err"; then
+    fail "$name" "stderr: $(cat "$S/err")"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
 test_missing_godot_exits_1
 test_default_godot_comes_from_path
 test_arguments_exit_2
@@ -270,4 +299,6 @@ test_refuses_while_another_run_holds_the_lock
 test_lock_is_released_after_a_green_run
 test_lock_is_released_after_a_suite_failure
 test_lock_is_released_when_the_run_is_signalled
+test_stale_lock_from_a_dead_holder_is_reclaimed
+test_lock_dir_with_no_pid_file_is_reclaimed
 exit "$failed"
