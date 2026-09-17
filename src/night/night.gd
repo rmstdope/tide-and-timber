@@ -24,6 +24,7 @@ var _interactor_mode := Node.PROCESS_MODE_INHERIT
 
 func _ready() -> void:
 	day_night = %DayNight
+	day_night.moved.connect(_on_clock_moved)
 	beach = %Beach
 	autosave = %Autosave
 	builder = beach.get_node("%Builder")
@@ -57,6 +58,11 @@ func tick(delta: float) -> void:
 func _input(_event: InputEvent) -> void:
 	if collapse:
 		get_viewport().set_input_as_handled()
+
+## A hand-set clock starts the night's watch afresh from the new time, unless he is collapsing.
+func _on_clock_moved() -> void:
+	if collapse == null:
+		watch.reset(day_night.clock.total_minutes)
 
 func _say(text: String) -> void:
 	_pending = text
