@@ -35,3 +35,15 @@ func test_menu_line_widths() -> void:
 	assert_int(HintLine.width(DeviceHints.line(H.SELECT, K.KEYBOARD), font)).is_equal(76)
 	assert_int(HintLine.width(DeviceHints.line(H.SELECT_BACK, K.KEYBOARD), font)).is_equal(140)
 	assert_int(HintLine.width(DeviceHints.line(H.SELECT_BACK, K.XBOX), font)).is_equal(116)
+
+func test_words_grow_pictures_do_not() -> void:
+	assert_int(HintLine.width(DeviceHints.line(H.MOVE, K.KEYBOARD), font, 2.0)).is_equal(106)
+	assert_int(HintLine.width(DeviceHints.line(H.MOVE, K.KEYBOARD), font, 1.5)).is_equal(90)
+	assert_int(HintLine.width(DeviceHints.line(H.SELECT_BACK, K.KEYBOARD), font, 2.0)).is_equal(220)
+	assert_int(HintLine.width(DeviceHints.line(H.SELECT_BACK, K.KEYBOARD), font, 1.0)).is_equal(140)
+
+func test_row_height_grows_by_whole_units() -> void:
+	assert_int(HintLine.height()).is_equal(9)
+	assert_int(HintLine.height(1.5)).is_equal(14)
+	assert_int(HintLine.height(2.0)).is_equal(18)
+	assert_int(HintLine.height(5.0 / 3.0)).is_equal(15)

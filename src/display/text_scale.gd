@@ -20,3 +20,8 @@ static func fit_width(normal_width: float, words_width: float, ui: float) -> flo
 	if want * ui <= SpokenLine.SCREEN_WIDTH:
 		return want
 	return floorf((SpokenLine.SCREEN_WIDTH - 2.0 * SpokenLine.SCREEN_MARGIN) / ui)
+
+## How many units a line `line_height` tall grows at relative scale `rel`: ceilf(line_height * rel)
+## - line_height. 0 at rel 1.0. Containers add this per line of words so every edge stays on a whole unit.
+static func extra(line_height: float, rel: float) -> float:
+	return ceilf(line_height * rel) - line_height
