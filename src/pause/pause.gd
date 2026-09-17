@@ -22,6 +22,9 @@ const PLANK_SIZE := Vector2(120, 16)
 const BASE_HEIGHT := 180.0
 const HEADING_TOP := 8.0        # panel top to the heading's top; the scrolled content starts here
 const BOTTOM_MARGIN := 12.0     # last plank's bottom to the panel's bottom (96 - 84)
+const WORD_HEIGHT := 8.0        # one line of words at Normal: the heading's height
+const PLANK_GAP := 4.0          # PLANK_STEP - PLANK_SIZE.y, kept at every Text size
+const DEV_TAG_RIGHT := 20.0     # the DEV tag's left edge, from the board's right edge (144 - 124)
 
 @export var with_skip_story := false
 
@@ -70,13 +73,8 @@ func _ready() -> void:
 	get_tree().root.size_changed.connect(_frame_quit_box_later)
 	_quit_panel().get_node("Marks").draw.connect(_draw_quit_marks)
 	%SkipStory.visible = with_skip_story
-	var h := BOARD_H_THREE + PLANK_STEP * (rules.items.size() - 3)
-	rest_panel = Rect2(BOARD_X, (BASE_HEIGHT - h) / 2.0, BOARD_W, h)
-	(%Content as Control).size = rest_panel.size
 	for i in rules.items.size():
 		var plank := _plank(rules.items[i])
-		plank.position = Vector2(PLANK_X, PLANK_TOP + i * PLANK_STEP)
-		plank.size = PLANK_SIZE
 		plank.gui_input.connect(func(event: InputEvent) -> void:
 			if PointerRule.is_move(event):
 				rules.hover(rules.items[i])
@@ -277,7 +275,39 @@ func _item_extent(item: PauseMenu.Plank) -> Vector2:
 		bottom = _content_height()
 	return Vector2(top, bottom)
 
+## Sizes the heading and planks for Text size and sets rest_panel. Every plank takes the widest plank's
+## width and the tallest plank's height. A plank's words wrap only when they are wider than the board
+## may be on screen.
+func lay_out() -> void:
+	var ui := UiScale.current(Display.prefs, get_tree().root)
+	var rel := TextScale.relative(Display.prefs, get_tree().root)
+	var room := SettingsBoard.panel_width(ui) - 2.0 * PLANK_X - PLANK_STYLE.get_minimum_size().x
+	var plank_w := PLANK_SIZE.x
+	var plank_h := PLANK_SIZE.y
+	for item: PauseMenu.Plank in rules.items:
+		var plank := _plank(item)
+		(plank.get_node("Label") as GrownWords).max_width = room
+		var m := plank.get_combined_minimum_size()
+		plank_w = maxf(plank_w, m.x)
+		plank_h = maxf(plank_h, m.y)
+	var top := PLANK_TOP + ceilf(WORD_HEIGHT * rel) - WORD_HEIGHT
+	var step := plank_h + PLANK_GAP
+	for i in rules.items.size():
+		var plank := _plank(rules.items[i])
+		plank.position = Vector2(PLANK_X, top + i * step)
+		plank.size = Vector2(plank_w, plank_h)
+	var board_w := plank_w + 2.0 * PLANK_X
+	var heading := %Heading as Label
+	heading.scale = Vector2.ONE * rel
+	heading.size = Vector2(board_w / rel, WORD_HEIGHT)
+	if debug_tools:
+		(%DevTag as Control).position.x = board_w - DEV_TAG_RIGHT
+	var h := top + (rules.items.size() - 1) * step + plank_h + BOTTOM_MARGIN
+	rest_panel = Rect2(floorf((320.0 - board_w) / 2.0), floorf((BASE_HEIGHT - h) / 2.0), board_w, h)
+	(%Content as Control).size = rest_panel.size
+
 func _frame() -> void:
+	lay_out()
 	if not is_inside_tree() or strip == null:
 		frame(0.0, BASE_HEIGHT)
 		return

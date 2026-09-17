@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://src/debug/dev_tag.gd" id="5_devtag"]
 [ext_resource type="Script" path="res://src/debug/debug_panel.gd" id="6_debugpanel"]
 [ext_resource type="Script" path="res://src/display/ui_scale.gd" id="7_ui_scale"]
+[ext_resource type="Script" path="res://src/display/grown_words.gd" id="8_grown"]
 
 [node name="Pause" type="CanvasLayer"]
 process_mode = 3
@@ -81,8 +82,14 @@ offset_bottom = 44.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Clip/Content/Resume"]
+[node name="Label" type="Control" parent="Board/Panel/Clip/Content/Resume"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Board/Panel/Clip/Content/Resume/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
@@ -101,8 +108,14 @@ offset_bottom = 64.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Clip/Content/SkipStory"]
+[node name="Label" type="Control" parent="Board/Panel/Clip/Content/SkipStory"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Board/Panel/Clip/Content/SkipStory/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
@@ -121,8 +134,14 @@ offset_bottom = 84.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Clip/Content/Settings"]
+[node name="Label" type="Control" parent="Board/Panel/Clip/Content/Settings"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Board/Panel/Clip/Content/Settings/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
@@ -141,8 +160,14 @@ offset_bottom = 104.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Clip/Content/Debug"]
+[node name="Label" type="Control" parent="Board/Panel/Clip/Content/Debug"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Board/Panel/Clip/Content/Debug/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
@@ -161,8 +186,14 @@ offset_bottom = 104.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/Panel/Clip/Content/QuitToTitle"]
+[node name="Label" type="Control" parent="Board/Panel/Clip/Content/QuitToTitle"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Board/Panel/Clip/Content/QuitToTitle/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8

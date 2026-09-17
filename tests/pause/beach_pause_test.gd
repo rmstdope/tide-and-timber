@@ -62,6 +62,10 @@ func _highlighted(unique: String) -> void:
 		.override_failure_message(unique + " is not highlighted").is_true()
 
 func _plank_text(unique: String) -> String:
+	return (_node(unique).get_node("Label/Words") as Label).text
+
+# The quit box's buttons are plain Labels: only the board's planks grow by Text size.
+func _button_text(unique: String) -> String:
 	return (_node(unique).get_node("Label") as Label).text
 
 func _open_box() -> void:
@@ -232,8 +236,8 @@ func test_quit_to_title_asks_on_stay_before_any_save() -> void:
 	assert_bool(_node("QuitBox").visible).is_true()
 	assert_str((_node("FirstLine") as Label).text).is_equal("Quit to title?")
 	assert_str((_node("SecondLine") as Label).text).is_equal("Nothing has been saved yet.")
-	assert_str(_plank_text("Stay")).is_equal("Stay")
-	assert_str(_plank_text("Quit")).is_equal("Quit")
+	assert_str(_button_text("Stay")).is_equal("Stay")
+	assert_str(_button_text("Quit")).is_equal("Quit")
 	_highlighted("Stay")
 	assert_array(calls).is_empty()
 

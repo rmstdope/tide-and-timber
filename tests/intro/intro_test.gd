@@ -122,7 +122,7 @@ func test_escape_pauses_on_the_four_plank_board() -> void:
 	assert_str((_pause_node("Heading") as Label).text).is_equal("Paused")
 	var words := {"Resume": "Resume", "SkipStory": "Skip story", "Settings": "Settings", "QuitToTitle": "Quit to title"}
 	for unique: String in words:
-		assert_str((_pause_node(unique).get_node("Label") as Label).text).is_equal(words[unique])
+		assert_str((_pause_node(unique).get_node("Label/Words") as Label).text).is_equal(words[unique])
 		assert_bool((_pause_node(unique) as Control).visible).is_true()
 	_highlighted("Resume")
 	assert_that((_pause_node("Panel") as Control).get_rect()).is_equal(Rect2(88, 32, 144, 116))
