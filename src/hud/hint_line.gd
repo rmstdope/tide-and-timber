@@ -14,7 +14,7 @@ const DISC: Array[Rect2] = [Rect2(2, 0, 5, 1), Rect2(1, 1, 7, 1), Rect2(0, 2, 9,
 const INNER_DISC: Array[Rect2] = [Rect2(2, 1, 5, 1), Rect2(1, 2, 7, 5), Rect2(2, 7, 5, 1)]
 
 static func picture_width(p: DeviceHints.Picture) -> int:
-	if p.shape == DeviceHints.Shape.KEY:
+	if p.shape == DeviceHints.Shape.KEY or p.shape == DeviceHints.Shape.SHOULDER:
 		return Glyphs.width(p.label) + 6
 	return HEIGHT
 
@@ -32,6 +32,10 @@ static func draw_picture(canvas: CanvasItem, p: DeviceHints.Picture, at: Vector2
 			var w := picture_width(p)
 			canvas.draw_rect(Rect2(at.x, at.y, w, HEIGHT), p.face)
 			canvas.draw_rect(Rect2(at.x, at.y + 8, w, 1), CAP_SHADOW)
+		DeviceHints.Shape.SHOULDER:
+			var w := picture_width(p)
+			canvas.draw_rect(Rect2(at.x + 1, at.y, w - 2, 1), p.face)
+			canvas.draw_rect(Rect2(at.x, at.y + 1, w, HEIGHT - 1), p.face)
 		DeviceHints.Shape.ROUND:
 			_rects(canvas, DISC, at, p.face)
 		DeviceHints.Shape.STICK:
