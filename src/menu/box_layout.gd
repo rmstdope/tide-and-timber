@@ -71,6 +71,22 @@ func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callab
 	l.panel = Rect2(Vector2(roundf(SCREEN_CENTRE.x - w / 2.0), roundf(SCREEN_CENTRE.y - h / 2.0)), Vector2(w, h))
 	return l
 
+## This layout with only the left button shown: the left button centred across the panel, and, when
+## stacked, the panel only as tall as one button needs, re-centred on SCREEN_CENTRE. `right` is left
+## as it was; the caller hides that button. Returns a new BoxLayout; this one is unchanged.
+func one_button() -> BoxLayout:
+	var l := BoxLayout.new()
+	l.stacked = stacked
+	l.panel = panel
+	l.lines = lines.duplicate()
+	l.left = left
+	l.right = right
+	l.left.position.x = roundf((panel.size.x - left.size.x) / 2.0)
+	if stacked:
+		l.panel.size.y -= right.end.y - left.end.y
+		l.panel.position.y = roundf(SCREEN_CENTRE.y - l.panel.size.y / 2.0)
+	return l
+
 ## Writes panel, lines, left and right to the nodes, as position and size.
 func place(panel_node: Control, line_nodes: Array[Control], left_node: Control, right_node: Control) -> void:
 	_put(panel_node, panel)
