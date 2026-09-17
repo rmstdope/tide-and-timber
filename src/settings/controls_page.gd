@@ -39,8 +39,6 @@ const SLOT_TOP_STACKED := 11.0           # row top to slot top
 const NAME_LINE_STEP := 10.0             # baseline to baseline when a stacked name wraps
 const NAME_WRAP_W := 132.0               # both Reset names break before "to": "Reset keyboard to" (136) does not fit
 const TAB_RECTS_STACKED := [Rect2(82, 14, 68, 11), Rect2(154, 14, 84, 11)]
-const SAFE_X := 40.0                    # the left box button, as in the scene
-const OK_X := 96.0                      # (296 - 104) / 2: OK alone, centred in the box panel
 
 var rules: ControlsMenu
 var stacked := false                     # derived by _restack, never set elsewhere
@@ -48,8 +46,12 @@ var strip: MenuStrip
 var change_slot: Callable = _change_slot   # tests swap in a recorder
 var capture := SlotCapture.new()
 var pad_connected: Callable = func() -> bool: return not Input.get_connected_joypads().is_empty()   # tests replace it
+var _box_normal: BoxLayout   # the box as the scene draws it at Normal, captured once in _ready
+var _box_layout: BoxLayout   # the layout drawn now; input reads its `stacked`
 
 func _ready() -> void:
+	var box_lines: Array[Control] = [%Lines]
+	_box_normal = BoxLayout.of(%Box.get_node("Panel"), box_lines, %Safe, %Other)
 	rules = ControlsMenu.new(InputDevice.controls)
 	strip = MenuStrip.new()
 	add_child(strip)   # last child: above the box
@@ -69,7 +71,21 @@ func _ready() -> void:
 	Display.changed.connect(queue_redraw)
 	Display.changed.connect(_restack_later)
 	get_tree().root.size_changed.connect(_restack_later)
+	Display.changed.connect(_fit_box)
+	get_tree().root.size_changed.connect(_fit_box)
+	_fit_box()
 	_refresh()
+
+## Lays the box out for the current UI scale and words: side by side, or stacked when the two buttons
+## are too wide; OK alone follows its two-button form.
+func _fit_box() -> void:
+	var labels: Array[Label] = [%Lines]
+	var nodes: Array[Control] = [%Lines]
+	_box_layout = _box_normal.at(UiScale.current(Display.prefs, get_tree().root), %Safe.size, %Other.size,
+			BoxLayout.label_heights(labels))
+	if rules.box == ControlsMenu.Box.NO_PAD:
+		_box_layout = _box_layout.one_button()
+	_box_layout.place(%Box.get_node("Panel"), nodes, %Safe, %Other)
 
 func _restack() -> void:
 	var now := stacks_at(get_global_transform_with_canvas().get_scale().x) if is_inside_tree() else false
@@ -192,6 +208,14 @@ func _input(event: InputEvent) -> void:
 				rules.box_select(ControlsMenu.BoxButton.SAFE)
 			MenuPush.Step.RIGHT:
 				rules.box_select(ControlsMenu.BoxButton.OTHER)
+			MenuPush.Step.UP:
+				if not _box_layout.stacked:
+					return   # side by side, Up and Down do nothing in a box, as before
+				rules.box_select(ControlsMenu.BoxButton.SAFE)
+			MenuPush.Step.DOWN:
+				if not _box_layout.stacked:
+					return
+				rules.box_select(ControlsMenu.BoxButton.OTHER)
 			MenuPush.Step.SELECT:
 				_apply(rules.box_press(rules.box_selected))
 			MenuPush.Step.BACK:
@@ -304,7 +328,7 @@ func _refresh() -> void:
 		(%Safe.get_node("Label") as Label).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
 		(%Other.get_node("Label") as Label).text = "Reset" if reset else "Leave"
 		%Other.visible = not no_pad
-		%Safe.position.x = OK_X if no_pad else SAFE_X
+		_fit_box()
 		for b: ControlsMenu.BoxButton in [ControlsMenu.BoxButton.SAFE, ControlsMenu.BoxButton.OTHER]:
 			_box_button(b).add_theme_stylebox_override("panel",
 					PLANK_HIGHLIGHT_STYLE if rules.box_selected == b else PLANK_STYLE)
