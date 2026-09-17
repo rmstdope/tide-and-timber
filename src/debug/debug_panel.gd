@@ -100,7 +100,7 @@ func _input(event: InputEvent) -> void:
 		_apply(rules.back())
 	elif event.is_action_pressed("menu_tab", false) and tab_step(event) != 0:
 		rules.flip(tab_step(event))
-	elif event.is_action_pressed("pause", false):
+	elif InputDevice.action_pressed(event, "pause"):
 		_apply(rules.start())
 	else:
 		return
