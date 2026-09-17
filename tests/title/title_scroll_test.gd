@@ -86,6 +86,11 @@ func _settle() -> void:
 func _node(unique: String) -> Control:
 	return screen.get_node("%" + unique) as Control
 
+func _a_move() -> InputEventMouseMotion:
+	var move := InputEventMouseMotion.new()
+	move.relative = Vector2(1, 0)
+	return move
+
 func _shown(unique: String) -> bool:
 	return _node("MenuClip").get_global_rect().encloses(_node(unique).get_global_rect())
 
@@ -158,9 +163,7 @@ func test_hovering_a_partly_hidden_plank_scrolls_to_it() -> void:
 	_size(2)
 	_saved()
 	await _settle()
-	var move := InputEventMouseMotion.new()
-	move.relative = Vector2(1, 0)
-	_node("Settings").gui_input.emit(move)
+	_node("Settings").gui_input.emit(_a_move())
 	assert_int(screen.menu.highlighted).is_equal(TitleMenu.Choice.SETTINGS)
 	assert_int(screen.menu_offset).is_equal(9)
 	assert_bool(_shown("Settings")).is_true()
@@ -185,3 +188,40 @@ func test_large_menu_with_a_save_fits() -> void:
 	_saved()
 	await _settle()
 	assert_bool(screen.menu_scrolls).is_false()
+
+func test_marks_go_while_the_settings_board_is_open() -> void:
+	_size(2)
+	_saved()
+	await _settle()
+	assert_bool(_node("MenuMarks").visible).is_true()
+	await _tap(KEY_DOWN)
+	await _tap(KEY_DOWN)
+	await _tap(KEY_ENTER)
+	await _settle()
+	assert_bool(screen.menu.settings_open).is_true()
+	assert_bool(_node("MenuMarks").visible).is_false()
+	await _tap(KEY_ESCAPE)
+	await _settle()
+	assert_bool(screen.menu.settings_open).is_false()
+	assert_bool(_node("MenuMarks").visible).is_true()
+
+func test_a_plank_scrolled_out_of_the_band_is_out_of_the_pointer_s_reach() -> void:
+	_size(2)
+	_saved()
+	await _settle()
+	var quit := _node("Quit")
+	assert_bool(_shown("Quit")).is_false()
+	assert_bool(quit.get_global_rect().has_point(Vector2(160, 172))).is_true()   # where it would lie
+	runner.simulate_mouse_move(Vector2(160, 172))
+	await runner.await_input_processed()
+	# the clip keeps it out of reach: it neither takes the highlight nor scrolls the menu to itself
+	assert_int(screen.menu.highlighted).is_not_equal(TitleMenu.Choice.QUIT)
+	assert_int(screen.menu_offset).is_equal(0)
+
+func test_a_plank_inside_the_band_still_takes_the_pointer() -> void:
+	_size(2)
+	_saved()
+	await _settle()
+	assert_bool(_shown("NewGame")).is_true()
+	_node("NewGame").gui_input.emit(_a_move())
+	assert_int(screen.menu.highlighted).is_equal(TitleMenu.Choice.NEW_GAME)

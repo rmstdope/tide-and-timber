@@ -265,6 +265,9 @@ func _place_menu() -> void:
 		(%MenuClip as Control).position = Vector2.ZERO
 		(%MenuClip as Control).size = Vector2(320, 180)
 		m.position = Vector2(x, menu_top_at(_menu_top, height, s))
+		%MenuMarks.position = Vector2(x, 0)
+		%MenuMarks.scale = Vector2(s, s)
+		(%MenuMarks as Control).size = Vector2(320, band_h)
 		%MenuMarks.visible = false
 	else:
 		menu_scrolls = true
@@ -277,7 +280,8 @@ func _place_menu() -> void:
 		%MenuMarks.position = Vector2(x, b.x * s)
 		%MenuMarks.scale = Vector2(s, s)
 		(%MenuMarks as Control).size = Vector2(320, band_h)
-		%MenuMarks.visible = true
+		# the marks belong to the menu the player is in: the Settings board is over it, with its own strip
+		%MenuMarks.visible = not menu.settings_open
 		%MenuMarks.queue_redraw()
 
 ## True while ▲ is drawn over the title menu.

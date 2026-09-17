@@ -182,3 +182,37 @@ func test_quit_box_is_not_scrolled() -> void:
 	for unique in ["Resume", "SkipStory", "Settings", "QuitToTitle"]:
 		assert_bool(_node("Content").is_ancestor_of(_node(unique))).is_true()
 	assert_bool(_node("Clip").clip_contents).is_true()
+
+func test_a_four_plank_board_scrolls_to_its_last_plank() -> void:
+	Pause.debug_tools = true
+	var r := scene_runner("res://src/waking/waking.tscn")
+	var w := r.scene() as Waking
+	w.set_process(false)
+	var p := w.get_node("%Pause") as Pause
+	(w.get_node("%Autosave") as Autosave).save_game = func() -> Error: return OK
+	_size(2)
+	w.tick(5.0)
+	r.simulate_key_pressed(KEY_ESCAPE)
+	await r.await_input_processed()
+	await _settle()
+	assert_int(p.rules.items.size()).is_equal(4)
+	assert_that(p.rest_panel).is_equal(Rect2(88, 32, 144, 116))
+	assert_bool(p.scrolls).is_true()
+	assert_int(p.scroll_offset).is_equal(4)
+	for i in 3:
+		r.simulate_key_pressed(KEY_DOWN)
+		await r.await_input_processed()
+	assert_int(p.rules.highlighted).is_equal(PauseMenu.Plank.QUIT_TO_TITLE)
+	assert_int(p.scroll_offset).is_equal(64)
+	assert_bool(_screen(p.get_node("%Clip") as Control) \
+			.encloses(_screen(p.get_node("%QuitToTitle") as Control))).is_true()
+	assert_bool(p.shows_mark_above()).is_true()
+	assert_bool(p.shows_mark_below()).is_false()
+
+func test_a_plank_scrolled_behind_the_strip_is_out_of_the_pointer_s_reach() -> void:
+	_size(2)
+	await _open()
+	assert_bool(_shown("QuitToTitle")).is_false()
+	runner.simulate_mouse_move(_screen(_node("QuitToTitle")).get_center())
+	await runner.await_input_processed()
+	assert_int(pause.rules.highlighted).is_equal(PauseMenu.Plank.RESUME)
