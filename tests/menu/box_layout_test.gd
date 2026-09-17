@@ -96,3 +96,124 @@ func test_one_button_leaves_the_original_unchanged() -> void:
 	assert_that(s.panel).is_equal(Rect2(84, 27, 152, 126))
 	o.lines[0] = Rect2()
 	assert_that(s.lines[0]).is_equal(line0)
+
+# --- framing to the band, and the push rule (tr-eg9.6.4.5.2.1) ---
+
+## The quit box stacked at Largest, as measured in the waking scene.
+func _largest() -> BoxLayout:
+	var l := BoxLayout.new()
+	l.stacked = true
+	l.panel = Rect2(84, 28, 152, 124)
+	l.lines = [Rect2(8, 8, 136, 12), Rect2(8, 28, 136, 28)]
+	l.left = Rect2(24, 66, 104, 20)
+	l.right = Rect2(24, 94, 104, 20)
+	return l
+
+func _at(o: int) -> BoxLayout:
+	return _largest().framed(46, 98, o)
+
+func test_content_spans_first_line_to_lowest_button() -> void:
+	assert_float(_largest().content_top()).is_equal(8.0)
+	assert_float(_largest().content_height()).is_equal(106.0)
+	assert_float(_largest().one_button().content_height()).is_equal(78.0)
+	assert_float(_normal().content_height()).is_equal(78.0)
+
+func test_one_button_hides_the_right() -> void:
+	assert_bool(_largest().one_button().right_shown).is_false()
+	assert_bool(_largest().right_shown).is_true()
+
+func test_framed_scrolls_when_taller_than_the_band() -> void:
+	var f := _at(0)
+	assert_bool(f.scrolls).is_true()
+	assert_that(f.panel).is_equal(Rect2(84, 46, 152, 52))
+	assert_that(f.clip).is_equal(Rect2(0, 10, 152, 32))
+	assert_that(f.content).is_equal(Rect2(0, -8, 152, 124))
+	assert_int(f.offset).is_equal(0)
+	assert_that(f.left).is_equal(Rect2(24, 66, 104, 20))
+	assert_that(f.right).is_equal(Rect2(24, 94, 104, 20))
+
+func test_framed_clamps_the_offset() -> void:
+	assert_int(_at(500).offset).is_equal(74)
+	assert_that(_at(500).content).is_equal(Rect2(0, -82, 152, 124))
+	assert_int(_at(-3).offset).is_equal(0)
+
+func test_framed_fits_unchanged() -> void:
+	var f := _normal().framed(2, 162, 20)
+	assert_bool(f.scrolls).is_false()
+	assert_that(f.panel).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(f.clip).is_equal(Rect2(0, 0, 296, 96))
+	assert_that(f.content).is_equal(Rect2(0, 0, 296, 96))
+	assert_int(f.offset).is_equal(0)
+
+func test_a_fitting_panel_moves_inside_the_band() -> void:
+	assert_float(_largest().framed(40, 200, 0).panel.position.y).is_equal(40.0)
+	assert_float(_largest().framed(0, 140, 0).panel.position.y).is_equal(16.0)
+
+func test_marks() -> void:
+	assert_bool(_at(0).shows_mark_above()).is_false()
+	assert_bool(_at(0).shows_mark_below()).is_true()
+	assert_bool(_at(30).shows_mark_above()).is_true()
+	assert_bool(_at(30).shows_mark_below()).is_true()
+	assert_bool(_at(74).shows_mark_above()).is_true()
+	assert_bool(_at(74).shows_mark_below()).is_false()
+	assert_bool(_normal().framed(2, 162, 0).shows_mark_above()).is_false()
+	assert_bool(_normal().framed(2, 162, 0).shows_mark_below()).is_false()
+
+func test_down_scrolls_a_line_towards_a_hidden_button() -> void:
+	assert_that(_at(0).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 11))
+	assert_that(_at(44).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 46))
+
+func test_down_on_a_shown_top_button_moves_to_the_bottom_one() -> void:
+	assert_that(_at(46).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
+
+func test_down_on_the_bottom_button_in_view_does_nothing() -> void:
+	assert_that(_at(74).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
+
+func test_up_on_the_bottom_button_in_view_moves_to_the_top_one() -> void:
+	assert_that(_at(74).pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
+
+func test_up_on_the_top_button_scrolls_back_to_the_words() -> void:
+	assert_that(_at(58).pushed(BoxLayout.Push.UP, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 47))
+	assert_that(_at(3).pushed(BoxLayout.Push.UP, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 0))
+
+func test_up_on_the_top_button_at_the_top_does_nothing() -> void:
+	assert_that(_at(0).pushed(BoxLayout.Push.UP, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 0))
+
+func test_a_hidden_highlight_is_scrolled_towards() -> void:
+	assert_that(_at(0).pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 11))
+	assert_that(_at(74).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 63))
+
+## A button taller than the view is hidden above and below at once: the push goes up, towards its top.
+func test_a_button_taller_than_the_view_is_scrolled_up_to() -> void:
+	var l := _largest()
+	l.right = Rect2(24, 94, 104, 60)
+	var f := l.framed(46, 98, 100)
+	assert_float(f.clip.size.y).is_equal(32.0)
+	assert_int(f.offset).is_equal(100)
+	assert_that(f.pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 89))
+	# Within one line-step of its top (86): the push stops there rather than scrolling past it.
+	assert_that(l.framed(46, 98, 92).pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)) \
+		.is_equal(Vector2i(BoxLayout.Side.RIGHT, 86))
+
+func test_left_right_move_and_show_just_enough() -> void:
+	assert_that(_at(0).pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
+	assert_that(_at(74).pushed(BoxLayout.Push.LEFT, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
+	assert_that(_at(60).pushed(BoxLayout.Push.LEFT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
+
+func test_wheel_scrolls_a_line_and_keeps_the_highlight() -> void:
+	assert_that(_at(70).pushed(BoxLayout.Push.WHEEL_DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 74))
+	assert_that(_at(5).pushed(BoxLayout.Push.WHEEL_UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 0))
+	assert_that(_at(20).pushed(BoxLayout.Push.WHEEL_DOWN, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 31))
+
+func test_fitting_pushes_are_todays() -> void:
+	var n := _normal().framed(2, 162, 0)
+	assert_that(n.pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 0))
+	assert_that(n.pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 0))
+	assert_that(n.pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 0))
+	assert_that(n.pushed(BoxLayout.Push.WHEEL_DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 0))
+	var t := _largest().framed(0, 180, 0)
+	assert_that(t.pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 0))
+	assert_that(t.pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 0))
+
+func test_one_button_right_keeps_the_left() -> void:
+	assert_int(_largest().one_button().framed(46, 98, 0).pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT).x).is_equal(BoxLayout.Side.LEFT)

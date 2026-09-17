@@ -90,7 +90,20 @@ offset_bottom = 138.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("3_plank")
 
-[node name="CrossedJournal" type="Control" parent="BoxLayer/Box/Panel"]
+[node name="Clip" type="Control" parent="BoxLayer/Box/Panel"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+clip_contents = true
+
+[node name="Content" type="Control" parent="BoxLayer/Box/Panel/Clip"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2
+
+[node name="CrossedJournal" type="Control" parent="BoxLayer/Box/Panel/Clip/Content"]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -100,7 +113,7 @@ mouse_filter = 2
 script = ExtResource("2_journal")
 crossed = true
 
-[node name="FirstLine" type="Label" parent="BoxLayer/Box/Panel"]
+[node name="FirstLine" type="Label" parent="BoxLayer/Box/Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 24.0
@@ -114,7 +127,7 @@ text = "The day couldn't be saved."
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="SecondLine" type="Label" parent="BoxLayer/Box/Panel"]
+[node name="SecondLine" type="Label" parent="BoxLayer/Box/Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 8.0
@@ -129,7 +142,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="TryAgain" type="PanelContainer" parent="BoxLayer/Box/Panel"]
+[node name="TryAgain" type="PanelContainer" parent="BoxLayer/Box/Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 40.0
@@ -139,7 +152,7 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="BoxLayer/Box/Panel/TryAgain"]
+[node name="Label" type="Label" parent="BoxLayer/Box/Panel/Clip/Content/TryAgain"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -148,7 +161,7 @@ text = "Try again"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="KeepPlaying" type="PanelContainer" parent="BoxLayer/Box/Panel"]
+[node name="KeepPlaying" type="PanelContainer" parent="BoxLayer/Box/Panel/Clip/Content"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 152.0
@@ -158,7 +171,7 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="BoxLayer/Box/Panel/KeepPlaying"]
+[node name="Label" type="Label" parent="BoxLayer/Box/Panel/Clip/Content/KeepPlaying"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -166,3 +179,9 @@ theme_override_font_sizes/font_size = 8
 text = "Keep playing"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Marks" type="Control" parent="BoxLayer/Box/Panel"]
+layout_mode = 0
+offset_right = 296.0
+offset_bottom = 96.0
+mouse_filter = 2

@@ -20,6 +20,9 @@ var _shake: Tween
 var strip: MenuStrip
 var _box_normal: BoxLayout   # the box as the scene has it, captured before anything places it
 var _box: BoxLayout          # the box as drawn now
+var _box_frame: BoxLayout    # the box framed to the room above the strip; null until first framed while open
+var _box_offset := 0         # whole units the box's content is scrolled; owned by _push_box and _frame_box
+var _box_was_open := false   # to reset the offset each time the box opens
 
 func _ready() -> void:
 	var box_lines: Array[Control] = [%FirstLine, %SecondLine]
@@ -33,6 +36,10 @@ func _ready() -> void:
 	strip = MenuStrip.new()
 	%Box.add_child(strip)   # shown exactly when the box is
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
+	# After add_child(strip): the strip's own deferred layout is queued first, so screen_top() is final.
+	Display.changed.connect(_frame_box_later)
+	get_tree().root.size_changed.connect(_frame_box_later)
+	_box_panel().get_node("Marks").draw.connect(_draw_box_marks)
 	_refresh()
 
 func watch(beach: Beach, day_night: DayNight) -> void:
@@ -63,19 +70,22 @@ func tick(real_seconds: float) -> void:
 func _input(event: InputEvent) -> void:
 	if not rules.box_open:
 		return
+	# The wheel is not a menu step: read it first, or the _ arm swallows it.
+	var wheel := _wheel_push(event)
+	if wheel != -1:
+		_push_box(wheel as BoxLayout.Push)
+		_after_rules()
+		get_viewport().set_input_as_handled()
+		return
 	match InputDevice.menu_step(event):
 		MenuPush.Step.LEFT:
-			rules.select(DawnSave.Choice.TRY_AGAIN)
+			_push_box(BoxLayout.Push.LEFT)
 		MenuPush.Step.RIGHT:
-			rules.select(DawnSave.Choice.KEEP_PLAYING)
+			_push_box(BoxLayout.Push.RIGHT)
 		MenuPush.Step.UP:
-			if not _box.stacked:
-				return
-			rules.select(DawnSave.Choice.TRY_AGAIN)
+			_push_box(BoxLayout.Push.UP)
 		MenuPush.Step.DOWN:
-			if not _box.stacked:
-				return
-			rules.select(DawnSave.Choice.KEEP_PLAYING)
+			_push_box(BoxLayout.Push.DOWN)
 		MenuPush.Step.SELECT:
 			rules.press(rules.selected)
 		MenuPush.Step.BACK:
@@ -91,6 +101,51 @@ func _fit_box() -> void:
 	var nodes: Array[Control] = [%FirstLine, %SecondLine]
 	_box = _box_normal.at(UiScale.current(Display.prefs, get_tree().root), %TryAgain.size, %KeepPlaying.size, BoxLayout.label_heights(labels))
 	_box.place(%Box.get_node("Panel"), nodes, %TryAgain, %KeepPlaying)
+
+## WHEEL_UP or WHEEL_DOWN for a wheel press, else -1.
+func _wheel_push(event: InputEvent) -> int:
+	var click := event as InputEventMouseButton
+	if click == null or not click.pressed:
+		return -1
+	if click.button_index == MOUSE_BUTTON_WHEEL_UP:
+		return BoxLayout.Push.WHEEL_UP
+	if click.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		return BoxLayout.Push.WHEEL_DOWN
+	return -1
+
+## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
+func _push_box(push: BoxLayout.Push) -> void:
+	if _box_frame == null:
+		return
+	var side := BoxLayout.Side.LEFT if rules.selected == DawnSave.Choice.TRY_AGAIN else BoxLayout.Side.RIGHT
+	var after := _box_frame.pushed(push, side)
+	rules.select(DawnSave.Choice.TRY_AGAIN if after.x == BoxLayout.Side.LEFT else DawnSave.Choice.KEEP_PLAYING)
+	_box_offset = after.y
+
+## Frames the laid-out box to the room between the screen top and the strip. Only while the box is open.
+func _frame_box() -> void:
+	if rules == null or not rules.box_open or _box == null or strip == null or not is_inside_tree():
+		return
+	var b := ScrollWindow.band((%Box as Control).get_global_transform_with_canvas(), strip.screen_top())
+	_box_frame = _box.framed(b.x, b.y, _box_offset)
+	_box_offset = _box_frame.offset
+	_box_frame.place_frame(_box_panel(), _box_panel().get_node("Clip"),
+			_box_panel().get_node("Clip/Content"), _box_panel().get_node("Marks"))
+
+func _frame_box_later() -> void:
+	_frame_box.call_deferred()
+
+func _box_panel() -> Control:
+	return %Box.get_node("Panel")
+
+func _draw_box_marks() -> void:
+	if _box_frame == null or not rules.box_open:
+		return
+	var marks: Control = _box_panel().get_node("Marks")
+	if _box_frame.shows_mark_above():
+		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+	if _box_frame.shows_mark_below():
+		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
 
 func _connect_button(button: Control, which: DawnSave.Choice) -> void:
 	button.gui_input.connect(func(event: InputEvent) -> void:
@@ -131,6 +186,11 @@ func _refresh() -> void:
 	%Dawn.visible = rules.line.is_showing()
 	%Dawn.modulate.a = rules.line.alpha()
 	%Box.visible = rules.box_open
+	if rules.box_open and not _box_was_open:
+		_box_offset = 0
+	if rules.box_open:
+		_frame_box()
+	_box_was_open = rules.box_open
 	%TryAgain.add_theme_stylebox_override("panel", _style_for(DawnSave.Choice.TRY_AGAIN))
 	%KeepPlaying.add_theme_stylebox_override("panel", _style_for(DawnSave.Choice.KEEP_PLAYING))
 
