@@ -34,6 +34,7 @@ func _ready() -> void:
 		DebugShow.attach(self, null, null)
 		DebugSurvival.add_rows(debug)
 		StoryPoints.add_rows(debug, func() -> StoryPoints.Point: return StoryPoints.Point.SHIPWRECK, jump_to_story)
+		DebugKeys.attach(self, null)
 	_refresh()
 
 func _process(delta: float) -> void:

@@ -53,6 +53,7 @@ func _ready() -> void:
 		StoryPoints.add_rows(debug,
 				func() -> StoryPoints.Point: return StoryPoints.current(false, %DayNight.clock.total_minutes),
 				jump_to_story)
+		DebugKeys.attach(self, %DayNight)
 
 func _process(delta: float) -> void:
 	tick(delta)
