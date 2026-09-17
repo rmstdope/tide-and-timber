@@ -26,6 +26,11 @@ func test_release_and_repeat_are_none() -> void:
 
 func test_read_by_physical_key() -> void:
 	assert_int(DebugShortcut.of(_key(KEY_F1, true, false, false))).is_equal(DebugShortcut.Name.NONE)
+	var moved := InputEventKey.new()
+	moved.keycode = KEY_A
+	moved.physical_keycode = KEY_F1
+	moved.pressed = true
+	assert_int(DebugShortcut.of(moved)).is_equal(DebugShortcut.Name.READOUT)
 
 func test_pad_buttons_are_none() -> void:
 	var b := InputEventJoypadButton.new()

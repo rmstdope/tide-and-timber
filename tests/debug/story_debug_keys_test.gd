@@ -40,6 +40,7 @@ func test_story_f1_flips_the_readout() -> void:
 
 func test_story_f2_flips_collision_areas() -> void:
 	await _key(KEY_F2)
+	assert_bool(DebugSwitches.collision_areas).is_true()
 	assert_str(line.text).is_equal("Collision areas on")
 
 func test_story_f3_and_f4_do_nothing() -> void:
