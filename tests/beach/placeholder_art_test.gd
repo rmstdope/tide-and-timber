@@ -6,7 +6,6 @@ const SIZES := {
 	"res://assets/beach/driftwood.png": Vector2i(32, 8),
 	"res://assets/beach/puff.png": Vector2i(4, 4),
 	"res://assets/beach/ripple.png": Vector2i(12, 4),
-	"res://assets/man/man.png": Vector2i(64, 96),
 	"res://assets/beach/shellfish.png": Vector2i(12, 6),
 	"res://assets/items/driftwood.png": Vector2i(10, 10),
 	"res://assets/items/shellfish.png": Vector2i(10, 10),
@@ -30,4 +29,4 @@ func test_wake_art_size() -> void:
 	var texture := load("res://assets/man/man_wake.png") as Texture2D
 	assert_object(texture).is_not_null()
 	if texture:
-		assert_vector(Vector2(texture.get_size())).is_equal(Vector2(72, 24))
+		assert_vector(Vector2(texture.get_size())).is_equal(Vector2(192, 64))

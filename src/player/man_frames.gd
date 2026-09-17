@@ -1,30 +1,38 @@
 class_name ManFrames
 extends RefCounted
-## Builds the man's SpriteFrames from man.png: a still and a walk animation per facing, dry and wading.
+## Builds the man's SpriteFrames from the sheets under assets/man/: idle, walk, run and the
+## gathering move, one row per facing, dry and wading.
 
-const FRAME_SIZE := Vector2i(16, 24)
-const WALK_FPS := 8.0
-const WALK_COLUMNS: Array[int] = [1, 2, 3, 0]
-const WAKE_FRAME_SIZE := Vector2i(24, 24)
+const FRAME_SIZE := Vector2i(64, 64)
+const FOOTLINE := 48                    # rows at and below this in a frame are always empty
+const LEGS_HIDDEN := 4                  # px of him cut at the foam line
+const IDLE_FPS := 6.0
+const WALK_FPS := 12.0
+const RUN_FPS := 16.0
+const COLLECT_FPS := 12.0
+const WAKE_FRAME_SIZE := Vector2i(64, 64)
 const WAKE_POSES: Array[StringName] = [&"lie", &"push_up", &"sit"]   # also the frame order of man_wake.png
-const LEGS_HIDDEN := 4                  # px cut from the bottom of each frame while wading
 
-static func build(sheet: Texture2D) -> SpriteFrames:
+const IDLE_SHEET := preload("res://assets/man/idle.png")
+const WALK_SHEET := preload("res://assets/man/walk.png")
+const RUN_SHEET := preload("res://assets/man/run.png")
+const COLLECT_SHEET := preload("res://assets/man/collect.png")
+
+static func build() -> SpriteFrames:
 	var frames := SpriteFrames.new()
 	frames.remove_animation(&"default")
 	for wading: bool in [false, true]:
 		for facing: int in Walk.Facing.values():
-			var still := Walk.animation_for(facing, false, wading)
-			frames.add_animation(still)
-			frames.set_animation_loop(still, false)
-			frames.set_animation_speed(still, 5.0)
-			frames.add_frame(still, _frame(sheet, 0, facing, wading))
-			var walk := Walk.animation_for(facing, true, wading)
-			frames.add_animation(walk)
-			frames.set_animation_loop(walk, true)
-			frames.set_animation_speed(walk, WALK_FPS)
-			for column in WALK_COLUMNS:
-				frames.add_frame(walk, _frame(sheet, column, facing, wading))
+			_add(frames, Walk.animation_for(facing, false, wading), IDLE_SHEET, 4, true, IDLE_FPS,
+				facing, wading)
+			_add(frames, Walk.animation_for(facing, true, wading), WALK_SHEET, 6, true, WALK_FPS,
+				facing, wading)
+			_add(frames, Walk.collect_animation_for(facing, wading), COLLECT_SHEET, 8, false,
+				COLLECT_FPS, facing, wading)
+			# No wade_run_*: wading is one pace whether Shift is held, so he shows the wading walk.
+			if not wading:
+				_add(frames, Walk.animation_for(facing, true, false, true), RUN_SHEET, 6, true,
+					RUN_FPS, facing, false)
 	return frames
 
 ## Adds his getting-up poses from man_wake.png, one still frame each, beside the walk animations.
@@ -39,11 +47,21 @@ static func add_waking(frames: SpriteFrames, sheet: Texture2D) -> void:
 		texture.region = Rect2(Vector2(WAKE_FRAME_SIZE.x * i, 0), Vector2(WAKE_FRAME_SIZE))
 		frames.add_frame(pose, texture)
 
+static func _add(frames: SpriteFrames, anim: StringName, sheet: Texture2D, columns: int, loop: bool,
+		fps: float, facing: int, wading: bool) -> void:
+	frames.add_animation(anim)
+	frames.set_animation_loop(anim, loop)
+	frames.set_animation_speed(anim, fps)
+	for column in columns:
+		frames.add_frame(anim, _frame(sheet, column, facing, wading))
+
 static func _frame(sheet: Texture2D, column: int, row: int, wading := false) -> AtlasTexture:
 	var texture := AtlasTexture.new()
 	texture.atlas = sheet
-	var hidden := LEGS_HIDDEN if wading else 0
-	texture.region = Rect2(FRAME_SIZE.x * column, FRAME_SIZE.y * row, FRAME_SIZE.x, FRAME_SIZE.y - hidden)
-	# The margin keeps a leg-less frame 16x24, so he does not bob at the foam line.
+	# Wading cuts him at the foam line: the empty rows below his feet, and LEGS_HIDDEN px of him.
+	var hidden := FRAME_SIZE.y - FOOTLINE + LEGS_HIDDEN if wading else 0
+	texture.region = Rect2(FRAME_SIZE.x * column, FRAME_SIZE.y * row, FRAME_SIZE.x,
+		FRAME_SIZE.y - hidden)
+	# The margin keeps a leg-less frame 64x64, so he does not bob at the foam line.
 	texture.margin = Rect2(0, 0, 0, hidden)
 	return texture

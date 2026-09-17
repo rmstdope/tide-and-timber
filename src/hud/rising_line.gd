@@ -2,7 +2,7 @@ class_name RisingLine
 extends Node2D
 ## "+1 Driftwood" rising over the man and fading within a second, then gone.
 
-const START := Vector2(0, -30)        # above his head (his sprite spans y -24..0)
+const START := Vector2(0, -36)        # above his head (his sprite spans y -30..0)
 const RISE := 12.0                    # px risen over LIFETIME
 const LIFETIME := 0.9                 # s until freed
 const FADE_DELAY := 0.3               # s fully opaque before fading

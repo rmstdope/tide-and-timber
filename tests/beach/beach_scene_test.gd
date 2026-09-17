@@ -209,8 +209,8 @@ func test_shift_runs_at_double_pace_with_puffs() -> void:
 	runner.simulate_action_press("move_right")
 	await await_millis(300)
 	assert_vector(player.velocity).is_equal_approx(Vector2(96, 0), Vector2(0.01, 0.01))
-	assert_that(_animation()).is_equal(&"walk_right")
-	assert_float(_sprite().speed_scale).is_equal(2.0)
+	assert_that(_animation()).is_equal(&"run_right")
+	assert_float(_sprite().speed_scale).is_equal(1.0)
 	var puffs := _marks("puff.tscn")
 	assert_array(puffs).is_not_empty()
 	for puff: Node2D in puffs:

@@ -4,7 +4,6 @@ extends CharacterBody2D
 
 signal trail_mark(kind: StringName, at: Vector2)
 
-const SHEET := preload("res://assets/man/man.png")
 const MOVE_ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"move_up", &"move_down"]
 const MOVED_EPSILON := 0.05             # px moved in one physics tick that counts as walking
 const RUN_ACTION := &"run"
@@ -19,9 +18,11 @@ var wading := false                     # his feet were on wadeable ground at th
 var is_wading_at: Callable = func(_at: Vector2) -> bool: return false   # set by the scene that owns the ground
 var _trail_clock := 0.0                 # s until the next mark may be emitted
 var auto_direction := Vector2.ZERO      # set each tick by a click-walk; used only while no move key is held
+var collecting := false                 # a one-shot gathering move is playing
 
 func _ready() -> void:
-	%Sprite.sprite_frames = ManFrames.build(SHEET)
+	%Sprite.sprite_frames = ManFrames.build()
+	%Sprite.animation_finished.connect(_on_sprite_finished)
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_show()
 
@@ -73,13 +74,32 @@ func give_control() -> void:
 	moving = false
 	facing = Walk.Facing.DOWN
 	control_enabled = true
+	collecting = false
 	_show()
 
+## Plays the gathering move once from where he stands; walking cuts it short. Ignored while control
+## is off, so a collapse or the waking keeps the pose it is playing.
+func collect() -> void:
+	if not control_enabled:
+		return
+	collecting = true
+	%Sprite.play(Walk.collect_animation_for(facing, wading))
+
+## Only the gathering move and the waking poses do not loop, and control is off while those play.
+func _on_sprite_finished() -> void:
+	collecting = false
+	if control_enabled:
+		_show()
+
 func _show() -> void:
-	var anim := Walk.animation_for(facing, moving, wading)
+	%Sprite.speed_scale = Walk.animation_scale(wading)
+	if collecting:
+		if not moving:
+			return
+		collecting = false
+	var anim := Walk.animation_for(facing, moving, wading, running)
 	if %Sprite.animation != anim:
 		%Sprite.play(anim)
-	%Sprite.speed_scale = Walk.speed_for(running, wading) / Walk.SPEED
 
 func _emit_trail(delta: float, dir: Vector2) -> void:
 	var kind := Walk.trail_for(moving, running, wading)
