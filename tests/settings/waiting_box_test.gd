@@ -143,3 +143,26 @@ func test_text_normal_always_fits() -> void:
 						var l := WaitingBox.layout_at(lines, WaitingBox.hold_items(d, kind), 1.0, ui, font)
 						assert_bool(l.fits).override_failure_message(
 							"%s / %s at ui %f, kind %d" % [name, asking, ui, kind]).is_true()
+
+# UI Largest with Text Largest: the words are held back to Text size Normal, and the box still fits.
+func test_largest_ui_and_text_hold_the_words_back() -> void:
+	var l := WaitingBox.choose_layout(KEY_LINES, _key_items(), 2.0, 4.0, 2, font)
+	assert_float(l.rel).is_equal(1.0)
+	assert_bool(l.fits).is_true()
+	assert_float(l.panel.size.x).is_equal(156.0)
+	assert_float(l.panel.size.y).is_equal(76.0)
+	assert_int(l.names.size()).is_equal(1)
+	assert_int(l.presses.size()).is_equal(1)
+	assert_int(l.hold.size()).is_equal(1)
+
+# Nothing is given up where it fits, and every held-back size lands on whole screen pixels.
+func test_growth_is_held_back_one_whole_pixel_at_a_time() -> void:
+	var l := WaitingBox.choose_layout(KEY_LINES, _key_items(), 1.0, 2.0, 2, font)
+	assert_float(l.rel).is_equal(2.0)
+	assert_bool(l.fits).is_true()
+	var pad := WaitingBox.choose_layout(PAD_LINES, WaitingBox.hold_items(D.CONTROLLER, K.XBOX),
+		1.5, 3.0, 2, font)
+	assert_float(pad.rel).is_greater_equal(1.0)
+	assert_float(pad.rel).is_less_equal(2.0)
+	assert_float(pad.rel * 1.5 * 2).is_equal(roundf(pad.rel * 1.5 * 2))
+	assert_bool(pad.fits).is_true()

@@ -63,8 +63,8 @@ func _relayout() -> void:
 		return
 	var root := get_tree().root
 	var ui := UiScale.current(Display.prefs, root)
-	layout = layout_at(lines, items, TextScale.relative(Display.prefs, root), ui,
-			get_theme_default_font())
+	layout = choose_layout(lines, items, ui, TextScale.total(Display.prefs, root),
+			OverlayScale.whole_scale(root), get_theme_default_font())
 	ring.position = layout.ring
 	queue_redraw()
 
@@ -190,3 +190,17 @@ static func _fits(l: Layout, area: float, ui: float, font: Font) -> bool:
 		if _row_width(row, l.rel, font) > area:
 			return false
 	return l.ring.x + RING_SIZE <= l.panel.end.x
+
+## The layout actually drawn: the words at `total` on-screen scale, stepped down one whole screen
+## pixel at a time until the box fits, never below Text size Normal (rel 1.0), which always fits.
+static func choose_layout(p_lines: PackedStringArray, p_items: Array, ui: float, total: float,
+		k: int, font: Font) -> Layout:
+	var floor_n := roundi(ui * maxi(1, k))
+	var best: Layout = null
+	for n in range(roundi(total * maxi(1, k)), floor_n - 1, -1):
+		best = layout_at(p_lines, p_items, (float(n) / maxi(1, k)) / ui, ui, font)
+		if best.fits:
+			break
+	if best == null:
+		best = layout_at(p_lines, p_items, 1.0, ui, font)
+	return best
