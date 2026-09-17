@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Settings — option A</title><script src="common.js"></script></head><body><script>
+const V={ui:['Normal','Large','Largest'],tx:['Normal','Large','Largest'],cc:['Standard','Shapes']};
+const DESC=['Makes the clock, item bar, hints and menus bigger.','Makes every word bigger.','Adds shapes to warnings shown in colour.','Change any key or controller button.'];
+function scr(sel,ui=0,tx=0,cc=0,sc=1){const w=200*sc,x=160-w/2,h=14*sc,gap=18*sc,y0=90-gap*2;
+ return settingsBg()+t(160,y0-14*sc,'Settings',8*sc,P.text,'middle')+
+ vrow(x,y0,w,'UI size',V.ui[ui],sel==0,ui==0,ui==2,sc,h)+vrow(x,y0+gap,w,'Text size',V.tx[tx],sel==1,tx==0,tx==2,sc,h)+
+ vrow(x,y0+gap*2,w,'Colour cues',V.cc[cc],sel==2,cc==0,cc==1,sc,h)+vrow(x,y0+gap*3,w,'Controls',null,sel==3,0,0,sc,h)+
+ t(160,y0+gap*4+10*sc,DESC[sel],4*sc,'#d9c7a3','middle')+g(sc,4,179,hint([['ENTER','Select'],['ESC','Back']]))}
+page('Option A — one short list, a line explaining the highlighted row','Four rows. Left/right change a value at once and everything on screen, this list included, shows the change straight away. One line under the list says what the highlighted row does. Simple and fits at every size; you only see the colour cues in play.',[
+ fig('1. Opened (from title or pause)','UI size highlighted; ◀ is dim at the first step.',scr(0)),
+ fig('2. UI size pushed right twice','Largest: this screen itself grows at once.',scr(0,2,0,0,1.3)),
+ fig('3. Colour cues highlighted','The line explains; nothing to see here until play.',scr(2)),
+ fig('4. Controls highlighted','Select opens the Controls page already agreed.',scr(3))],
+ 'Recommended: a short list with a description line is the common pattern for game settings, and it keeps working when the sizes are large.');
+</script></body></html>

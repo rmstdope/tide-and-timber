@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Settings — option B</title><script src="common.js"></script></head><body><script>
+const V={ui:['Normal','Large','Largest'],cc:['Standard','Shapes']};
+function preview(ui,cc){let p=beach()+g(ui,6,4,dial(.55,'16:30','DAY 2'))+g(ui,160,178,bar());
+ p+=`<rect x="190" y="96" width="32" height="20" fill="#c0433a" opacity=".35" stroke="#c0433a" stroke-width="2"/>`;
+ if(cc)p+=`<path d="M196 100 L216 112 M216 100 L196 112" stroke="#fff" stroke-width="3"/>`;
+ return `<g transform="translate(172 44) scale(.45)">${p}</g>`+r(172,44,144,81,'none','stroke="#fff1c9" stroke-width="1"')}
+function scr(sel,ui=0,cc=0){const x=6,w=158,y0=48;return settingsBg()+t(85,30,'Settings',8,P.text,'middle')+
+ vrow(x,y0,w,'UI size',V.ui[ui],sel==0,ui==0,ui==2)+vrow(x,y0+18,w,'Text size','Normal',sel==1,1,0)+vrow(x,y0+36,w,'Colour cues',V.cc[cc],sel==2,cc==0,cc==1)+vrow(x,y0+54,w,'Controls',null,sel==3)+
+ t(244,136,'Preview',5,'#d9c7a3','middle')+preview([1,1.5,2][ui],cc)+hint([['ENTER','Select'],['ESC','Back']])}
+page('Option B — the list on the left, a preview of the beach on the right','The same four rows beside a small picture of play (clock, item bar, a spot where something cannot be built) that changes with each value. You can see colour cues before playing, but the preview is small and the list has less room at big sizes.',[
+ fig('1. Opened','Preview shows the current settings.',scr(0)),
+ fig('2. UI size: Largest','Preview clock and bar grow.',scr(0,2)),
+ fig('3. Colour cues: Shapes','The red spot in the preview gains a cross.',scr(2,0,1)),
+ fig('4. Controls highlighted','Preview stays.',scr(3))]);
+</script></body></html>

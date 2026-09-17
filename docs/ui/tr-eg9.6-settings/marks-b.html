@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Marks — B</title><script src="common.js"></script></head><body><script>
+const out=(ok,shape)=>`<rect x="176" y="92" width="36" height="22" fill="${ok?'#fff6e0':'#c0433a'}" opacity=".35" stroke="${ok?'#fff6e0':'#c0433a'}" stroke-width="2"/>`+(!ok&&shape?`<path d="M186 97 L202 109 M202 97 L186 109" stroke="#fff6e0" stroke-width="3"/>`:'');
+const row=r(40,70,240,20,P.plankDk)+r(41,71,238,18,P.plank)+t(48,83,'Build list',5)+t(200,84,'! —',7,'#ff9a3a')+t(160,110,'Build list has no key',5,'#ff9a3a','middle');
+page('Option B — a mark only where something is wrong','With Shapes on: a cross where he cannot build; a good spot stays a plain outline. A "!" on the empty key slot only (its line is words already).',[
+ fig('Cannot build here','Cross.',beach()+out(0,1)),fig('Can build here','Plain, as today.',beach()+out(1,1)),fig('Controls: no key','"!" on the dash only.',settingsBg()+row)],
+ 'Recommended: marking only the problem is the usual pattern and keeps the scene quiet — no mark already means "fine".');
+</script></body></html>

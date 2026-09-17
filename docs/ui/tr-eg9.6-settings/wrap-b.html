@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Long words — B</title><script src="common.js"></script></head><body><script>
+const L='Anything since this morning will be lost.';
+page('Option B — a line first grows wider, then wraps','Boxes widen up to almost the screen\'s width before breaking a line, so there are fewer lines to read, but boxes cover more of the scene side to side.',[
+ fig('Text Normal','One line.',beach()+lineBox(L,1,220,1)),
+ fig('Text Large','Still one line, wider.',beach()+lineBox(L,1.5,220,1)),
+ fig('Text Largest','Screen-wide, then two lines.',beach()+lineBox(L,2,220,1))],
+ 'Recommended: fewer, longer lines are easier to read at large sizes, and the extra width only shows up for players who picked it.');
+</script></body></html>

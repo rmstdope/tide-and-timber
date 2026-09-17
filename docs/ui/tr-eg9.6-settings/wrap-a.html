@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Long words — A</title><script src="common.js"></script></head><body><script>
+const L='Anything since this morning will be lost.';
+page('Option A — a line keeps its width and wraps onto more lines','At a bigger Text size, his lines and box lines keep today\'s width and break onto a second or third line. Boxes grow taller, never wider.',[
+ fig('Text Normal','One line.',beach()+lineBox(L,1,220)),
+ fig('Text Large','Two lines, same width.',beach()+lineBox(L,1.5,220)),
+ fig('Text Largest','Three lines.',beach()+lineBox(L,2,220))]);
+</script></body></html>
