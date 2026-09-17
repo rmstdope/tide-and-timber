@@ -138,9 +138,16 @@ func _input(event: InputEvent) -> void:
 	if menu.box != TitleMenu.Box.NONE:
 		match step:
 			MenuPush.Step.LEFT:
-				menu.select_box(TitleMenu.BoxButton.KEEP_MY_ISLAND if menu.box == TitleMenu.Box.START_OVER
-						else TitleMenu.BoxButton.CANCEL)
+				menu.select_box(_box_left_button())
 			MenuPush.Step.RIGHT:
+				menu.select_box(TitleMenu.BoxButton.START_OVER)
+			MenuPush.Step.UP:
+				if not _open_box_layout().stacked:
+					return
+				menu.select_box(_box_left_button())
+			MenuPush.Step.DOWN:
+				if not _open_box_layout().stacked:
+					return
 				menu.select_box(TitleMenu.BoxButton.START_OVER)
 			MenuPush.Step.SELECT:
 				_act(menu.press_box(menu.box_selected))
@@ -225,6 +232,14 @@ func _fit_box(normal: BoxLayout, panel: Control, left: Control, right: Control, 
 	var layout := normal.at(s, left.size, right.size, BoxLayout.label_heights(labels))
 	layout.place(panel, lines, left, right)
 	return layout
+
+## The open box's layout drawn now. Only called while a box is open.
+func _open_box_layout() -> BoxLayout:
+	return _start_over_box if menu.box == TitleMenu.Box.START_OVER else _replace_box
+
+## The open box's left (stacked: top) button.
+func _box_left_button() -> TitleMenu.BoxButton:
+	return TitleMenu.BoxButton.KEEP_MY_ISLAND if menu.box == TitleMenu.Box.START_OVER else TitleMenu.BoxButton.CANCEL
 
 ## The menu grows about its own centre and keeps clear of the strip. Runs after visibility is set.
 func _place_menu() -> void:
