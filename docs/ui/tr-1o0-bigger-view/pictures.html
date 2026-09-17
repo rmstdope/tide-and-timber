@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><title>The title screen and the story pictures</title><script src="common.js"></script></head><body><script>
+const W=640,H=360;
+const titleA=`<svg class="px" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges"><g transform="scale(2)">${titleArt(320,180)}</g>`
+ +t(W/2,Math.round(H*.189),'TIDE &amp; TIMBER',32,P.text,'middle')
+ +t(W/2,Math.round(H*.256),'A man, an island, and the tide.',16,'#2b2230','middle')
+ +['Continue','New Game','Settings','Quit'].map((l,i)=>plank(Math.round(W/2-90),Math.round(H*.46)+i*40,180,34,l,i==0,2)).join('')
+ +hints(2,W,H,[['ENTER','Select']])+`</svg>`;
+const storyA=`<svg class="px" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges"><g transform="scale(2)">${storyArt(320,180)}</g>`
+ +r(0,H-84,W,44,'#000','opacity=".55"')+t(W/2,H-54,'The storm came out of nowhere.',16,P.text,'middle')
+ +r(W-32,14,16,16,'#fff6e0')+`</svg>`;
+page('The title screen and the story pictures',
+ 'These two are painted scenes rather than places you walk, so the wider window puts a different question to them: keep the picture and make each of its pixels twice as big, or keep the pixel size and paint a wider scene. Every drawing is at the same width.',
+ [fig('Today — the title screen','',scr(320,180,titleScreen(320,180,1))),
+  fig('A — the same picture, pixels twice as big','The composition you know, blown up. The sea, the wreck and the palm are chunkier than the island you play on. The words and planks stay at today’s size.',titleA),
+  fig('B — a wider scene, same pixels as the island','Painted fresh at the new size: more sky and more sea, the wreck and the palm at the size they would really be. A calmer, more distant picture.',scr(W,H,titleScreen(W,H,2))),
+  fig('Today — a story picture','',scr(320,180,storyScreen(320,180,1))),
+  fig('A — the same picture, pixels twice as big','As drawn today, blown up.',storyA),
+  fig('B — a wider scene, same pixels','Painted fresh: the wreck sits smaller in a bigger sea.',scr(W,H,storyScreen(W,H,2)))],
+ 'Recommended: <b>A</b> for now. It is one rule, it costs no repainting, and on these two screens nobody is comparing a tile against its neighbour — the bigger pixels read as a deliberately coarser illustration rather than a mistake. B is the better-looking end state and can be painted later without anything else changing. What matters most is that the title and the story pictures get the same answer, so the opening minutes do not change style halfway through.',1);
+</script></body></html>

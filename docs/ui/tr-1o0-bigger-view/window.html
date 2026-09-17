@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>A small window</title><script src="common.js"></script></head><body><script>
+const CW=1400,CH=820,BAR=24;
+let ID=0;
+// A desktop window of ww x wh (content, excluding the title bar), centred on a fixed canvas,
+// with the 640x360 island inside at scale k. Everything is drawn to scale, so the four
+// drawings can be compared directly.
+function win(ww,wh,k,label,blur){const id='c'+(++ID);
+ const x=Math.round((CW-ww)/2), y=Math.round((CH-wh-BAR)/2);
+ const gw=640,gh=360,iw=gw*k,ih=gh*k;
+ const ox=x+Math.round((ww-iw)/2), oy=y+BAR+Math.round((wh-ih)/2);
+ let s=`<svg class="px" viewBox="0 0 ${CW} ${CH}" shape-rendering="${blur?'auto':'crispEdges'}">`+r(0,0,CW,CH,'#efe7da');
+ s+=r(x,y,ww,BAR,'#b9b2aa')+r(x+9,y+8,8,8,'#d05c4a')+r(x+24,y+8,8,8,'#d8b04a')+r(x+39,y+8,8,8,'#6aa84f')
+  +t(x+ww/2,y+17,label,11,'#2b2230','middle','font-family="system-ui"');
+ s+=r(x,y+BAR,ww,wh,'#000');
+ s+=`<defs><clipPath id="${id}"><rect x="${x}" y="${y+BAR}" width="${ww}" height="${wh}"/></clipPath></defs>`;
+ const game=r(0,0,gw,gh,'#000')+`<g transform="translate(${-(HIM.x-gw/2)} ${-(HIM.y-gh/2)})">${island()}${man(HIM.x,HIM.y)}</g>`
+  +clock(1)+items(1,gw,gh)+hints(1,gw,gh,[['E','Gather']],true);
+ s+=`<g clip-path="url(#${id})"><g transform="translate(${ox} ${oy}) scale(${k})">${game}</g></g>`;
+ return s+`</svg>`}
+page('What happens if the window is dragged small',
+ 'The game draws its island once and then magnifies it a whole number of times — two, three, four — so every art pixel stays a perfect square. At the new size one times is already 640 by 360, which is bigger than the smallest window a person can drag today. All four drawings are to the same scale, so you can compare them directly.',
+ [fig('The default window','1280 by 720, the island magnified twice. Unchanged — this is what everyone starts with.',win(1280,720,2,'Tide and Timber')),
+  fig('A — the window will not go below the island','Dragging inwards stops here: 640 by 360, the island at one times. Small, but every pixel is still a perfect square.',win(640,360,1,'Tide and Timber')),
+  fig('B — the window goes smaller and the picture is cut off','The window keeps shrinking; the island cannot, so its edges go over the sides. The clock and the item bar are the first things to be lost.',win(520,300,1,'Tide and Timber')),
+  fig('C — the island shrinks to fit any window','It always fills the window, but the pixels stop being square — some rows come out fatter than others. This is the blur the game has always avoided.',win(560,315,0.875,'Tide and Timber',1))],
+ 'Recommended: <b>A</b>. A window that simply refuses to get uselessly small is the ordinary, quiet answer, and it is the only one where nobody ever sees the game looking broken. Its cost is honest: anyone who likes playing in a tiny window can no longer make it as small as they can today. Full screen is unaffected, and the default 1280 by 720 window does not change.',1);
+</script></body></html>

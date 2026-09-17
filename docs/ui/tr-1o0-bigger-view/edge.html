@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><title>The edges of the island</title><script src="common.js"></script></head><body><script>
+const W=640,H=360, U=2;
+// the island strip is 416 px tall; the wide view is 360 tall, so it nearly spans it.
+const HIGH={x:512,y:340};       // he has walked up into the grass
+const CLAMP=Math.round(MAPH-H/2);
+page('What you see when he reaches the top or bottom of the island',
+ 'The island is a strip of land between the sea and the trees — twenty-six tiles from the water to the treeline. Today the window shows eleven of those tiles, so the edges are always out of sight. The wider view shows twenty-two: almost the whole strip at once. That raises a question the old size never had — what happens when he walks right up to the edge.',
+ [fig('Today — he walks up to the treeline','The view follows him and the edge stays just out of frame.',viewAt(HIGH.x,Math.min(HIGH.y,MAPH-90),320,180,overlay(1,320,180,{noLine:1}),HIGH)),
+  fig('A — the view stops at the island','The view holds still once the edge reaches the bottom of the window, so he walks on up the screen instead. You never see past the land.',viewAt(HIGH.x,CLAMP,W,H,overlay(U,W,H,{noLine:1}),HIGH)),
+  fig('B — the view keeps him centred','He stays in the middle wherever he goes, and past the treeline there is nothing painted.',viewAt(HIGH.x,HIGH.y,W,H,overlay(U,W,H,{noLine:1}),HIGH)),
+  fig('C — the view keeps him centred, with more painted beyond','As B, but deep forest is painted past the treeline and open sea past the shore — scenery he can never walk into.',(()=>{const x0=HIGH.x-W/2,y0=HIGH.y-H/2;
+   return `<svg class="px" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges">`+r(0,0,W,H,'#1d3a18')
+    +`<g transform="translate(${-x0} ${-y0})">`+island()
+    +r(0,MAPH,MAPW,120,'#2a4a22')+[220,340,470,600,730,860].map(x=>r(x,MAPH+6,26,40,'#1d3a18')).join('')
+    +man(HIGH.x,HIGH.y)+`</g>`+overlay(U,W,H,{noLine:1})+`</svg>`})())],
+ 'Recommended: <b>A</b>. It is the ordinary answer in a game of this kind, it costs no new scenery, and it keeps a promise worth keeping — the window never shows anything that is not the island. Its one visible cost is that near the treeline and near the water he walks up and down the screen instead of the world moving under him, which is a change from how it feels today.',1);
+</script></body></html>

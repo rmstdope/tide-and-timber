@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><title>What the size steps mean now</title><script src="common.js"></script></head><body><script>
+const W=640,H=360;
+page('What Normal, Large and Largest mean now',
+ 'Settings offers UI size and Text size, each with Normal, Large and Largest. Now that Normal is half of today, those three steps happen to land somewhere useful: Largest comes out at exactly the size the game is today. The question is whether three steps is still the right number, or whether the wider window should offer a fourth, bigger one for anyone who needs it. Every drawing is at the same width.',
+ [fig('Normal','Half of today. The new default.',scr(W,H,settingsBoard(1,W,H))),
+  fig('Large','Three-quarters of today.',scr(W,H,settingsBoard(1.5,W,H))),
+  fig('Largest, as the three steps stand','Exactly today’s size. Everything still fits the page comfortably.',scr(W,H,settingsBoard(2,W,H))),
+  fig('A fourth step — half again as big as today','Only three of the four rows fit; the page scrolls, with the ▼ mark it already uses elsewhere. Legible from across a room, at the cost of never seeing the whole page at once.',scr(W,H,(()=>{const u=3;let o=r(0,0,W,H,'#2c1d16')+t(W/2,34,'Settings',8*u,P.text,'middle');
+   [['UI size','Normal'],['Text size','Normal'],['Colour cues','Standard']].forEach((rw,i)=>{o+=vrow(Math.round(W/2-270),56+i*84,540,68,rw[0],rw[1],i==0,u)});
+   return o+t(W/2,H-34,'▼',8*u,'#d9c7a3','middle')+hints(1,W,H,[['ENTER','Select'],['ESC','Back']])})())),
+  fig('The playing screen at Normal','',view(W,H,overlay(1,W,H))),
+  fig('The playing screen at Largest','Exactly today’s furniture, over twice as much island.',view(W,H,overlay(2,W,H)))],
+ 'Recommended: <b>keep three steps</b>, now meaning half / three-quarters / today’s size. It is the same familiar ladder, the top of it is a size we already know works everywhere in the game, and anyone who finds the new default small has one press to get back to exactly what they have today. A fourth step is real accessibility headroom, but every board and box has to keep working at it, and the pages that already scroll at Largest would scroll a good deal more.',1);
+</script></body></html>

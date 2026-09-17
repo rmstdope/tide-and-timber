@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><title>The boards, next to the playing screen</title><script src="common.js"></script></head><body><script>
+const W=640,H=360;
+page('The boards, now that the playing screen is at the smallest size',
+ 'You chose the smallest size for the playing screen — everything you read shrinks with the world, to half of today. That leaves nothing below it, so “a size smaller than the playing screen” cannot be drawn. Here is the playing screen you chose, and then the boards at the three sizes that are actually available above and alongside it. Every drawing is at the same width.',
+ [fig('The playing screen you chose','Half of today. This is settled — it is here only for comparison.',view(W,H,overlay(1,W,H))),
+  fig('1 — the boards match it: half','One rule everywhere. The Settings rows are the same height as the item bar’s slots.',view(W,H,pause(1,W,H))+''),
+  fig('2 — the boards a step larger: three-quarters','The board is half again as big as the playing furniture — noticeably the thing you are meant to read.',view(W,H,pause(1.5,W,H))),
+  fig('3 — the boards at today’s size','Twice the playing furniture. Menus look exactly as they do in the game today, sitting over a much wider island.',view(W,H,pause(2,W,H))),
+  fig('1 — Settings at half','',scr(W,H,settingsBoard(1,W,H))),
+  fig('2 — Settings at three-quarters','',scr(W,H,settingsBoard(1.5,W,H))),
+  fig('3 — Settings at today’s size','',scr(W,H,settingsBoard(2,W,H)))],
+ 'Recommended: <b>2</b>. A board is a thing you stop and read, so it earning a step over the furniture you glance at is normal and reads as deliberate rather than inconsistent — and it keeps the promise your first answer was after, which is a playing screen that gets out of the way. <b>3</b> is defensible too: menus untouched from today, and the biggest text sizes behave exactly as they already do. <b>1</b> is the strictest rule but puts the smallest words in the game on the page where a person is choosing carefully.',1);
+</script></body></html>

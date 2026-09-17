@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><title>His spoken lines</title><script src="common.js"></script></head><body><script>
+const W=640,H=360;
+function bandFull(u,txt){const y=H-57*u,h=16*u,w=W-24*u;
+ return r(12*u,y,w,h,'#000','opacity=".45"')+t(W/2,y+11.5*u,txt,8*u,P.text,'middle')}
+function bandHug(u,txt){const y=H-57*u,h=16*u,w=Math.round(txt.length*8*u+16*u);
+ return r(Math.round(W/2-w/2),y,w,h,'#000','opacity=".45"')+t(W/2,y+11.5*u,txt,8*u,P.text,'middle')}
+const SHORT='Driftwood.', LONG='If I do not get a fire lit before dark, this will be a long night.';
+const base=u=>clock(u)+items(u,W,H)+hints(u,W,H,[['E','Gather']],true);
+page('The dark band behind the things he says',
+ 'When he says something to himself, the words sit on a dark band near the bottom of the screen. Today that band is a fixed width — almost the whole window — whatever the words are. In the wider window at half size, a short line now floats in the middle of a very long, very thin band. Every drawing is at the same width.',
+ [fig('Keep it full width — a short line','The band as it is today, stretched across the new window.',view(W,H,base(1)+bandFull(1,SHORT))),
+  fig('Keep it full width — a long line','The same band, doing its job.',view(W,H,base(1)+bandFull(1,LONG))),
+  fig('Fit it to the words — a short line','The band is only as wide as what he said, centred.',view(W,H,base(1)+bandHug(1,SHORT))),
+  fig('Fit it to the words — a long line','Identical to the full-width band once the words are long enough to need it.',view(W,H,base(1)+bandHug(1,LONG)))],
+ 'Recommended: <b>fit it to the words</b>. A band that is mostly empty draws the eye to the emptiness rather than the sentence, and it covers a strip of island for no reason — which is exactly the room the wider window was meant to give back. It costs nothing: long lines look the same either way.',1);
+</script></body></html>
