@@ -10,6 +10,7 @@ const WAKING_SCENE := "res://src/waking/waking.tscn"
 
 var story := IntroStory.new()
 var end_story: Callable = _end_story    # tests replace it; it ends on the beach waking
+var enter_story: Callable = _enter_story   # tests replace it
 
 func _ready() -> void:
 	story.finished.connect(func() -> void: end_story.call())
@@ -32,6 +33,7 @@ func _ready() -> void:
 		DebugShow.add_rows(debug)
 		DebugShow.attach(self, null, null)
 		DebugSurvival.add_rows(debug)
+		StoryPoints.add_rows(debug, func() -> StoryPoints.Point: return StoryPoints.Point.SHIPWRECK, jump_to_story)
 	_refresh()
 
 func _process(delta: float) -> void:
@@ -68,6 +70,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		story.release()
 	_refresh()
 	get_viewport().set_input_as_handled()
+
+## The Debug panel's Story page: fade out, then start the game again at `point`.
+func jump_to_story(point: StoryPoints.Point) -> void:
+	%Pause.leave(enter_story.bind(point))
+
+func _enter_story(point: StoryPoints.Point) -> void:
+	StoryPoints.enter(get_tree(), point)
 
 func _refresh() -> void:
 	var black_beat := story.panel == IntroStory.BLACK_BEAT
