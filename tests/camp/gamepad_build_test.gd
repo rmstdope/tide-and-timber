@@ -20,6 +20,9 @@ func before_test() -> void:
 
 func after_test() -> void:
 	InputDevice.reset()
+	_send_stick(JOY_AXIS_RIGHT_Y, 0.0)
+	_send_stick(JOY_AXIS_TRIGGER_RIGHT, 0.0)
+	InputDevice.use_controls(Controls.new())
 	_send_stick(JOY_AXIS_LEFT_X, 0.0)
 	_send_stick(JOY_AXIS_LEFT_Y, 0.0)
 	InputDevice.reset()
@@ -178,3 +181,31 @@ func test_stick_in_the_list_does_not_walk() -> void:
 	await await_millis(200)
 	await _stick(JOY_AXIS_LEFT_X, 0.0)
 	assert_vector(player.global_position).is_equal(at)
+
+func test_build_list_on_a_stick_opens_once() -> void:
+	var m := InputEventJoypadMotion.new()
+	m.axis = JOY_AXIS_RIGHT_Y
+	m.axis_value = -1.0
+	InputDevice.controls.set_slot(Controls.Action.BUILD_LIST, Controls.Device.CONTROLLER, 0, m)
+	_driftwood(9)
+	await _stick(JOY_AXIS_RIGHT_Y, -0.6)
+	assert_int(builder.mode).is_equal(M.LIST)
+	await _stick(JOY_AXIS_RIGHT_Y, -1.0)
+	assert_int(builder.mode).is_equal(M.LIST)
+	await _stick(JOY_AXIS_RIGHT_Y, 0.0)
+	await _stick(JOY_AXIS_RIGHT_Y, 0.9)
+	assert_int(builder.mode).is_equal(M.LIST)
+	await _stick(JOY_AXIS_RIGHT_Y, 0.0)
+	await _stick(JOY_AXIS_RIGHT_Y, -0.9)
+	assert_int(builder.mode).is_equal(M.CLOSED)
+
+func test_use_on_a_trigger_places_once() -> void:
+	var m := InputEventJoypadMotion.new()
+	m.axis = JOY_AXIS_TRIGGER_RIGHT
+	m.axis_value = 1.0
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.CONTROLLER, 0, m)
+	await _to_placing()
+	var before := inventory.count(Item.Kind.DRIFTWOOD)
+	await _stick(JOY_AXIS_TRIGGER_RIGHT, 0.9)
+	assert_int(builder.mode).is_equal(M.BUILDING)
+	assert_int(inventory.count(Item.Kind.DRIFTWOOD)).is_equal(before - BuildMenu.COSTS[builder.placing])

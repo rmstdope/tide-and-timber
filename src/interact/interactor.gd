@@ -46,6 +46,6 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if player == null:
 		return
-	if event.is_action_pressed(USE_ACTION, false):
+	if InputDevice.action_pressed(event, USE_ACTION):
 		try_use(target())
 		get_viewport().set_input_as_handled()

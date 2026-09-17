@@ -29,10 +29,14 @@ const FIXED_BASELINES := [147.0, 156.0]
 const KEYBOARD_FIXED := ["Menus always use the arrow keys,", "Enter and Esc"]   # one agreed sentence, broken to fit 320
 const CONTROLLER_FIXED_WORDS := ["Menus always use the d-pad,", "and"]          # then (A) after the first, (B) after "and"
 const RESET_NAMES := ["Reset keyboard to defaults", "Reset controller to defaults"]
+const SAFE_X := 40.0                    # the left box button, as in the scene
+const OK_X := 96.0                      # (296 - 104) / 2: OK alone, centred in the box panel
 
 var rules: ControlsMenu
 var strip: MenuStrip
-var change_slot: Callable = func() -> void: pass   # the waiting box, when it exists (tr-eg9.5.4)
+var change_slot: Callable = _change_slot   # tests swap in a recorder
+var capture := SlotCapture.new()
+var pad_connected: Callable = func() -> bool: return not Input.get_connected_joypads().is_empty()   # tests replace it
 
 func _ready() -> void:
 	rules = ControlsMenu.new(InputDevice.controls)
@@ -49,6 +53,7 @@ func _ready() -> void:
 				return
 			_refresh())
 	gui_input.connect(_on_gui_input)
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	InputDevice.changed.connect(queue_redraw)
 	Display.changed.connect(queue_redraw)
 	_refresh()
@@ -109,8 +114,16 @@ static func slot_rect(r: int, s: int) -> Rect2:
 	return Rect2(SLOT_XS[s], LIST_TOP + r * ROW_H + 1, SLOT_W, ROW_H - 2)
 
 # The menu step comes first, so Esc (menu_cancel and pause) is Back; Tab and Clear come before Pause.
+# While waiting, every event goes to the capture and is consumed, so Esc and Start go in, not Back or Pause.
 func _input(event: InputEvent) -> void:
 	if not rules.is_open:
+		return
+	if capture.swallows(event):
+		get_viewport().set_input_as_handled()
+		return
+	if rules.box == ControlsMenu.Box.WAITING:
+		_take(capture.read(event))
+		get_viewport().set_input_as_handled()
 		return
 	var step := InputDevice.menu_step(event)
 	if rules.box != ControlsMenu.Box.NONE:
@@ -141,7 +154,7 @@ func _input(event: InputEvent) -> void:
 		rules.switch_tab()
 	elif event.is_action_pressed("menu_clear", false):
 		rules.clear()
-	elif event.is_action_pressed("pause", false):
+	elif InputDevice.action_pressed(event, "pause"):
 		if not rules.from_pause:
 			return
 		_apply(rules.start())
@@ -175,6 +188,34 @@ func _on_gui_input(event: InputEvent) -> void:
 	_refresh()
 	accept_event()
 
+func _process(delta: float) -> void:
+	if rules.box == ControlsMenu.Box.WAITING:
+		_take(capture.advance(delta))
+
+func _change_slot() -> void:
+	rules.begin_change(pad_connected.call())
+	if rules.box == ControlsMenu.Box.WAITING:
+		capture.open(rules.device, SlotCapture.held_axes_now())
+	_refresh()
+
+func _take(result: SlotCapture.Result) -> void:
+	match result:
+		SlotCapture.Result.TAKEN:
+			rules.finish_change(capture.taken)
+			_refresh()
+		SlotCapture.Result.CANCELLED:
+			rules.finish_change(null)
+			_refresh()
+		_:
+			(%WaitingBox as WaitingBox).set_progress(capture.hold_progress)
+
+func _on_joy_connection_changed(_device: int, connected: bool) -> void:
+	if connected or rules.box != ControlsMenu.Box.WAITING or rules.device != Controls.Device.CONTROLLER:
+		return
+	capture.close()
+	rules.pad_disconnected()
+	_refresh()
+
 func _apply(o: ControlsMenu.Outcome) -> void:
 	match o:
 		ControlsMenu.Outcome.CHANGE_SLOT:
@@ -189,16 +230,25 @@ func _apply(o: ControlsMenu.Outcome) -> void:
 func _refresh() -> void:
 	InputDevice.set_menu_open(self, rules.is_open)
 	visible = rules.is_open
-	var box_up := rules.box != ControlsMenu.Box.NONE
+	var waiting := rules.box == ControlsMenu.Box.WAITING
+	var box_up := rules.box != ControlsMenu.Box.NONE and not waiting
 	%Box.visible = box_up
+	var waiting_box := %WaitingBox as WaitingBox
+	waiting_box.visible = waiting
+	if waiting:
+		waiting_box.show_for(rules.box_lines(), WaitingBox.hold_items(rules.device, pad_kind()), capture.hold_progress)
 	if box_up:
 		var reset := rules.box == ControlsMenu.Box.RESET
+		var no_pad := rules.box == ControlsMenu.Box.NO_PAD
 		%Lines.text = "\n".join(rules.box_lines())
-		(%Safe.get_node("Label") as Label).text = "Keep mine" if reset else "Set a key"
+		(%Safe.get_node("Label") as Label).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
 		(%Other.get_node("Label") as Label).text = "Reset" if reset else "Leave"
+		%Other.visible = not no_pad
+		%Safe.position.x = OK_X if no_pad else SAFE_X
 		for b: ControlsMenu.BoxButton in [ControlsMenu.BoxButton.SAFE, ControlsMenu.BoxButton.OTHER]:
 			_box_button(b).add_theme_stylebox_override("panel",
 					PLANK_HIGHLIGHT_STYLE if rules.box_selected == b else PLANK_STYLE)
+	strip.visible = not waiting
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if box_up else DeviceHints.Hint.CONTROLS_PAGE)
 	queue_redraw()
 

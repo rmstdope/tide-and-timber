@@ -22,6 +22,8 @@ func before_test() -> void:
 func after_test() -> void:
 	get_tree().paused = false
 	InputDevice.reset()
+	_send_stick(JOY_AXIS_RIGHT_Y, 0.0)
+	InputDevice.use_controls(Controls.new())
 	_send_stick(JOY_AXIS_LEFT_X, 0.0)
 	_send_stick(JOY_AXIS_LEFT_Y, 0.0)
 	InputDevice.reset()
@@ -80,3 +82,19 @@ func test_stick_in_the_quit_box_stops_at_the_ends() -> void:
 	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.STAY)
 	await _tap(JOY_BUTTON_B)
 	assert_bool(pause.rules.box_open).is_false()
+
+func test_pause_on_a_stick_toggles_once_per_push() -> void:
+	await _tap(JOY_BUTTON_B)
+	var m := InputEventJoypadMotion.new()
+	m.axis = JOY_AXIS_RIGHT_Y
+	m.axis_value = -1.0
+	InputDevice.controls.set_slot(Controls.Action.PAUSE, Controls.Device.CONTROLLER, 0, m)
+	await _stick(JOY_AXIS_RIGHT_Y, -0.9)
+	assert_bool(get_tree().paused).is_true()
+	await _stick(JOY_AXIS_RIGHT_Y, -1.0)
+	assert_bool(get_tree().paused).is_true()
+	await _stick(JOY_AXIS_RIGHT_Y, 0.9)
+	assert_bool(get_tree().paused).is_true()
+	await _stick(JOY_AXIS_RIGHT_Y, 0.0)
+	await _stick(JOY_AXIS_RIGHT_Y, -0.9)
+	assert_bool(get_tree().paused).is_false()

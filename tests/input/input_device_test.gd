@@ -12,6 +12,8 @@ func before_test() -> void:
 	beach = runner.scene() as Beach
 
 func after_test() -> void:
+	_stick(JOY_AXIS_RIGHT_Y, 0.0)
+	InputDevice.use_controls(Controls.new())
 	InputDevice.set_menu_open(self, false)
 	InputDevice.reset()
 	_stick(JOY_AXIS_LEFT_X, 0.0)
@@ -134,3 +136,22 @@ func test_a_controls_change_tells_the_hints() -> void:
 
 func test_the_gate_run_starts_at_defaults() -> void:
 	assert_str(InputDevice.controls.path).is_equal("")
+
+func _bind_build_to_right_stick_up() -> void:
+	var m := InputEventJoypadMotion.new()
+	m.axis = JOY_AXIS_RIGHT_Y
+	m.axis_value = -1.0
+	InputDevice.controls.set_slot(Controls.Action.BUILD_LIST, Controls.Device.CONTROLLER, 0, m)
+
+func test_action_press_is_worked_out_before_handlers() -> void:
+	_bind_build_to_right_stick_up()
+	var e := _stick(JOY_AXIS_RIGHT_Y, -0.9)
+	assert_bool(InputDevice.action_pressed(e, &"build")).is_true()
+	assert_bool(InputDevice.action_pressed(e, &"build")).is_true()
+
+func test_held_stick_is_one_action_press() -> void:
+	_bind_build_to_right_stick_up()
+	_stick(JOY_AXIS_RIGHT_Y, -0.9)
+	var e := _stick(JOY_AXIS_RIGHT_Y, -1.0)
+	assert_bool(InputDevice.action_pressed(e, &"build")).is_false()
+	_stick(JOY_AXIS_RIGHT_Y, 0.0)

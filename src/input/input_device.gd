@@ -9,6 +9,8 @@ var controls: Controls
 var menu_push: MenuPush
 var _menu_event: InputEvent
 var _menu_step := MenuPush.Step.NONE
+var action_press: ActionPress
+var _press_event: InputEvent
 var pointer := PointerRule.new()
 
 func _ready() -> void:
@@ -41,6 +43,8 @@ func reset(pad_names: PackedStringArray = PackedStringArray()) -> void:
 	menu_push = MenuPush.new()
 	_menu_event = null
 	_menu_step = MenuPush.Step.NONE
+	action_press = ActionPress.new()
+	_press_event = null
 	tracker.changed.connect(changed.emit)
 	pointer.forget_device()
 	changed.emit()
@@ -49,6 +53,7 @@ func _on_window_input(event: InputEvent) -> void:
 	var pad := event is InputEventJoypadButton or event is InputEventJoypadMotion
 	tracker.observe(event, Input.get_joy_name(event.device) if pad else "")
 	menu_step(event)
+	_read_press(event)
 	pointer.observe(event)
 
 ## A menu or box owned by this node opened or closed. Menus call it; the pointer follows.
@@ -64,6 +69,21 @@ func menu_step(event: InputEvent) -> MenuPush.Step:
 		_menu_event = event
 		_menu_step = menu_push.read(event)
 	return _menu_step
+
+## Whether this event is a fresh press of a play action, one per push on a stick; worked out once per event.
+func action_pressed(event: InputEvent, action: StringName) -> bool:
+	_read_press(event)
+	return action_press.pressed(event, action)
+
+## Whether this event lets go of a play action; worked out once per event.
+func action_released(event: InputEvent, action: StringName) -> bool:
+	_read_press(event)
+	return action_press.released(event, action)
+
+func _read_press(event: InputEvent) -> void:
+	if event != _press_event:
+		_press_event = event
+		action_press.read(event)
 
 func _on_joy_connection_changed(device: int, connected: bool) -> void:
 	if connected:
