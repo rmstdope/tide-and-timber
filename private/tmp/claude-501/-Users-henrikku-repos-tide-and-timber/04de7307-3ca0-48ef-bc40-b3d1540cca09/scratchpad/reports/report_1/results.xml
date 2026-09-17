@@ -1,41 +1,73 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites id="2026-09-17" name="report_1" tests="18" failures="0" skipped="0" flaky="0" time="0.000">
-	<testsuite id="0" name="debug_menu_test" package="tests/debug" timestamp="2026-09-17T12:27:57" hostname="localhost" tests="18" failures="0" errors="0" skipped="0" flaky="0" time="0.079">
-		<testcase name="test_open_starts_on_time_first_row" classname="debug_menu_test" time="0.005">
+<testsuites id="2026-09-17" name="report_1" tests="33" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="device_hints_test" package="tests/hud" timestamp="2026-09-17T12:28:51" hostname="localhost" tests="29" failures="0" errors="0" skipped="0" flaky="0" time="0.069">
+		<testcase name="test_keyboard_move_text" classname="device_hints_test" time="0.001">
 		</testcase>
-		<testcase name="test_reopen_starts_on_time_again" classname="debug_menu_test" time="0.003">
+		<testcase name="test_pad_move_text" classname="device_hints_test" time="0.001">
 		</testcase>
-		<testcase name="test_flip_wraps_round_six_pages_and_resets_highlight" classname="debug_menu_test" time="0.002">
+		<testcase name="test_keyboard_use_text" classname="device_hints_test" time="0.001">
 		</testcase>
-		<testcase name="test_flip_and_set_page_ignored_when_closed" classname="debug_menu_test" time="0.004">
+		<testcase name="test_pad_use_text" classname="device_hints_test" time="0.001">
 		</testcase>
-		<testcase name="test_set_page" classname="debug_menu_test" time="0.004">
+		<testcase name="test_keyboard_build_list_text" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_tab_names" classname="debug_menu_test" time="0.002">
+		<testcase name="test_pad_build_list_text" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_move_on_an_empty_page_does_nothing" classname="debug_menu_test" time="0.002">
+		<testcase name="test_placing_text" classname="device_hints_test" time="0.001">
 		</testcase>
-		<testcase name="test_move_wraps_round_rows" classname="debug_menu_test" time="0.002">
+		<testcase name="test_xbox_colours" classname="device_hints_test" time="0.001">
 		</testcase>
-		<testcase name="test_scroll_keeps_highlight_visible" classname="debug_menu_test" time="0.004">
+		<testcase name="test_every_picture_label_is_drawable" classname="device_hints_test" time="0.001">
 		</testcase>
-		<testcase name="test_hover_highlights_in_range" classname="debug_menu_test" time="0.003">
+		<testcase name="test_round_and_stick_labels_are_one_glyph" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_change_calls_step_with_delta" classname="debug_menu_test" time="0.005">
+		<testcase name="test_use_hint_follows_the_players_key" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_pick_results" classname="debug_menu_test" time="0.003">
+		<testcase name="test_use_hint_follows_the_players_button" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_pick_on_an_empty_page" classname="debug_menu_test" time="0.004">
+		<testcase name="test_use_hint_without_a_key_has_no_picture" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_in_story_only_story_and_show_work" classname="debug_menu_test" time="0.002">
+		<testcase name="test_build_list_falls_back_to_enter_without_use_key" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_dimmed_page_rows_are_inert_but_highlight_moves" classname="debug_menu_test" time="0.002">
+		<testcase name="test_move_hint_follows_walk_keys" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_back_and_start" classname="debug_menu_test" time="0.005">
+		<testcase name="test_move_hint_right_stick_collapses" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_rows_survive_close_and_reopen" classname="debug_menu_test" time="0.004">
+		<testcase name="test_move_hint_dpad_lists_each" classname="device_hints_test" time="0.002">
 		</testcase>
-		<testcase name="test_value_text" classname="debug_menu_test" time="0.004">
+		<testcase name="test_pad_pictures_by_family" classname="device_hints_test" time="0.002">
+		</testcase>
+		<testcase name="test_every_pad_label_is_drawable" classname="device_hints_test" time="0.003">
+		</testcase>
+		<testcase name="test_build_hint_falls_back_when_a_menu_takes_the_use_key" classname="device_hints_test" time="0.002">
+		</testcase>
+		<testcase name="test_keyboard_select_text" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_pad_select_text" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_pad_select_back_text" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_menu_buttons_are_the_play_buttons_on_a_pad" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_select_ignores_a_rebound_use" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_controls_page_strip" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_controls_page_strip_fits" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_keyboard_debug_panel_text" classname="device_hints_test" time="0.001">
+		</testcase>
+		<testcase name="test_pad_debug_panel_text" classname="device_hints_test" time="0.002">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="debug_panel_test" package="tests/debug" timestamp="2026-09-17T12:28:51" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.011">
+		<testcase name="test_tab_step_reads_q_e_and_shoulders" classname="debug_panel_test" time="0.001">
+		</testcase>
+		<testcase name="test_tab_and_slot_hit_tests" classname="debug_panel_test" time="0.001">
+		</testcase>
+		<testcase name="test_value_shown" classname="debug_panel_test" time="0.001">
+		</testcase>
+		<testcase name="test_panel_and_tabs_fit" classname="debug_panel_test" time="0.001">
 		</testcase>
 	</testsuite>
 </testsuites>

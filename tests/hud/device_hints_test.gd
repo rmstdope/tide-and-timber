@@ -215,3 +215,9 @@ func test_controls_page_strip_fits() -> void:
 	var font: Font = load("res://assets/fonts/PressStart2P-Regular.ttf")
 	var w := HintLine.width(DeviceHints.line(H.CONTROLS_PAGE, K.KEYBOARD), font)
 	assert_float(w + 8 + MenuStrip.LEFT).is_less_equal(316.0)
+
+func test_keyboard_debug_panel_text() -> void:
+	assert_str(_text(H.DEBUG_PANEL, K.KEYBOARD)).is_equal("[Q][E] Page   [←][→] Change   [Esc] Back")
+
+func test_pad_debug_panel_text() -> void:
+	assert_str(_text(H.DEBUG_PANEL, K.XBOX)).is_equal("(LB)(RB) Page   (←)(→) Change   (B) Back")
