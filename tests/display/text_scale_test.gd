@@ -67,3 +67,12 @@ func test_fit_width_widens_then_narrows() -> void:
 func test_fit_width_equals_width_at_when_words_fit() -> void:
 	for s: float in [1.0, 1.5, 2.0, 5.0 / 3.0]:
 		assert_float(TextScale.fit_width(296, 100, s)).is_equal(SpokenLine.width_at(296, s))
+
+func test_extra_is_whole_units() -> void:
+	assert_float(TextScale.extra(9, 1.0)).is_equal_approx(0.0, 0.01)
+	assert_float(TextScale.extra(9, 1.5)).is_equal_approx(5.0, 0.01)
+	assert_float(TextScale.extra(9, 2.0)).is_equal_approx(9.0, 0.01)
+	assert_float(TextScale.extra(9, 5.0 / 3.0)).is_equal_approx(6.0, 0.01)
+	assert_float(TextScale.extra(8, 1.5)).is_equal_approx(4.0, 0.01)
+	assert_float(TextScale.extra(8, 2.0)).is_equal_approx(8.0, 0.01)
+	assert_float(TextScale.extra(8, 5.0 / 3.0)).is_equal_approx(6.0, 0.01)

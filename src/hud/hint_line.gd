@@ -1,6 +1,7 @@
 class_name HintLine
 extends RefCounted
-## Draws DeviceHints items: pixel pictures and words, one row 9 px tall.
+## Draws DeviceHints items: pixel pictures and words, one row 9 px tall at Normal Text size;
+## words grow with Text size, pictures never do.
 
 const HEIGHT := 9
 const FONT_SIZE := 8
@@ -18,13 +19,17 @@ static func picture_width(p: DeviceHints.Picture) -> int:
 		return Glyphs.width(p.label) + 6
 	return HEIGHT
 
-static func width(items: Array, font: Font) -> int:
+static func width(items: Array, font: Font, rel: float = 1.0) -> int:
 	var total := 0
 	for i in items.size():
 		if i > 0:
 			total += _gap(items[i - 1], items[i])
-		total += _item_width(items[i], font)
+		total += _item_width(items[i], font, rel)
 	return total
+
+## The row's height at relative scale `rel`: 9 at Normal, grown by whole units with the words.
+static func height(rel: float = 1.0) -> int:
+	return HEIGHT + int(TextScale.extra(HEIGHT, rel))
 
 static func draw_picture(canvas: CanvasItem, p: DeviceHints.Picture, at: Vector2) -> void:
 	match p.shape:
@@ -44,23 +49,28 @@ static func draw_picture(canvas: CanvasItem, p: DeviceHints.Picture, at: Vector2
 	Glyphs.draw(canvas, p.label, at + Vector2(3, 2), p.ink)
 
 ## Draws the row with its top-left at `at`; words in word_colour with their baseline at at.y + 8.
-static func draw(canvas: CanvasItem, items: Array, at: Vector2, font: Font, word_colour: Color) -> void:
+static func draw(canvas: CanvasItem, items: Array, at: Vector2, font: Font, word_colour: Color,
+		rel: float = 1.0) -> void:
+	var h := height(rel)
+	var picture_y := at.y + floori((h - HEIGHT) / 2.0)
 	var x := at.x
 	for i in items.size():
 		if i > 0:
 			x += _gap(items[i - 1], items[i])
 		var item: Variant = items[i]
 		if item is DeviceHints.Picture:
-			draw_picture(canvas, item, Vector2(x, at.y))
+			draw_picture(canvas, item, Vector2(x, picture_y))
 		else:
-			canvas.draw_string(font, Vector2(x, at.y + 8), str(item), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE,
+			canvas.draw_set_transform(Vector2(x, at.y), 0.0, Vector2.ONE * rel)
+			canvas.draw_string(font, Vector2(0, 8), str(item), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE,
 				word_colour)
-		x += _item_width(item, font)
+			canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		x += _item_width(item, font, rel)
 
-static func _item_width(item: Variant, font: Font) -> int:
+static func _item_width(item: Variant, font: Font, rel: float = 1.0) -> int:
 	if item is DeviceHints.Picture:
 		return picture_width(item)
-	return ceili(font.get_string_size(str(item), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x)
+	return ceili(font.get_string_size(str(item), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x * rel)
 
 static func _gap(before: Variant, after: Variant) -> int:
 	var picture_before: bool = before is DeviceHints.Picture

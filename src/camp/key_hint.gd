@@ -31,9 +31,10 @@ func text() -> String:
 
 func _layout() -> void:
 	var w := view.line_width() + 8
-	size = Vector2(w, HEIGHT)
+	var h := HEIGHT + view.grown_by()
+	size = Vector2(w, h)
 	position.x = roundi((320 - w) / 2.0)
-	HintLift.place(self, TOP, HEIGHT)
+	HintLift.place(self, TOP + HEIGHT - h, HEIGHT)
 	view.position = Vector2.ZERO
 	view.size = size
 	queue_redraw()

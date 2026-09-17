@@ -15,8 +15,21 @@ var sunset := SunsetLine.new()
 var running := false
 var time_scale := 1.0   # multiplies game time only; 1.0 in the game; the preview raises it
 
+const PLANK_WIDTH := 64.0     # the plank's Normal width in day_night.tscn
+const PLANK_HEIGHT := 54.0
+const LABEL_HEIGHT := 8.0
+const DAY_TOP := 5.0
+const DIAL_TOP := 14.0
+const TIME_TOP := 43.0
+const PLANK_PAD := 4.0        # units of padding each side of the wider of day and time
+
+var _fitted_day := ""
+var _fitted_time := ""
+
 
 func _ready() -> void:
+	Display.changed.connect(fit_clock)
+	get_tree().root.size_changed.connect(fit_clock)
 	_refresh()
 
 
@@ -52,6 +65,8 @@ func _refresh() -> void:
 	%Dial.queue_redraw()
 	%Sunset.visible = sunset.is_showing()
 	%Sunset.modulate.a = sunset.alpha()
+	if %DayLabel.text != _fitted_day or %TimeLabel.text != _fitted_time:
+		fit_clock()
 
 
 ## Moves the clock on at once and refreshes. True if an 18:30 was crossed. Does not start the line.
@@ -71,3 +86,25 @@ func set_minutes(total: float) -> void:
 	clock.total_minutes = total
 	_refresh()
 	moved.emit()
+
+
+## Widens and heightens the plank to fit the day and time at the current Text size, growing right and
+## down from its top-left; the dial keeps its size and stays centred in the wider plank.
+## Resets both labels' scale to measure them, so never call it from a draw pass.
+func fit_clock() -> void:
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
+	%DayLabel.scale = Vector2.ONE
+	%TimeLabel.scale = Vector2.ONE
+	var words := maxf(%DayLabel.get_minimum_size().x, %TimeLabel.get_minimum_size().x)
+	var w := maxf(PLANK_WIDTH, ceilf(words * rel) + 2.0 * PLANK_PAD)
+	var d := TextScale.extra(LABEL_HEIGHT, rel)
+	%Plank.size = Vector2(w, PLANK_HEIGHT + 2.0 * d)
+	%DayLabel.scale = Vector2.ONE * rel
+	%DayLabel.position = Vector2(0, DAY_TOP)
+	%DayLabel.size = Vector2(w / rel, (LABEL_HEIGHT + d) / rel)
+	%Dial.position = Vector2(roundf((w - PLANK_WIDTH) / 2.0), DIAL_TOP + d)
+	%TimeLabel.scale = Vector2.ONE * rel
+	%TimeLabel.position = Vector2(0, TIME_TOP + d)
+	%TimeLabel.size = Vector2(w / rel, (LABEL_HEIGHT + d) / rel)
+	_fitted_day = %DayLabel.text
+	_fitted_time = %TimeLabel.text
