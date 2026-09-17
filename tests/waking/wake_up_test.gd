@@ -70,3 +70,22 @@ func test_hint_stays_until_a_few_steps_then_fades() -> void:
 	w.add_walked(50.0)
 	w.advance(1.0)
 	assert_float(w.hint_alpha()).is_equal_approx(0.0, 0.001)
+
+func test_resume_gives_control_with_no_story() -> void:
+	w.resume()
+	assert_int(w.phase).is_equal(WakeUp.Phase.CONTROL)
+	assert_that(w.pose()).is_equal(&"")
+	assert_float(w.hint_alpha()).is_equal(0.0)
+	assert_float(w.cover_alpha()).is_equal(1.0)
+	assert_array(calls).is_empty()
+
+func test_resume_fades_up_over_a_second() -> void:
+	w.resume()
+	w.advance(0.5)
+	assert_float(w.cover_alpha()).is_equal_approx(0.5, 0.001)
+	w.advance(0.6)
+	assert_float(w.cover_alpha()).is_equal_approx(0.0, 0.001)
+	w.add_walked(0.0)
+	w.advance(1.0)
+	assert_float(w.hint_alpha()).is_equal(0.0)
+	assert_array(calls).is_empty()

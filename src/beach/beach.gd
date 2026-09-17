@@ -104,12 +104,8 @@ func capture() -> SaveData:
 ## Returns false and changes nothing when the inventory is refused, a prop id is not in TAKEABLE,
 ## or a cell is not one of that prop's layout cells.
 func restore(data: SaveData) -> bool:
-	for id: String in data.taken:
-		if not TAKEABLE.has(id):
-			return false
-		for cell: Vector2i in data.taken[id]:
-			if not (TAKEABLE[id]["cells"] as Array).has(cell):
-				return false
+	if not _taken_fits(data):
+		return false
 	if not inventory.restore(data.inventory_slots):
 		return false
 	for id: String in data.taken:
@@ -121,6 +117,20 @@ func restore(data: SaveData) -> bool:
 	%Player.facing = data.player_facing
 	%Player.velocity = Vector2.ZERO
 	%Camera.snap_to_target()
+	return true
+
+## Whether restore(data) would accept `data`: every key of data.taken is in TAKEABLE, every cell is
+## one of that prop's layout cells, and a new Inventory accepts data.inventory_slots. No nodes touched.
+static func can_restore(data: SaveData) -> bool:
+	return _taken_fits(data) and Inventory.new().restore(data.inventory_slots)
+
+static func _taken_fits(data: SaveData) -> bool:
+	for id: String in data.taken:
+		if not TAKEABLE.has(id):
+			return false
+		for cell: Vector2i in data.taken[id]:
+			if not (TAKEABLE[id]["cells"] as Array).has(cell):
+				return false
 	return true
 
 func _live_prop(id: String, cell: Vector2i) -> Node:

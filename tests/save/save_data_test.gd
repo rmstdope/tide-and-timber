@@ -67,3 +67,19 @@ func test_rejects() -> void:
 	_rejected(func(f: Dictionary) -> void: f.erase("clock"))
 	_rejected(func(f: Dictionary) -> void: f["clock"]["total_minutes"] = "1800")
 	_rejected(func(f: Dictionary) -> void: f["clock"]["total_minutes"] = -1.0)
+
+func test_day() -> void:
+	var d := SaveData.new()
+	d.clock_minutes = 780.0
+	assert_int(d.day()).is_equal(1)
+	d.clock_minutes = 1800.0
+	assert_int(d.day()).is_equal(2)
+	d.clock_minutes = 4680.0
+	assert_int(d.day()).is_equal(4)
+
+func test_day_in() -> void:
+	assert_int(SaveData.day_in({"clock": {"total_minutes": 4680.0}})).is_equal(4)
+	assert_int(SaveData.day_in({})).is_equal(0)
+	assert_int(SaveData.day_in({"clock": "x"})).is_equal(0)
+	assert_int(SaveData.day_in({"clock": {"total_minutes": "4680"}})).is_equal(0)
+	assert_int(SaveData.day_in({"clock": {"total_minutes": -1.0}})).is_equal(0)

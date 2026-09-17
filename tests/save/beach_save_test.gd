@@ -91,3 +91,28 @@ func test_restore_does_not_raise_a_gain_line() -> void:
 	data.inventory_slots = slots
 	assert_bool(beach.restore(data)).is_true()
 	assert_object(_player(beach).get_node_or_null("RisingLine")).is_null()
+
+func _data(slots: Array[Dictionary], taken: Dictionary) -> SaveData:
+	var d := SaveData.new()
+	d.inventory_slots = slots
+	d.taken = taken
+	return d
+
+func _empty_slots(n: int) -> Array[Dictionary]:
+	var slots: Array[Dictionary] = []
+	for i in n:
+		slots.append({})
+	return slots
+
+func test_can_restore() -> void:
+	var first: Array[Vector2i] = [BeachLayout.DRIFTWOOD[0]]
+	var none: Array[Vector2i] = []
+	var origin: Array[Vector2i] = [Vector2i(0, 0)]
+	assert_bool(Beach.can_restore(_data(_empty_slots(8), {"driftwood": first, "shellfish": none}))).is_true()
+	assert_bool(Beach.can_restore(_data(_empty_slots(8), {"rope": none}))).is_false()
+	assert_bool(Beach.can_restore(_data(_empty_slots(8), {"driftwood": origin}))).is_false()
+	var twice := _empty_slots(8)
+	twice[0] = {"kind": Item.Kind.DRIFTWOOD, "count": 1}
+	twice[1] = {"kind": Item.Kind.DRIFTWOOD, "count": 1}
+	assert_bool(Beach.can_restore(_data(twice, {}))).is_false()
+	assert_bool(Beach.can_restore(_data(_empty_slots(7), {}))).is_false()
