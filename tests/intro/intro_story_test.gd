@@ -132,7 +132,6 @@ func test_pause_freezes_the_story_and_clears_the_ring() -> void:
 	assert_int(s.phase).is_equal(IntroStory.Phase.PAUSED)
 	_approx(s.hold_progress, 0.0)
 	assert_int(s.held_count).is_equal(0)
-	assert_int(s.pause_selected).is_equal(IntroStory.PauseItem.RESUME)
 	s.advance(10.0)
 	assert_int(s.panel).is_equal(0)
 	_approx(s.panel_elapsed, 0.5)
@@ -151,43 +150,17 @@ func test_pause_again_resumes_where_it_stopped() -> void:
 	s.advance(4.0)
 	assert_int(s.panel).is_equal(1)
 
-func test_pause_opens_on_resume_every_time() -> void:
+func test_skip_from_pause_does_what_a_full_ring_does() -> void:
 	s.toggle_pause()
-	s.move_pause_selection(1)
-	s.toggle_pause()
-	s.toggle_pause()
-	assert_int(s.pause_selected).is_equal(IntroStory.PauseItem.RESUME)
-
-func test_pause_selection_wraps_and_follows_hover() -> void:
-	s.toggle_pause()
-	s.move_pause_selection(1)
-	assert_int(s.pause_selected).is_equal(IntroStory.PauseItem.SKIP_STORY)
-	s.move_pause_selection(1)
-	assert_int(s.pause_selected).is_equal(IntroStory.PauseItem.RESUME)
-	s.move_pause_selection(-1)
-	assert_int(s.pause_selected).is_equal(IntroStory.PauseItem.SKIP_STORY)
-	s.hover_pause(IntroStory.PauseItem.RESUME)
-	assert_int(s.pause_selected).is_equal(IntroStory.PauseItem.RESUME)
-
-func test_pause_choices_do_nothing_unless_paused() -> void:
-	s.move_pause_selection(1)
-	s.hover_pause(IntroStory.PauseItem.SKIP_STORY)
-	s.choose_pause(IntroStory.PauseItem.SKIP_STORY)
-	assert_int(s.phase).is_equal(IntroStory.Phase.PLAYING)
-	assert_int(s.pause_selected).is_equal(IntroStory.PauseItem.RESUME)
-
-func test_choose_resume_resumes() -> void:
-	s.toggle_pause()
-	s.choose_pause(IntroStory.PauseItem.RESUME)
-	assert_int(s.phase).is_equal(IntroStory.Phase.PLAYING)
-
-func test_skip_story_does_what_a_full_ring_does() -> void:
-	s.toggle_pause()
-	s.choose_pause(IntroStory.PauseItem.SKIP_STORY)
+	s.skip()
 	assert_int(s.phase).is_equal(IntroStory.Phase.SKIPPING)
 	_approx(s.skip_cover_alpha(), 0.0)
 	s.advance(0.5)
 	assert_array(ends).is_equal(["end"])
+
+func test_skip_does_nothing_unless_paused() -> void:
+	s.skip()
+	assert_int(s.phase).is_equal(IntroStory.Phase.PLAYING)
 
 func test_pause_does_nothing_while_skipping() -> void:
 	_hold_to_skip()

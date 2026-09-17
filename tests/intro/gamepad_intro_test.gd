@@ -16,10 +16,14 @@ func before_test() -> void:
 	intro.end_story = func() -> void: recorded.append("end")
 
 func after_test() -> void:
+	get_tree().paused = false
 	InputDevice.reset()
 
 func _node(unique: String) -> Node:
 	return intro.get_node("%" + unique)
+
+func _board() -> Node:
+	return _node("Pause").get_node("%Board")
 
 func _pad(button: JoyButton, pressed: bool) -> void:
 	var e := InputEventJoypadButton.new()
@@ -33,7 +37,8 @@ func _pad(button: JoyButton, pressed: bool) -> void:
 func _tap(button: JoyButton) -> void:
 	await _pad(button, true)
 	await _pad(button, false)
-	await await_millis(50)
+	# a timer that runs through a pause: gdUnit4's await_millis stops with the paused tree
+	await get_tree().create_timer(0.05, true).timeout
 
 func _disconnect(connected: bool = false) -> void:
 	Input.joy_connection_changed.emit(0, connected)
@@ -64,39 +69,53 @@ func test_b_does_nothing() -> void:
 
 func test_start_pauses_and_a_resumes() -> void:
 	await _tap(JOY_BUTTON_START)
-	assert_bool(_node("PauseBox").visible).is_true()
+	assert_bool(_board().visible).is_true()
 	assert_int(intro.story.phase).is_equal(P.PAUSED)
+	assert_bool(get_tree().paused).is_equal(true)
 	await _tap(JOY_BUTTON_A)
-	assert_bool(_node("PauseBox").visible).is_false()
+	assert_bool(_board().visible).is_false()
 	assert_int(intro.story.phase).is_equal(P.PLAYING)
+	assert_bool(get_tree().paused).is_equal(false)
+
+func test_b_resumes_the_board() -> void:
+	await _tap(JOY_BUTTON_START)
+	await _tap(JOY_BUTTON_B)
+	assert_int(intro.story.phase).is_equal(P.PLAYING)
+	assert_bool(get_tree().paused).is_false()
 
 func test_start_again_resumes() -> void:
 	await _tap(JOY_BUTTON_START)
 	await _tap(JOY_BUTTON_START)
 	assert_int(intro.story.phase).is_equal(P.PLAYING)
+	assert_bool(get_tree().paused).is_equal(false)
 
 func test_disconnect_pauses_the_story() -> void:
 	await _disconnect()
 	assert_int(intro.story.phase).is_equal(P.PAUSED)
-	assert_bool(_node("PauseBox").visible).is_true()
+	assert_bool(get_tree().paused).is_equal(true)
+	assert_bool(_board().visible).is_true()
 
 func test_disconnect_mid_hold_clears_the_ring() -> void:
 	await _pad(JOY_BUTTON_A, true)
 	intro.tick(0.5)
 	await _disconnect()
 	assert_float(_node("SkipRing").progress).is_equal(0.0)
+	assert_bool(get_tree().paused).is_true()
 	await _pad(JOY_BUTTON_A, false)
 
 func test_disconnect_while_paused_stays_paused() -> void:
 	await runner.simulate_key_pressed(KEY_ESCAPE)
 	await runner.await_input_processed()
 	assert_int(intro.story.phase).is_equal(P.PAUSED)
+	assert_bool(get_tree().paused).is_equal(true)
 	await _disconnect()
 	assert_int(intro.story.phase).is_equal(P.PAUSED)
+	assert_bool(get_tree().paused).is_equal(true)
 
 func test_connect_does_not_pause() -> void:
 	await _disconnect(true)
 	assert_int(intro.story.phase).is_equal(P.PLAYING)
+	assert_bool(get_tree().paused).is_equal(false)
 
 func test_a_released_while_space_held_keeps_the_hold() -> void:
 	runner.simulate_key_press(KEY_SPACE)

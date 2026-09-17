@@ -5,7 +5,6 @@ extends RefCounted
 signal finished                         # emitted exactly once, when phase becomes FINISHED
 
 enum Phase { PLAYING, PAUSED, SKIPPING, FINISHED }
-enum PauseItem { RESUME, SKIP_STORY }
 
 const PANEL_COUNT := 4                  # three pictures, then the black beat (index 3)
 const BLACK_BEAT := 3
@@ -24,7 +23,6 @@ var hold_progress := 0.0                # 0..1
 var held_count := 0                     # presses minus releases while PLAYING; never negative
 var press_elapsed := 0.0                # time since held_count went from 0 to 1
 var skip_elapsed := 0.0
-var pause_selected: PauseItem = PauseItem.RESUME
 
 func advance(delta: float) -> void:
 	match phase:
@@ -65,27 +63,12 @@ func toggle_pause() -> void:
 		phase = Phase.PAUSED
 		held_count = 0
 		hold_progress = 0.0
-		pause_selected = PauseItem.RESUME
 	elif phase == Phase.PAUSED:
 		phase = Phase.PLAYING
 
-func move_pause_selection(step: int) -> void:
-	if phase != Phase.PAUSED:
-		return
-	pause_selected = posmod(pause_selected + step, 2) as PauseItem
-
-func hover_pause(item: PauseItem) -> void:
-	if phase != Phase.PAUSED:
-		return
-	pause_selected = item
-
-func choose_pause(item: PauseItem) -> void:
-	if phase != Phase.PAUSED:
-		return
-	pause_selected = item
-	if item == PauseItem.RESUME:
-		phase = Phase.PLAYING
-	else:
+## Skip story from the pause board: what a full ring does. Ignored unless PAUSED.
+func skip() -> void:
+	if phase == Phase.PAUSED:
 		_start_skip()
 
 func panel_cover_alpha() -> float:

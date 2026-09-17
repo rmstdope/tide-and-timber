@@ -1,7 +1,7 @@
 class_name Waking
 extends Node2D
 ## The beach after the story: fades up from black, he gets himself up, then control and the move hint.
-## A thin view over WakeUp; handles no input, so Esc does nothing.
+## A thin view over WakeUp; handles no input itself. Esc/Start pause through %Pause once he has control.
 
 const WAKE_CELL := Vector2i(92, 14)     # wet sand at the waterline, under the beach's spawn column
 const WAKE_SHEET := preload("res://assets/man/man_wake.png")
@@ -35,6 +35,11 @@ func _ready() -> void:
 	%DayNight.time_scale = Preview.parse_args(OS.get_cmdline_user_args()).speed   # --clock-speed=N, a developer speed-up
 	_refresh()
 	%Autosave.watch(%Beach, %DayNight)
+	var builder: Builder = %Beach.get_node("%Builder")
+	%Pause.can_pause = func() -> bool:
+		return player.control_enabled and wake.cover_alpha() <= 0.0 \
+			and builder.mode == Builder.Mode.CLOSED and %Night.collapse == null
+	%Pause.has_saved = func() -> bool: return %DayNight.clock.dawns_passed() >= 1
 
 func _process(delta: float) -> void:
 	tick(delta)

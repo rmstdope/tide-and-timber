@@ -27,6 +27,9 @@ func before_test() -> void:
 	_node("Autosave").set_process(false)
 	player = game.player
 
+func after_test() -> void:
+	get_tree().paused = false
+
 func _node(unique: String) -> Node:
 	return game.get_node("%" + unique)
 
@@ -70,3 +73,15 @@ func test_no_dawn_on_arriving() -> void:
 
 func test_autosave_watches_after_continue() -> void:
 	assert_bool((_node("DayNight") as DayNight).dawn.is_connected((_node("Autosave") as Autosave).on_dawn)).is_true()
+
+func test_esc_pauses_after_continue_and_quit_warns_about_this_morning() -> void:
+	var pause := _node("Pause") as Pause
+	assert_bool(pause.try_open()).is_false()   # still fading up
+	game.tick(1.1)
+	for key: Key in [KEY_ESCAPE, KEY_UP, KEY_ENTER]:
+		await runner.simulate_key_pressed(key)
+		await runner.await_input_processed()
+	assert_bool(get_tree().paused).is_true()
+	assert_bool((pause.get_node("%QuitBox") as Control).visible).is_true()
+	assert_str((pause.get_node("%SecondLine") as Label).text).is_equal("Anything since this morning will be lost.")
+

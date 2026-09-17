@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://src/night/morning_card_view.gd" id="7_card"]
 [ext_resource type="Script" path="res://src/hud/hint_view.gd" id="8_hint"]
 [ext_resource type="PackedScene" path="res://src/autosave/autosave.tscn" id="9_autosave"]
+[ext_resource type="PackedScene" path="res://src/pause/pause.tscn" id="10_pause"]
 
 [node name="Waking" type="Node2D"]
 script = ExtResource("1_waking")
@@ -138,3 +139,6 @@ offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
+
+[node name="Pause" parent="." instance=ExtResource("10_pause")]
+unique_name_in_owner = true
