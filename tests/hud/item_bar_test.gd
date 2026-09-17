@@ -69,3 +69,41 @@ func test_name_plank_stays_on_screen_at_largest() -> void:
 	inv.add(K.SHELLFISH)
 	bar.slots[0].mouse_entered.emit()
 	assert_float(bar.position.x + bar.name_plank.position.x).is_greater_equal(82.0)
+
+func _big_root() -> void:
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	get_tree().root.size = Vector2i(640, 360)
+	Display.use_prefs(DisplayPrefs.new())
+
+func test_name_plank_grows_with_text_size() -> void:
+	_big_root()
+	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
+	inv.add(K.SHELLFISH)
+	bar.slots[0].mouse_entered.emit()
+	assert_vector(bar.name_plank.size).is_equal_approx(Vector2(136, 21), Vector2(0.01, 0.01))
+	assert_vector(bar.name_plank.position).is_equal_approx(Vector2(-57, -27), Vector2(0.01, 0.01))
+	assert_vector(bar.name_label.scale).is_equal_approx(Vector2(2, 2), Vector2(0.01, 0.01))
+	assert_vector(bar.name_label.position).is_equal_approx(Vector2(4, 3), Vector2(0.01, 0.01))
+
+func test_name_plank_refits_when_text_size_changes() -> void:
+	_big_root()
+	inv.add(K.SHELLFISH)
+	bar.slots[0].mouse_entered.emit()
+	assert_vector(bar.name_plank.size).is_equal_approx(Vector2(72, 13), Vector2(0.01, 0.01))
+	assert_float(bar.name_plank.position.y).is_equal_approx(-19.0, 0.01)
+	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
+	assert_vector(bar.name_plank.size).is_equal_approx(Vector2(136, 21), Vector2(0.01, 0.01))
+	Display.use_prefs(DisplayPrefs.new())
+	assert_vector(bar.name_plank.size).is_equal_approx(Vector2(72, 13), Vector2(0.01, 0.01))
+	assert_vector(bar.name_label.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
+
+func test_too_wide_name_plank_is_centred_on_the_screen() -> void:
+	_big_root()
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
+	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
+	inv.add(K.FRESH_WATER)
+	bar.slots[0].mouse_entered.emit()
+	assert_float(bar.name_plank.size.x).is_equal_approx(184.0, 0.01)
+	assert_float(bar.position.x + bar.name_plank.position.x + bar.name_plank.size.x / 2.0) \
+		.is_equal_approx(160.0, 0.01)
+	assert_float(bar.name_plank.position.x).is_equal_approx(-22.0, 0.01)

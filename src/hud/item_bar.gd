@@ -6,6 +6,8 @@ const PLANK_SIZE := Vector2(141, 22)    # 8 * 17 + 5
 const GROUP := &"item_bar"               # HintLift finds the drawn bar through it
 const TOP := 157.0                      # y of the plank in the 320x180 base
 const SCREEN_WIDTH := 320
+const NAME_HEIGHT := 13.0               # the name plank's Normal height
+const NAME_BOTTOM := -6.0               # its bottom edge above the bar, whatever its height
 
 var slots: Array[ItemSlot] = []
 var name_plank: Control                 ## hidden unless the pointer rests on a filled slot
@@ -36,10 +38,13 @@ func _ready() -> void:
 	name_plank.add_child(name_label)
 	name_plank.draw.connect(func() -> void:
 		var w := name_plank.size.x
-		name_plank.draw_rect(Rect2(0, 0, w, 13), Color("#7a5030"))
-		name_plank.draw_rect(Rect2(1, 1, w - 2, 11), Color("#b07a45"))
+		var h := name_plank.size.y
+		name_plank.draw_rect(Rect2(0, 0, w, h), Color("#7a5030"))
+		name_plank.draw_rect(Rect2(1, 1, w - 2, h - 2), Color("#b07a45"))
 		name_plank.draw_rect(Rect2(1, 1, w - 2, 1), Color("#d9a56b")))
 	add_child(name_plank)
+	Display.changed.connect(_refit_name)
+	get_tree().root.size_changed.connect(_refit_name)
 
 func bind(inventory: Inventory) -> void:
 	_inventory = inventory
@@ -65,16 +70,28 @@ func _show_name(i: int) -> void:
 	if slots[i].kind == Inventory.EMPTY:
 		name_plank.hide()
 		return
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 	name_label.text = Item.name_of(slots[i].kind as Item.Kind)
-	var w := ceili(name_label.get_minimum_size().x) + 8
-	name_plank.size = Vector2(w, 13)
+	name_label.scale = Vector2.ONE
+	var w := ceili(name_label.get_minimum_size().x * rel) + 8
+	var h := NAME_HEIGHT + TextScale.extra(HintLine.FONT_SIZE, rel)
+	name_label.scale = Vector2.ONE * rel
+	name_plank.size = Vector2(w, h)
 	var centre := 3 + i * 17 + 8
 	var half := SCREEN_WIDTH / 2.0 / _scale()
 	var left := SCREEN_WIDTH / 2.0 - half + 2 - position.x
 	var right := SCREEN_WIDTH / 2.0 + half - 2 - position.x - w
-	name_plank.position = Vector2(clampf(floorf(centre - w / 2.0), left, right), -19)
+	# A plank wider than the visible span cannot be clamped inside it; centre it on the screen.
+	var x := clampf(floorf(centre - w / 2.0), left, right) if left <= right \
+			else roundf(SCREEN_WIDTH / 2.0 - position.x - w / 2.0)
+	name_plank.position = Vector2(x, NAME_BOTTOM - h)
 	name_plank.show()
 	name_plank.queue_redraw()
+
+## Refits the shown name plank when UI size, Text size or the window changes.
+func _refit_name() -> void:
+	if _hovered >= 0:
+		_show_name(_hovered)
 
 # The bar's layer scale: it grows about the bottom centre, so the visible span is 160 ± 160 / s.
 func _scale() -> float:
