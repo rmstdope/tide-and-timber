@@ -18,6 +18,7 @@ func _sample() -> SaveData:
 	return d
 
 func before_test() -> void:
+	Pause.debug_tools = false   # the release board; tests/debug covers the debug one
 	InputDevice.reset()
 	game = auto_free(load("res://src/waking/waking.tscn").instantiate()) as Waking
 	game.resume_data = _sample()
@@ -28,6 +29,7 @@ func before_test() -> void:
 	player = game.player
 
 func after_test() -> void:
+	Pause.debug_tools = OS.is_debug_build()
 	get_tree().paused = false
 
 func _node(unique: String) -> Node:

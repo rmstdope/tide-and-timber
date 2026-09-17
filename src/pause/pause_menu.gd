@@ -2,26 +2,29 @@ class_name PauseMenu
 extends RefCounted
 ## The pause board's rules, with no nodes: which planks, the one highlight, the quit box, and what a pick leads to.
 
-enum Plank { RESUME, SKIP_STORY, SETTINGS, QUIT_TO_TITLE }
+enum Plank { RESUME, SKIP_STORY, SETTINGS, QUIT_TO_TITLE, DEBUG }
 enum Choice { STAY, QUIT }
-enum Outcome { NONE, RESUMED, SKIP_STORY, OPEN_SETTINGS, QUITTING }
+enum Outcome { NONE, RESUMED, SKIP_STORY, OPEN_SETTINGS, QUITTING, OPEN_DEBUG }
 
 const SAVED_LINE := "Anything since this morning will be lost."
 const UNSAVED_LINE := "Nothing has been saved yet."
 
-var items: Array[Plank] = []         # [RESUME, SETTINGS, QUIT_TO_TITLE], with SKIP_STORY second when with_skip_story
+var items: Array[Plank] = []         # [RESUME, SETTINGS, QUIT_TO_TITLE], with SKIP_STORY second when with_skip_story and DEBUG before QUIT_TO_TITLE when with_debug
 var is_open := false
 var highlighted: Plank = Plank.RESUME
 var box_open := false
 var box_selected: Choice = Choice.STAY
 var quitting := false               # set by pressing QUIT; never cleared
 var settings_open := false          # the Settings board is over this board; the board takes no input
+var debug_open := false             # the Debug panel is up; the board takes no input
 
-func _init(with_skip_story := false) -> void:
+func _init(with_skip_story := false, with_debug := false) -> void:
 	items.append(Plank.RESUME)
 	if with_skip_story:
 		items.append(Plank.SKIP_STORY)
 	items.append(Plank.SETTINGS)
+	if with_debug:
+		items.append(Plank.DEBUG)
 	items.append(Plank.QUIT_TO_TITLE)
 
 ## Opens the board on RESUME with the box closed. False, changing nothing, if already open or quitting.
@@ -33,6 +36,7 @@ func open() -> bool:
 	box_open = false
 	box_selected = Choice.STAY
 	settings_open = false
+	debug_open = false
 	return true
 
 ## Ignored unless the board takes input. Wraps round `items`.
@@ -60,6 +64,9 @@ func pick(item: Plank) -> Outcome:
 		Plank.SETTINGS:
 			settings_open = true
 			return Outcome.OPEN_SETTINGS
+		Plank.DEBUG:
+			debug_open = true
+			return Outcome.OPEN_DEBUG
 	box_open = true
 	box_selected = Choice.STAY
 	return Outcome.NONE
@@ -103,9 +110,24 @@ func resume_from_settings() -> Outcome:
 	is_open = false
 	return Outcome.RESUMED
 
+## Back from the Debug panel: the board takes input again, DEBUG highlighted, still open. Ignored unless debug_open.
+func close_debug() -> void:
+	if not debug_open:
+		return
+	debug_open = false
+	highlighted = Plank.DEBUG
+
+## The Debug panel resumes play: closes the panel and the board together. RESUMED, or NONE unless debug_open.
+func resume_from_debug() -> Outcome:
+	if not debug_open:
+		return Outcome.NONE
+	debug_open = false
+	is_open = false
+	return Outcome.RESUMED
+
 ## The quit box's second line.
 static func quit_warning(saved: bool) -> String:
 	return SAVED_LINE if saved else UNSAVED_LINE
 
 func _board_takes_input() -> bool:
-	return is_open and not box_open and not quitting and not settings_open
+	return is_open and not box_open and not quitting and not settings_open and not debug_open
