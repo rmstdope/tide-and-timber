@@ -37,6 +37,7 @@ const ROW_H_STACKED := 22.0              # the name line, then the slot line
 const SLOT_XS_STACKED := [96.0, 164.0]   # two 60-wide slots, 8 apart, centred in the stacked list
 const SLOT_TOP_STACKED := 11.0           # row top to slot top
 const NAME_LINE_STEP := 10.0             # baseline to baseline when a stacked name wraps
+const NAME_WRAP_W := 132.0               # both Reset names break before "to": "Reset keyboard to" (136) does not fit
 const TAB_RECTS_STACKED := [Rect2(82, 14, 68, 11), Rect2(154, 14, 84, 11)]
 const SAFE_X := 40.0                    # the left box button, as in the scene
 const OK_X := 96.0                      # (296 - 104) / 2: OK alone, centred in the box panel
@@ -330,7 +331,7 @@ func _draw() -> void:
 		if r == rules.row:
 			draw_style_box(PLANK_HIGHLIGHT_STYLE, row_rect(r, stacked))
 		var name: String = RESET_NAMES[rules.device] if r == ControlsMenu.RESET_ROW else Controls.NAMES[r]
-		var lines := name_lines(name, LIST_W_STACKED - 8.0, font) if stacked else PackedStringArray([name])
+		var lines := name_lines(name, NAME_WRAP_W, font) if stacked else PackedStringArray([name])
 		for j in lines.size():
 			draw_string(font, name_origin(r, stacked) + Vector2(0, j * NAME_LINE_STEP), lines[j],
 					HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, TEXT)

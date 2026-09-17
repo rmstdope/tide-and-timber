@@ -116,9 +116,10 @@ func test_stacked_hit() -> void:
 	assert_int(ControlsPage.tab_at(ControlsPage.tab_rect(1, true).get_center(), true)).is_equal(1)
 
 func test_name_lines() -> void:
-	assert_array(Array(ControlsPage.name_lines("Reset controller to defaults", 140, font))).is_equal(["Reset controller", "to defaults"])
-	assert_array(Array(ControlsPage.name_lines("Reset keyboard to defaults", 140, font))).is_equal(["Reset keyboard to", "defaults"])   # 136 wide: "to" fits on the first line
-	assert_array(Array(ControlsPage.name_lines("Walk right", 140, font))).is_equal(["Walk right"])
+	var w := ControlsPage.NAME_WRAP_W
+	assert_array(Array(ControlsPage.name_lines("Reset controller to defaults", w, font))).is_equal(["Reset controller", "to defaults"])
+	assert_array(Array(ControlsPage.name_lines("Reset keyboard to defaults", w, font))).is_equal(["Reset keyboard", "to defaults"])
+	assert_array(Array(ControlsPage.name_lines("Walk right", w, font))).is_equal(["Walk right"])
 
 func test_text_baselines() -> void:
 	assert_array(ControlsPage.text_baselines()).is_equal([137.0, 147.0, 156.0])
