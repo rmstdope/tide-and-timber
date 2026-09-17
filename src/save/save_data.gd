@@ -12,6 +12,11 @@ var player_facing: Walk.Facing = Walk.Facing.DOWN
 var inventory_slots: Array[Dictionary] = []      # Inventory.to_slots() shape
 var taken: Dictionary = {}                       # prop id (String) -> Array[Vector2i] of layout cells taken
 var clock_minutes: float = GameClock.START_MINUTES   # the clock's total_minutes at the save
+var lean_to_cells: Array[Vector2i] = []          # the lean-to's 6 cells, BuildSite.cells_for order; empty = none built
+var has_fire := false
+var fire_cell := Vector2i.ZERO
+var fire_lit := false
+var fire_out_at: float = INF                     # total game minutes; INF = never (CampFire.out_at's meaning)
 
 ## The files of one slot, by file stem: {"meta": {...}, "player": {...}, "inventory": {...}, "world": {...}, "clock": {...}}.
 func to_files() -> Dictionary:
@@ -28,7 +33,7 @@ func to_files() -> Dictionary:
 		"meta": {"version": VERSION, "game_version": str(ProjectSettings.get_setting("application/config/version"))},
 		"player": {"x": player_position.x, "y": player_position.y, "facing": Walk.facing_name(player_facing)},
 		"inventory": {"slots": slots},
-		"world": {"taken": world},
+		"world": {"taken": world, "camp": _camp_file()},
 		"clock": {"total_minutes": clock_minutes},
 	}
 
@@ -80,7 +85,53 @@ static func from_files(files: Dictionary) -> SaveData:
 				return null
 			cells.append(Vector2i(int(cell[0]), int(cell[1])))
 		data.taken[id] = cells
+	if not _read_camp(files["world"], data):
+		return null
 	return data
+
+## world.camp: "lean_to" only when built, "fire" only when built; "out_at" only for a lit fire with a clock.
+func _camp_file() -> Dictionary:
+	var camp := {}
+	if not lean_to_cells.is_empty():
+		var cells := []
+		for cell in lean_to_cells:
+			cells.append([cell.x, cell.y])
+		camp["lean_to"] = cells
+	if has_fire:
+		var fire := {"x": fire_cell.x, "y": fire_cell.y, "lit": fire_lit}
+		if fire_lit and is_finite(fire_out_at):
+			fire["out_at"] = fire_out_at
+		camp["fire"] = fire
+	return camp
+
+## Reads world.camp into data. Absent means an older save with no camp. False when malformed.
+static func _read_camp(world: Dictionary, data: SaveData) -> bool:
+	if not world.has("camp"):
+		return true
+	var camp: Variant = world["camp"]
+	if not camp is Dictionary:
+		return false
+	if camp.has("lean_to"):
+		var cells: Variant = camp["lean_to"]
+		if not cells is Array or cells.size() != 6:
+			return false
+		for cell: Variant in cells:
+			if not cell is Array or cell.size() != 2 or not _is_whole(cell[0]) or not _is_whole(cell[1]):
+				return false
+			data.lean_to_cells.append(Vector2i(int(cell[0]), int(cell[1])))
+	if camp.has("fire"):
+		var fire: Variant = camp["fire"]
+		if not fire is Dictionary or not _is_whole(fire.get("x")) or not _is_whole(fire.get("y")) \
+				or typeof(fire.get("lit")) != TYPE_BOOL:
+			return false
+		if fire.has("out_at"):
+			if not _is_number(fire["out_at"]):
+				return false
+			data.fire_out_at = float(fire["out_at"])
+		data.has_fire = true
+		data.fire_cell = Vector2i(int(fire["x"]), int(fire["y"]))
+		data.fire_lit = fire["lit"]
+	return true
 
 ## The in-game day this save was made on: DAY 1 is 1.
 func day() -> int:
