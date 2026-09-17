@@ -323,8 +323,12 @@ func _on_gui_input(event: InputEvent) -> void:
 	var m := event as InputEventMouse
 	if m == null:
 		return
-	var tab := tab_at(m.position, stacked)
-	var h := hit(m.position, rules.device, stacked)
+	# The static geometry is in unscrolled page units, so a point is taken back through the scroll;
+	# a point outside the view (a mark row, the gap above the strip) hits nothing.
+	var inside := view.has_point(m.position)
+	var at := m.position - Vector2(0, shift())
+	var tab := tab_at(at, stacked) if inside else -1
+	var h := hit(at, rules.device, stacked) if inside else Vector2i(-1, -1)
 	if PointerRule.is_move(event):
 		if h.x >= 0:
 			rules.hover(h.x, h.y)

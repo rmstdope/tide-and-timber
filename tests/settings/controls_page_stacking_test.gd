@@ -150,10 +150,13 @@ func test_normal_page_is_not_stacked() -> void:
 func test_stacked_mouse_hovers_and_clicks() -> void:
 	_size(2)
 	await _open_page()
-	_motion(page, ControlsPage.slot_rect(4, 1, true).get_center())
-	assert_int(page.rules.row).is_equal(4)
+	# The page now scrolls here (tr-eg9.6.4.3), so the pointer goes where the rows are drawn.
+	_motion(page, page.to_page(ControlsPage.slot_rect(0, 1, true).get_center()))
+	assert_int(page.rules.row).is_equal(0)
 	assert_int(page.rules.slot).is_equal(1)
-	_left_click(page, ControlsPage.tab_rect(1, true).get_center())
+	_left_click(page, page.to_page(ControlsPage.tab_rect(1, true).get_center()))
 	assert_int(page.rules.device).is_equal(D.CONTROLLER)
-	_left_click(page, ControlsPage.row_rect(8, true).get_center())
+	await _tap(KEY_UP)
+	assert_int(page.offset).is_equal(201)
+	_left_click(page, page.to_page(ControlsPage.row_rect(8, true).get_center()))
 	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)

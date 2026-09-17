@@ -197,3 +197,51 @@ func test_reopening_starts_at_the_top() -> void:
 	await _settle()
 	assert_int(page.rules.row).is_equal(0)
 	assert_int(page.offset).is_equal(0)
+
+# --- title: the pointer ---
+
+func test_hover_lands_where_drawn() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	await _press(KEY_DOWN)
+	await _press(KEY_DOWN)
+	assert_int(page.offset).is_equal(37)
+	_motion(page, page.to_page(ControlsPage.slot_rect(1, 1, true).get_center()))
+	assert_int(page.rules.row).is_equal(1)
+	assert_int(page.rules.slot).is_equal(1)
+	assert_int(page.offset).is_equal(37)
+
+func test_a_hidden_row_is_not_hovered() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	assert_int(page.rules.row).is_equal(0)
+	assert_int(page.offset).is_equal(0)
+	# row 1's slot, drawn at page y 118.5, is below the view
+	_motion(page, page.to_page(ControlsPage.slot_rect(1, 1, true).get_center()))
+	assert_int(page.rules.row).is_equal(0)
+	# row 4's unscrolled place, page y 131.5, is below the view too
+	_motion(page, ControlsPage.slot_rect(4, 1, true).get_center())
+	assert_int(page.rules.row).is_equal(0)
+	_motion(page, Vector2(194, 51))   # the top mark row
+	assert_int(page.rules.row).is_equal(0)
+
+func test_clicks_land_where_drawn() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	await _press(KEY_UP)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(198)
+	_left_click(page, ControlsPage.tab_rect(1, true).get_center())   # the unscrolled place, outside the view
+	assert_int(page.rules.device).is_equal(Controls.Device.KEYBOARD)
+	await _press(KEY_DOWN)
+	assert_int(page.rules.row).is_equal(0)
+	assert_int(page.offset).is_equal(0)
+	_left_click(page, page.to_page(ControlsPage.tab_rect(1, true).get_center()))
+	assert_int(page.rules.device).is_equal(Controls.Device.CONTROLLER)
+	await _press(KEY_UP)
+	assert_int(page.offset).is_equal(198)
+	_left_click(page, page.to_page(ControlsPage.row_rect(8, true).get_center()))
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
