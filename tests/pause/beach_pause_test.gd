@@ -371,3 +371,25 @@ func test_the_players_pause_key_pauses() -> void:
 	assert_bool(_node("Board").visible).is_false()
 	await _tap(KEY_P)
 	assert_bool(_node("Board").visible).is_true()
+
+func test_no_strip_in_play() -> void:
+	_control()
+	assert_bool(pause.strip.is_visible_in_tree()).is_false()
+
+func test_board_shows_select_and_back() -> void:
+	_control()
+	await _tap(KEY_ESCAPE)
+	assert_bool(pause.strip.is_visible_in_tree()).is_true()
+	assert_str(pause.strip.text()).is_equal("[Enter] Select   [Esc] Back")
+
+func test_start_shows_the_pads_buttons() -> void:
+	_control()
+	await _pad(JOY_BUTTON_START)
+	assert_bool(pause.strip.is_visible_in_tree()).is_true()
+	assert_str(pause.strip.text()).is_equal("(A) Select   (B) Back")
+
+func test_quit_box_keeps_the_strip_on_top() -> void:
+	await _open_box()
+	assert_bool(pause.strip.is_visible_in_tree()).is_true()
+	assert_int(pause.strip.get_index()).is_greater(_node("QuitBox").get_index())
+	assert_str(pause.strip.text()).is_equal("[Enter] Select   [Esc] Back")

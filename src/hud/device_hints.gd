@@ -2,8 +2,8 @@ class_name DeviceHints
 extends RefCounted
 ## What each hint says on each device: pictures and words, no drawing.
 
-enum Hint { MOVE, USE, BUILD_LIST, PLACING }
-enum Slot { MOVE, BOTTOM, RIGHT }
+enum Hint { MOVE, USE, BUILD_LIST, PLACING, SELECT, SELECT_BACK }
+enum Slot { MOVE, BOTTOM, RIGHT, SELECT, BACK }   # SELECT, BACK: the menu's fixed buttons
 enum Shape { KEY, ROUND, STICK, SHOULDER }   # SHOULDER: also every pad picture of more than one glyph
 
 const CAP_FACE := Color("#f4e3c1")
@@ -105,7 +105,12 @@ static func pictures(kind: DeviceTracker.Kind, slot: Slot, controls: Controls = 
 			var use := controls.first_input(Controls.Action.USE, device)
 			if use != null:
 				result.append(picture_for(use, kind))
-		Slot.RIGHT:
+		Slot.SELECT:
+			if keyboard:
+				result.append(Picture.new(Shape.KEY, "Enter", CAP_FACE, CAP_INK))
+			else:
+				result.append(picture_for(_pad_button(0), kind))
+		Slot.RIGHT, Slot.BACK:
 			if keyboard:
 				result.append(Picture.new(Shape.KEY, "Esc", CAP_FACE, CAP_INK))
 			else:
@@ -164,6 +169,12 @@ static func line(hint: Hint, kind: DeviceTracker.Kind, verb: String = "", contro
 			items.append("Build" if list else "Place")
 			items.append_array(pictures(kind, Slot.RIGHT, controls))
 			items.append("Close" if list else "Back")
+		Hint.SELECT, Hint.SELECT_BACK:
+			items.append_array(pictures(kind, Slot.SELECT, controls))
+			items.append("Select")
+			if hint == Hint.SELECT_BACK:
+				items.append_array(pictures(kind, Slot.BACK, controls))
+				items.append("Back")
 	return items
 
 ## The line in the agreed notation: [label] for KEY, (label) otherwise; a word after a picture gets

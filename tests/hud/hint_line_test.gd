@@ -13,6 +13,7 @@ func _picture(shape: DeviceHints.Shape, label: String) -> DeviceHints.Picture:
 func test_key_cap_widths() -> void:
 	assert_int(HintLine.picture_width(_picture(S.KEY, "E"))).is_equal(9)
 	assert_int(HintLine.picture_width(_picture(S.KEY, "Esc"))).is_equal(17)
+	assert_int(HintLine.picture_width(_picture(S.KEY, "Enter"))).is_equal(25)
 	assert_int(HintLine.picture_width(_picture(S.ROUND, "A"))).is_equal(9)
 	assert_int(HintLine.picture_width(_picture(S.STICK, "L"))).is_equal(9)
 
@@ -29,3 +30,8 @@ func test_longest_hint_fits_the_picture() -> void:
 func test_shoulder_width_is_label_plus_six() -> void:
 	assert_int(HintLine.picture_width(_picture(S.SHOULDER, "LB"))).is_equal(Glyphs.width("LB") + 6)
 	assert_int(HintLine.picture_width(_picture(S.SHOULDER, "Start"))).is_equal(Glyphs.width("Start") + 6)
+
+func test_menu_line_widths() -> void:
+	assert_int(HintLine.width(DeviceHints.line(H.SELECT, K.KEYBOARD), font)).is_equal(76)
+	assert_int(HintLine.width(DeviceHints.line(H.SELECT_BACK, K.KEYBOARD), font)).is_equal(140)
+	assert_int(HintLine.width(DeviceHints.line(H.SELECT_BACK, K.XBOX), font)).is_equal(116)

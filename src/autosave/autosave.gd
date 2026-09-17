@@ -17,11 +17,15 @@ var _day_night: DayNight
 var _paused_by_box := false
 var _shakes_seen := 0
 var _shake: Tween
+var strip: MenuStrip
 
 func _ready() -> void:
 	rules = DawnSave.new(func() -> Error: return save_game.call())
 	_connect_button(%TryAgain, DawnSave.Choice.TRY_AGAIN)
 	_connect_button(%KeepPlaying, DawnSave.Choice.KEEP_PLAYING)
+	strip = MenuStrip.new()
+	%Box.add_child(strip)   # shown exactly when the box is
+	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
 	_refresh()
 
 func watch(beach: Beach, day_night: DayNight) -> void:

@@ -257,3 +257,11 @@ func test_resting_pointer_does_not_select() -> void:
 	_fail_dawn()
 	(_n("KeepPlaying") as Control).mouse_entered.emit()
 	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
+
+func test_no_strip_before_the_box() -> void:
+	assert_bool(autosave.strip.is_visible_in_tree()).is_false()
+
+func test_box_shows_select_and_back() -> void:
+	_fail_dawn()
+	assert_bool(autosave.strip.is_visible_in_tree()).is_true()
+	assert_str(autosave.strip.text()).is_equal("[Enter] Select   [Esc] Back")

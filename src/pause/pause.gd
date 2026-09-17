@@ -26,9 +26,13 @@ var can_pause: Callable = func() -> bool: return true      # the scene says when
 var has_saved: Callable = func() -> bool: return false     # the scene says whether this run has saved
 var open_settings: Callable = func() -> void: pass         # the settings screen, when it exists
 var quit_to_title: Callable = _quit_to_title               # tests replace it
+var strip: MenuStrip
 
 func _ready() -> void:
 	rules = PauseMenu.new(with_skip_story)
+	strip = MenuStrip.new()
+	%Board.add_child(strip)   # last child: above the quit box's dim, shown exactly when the board is
+	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
 	%SkipStory.visible = with_skip_story
 	var h := BOARD_H_THREE + (PLANK_STEP if with_skip_story else 0.0)
 	%Panel.position = Vector2(BOARD_X, (BASE_HEIGHT - h) / 2.0)

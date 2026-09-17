@@ -11,6 +11,7 @@ var calls: Array[String] = []
 
 func after_test() -> void:
 	_rm(ROOT)
+	InputDevice.reset()
 
 func _rm(path: String) -> void:
 	if FileAccess.file_exists(path):
@@ -42,6 +43,7 @@ func _write_meta(text: String) -> void:
 	f.close()
 
 func _open(dir: String, steps: Dictionary[int, Callable] = SaveMigrations.chain()) -> void:
+	InputDevice.reset()
 	calls = []
 	runner = scene_runner(SCENE)
 	screen = runner.scene() as TitleScreen
@@ -470,3 +472,13 @@ func test_resting_pointer_does_not_move_the_box_highlight() -> void:
 	await _open_start_over_box()
 	_plank("StartOver").mouse_entered.emit()
 	_box_highlighted("KeepMyIsland")
+
+func test_start_over_box_shows_select_and_back() -> void:
+	await _open_start_over_box()
+	assert_str(screen.strip.text()).is_equal("[Enter] Select   [Esc] Back")
+	await _press(KEY_ESCAPE)
+	assert_str(screen.strip.text()).is_equal("[Enter] Select")
+
+func test_replace_box_shows_select_and_back() -> void:
+	await _open_replace_box()
+	assert_str(screen.strip.text()).is_equal("[Enter] Select   [Esc] Back")
