@@ -263,3 +263,10 @@ func test_ok_then_two_button_box_refits() -> void:
 	assert_that(_panel_rect()).is_equal(Rect2(84, 28, 152, 124))
 	assert_bool(_box_node("Other").visible).is_true()
 	assert_that(_rect("Other").position).is_equal(Vector2(24, 94))
+
+func test_size_change_while_ok_alone_is_up_keeps_one_button() -> void:
+	await _open_no_pad()
+	_size_up(2)
+	assert_that(_panel_rect()).is_equal(Rect2(84, 42, 152, 96))
+	assert_that(_rect("Safe")).is_equal(Rect2(24, 66, 104, 20))
+	assert_bool(_box_node("Other").visible).is_false()
