@@ -41,6 +41,7 @@ take_lock() {
 take_lock
 : > "$lock/.gdignore"
 printf '%s\n' "$$" > "$lock/pid"
+trap 'rm -rf "$lock"' EXIT INT TERM
 
 slug="$(printf '%s' "$(basename "$repo")" | tr -c 'A-Za-z0-9._-' '_')-$(printf '%s' "$repo" | shasum | cut -c1-8)"
 
@@ -57,7 +58,7 @@ cat > "$repo/override.cfg" <<EOF
 config/use_custom_user_dir=true
 config/custom_user_dir_name="Tide and Timber/gate/$slug"
 EOF
-trap 'rm -f "$repo/override.cfg"' EXIT INT TERM
+trap 'rm -f "$repo/override.cfg"; rm -rf "$lock"' EXIT INT TERM
 
 say "user data dir Tide and Timber/gate/$slug"
 

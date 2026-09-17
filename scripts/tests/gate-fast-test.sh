@@ -225,6 +225,33 @@ test_refuses_while_another_run_holds_the_lock() {
   rm -rf "$S"
 }
 
+test_lock_is_released_after_a_green_run() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  run_gate
+  if [ "$code" != 0 ]; then fail "$name" "exit $code: $(cat "$S/err")"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_lock_is_released_after_a_suite_failure() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  FAKE_SUITE_EXIT=100 run_gate
+  if [ "$code" != 1 ]; then fail "$name" "exit $code"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
+test_lock_is_released_when_the_run_is_signalled() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  FAKE_SUITE_KILL=1 run_gate
+  if [ "$code" = 0 ]; then fail "$name" "exit 0 after a signal"
+  elif [ -e "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "lock left behind"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
 test_missing_godot_exits_1
 test_default_godot_comes_from_path
 test_arguments_exit_2
@@ -240,4 +267,7 @@ test_user_dir_name_is_stable_per_checkout_and_distinct_between_them
 test_foreign_override_cfg_refuses
 test_stale_own_override_cfg_is_overwritten
 test_refuses_while_another_run_holds_the_lock
+test_lock_is_released_after_a_green_run
+test_lock_is_released_after_a_suite_failure
+test_lock_is_released_when_the_run_is_signalled
 exit "$failed"
