@@ -10,7 +10,7 @@
 
 **Prevent by.** In any suite that can pause the tree, wait with `await get_tree().create_timer(seconds, true).timeout`, never `await_millis`. This could go in the plan template's *Known traps*, next to "a paused tree leaks between suites".
 
-**Seen before.** No.
+**Seen before.** Yes, `docs/retrospectives/tr-asx.2.md`, the same hang in `autosave_test.gd`. Its proposed trap in `.cerebro/traps.md` has not been added, and this plan's tests still said `await_millis`. That is a second occurrence.
 
 ## A nested enum named like a global class does not parse
 
