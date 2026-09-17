@@ -10,6 +10,7 @@ var resumed := 0
 
 func before_test() -> void:
 	InputDevice.reset()
+	Display.use_prefs(DisplayPrefs.new())
 	calls = []
 	resumed = 0
 	runner = scene_runner("res://src/waking/waking.tscn")
@@ -27,6 +28,7 @@ func after_test() -> void:
 	get_tree().paused = false
 	InputDevice.reset()
 	InputDevice.use_controls(Controls.new())
+	Display.use_prefs(DisplayPrefs.new())
 
 func _control() -> void:
 	waking.tick(5.0)
@@ -54,8 +56,8 @@ func _board_node(unique: String) -> Control:
 func _is_highlighted(plank: Control) -> bool:
 	return is_same(plank.get_theme_stylebox("panel"), Pause.PLANK_HIGHLIGHT_STYLE)
 
-func _controls_highlighted() -> void:
-	assert_bool(_is_highlighted(_board_node("Controls"))).override_failure_message("Controls is not highlighted").is_true()
+func _row_highlighted(unique: String) -> void:
+	assert_bool(_is_highlighted(_board_node(unique))).override_failure_message("%s is not highlighted" % unique).is_true()
 
 func _open_settings() -> void:
 	_control()
@@ -77,9 +79,9 @@ func test_settings_opens_the_board_over_the_frozen_game() -> void:
 	assert_bool(board.visible).is_true()
 	assert_bool(_pause_node("Board").visible).is_false()
 	assert_str((board.get_node("Panel/Heading") as Label).text).is_equal("Settings")
-	assert_str((_board_node("Controls").get_node("Label") as Label).text).is_equal("Controls")
-	assert_bool(is_same(_board_node("Controls").get_theme_stylebox("panel"), SettingsBoard.PLANK_HIGHLIGHT_STYLE)).is_true()
-	assert_that(_board_node("Panel").get_rect()).is_equal(Rect2(88, 62, 144, 56))
+	assert_str((_board_node("Controls").get_node("Row/Label") as Label).text).is_equal("Controls")
+	assert_bool(is_same(_board_node("UiSize").get_theme_stylebox("panel"), SettingsBoard.PLANK_HIGHLIGHT_STYLE)).is_true()
+	assert_that(_board_node("Panel").get_rect()).is_equal(Rect2(8, 21, 304, 138))
 	assert_str(board.strip.text()).is_equal("[Enter] Select   [Esc] Back")
 
 func test_board_fits_and_the_strip_clears_it() -> void:
@@ -88,12 +90,14 @@ func test_board_fits_and_the_strip_clears_it() -> void:
 	assert_bool(Rect2(0, 0, 320, 180).encloses(panel)).is_true()
 	assert_bool(panel.intersects(board.strip.get_global_rect())).is_false()
 
-func test_up_and_down_leave_controls_highlighted() -> void:
+func test_up_and_down_move_between_rows() -> void:
 	await _open_settings()
-	await _tap(KEY_UP)
 	await _tap(KEY_DOWN)
-	await _tap(KEY_S)
-	_controls_highlighted()
+	_row_highlighted("TextSize")
+	await _tap(KEY_UP)
+	_row_highlighted("UiSize")
+	await _tap(KEY_UP)
+	_row_highlighted("Controls")
 
 func test_esc_returns_to_the_paused_board_on_settings() -> void:
 	await _open_settings()
@@ -123,6 +127,7 @@ func test_esc_is_back_not_resume() -> void:
 
 func test_enter_on_controls_calls_the_seam_and_stays() -> void:
 	await _open_settings()
+	await _tap(KEY_UP)
 	assert_array(calls).is_empty()
 	await _tap(KEY_ENTER)
 	assert_array(calls).is_equal(["controls"])
@@ -134,7 +139,7 @@ func test_mouse_hovers_and_clicks_controls() -> void:
 	var move := InputEventMouseMotion.new()
 	move.relative = Vector2(1, 0)
 	_board_node("Controls").gui_input.emit(move)
-	_controls_highlighted()
+	_row_highlighted("Controls")
 	var right := InputEventMouseButton.new()
 	right.button_index = MOUSE_BUTTON_RIGHT
 	right.pressed = true
@@ -161,3 +166,15 @@ func test_reopening_after_start_opens_on_resume() -> void:
 	assert_bool(_pause_node("Board").visible).is_true()
 	assert_bool(_is_highlighted(_pause_node("Resume"))).is_true()
 	assert_bool(board.visible).is_false()
+
+func test_changes_from_pause_are_kept_and_play_stays_paused() -> void:
+	await _open_settings()
+	await _tap(KEY_RIGHT)
+	assert_int(Display.prefs.ui_size).is_equal(DisplayPrefs.Size.LARGE)
+	assert_bool(get_tree().paused).is_true()
+	await _tap(KEY_ESCAPE)
+	assert_bool(_pause_node("Board").visible).is_true()
+	assert_bool(_is_highlighted(_pause_node("Settings"))).is_true()
+	await _tap(KEY_ESCAPE)
+	assert_bool(get_tree().paused).is_false()
+	assert_int(Display.prefs.ui_size).is_equal(DisplayPrefs.Size.LARGE)

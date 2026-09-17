@@ -71,6 +71,7 @@ func _open_settings() -> void:
 	await _tap(KEY_ESCAPE)
 	await _tap(KEY_DOWN)
 	await _tap(KEY_ENTER)
+	await _tap(KEY_UP)   # the board opens on UI size; Up wraps to Controls
 
 func _open_page() -> void:
 	await _open_settings()
@@ -111,6 +112,7 @@ func test_opens_on_controller_after_a_pad_press() -> void:
 	await _tap(KEY_ESCAPE)
 	await _pad(JOY_BUTTON_DPAD_DOWN)
 	await _pad(JOY_BUTTON_A)
+	await _pad(JOY_BUTTON_DPAD_UP)
 	await _pad(JOY_BUTTON_A)
 	assert_bool(page.visible).is_true()
 	assert_int(page.rules.device).is_equal(D.CONTROLLER)
@@ -322,6 +324,7 @@ func test_changed_pause_key_resumes() -> void:
 	await _tap(KEY_ESCAPE)
 	await _tap(KEY_DOWN)
 	await _tap(KEY_ENTER)
+	await _tap(KEY_UP)
 	await _tap(KEY_ENTER)
 	assert_bool(page.visible).is_true()
 	await _pad(JOY_BUTTON_START)

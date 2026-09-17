@@ -22,17 +22,17 @@ color = Color(0.05, 0.04, 0.06, 0.45)
 [node name="Panel" type="Panel" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 88.0
-offset_top = 62.0
-offset_right = 232.0
-offset_bottom = 118.0
+offset_left = 8.0
+offset_top = 21.0
+offset_right = 312.0
+offset_bottom = 159.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_board")
 
 [node name="Heading" type="Label" parent="Panel"]
 layout_mode = 0
 offset_top = 8.0
-offset_right = 144.0
+offset_right = 304.0
 offset_bottom = 16.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
@@ -41,25 +41,236 @@ text = "Settings"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Controls" type="PanelContainer" parent="Panel"]
+[node name="UiSize" type="PanelContainer" parent="Panel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 16)
+custom_minimum_size = Vector2(200, 16)
 layout_mode = 0
-offset_left = 12.0
+offset_left = 52.0
 offset_top = 28.0
-offset_right = 132.0
+offset_right = 252.0
 offset_bottom = 44.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Panel/Controls"]
+[node name="Row" type="HBoxContainer" parent="Panel/UiSize"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Pad" type="Control" parent="Panel/UiSize/Row"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Panel/UiSize/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "UI size"
+vertical_alignment = 1
+
+[node name="Prev" type="Label" parent="Panel/UiSize/Row"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "◀"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="Panel/UiSize/Row"]
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
-text = "Controls"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Next" type="Label" parent="Panel/UiSize/Row"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "▶"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextSize" type="PanelContainer" parent="Panel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 16)
+layout_mode = 0
+offset_left = 52.0
+offset_top = 48.0
+offset_right = 252.0
+offset_bottom = 64.0
+focus_mode = 0
+mouse_filter = 0
+
+[node name="Row" type="HBoxContainer" parent="Panel/TextSize"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Pad" type="Control" parent="Panel/TextSize/Row"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Panel/TextSize/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Text size"
+vertical_alignment = 1
+
+[node name="Prev" type="Label" parent="Panel/TextSize/Row"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "◀"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="Panel/TextSize/Row"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Next" type="Label" parent="Panel/TextSize/Row"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "▶"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ColourCues" type="PanelContainer" parent="Panel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 16)
+layout_mode = 0
+offset_left = 52.0
+offset_top = 68.0
+offset_right = 252.0
+offset_bottom = 84.0
+focus_mode = 0
+mouse_filter = 0
+
+[node name="Row" type="HBoxContainer" parent="Panel/ColourCues"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Pad" type="Control" parent="Panel/ColourCues/Row"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Panel/ColourCues/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Colour cues"
+vertical_alignment = 1
+
+[node name="Prev" type="Label" parent="Panel/ColourCues/Row"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "◀"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="Panel/ColourCues/Row"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Next" type="Label" parent="Panel/ColourCues/Row"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "▶"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Controls" type="PanelContainer" parent="Panel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 16)
+layout_mode = 0
+offset_left = 52.0
+offset_top = 88.0
+offset_right = 252.0
+offset_bottom = 104.0
+focus_mode = 0
+mouse_filter = 0
+
+[node name="Row" type="HBoxContainer" parent="Panel/Controls"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Pad" type="Control" parent="Panel/Controls/Row"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Panel/Controls/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Controls"
+vertical_alignment = 1
+
+[node name="Arrow" type="Label" parent="Panel/Controls/Row"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "›"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Line" type="Label" parent="Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 12.0
+offset_top = 112.0
+offset_right = 292.0
+offset_bottom = 130.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.85098, 0.780392, 0.639216, 1)
+theme_override_constants/line_spacing = 2
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="ControlsPage" parent="." instance=ExtResource("3_controls_page")]
 unique_name_in_owner = true

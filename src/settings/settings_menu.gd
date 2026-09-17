@@ -1,27 +1,33 @@
 class_name SettingsMenu
 extends RefCounted
-## The Settings board's rules, with no nodes: its planks, the one highlight, where it was opened from, and what a pick leads to.
+## The Settings board's rules, with no nodes: its planks and value rows, the one highlight, where it was opened from, and what a pick leads to.
 
-enum Plank { CONTROLS }                                  # tr-eg9.6 appends its planks after CONTROLS
+enum Plank { CONTROLS, UI_SIZE, TEXT_SIZE, COLOUR_CUES }
 enum Outcome { NONE, OPEN_CONTROLS, CLOSED, RESUME_PLAY }
 
-var items: Array[Plank] = [Plank.CONTROLS]               # top to bottom
+const SETTING_OF := {
+	Plank.UI_SIZE: DisplayPrefs.Setting.UI_SIZE,
+	Plank.TEXT_SIZE: DisplayPrefs.Setting.TEXT_SIZE,
+	Plank.COLOUR_CUES: DisplayPrefs.Setting.CUES,
+}
+
+var items: Array[Plank] = [Plank.UI_SIZE, Plank.TEXT_SIZE, Plank.COLOUR_CUES, Plank.CONTROLS]   # top to bottom
 var is_open := false
 var from_pause := false                                  # opened from the Paused board, not the title
-var highlighted: Plank = Plank.CONTROLS
+var highlighted: Plank = Plank.UI_SIZE
 var controls_open := false                               # the Controls page is over the board; the board takes no input
 
-## Opens on CONTROLS. False, changing nothing, if already open.
+## Opens on UI_SIZE. False, changing nothing, if already open.
 func open(p_from_pause: bool) -> bool:
 	if is_open:
 		return false
 	is_open = true
 	from_pause = p_from_pause
-	highlighted = Plank.CONTROLS
+	highlighted = Plank.UI_SIZE
 	controls_open = false
 	return true
 
-## Ignored unless the board takes input. Wraps round `items`; with one plank the highlight stays.
+## Ignored unless the board takes input. Wraps round `items`.
 func move(step: int) -> void:
 	if not _board_takes_input():
 		return
@@ -33,11 +39,22 @@ func hover(item: Plank) -> void:
 		highlighted = item
 
 ## CONTROLS: highlights it and returns OPEN_CONTROLS. Changes no other state; the Controls page calls show_controls().
+## A value row: highlights it only, and returns NONE.
 func pick(item: Plank) -> Outcome:
 	if not _board_takes_input() or item not in items:
 		return Outcome.NONE
 	highlighted = item
+	if SETTING_OF.has(item):
+		return Outcome.NONE
 	return Outcome.OPEN_CONTROLS
+
+## Left / right or an arrow click on a value row: highlights item and steps its value by delta.
+## True if the value changed. False, changing nothing, unless the board takes input and item is a value row.
+func change(item: Plank, delta: int, prefs: DisplayPrefs) -> bool:
+	if not _board_takes_input() or not SETTING_OF.has(item):
+		return false
+	highlighted = item
+	return prefs.step(SETTING_OF[item], delta)
 
 ## Esc / B: closes the board. CLOSED, or NONE unless the board takes input.
 func back() -> Outcome:
