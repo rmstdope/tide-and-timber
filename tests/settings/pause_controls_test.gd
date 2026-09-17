@@ -13,6 +13,7 @@ var changes: Array[String] = []
 var resumed := 0
 
 func before_test() -> void:
+	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
 	InputDevice.use_controls(Controls.new())
 	changes = []
@@ -29,6 +30,7 @@ func before_test() -> void:
 
 func after_test() -> void:
 	get_tree().paused = false
+	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
 	InputDevice.use_controls(Controls.new())
 
@@ -164,6 +166,34 @@ func test_delete_clears_and_saves_to_the_model() -> void:
 	assert_int(page.rules.row).is_equal(0)
 	await _tap(KEY_BACKSPACE)
 	assert_object(InputDevice.controls.slot(A.WALK_UP, D.KEYBOARD, 0)).is_null()
+
+func test_shapes_changes_redraw_the_open_page() -> void:
+	await _open_page()
+	await await_idle_frame()
+	var draws := [0]
+	page.draw.connect(func() -> void: draws[0] += 1)
+	Display.prefs.step(DisplayPrefs.Setting.CUES, 1)
+	await await_idle_frame()
+	assert_int(draws[0]).is_equal(1)
+
+func test_a_hidden_page_is_not_redrawn_by_cues() -> void:
+	var draws := [0]
+	page.draw.connect(func() -> void: draws[0] += 1)
+	Display.prefs.step(DisplayPrefs.Setting.CUES, 1)
+	await await_idle_frame()
+	assert_int(draws[0]).is_equal(0)
+
+func test_emptied_action_is_orange_with_shapes_and_the_line_is_unchanged() -> void:
+	Display.prefs.step(DisplayPrefs.Setting.CUES, 1)
+	await _open_page()
+	await _down(6)
+	await _tap(KEY_DELETE)
+	if InputDevice.controls.slot(A.BUILD_LIST, D.KEYBOARD, 1) != null:
+		InputDevice.controls.clear_slot(A.BUILD_LIST, D.KEYBOARD, 1)
+	assert_bool(page.rules.is_orange(6)).is_true()
+	assert_str(ControlsPage.empty_slot_mark(page.rules.is_orange(6), Display.prefs.cues)).is_equal("! —")
+	assert_str(ControlsPage.empty_slot_mark(page.rules.is_orange(5), Display.prefs.cues)).is_equal("—")
+	assert_str(page.rules.no_key_line).is_equal("Build list has no key")
 
 func _key(k: Key) -> InputEventKey:
 	var e := InputEventKey.new()
