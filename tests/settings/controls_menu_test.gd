@@ -311,3 +311,161 @@ func test_closed_page_ignores_everything() -> void:
 	menu.clear()
 	assert_object(c.slot(A.WALK_UP, D.KEYBOARD, 0)).is_not_null()
 	assert_bool(menu.is_open).is_false()
+
+# --- changing a slot (tr-eg9.5.4)
+
+func _key(code: Key) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.physical_keycode = code
+	e.pressed = true
+	return e
+
+func _button(index: JoyButton) -> InputEventJoypadButton:
+	var e := InputEventJoypadButton.new()
+	e.button_index = index
+	e.pressed = true
+	return e
+
+func _waiting_on(p_row: int, p_slot: int, device: Controls.Device = D.KEYBOARD) -> void:
+	_open(device, true)
+	menu.row = p_row
+	menu.slot = p_slot
+	assert_int(menu.pick()).is_equal(ControlsMenu.Outcome.CHANGE_SLOT)
+	menu.begin_change(true)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.WAITING)
+
+func test_change_opens_the_waiting_box() -> void:
+	_open()
+	assert_int(menu.pick()).is_equal(ControlsMenu.Outcome.CHANGE_SLOT)
+	menu.begin_change(false)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.WAITING)
+	assert_array(Array(menu.box_lines())).is_equal(["Walk up", "Press a new key"])
+
+func test_controller_waiting_lines() -> void:
+	_open(D.CONTROLLER)
+	menu.row = 6
+	menu.begin_change(true)
+	assert_array(Array(menu.box_lines())).is_equal(["Build list", "Press a new button"])
+
+func test_no_pad_on_controller() -> void:
+	_open(D.CONTROLLER)
+	menu.begin_change(false)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NO_PAD)
+	assert_array(Array(menu.box_lines())).is_equal(["Connect a controller to change its buttons."])
+
+func test_no_pad_ok_and_back_close() -> void:
+	_open(D.CONTROLLER)
+	menu.begin_change(false)
+	assert_int(menu.box_press(ControlsMenu.BoxButton.SAFE)).is_equal(ControlsMenu.Outcome.NONE)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NONE)
+	menu.begin_change(false)
+	menu.box_cancel()
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NONE)
+	menu.begin_change(false)
+	menu.box_select(ControlsMenu.BoxButton.OTHER)
+	assert_int(menu.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+	assert_int(menu.box_press(ControlsMenu.BoxButton.OTHER)).is_equal(ControlsMenu.Outcome.NONE)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NONE)
+	assert_bool(menu.is_open).is_true()
+
+func test_no_pad_ignores_start() -> void:
+	_open(D.CONTROLLER, true)
+	menu.begin_change(false)
+	assert_int(menu.start()).is_equal(ControlsMenu.Outcome.NONE)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NO_PAD)
+
+func test_begin_change_on_reset_row_does_nothing() -> void:
+	_open()
+	menu.move(-1)
+	menu.begin_change(true)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NONE)
+
+func test_taken_key_goes_into_the_slot() -> void:
+	_waiting_on(5, 1)
+	menu.finish_change(_key(KEY_F))
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NONE)
+	assert_int((c.slot(A.USE, D.KEYBOARD, 1) as InputEventKey).physical_keycode).is_equal(KEY_F)
+	assert_int(menu.row).is_equal(5)
+	assert_int(menu.slot).is_equal(1)
+	assert_str(menu.no_key_line).is_equal("")
+
+func test_clash_that_leaves_no_key_shows_the_line() -> void:
+	_waiting_on(6, 0)
+	menu.finish_change(_key(KEY_E))
+	assert_bool(c.has_no_key(A.USE, D.KEYBOARD)).is_true()
+	assert_str(menu.no_key_line).is_equal("Use / take has no key")
+	assert_bool(menu.is_orange(5)).is_true()
+
+func test_clash_that_leaves_a_key_shows_no_line() -> void:
+	_waiting_on(1, 1)
+	menu.finish_change(_key(KEY_UP))
+	assert_object(c.slot(A.WALK_UP, D.KEYBOARD, 1)).is_null()
+	assert_int((c.slot(A.WALK_UP, D.KEYBOARD, 0) as InputEventKey).physical_keycode).is_equal(KEY_W)
+	assert_str(menu.no_key_line).is_equal("")
+
+func test_same_action_other_slot_moves_across() -> void:
+	_waiting_on(0, 0)
+	menu.finish_change(_key(KEY_UP))
+	assert_int((c.slot(A.WALK_UP, D.KEYBOARD, 0) as InputEventKey).physical_keycode).is_equal(KEY_UP)
+	assert_object(c.slot(A.WALK_UP, D.KEYBOARD, 1)).is_null()
+	assert_str(menu.no_key_line).is_equal("")
+
+func test_same_key_again_changes_nothing() -> void:
+	_waiting_on(0, 0)
+	var calls := [0]
+	c.changed.connect(func() -> void: calls[0] += 1)
+	menu.finish_change(_key(KEY_W))
+	assert_int(calls[0]).is_equal(0)
+
+func test_controller_clash() -> void:
+	_waiting_on(6, 0, D.CONTROLLER)
+	menu.finish_change(_button(JOY_BUTTON_A))
+	assert_bool(c.has_no_key(A.USE, D.CONTROLLER)).is_true()
+	assert_str(menu.no_key_line).is_equal("Use / take has no key")
+	assert_int((c.slot(A.USE, D.KEYBOARD, 0) as InputEventKey).physical_keycode).is_equal(KEY_E)
+
+func test_cancel_changes_nothing() -> void:
+	_waiting_on(0, 0)
+	var calls := [0]
+	c.changed.connect(func() -> void: calls[0] += 1)
+	menu.finish_change(null)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NONE)
+	assert_int(calls[0]).is_equal(0)
+
+func test_next_press_hides_the_clash_line() -> void:
+	_waiting_on(6, 0)
+	menu.finish_change(_key(KEY_E))
+	menu.move(1)
+	assert_str(menu.no_key_line).is_equal("")
+
+func test_waiting_blocks_the_page() -> void:
+	_waiting_on(2, 0)
+	menu.move(1)
+	menu.side(1)
+	menu.switch_tab()
+	menu.clear()
+	assert_int(menu.back()).is_equal(ControlsMenu.Outcome.NONE)
+	assert_int(menu.start()).is_equal(ControlsMenu.Outcome.NONE)
+	assert_int(menu.box_press(ControlsMenu.BoxButton.OTHER)).is_equal(ControlsMenu.Outcome.NONE)
+	assert_int(menu.box).is_equal(ControlsMenu.Box.WAITING)
+	assert_int(menu.row).is_equal(2)
+	assert_int(menu.slot).is_equal(0)
+	assert_int(menu.device).is_equal(D.KEYBOARD)
+	assert_object(c.slot(A.WALK_LEFT, D.KEYBOARD, 0)).is_not_null()
+
+func test_pad_disconnect_closes_the_controller_box() -> void:
+	_waiting_on(0, 0, D.CONTROLLER)
+	menu.pad_disconnected()
+	assert_int(menu.box).is_equal(ControlsMenu.Box.NONE)
+	assert_object(c.slot(A.WALK_UP, D.CONTROLLER, 0)).is_not_null()
+
+func test_pad_disconnect_leaves_the_keyboard_box() -> void:
+	_waiting_on(0, 0)
+	menu.pad_disconnected()
+	assert_int(menu.box).is_equal(ControlsMenu.Box.WAITING)
+
+func test_finish_without_waiting_does_nothing() -> void:
+	_open()
+	menu.finish_change(_key(KEY_F))
+	assert_int((c.slot(A.WALK_UP, D.KEYBOARD, 0) as InputEventKey).physical_keycode).is_equal(KEY_W)

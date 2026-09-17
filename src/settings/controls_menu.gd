@@ -3,7 +3,7 @@ extends RefCounted
 ## The Controls page's rules, with no nodes: the tab, the highlighted row and slot, the open box,
 ## the no-key line, and what each press leads to. Changes go through a Controls model, which saves.
 
-enum Box { NONE, RESET, LEAVING }              # tr-eg9.5.4 appends WAITING and NO_PAD
+enum Box { NONE, RESET, LEAVING, WAITING, NO_PAD }
 enum BoxButton { SAFE, OTHER }                 # SAFE: Keep mine / Set a key (left); OTHER: Reset / Leave (right)
 enum Outcome { NONE, CLOSED, RESUME_PLAY, CHANGE_SLOT }
 
@@ -13,6 +13,9 @@ const LEAVE_QUESTION := "Leave anyway?"
 const SOME_ACTIONS := "Some actions have no key."
 const RESET_KEYBOARD := "Put every keyboard key back as it was?"
 const RESET_CONTROLLER := "Put every controller button back as it was?"
+const PRESS_KEY := "Press a new key"
+const PRESS_BUTTON := "Press a new button"
+const NO_PAD_LINE := "Connect a controller to change its buttons."
 
 var controls: Controls
 var is_open := false
@@ -119,8 +122,33 @@ func start() -> Outcome:
 	_open_leaving(true)
 	return Outcome.NONE
 
-## A box button highlighted by left/right or the pointer.
+## After pick() gave CHANGE_SLOT: the WAITING box, or NO_PAD on the Controller tab with no pad connected.
+func begin_change(pad_connected: bool) -> void:
+	if not is_open or box != Box.NONE or row == RESET_ROW:
+		return
+	box = Box.NO_PAD if device == Controls.Device.CONTROLLER and not pad_connected else Box.WAITING
+	box_selected = BoxButton.SAFE
+
+## The waiting box is done. event: what was taken, into the highlighted slot; null: cancelled, nothing changes.
+func finish_change(event: InputEvent) -> void:
+	if box != Box.WAITING:
+		return
+	box = Box.NONE
+	if event == null:
+		return
+	var other := controls.set_slot(row as Controls.Action, device, slot, event)
+	if other != Controls.NO_ACTION and controls.has_no_key(other as Controls.Action, device):
+		note_no_key(other as Controls.Action)
+
+## A pad unplugged: closes a Controller-tab WAITING box with nothing changed.
+func pad_disconnected() -> void:
+	if box == Box.WAITING and device == Controls.Device.CONTROLLER:
+		box = Box.NONE
+
+## A box button highlighted by left/right or the pointer. OK is the only button in WAITING and NO_PAD.
 func box_select(button: BoxButton) -> void:
+	if box == Box.WAITING or box == Box.NO_PAD:
+		return
 	if not is_open:
 		return
 	no_key_line = ""
@@ -129,6 +157,8 @@ func box_select(button: BoxButton) -> void:
 
 ## A box button chosen.
 func box_press(button: BoxButton) -> Outcome:
+	if box == Box.WAITING:
+		return Outcome.NONE
 	if not is_open:
 		return Outcome.NONE
 	no_key_line = ""
@@ -157,7 +187,7 @@ func box_press(button: BoxButton) -> Outcome:
 func box_cancel() -> Outcome:
 	return box_press(BoxButton.SAFE)
 
-## Part 4's clash: shows "<Action> has no key" for this action.
+## A clash: shows "<Action> has no key" for this action.
 func note_no_key(p_action: Controls.Action) -> void:
 	if not is_open:
 		return
@@ -171,7 +201,8 @@ func empty_actions() -> Array[Controls.Action]:
 			result.append(a)
 	return result
 
-## The open box's lines: LEAVING [first, LEAVE_QUESTION]; RESET [the question for `device`]; NONE [].
+## The open box's lines: LEAVING [first, LEAVE_QUESTION]; RESET [the question for `device`];
+## WAITING [action, press line]; NO_PAD [NO_PAD_LINE]; NONE [].
 func box_lines() -> PackedStringArray:
 	match box:
 		Box.LEAVING:
@@ -180,6 +211,10 @@ func box_lines() -> PackedStringArray:
 			return PackedStringArray([first, LEAVE_QUESTION])
 		Box.RESET:
 			return PackedStringArray([RESET_KEYBOARD if device == Controls.Device.KEYBOARD else RESET_CONTROLLER])
+		Box.WAITING:
+			return PackedStringArray([Controls.NAMES[row], PRESS_KEY if device == Controls.Device.KEYBOARD else PRESS_BUTTON])
+		Box.NO_PAD:
+			return PackedStringArray([NO_PAD_LINE])
 	return PackedStringArray()
 
 ## True when this row's action has no key on the showing tab: its empty slots draw orange.
