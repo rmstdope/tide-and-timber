@@ -21,6 +21,7 @@ func before_test() -> void:
 
 func after_test() -> void:
 	InputDevice.reset()
+	InputDevice.use_controls(Controls.new())
 
 func _n(unique: String) -> Node:
 	return beach.get_node("%" + unique)
@@ -104,3 +105,21 @@ func test_verb_prompt_key_cap_matches_the_old_layout() -> void:
 	var prompt := _n("Prompt") as UsePrompt
 	await _stand_by_driftwood()
 	assert_int(prompt.width()).is_equal(3 + 9 + 2 + ceili(prompt.verb_label.get_minimum_size().x) + 3)
+
+func test_prompt_shows_the_players_key() -> void:
+	var f := InputEventKey.new()
+	f.physical_keycode = KEY_F
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, f)
+	var prompt := _n("Prompt") as UsePrompt
+	await _stand_by_driftwood()
+	assert_bool(prompt.visible).is_true()
+	assert_str(prompt.text()).is_equal("[F] Take")
+
+func test_prompt_without_a_use_key_shows_just_the_verb() -> void:
+	InputDevice.controls.clear_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0)
+	var prompt := _n("Prompt") as UsePrompt
+	await _stand_by_driftwood()
+	assert_object(prompt.picture()).is_null()
+	assert_str(prompt.text()).is_equal("Take")
+	assert_int(prompt.width()).is_equal(3 + ceili(prompt.verb_label.get_minimum_size().x) + 3)
+

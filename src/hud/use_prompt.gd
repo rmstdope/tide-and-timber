@@ -16,11 +16,14 @@ func _ready() -> void:
 	add_child(verb_label)
 	InputDevice.changed.connect(_on_device_changed)
 
+## The player's Use key or button on the device in use, or null when Use has none there.
 func picture() -> DeviceHints.Picture:
-	return DeviceHints.pictures(InputDevice.kind(), DeviceHints.Slot.BOTTOM)[0]
+	var pictures := DeviceHints.pictures(InputDevice.kind(), DeviceHints.Slot.BOTTOM, InputDevice.controls)
+	return null if pictures.is_empty() else pictures[0]
 
 func text() -> String:
-	return DeviceHints.as_text([picture(), verb_label.text])
+	var p := picture()
+	return verb_label.text if p == null else DeviceHints.as_text([p, verb_label.text])
 
 func show_for(usable: Usable) -> void:
 	verb_label.text = usable.verb
@@ -29,10 +32,15 @@ func show_for(usable: Usable) -> void:
 	show()
 
 func width() -> int:
-	return 3 + HintLine.picture_width(picture()) + 2 + ceili(verb_label.get_minimum_size().x) + 3
+	return 3 + _picture_room() + ceili(verb_label.get_minimum_size().x) + 3
+
+# The picture's width and the gap after it; nothing without a picture.
+func _picture_room() -> int:
+	var p := picture()
+	return 0 if p == null else HintLine.picture_width(p) + 2
 
 func _layout() -> void:
-	verb_label.position = Vector2(-width() / 2 + 3 + HintLine.picture_width(picture()) + 2, -HEIGHT + 3)
+	verb_label.position = Vector2(-width() / 2 + 3 + _picture_room(), -HEIGHT + 3)
 	queue_redraw()
 
 func _on_device_changed() -> void:
@@ -45,4 +53,6 @@ func _draw() -> void:
 	draw_rect(Rect2(x0, y0, w, 13), Color("#7a5030"))
 	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 11), Color("#b07a45"))
 	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 1), Color("#d9a56b"))
-	HintLine.draw_picture(self, picture(), Vector2(x0 + 3, y0 + 2))
+	var p := picture()
+	if p != null:
+		HintLine.draw_picture(self, p, Vector2(x0 + 3, y0 + 2))

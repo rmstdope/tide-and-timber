@@ -25,3 +25,7 @@ func test_longest_hint_fits_the_picture() -> void:
 	for kind: DeviceTracker.Kind in K.values():
 		assert_int(HintLine.width(DeviceHints.line(H.PLACING, kind), font) + 8).is_less_equal(320)
 		assert_int(HintLine.width(DeviceHints.line(H.BUILD_LIST, kind), font) + 8).is_less_equal(320)
+
+func test_shoulder_width_is_label_plus_six() -> void:
+	assert_int(HintLine.picture_width(_picture(S.SHOULDER, "LB"))).is_equal(Glyphs.width("LB") + 6)
+	assert_int(HintLine.picture_width(_picture(S.SHOULDER, "Start"))).is_equal(Glyphs.width("Start") + 6)

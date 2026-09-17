@@ -1,5 +1,6 @@
 extends GdUnitTestSuite
 ## Every gameplay verb has its pad binding by button position; unused pad inputs bind nothing.
+## Keys are named in code only under src/input (Controls and KeyLabels); nowhere else in src reads a key code.
 
 const BUTTONS := {
 	&"run": JOY_BUTTON_LEFT_SHOULDER,
@@ -98,6 +99,8 @@ func test_no_raw_key_reads_in_src() -> void:
 	assert_array(offenders).is_empty()
 
 func _scan(dir: String, offenders: Array[String]) -> void:
+	if dir == "res://src/input":
+		return
 	for sub in DirAccess.get_directories_at(dir):
 		_scan(dir.path_join(sub), offenders)
 	for f in DirAccess.get_files_at(dir):

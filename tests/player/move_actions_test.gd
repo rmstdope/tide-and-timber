@@ -32,3 +32,25 @@ func test_run_is_bound_to_shift() -> void:
 	a.shift_pressed = true
 	a.pressed = true
 	assert_bool(InputMap.event_is_action(a, &"move_left")).is_true()
+
+func after_test() -> void:
+	InputDevice.use_controls(Controls.new())
+
+func test_walk_follows_rebound_keys() -> void:
+	var i := InputEventKey.new()
+	i.physical_keycode = KEY_I
+	InputDevice.controls.set_slot(Controls.Action.WALK_UP, Controls.Device.KEYBOARD, 0, i)
+	var held := InputEventKey.new()
+	held.physical_keycode = KEY_I
+	held.pressed = true
+	Input.parse_input_event(held)
+	Input.flush_buffered_events()
+	assert_float(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down").y).is_less(0.0)
+	var up := held.duplicate() as InputEventKey
+	up.pressed = false
+	Input.parse_input_event(up)
+	Input.flush_buffered_events()
+	var w := InputEventKey.new()
+	w.physical_keycode = KEY_W
+	w.pressed = true
+	assert_bool(InputMap.event_is_action(w, &"move_up")).is_false()

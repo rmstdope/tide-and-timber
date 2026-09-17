@@ -16,6 +16,7 @@ func before_test() -> void:
 
 func after_test() -> void:
 	get_tree().paused = false
+	InputDevice.use_controls(Controls.new())
 
 func _node(unique: String) -> Node:
 	return intro.get_node("%" + unique)
@@ -232,3 +233,18 @@ func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
 	var move := InputEventMouseMotion.new()
 	move.relative = relative
 	control.gui_input.emit(move)
+
+func _key(code: Key) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.physical_keycode = code
+	return e
+
+func test_the_players_use_key_taps() -> void:
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, _key(KEY_F))
+	await _tap(KEY_F)
+	assert_int(_node("Picture").picture).is_equal(1)
+
+func test_space_still_taps_after_rebinding() -> void:
+	InputDevice.controls.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, _key(KEY_F))
+	await _tap(KEY_SPACE)
+	assert_int(_node("Picture").picture).is_equal(1)

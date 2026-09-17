@@ -5,12 +5,15 @@ extends Node
 signal changed
 
 var tracker: DeviceTracker
+var controls: Controls
 var menu_push: MenuPush
 var _menu_event: InputEvent
 var _menu_step := MenuPush.Step.NONE
 var pointer := PointerRule.new()
 
 func _ready() -> void:
+	# The gdUnit command-line run gives the SceneTree a script: it starts at the defaults and never touches the file.
+	use_controls(Controls.load_from("" if get_tree().get_script() != null else Controls.PATH))
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	pointer.changed.connect(_apply_pointer)
 	reset(_pad_names(-1))
@@ -19,6 +22,18 @@ func _ready() -> void:
 
 func kind() -> DeviceTracker.Kind:
 	return tracker.kind
+
+## Makes c the live controls: applies them to the InputMap and tells every hint. Tests pass Controls.new().
+func use_controls(c: Controls) -> void:
+	if controls != null and controls.changed.is_connected(_on_controls_changed):
+		controls.changed.disconnect(_on_controls_changed)
+	controls = c
+	c.changed.connect(_on_controls_changed)
+	c.apply_to_input_map()
+	changed.emit()
+
+func _on_controls_changed() -> void:
+	changed.emit()
 
 ## Starts over as at launch with these pads connected, and tells every hint. Tests call reset() for keyboard.
 func reset(pad_names: PackedStringArray = PackedStringArray()) -> void:
