@@ -178,11 +178,10 @@ func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
 	assert_that(marks.get_rect()).is_equal(Rect2(0, 0, 156, 74))
 	assert_int(marks.get_signal_connection_list("draw").size()) \
 		.override_failure_message("%Marks has no draw handler, so no mark is ever drawn").is_greater(0)
-	# The two mark rows: the panel's top 10 units and its bottom 10.
+	# The centres _draw_marks draws on: the panel's horizontal centre, in the top and bottom mark rows
+	# of the 74-tall panel. Pinned as literals, so moving either mark out of its row fails here.
+	assert_that(board.mark_centre(true)).is_equal(Vector2(78, 5))
+	assert_that(board.mark_centre(false)).is_equal(Vector2(78, 69))
 	var font := load("res://assets/fonts/PressStart2P-Regular.ttf") as Font
-	var up := ScrollWindow.mark_origin(font, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
-	var down := ScrollWindow.mark_origin(font,
-			Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
-	assert_that(up).is_equal(Vector2(74, 9))
-	assert_that(down).is_equal(Vector2(74, 73))
-	assert_float(down.y).is_less_equal(marks.size.y)
+	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(true), true)).is_equal(Vector2(74, 9))
+	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(false), false)).is_equal(Vector2(74, 73))
