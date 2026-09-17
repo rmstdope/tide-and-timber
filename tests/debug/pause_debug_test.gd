@@ -203,9 +203,11 @@ func test_a_second_refusal_restarts_the_shake() -> void:
 	await _open_panel()
 	await _tap(KEY_E)   # Items: the Time page has its own rows
 	await _tap(KEY_ENTER)
-	await _real_seconds(0.15)
+	var first := panel._shake_tween
 	await _tap(KEY_ENTER)
-	await _real_seconds(0.15)
+	# no real-time wait between the checks: a slow CI runner once outlasted the 0.24 s shake
+	assert_bool(first.is_valid()).is_false()
+	assert_bool(panel._shake_tween.is_valid()).is_true()
 	assert_int(panel.shaking_row).is_equal(0)
-	await _real_seconds(0.3)
+	await _real_seconds(0.5)
 	assert_int(panel.shaking_row).is_equal(-1)
