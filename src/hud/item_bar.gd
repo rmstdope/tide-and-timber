@@ -3,6 +3,7 @@ extends Control
 ## The always-shown wooden bar of 8 slots at the bottom centre, with a name plank on pointer rest.
 
 const PLANK_SIZE := Vector2(141, 22)    # 8 * 17 + 5
+const GROUP := &"item_bar"               # HintLift finds the drawn bar through it
 const TOP := 157.0                      # y of the plank in the 320x180 base
 const SCREEN_WIDTH := 320
 
@@ -13,6 +14,7 @@ var _inventory: Inventory
 var _hovered := -1
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	position = Vector2(roundi((SCREEN_WIDTH - PLANK_SIZE.x) / 2), TOP)
 	size = PLANK_SIZE
 	mouse_filter = MOUSE_FILTER_STOP

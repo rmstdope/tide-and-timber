@@ -87,3 +87,35 @@ func test_rising_line_grows_over_him() -> void:
 	var beach := _scene("res://src/beach/beach.tscn")
 	var line := RisingLine.show_over(beach.get_node("%Player"), "+1 Driftwood")
 	assert_vector(line.scale).is_equal(Vector2(2, 2))
+
+func test_build_hint_lifts_above_the_bar() -> void:
+	var beach := _scene("res://src/beach/beach.tscn")
+	var hint := beach.get_node("%KeyHint") as KeyHint
+	hint.show_hint(DeviceHints.Hint.BUILD_LIST)
+	await get_tree().process_frame
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(132.0, 0.01)
+	assert_float(hint.position.y).is_equal_approx(128.0, 0.01)
+	assert_float(hint.position.x).is_equal(float(roundi((320 - hint.size.x) / 2.0)))
+	Display.use_prefs(DisplayPrefs.new())
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+	await get_tree().process_frame
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(143.5, 0.01)
+	assert_float(hint.position.y).is_equal_approx(133.0, 0.01)
+	Display.use_prefs(DisplayPrefs.new())
+	await get_tree().process_frame
+	assert_float(hint.position.y).is_equal_approx(136.0, 0.01)
+
+func test_move_hint_lifts_above_the_bar() -> void:
+	var waking := _scene("res://src/waking/waking.tscn")
+	var hint := waking.get_node("%MoveHint") as Control
+	await get_tree().process_frame
+	assert_float(hint.position.y).is_equal_approx(142.0, 0.01)
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(132.0, 0.01)
+	assert_float(hint.position.x).is_equal(0.0)
+	assert_vector(hint.size).is_equal(Vector2(320, 14))
+	Display.use_prefs(DisplayPrefs.new())
+	await get_tree().process_frame
+	assert_float(hint.position.y).is_equal_approx(166.0, 0.01)
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+	await get_tree().process_frame
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(143.5, 0.01)

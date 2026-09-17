@@ -2,6 +2,7 @@ class_name MenuStrip
 extends Control
 ## A menu's Select / Back strip in the bottom-left corner, in the pictures of the device used last.
 ## Grows with UI size; its bottom-left stays at (LEFT, BOTTOM) on screen however its host is scaled.
+## At larger sizes it lifts above the item bar when it would cover it.
 
 const LEFT := 4.0      # the version number's inset from the right edge, mirrored
 const BOTTOM := 176.0  # level with the bottom of the title's version number
@@ -22,6 +23,7 @@ func _ready() -> void:
 	Display.changed.connect(_layout_later)
 	get_tree().root.size_changed.connect(_layout_later)
 	_layout()
+	_layout_later()   # a bar made later in the same scene joins its group in its own _ready
 
 ## Which line to show: DeviceHints.Hint.SELECT or SELECT_BACK. Lays out at once.
 func show_hint(h: DeviceHints.Hint) -> void:
@@ -44,10 +46,15 @@ func _layout() -> void:
 			else host.get_global_transform_with_canvas().affine_inverse() * want
 	position = local.origin
 	scale = local.get_scale()
+	HintLift.place(self, position.y, KeyHint.HEIGHT)
 	view.position = Vector2.ZERO
 	view.size = size
 	queue_redraw()
 	view.queue_redraw()
+
+## The strip's top edge on screen, after any lift: the lower bound of a scrolling list's visible band.
+func screen_top() -> float:
+	return HintLift.screen_rect(self).position.y
 
 ## Lays out again at frame end, reading the host's scale then; a host that scales itself calls it too.
 func relayout() -> void:

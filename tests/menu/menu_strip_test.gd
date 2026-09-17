@@ -144,3 +144,85 @@ func test_unscaled_host_grows_it_in_place() -> void:
 	assert_vector(s.position).is_equal_approx(Vector2(4, 152), Vector2(0.001, 0.001))
 	assert_vector(s.scale).is_equal(Vector2(2, 2))
 	_restore_root()
+
+# --- lifting above a grown item bar ---
+
+func _bar() -> ItemBar:
+	var layer := auto_free(CanvasLayer.new()) as CanvasLayer
+	var ui := UiScale.new()
+	ui.anchor = OverlayScale.ANCHOR_BOTTOM_CENTRE
+	layer.add_child(ui)
+	var bar := ItemBar.new()
+	layer.add_child(bar)
+	add_child(layer)
+	return bar
+
+func _hosted_strip() -> MenuStrip:
+	var layer := auto_free(CanvasLayer.new()) as CanvasLayer
+	var ui := UiScale.new()
+	ui.anchor = OverlayScale.ANCHOR_CENTRE
+	layer.add_child(ui)
+	var host := Control.new()
+	host.size = Vector2(320, 180)
+	layer.add_child(host)
+	add_child(layer)
+	var s := MenuStrip.new()
+	host.add_child(s)
+	s.show_hint(DeviceHints.Hint.SELECT_BACK)
+	return s
+
+func _origin(s: MenuStrip) -> Vector2:
+	return s.get_global_transform_with_canvas().origin
+
+func test_lifts_above_a_grown_bar() -> void:
+	_big_root()
+	_bar()
+	var s := _hosted_strip()
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
+	await get_tree().process_frame
+	assert_vector(_origin(s)).is_equal_approx(Vector2(4, 108), Vector2(0.01, 0.01))
+	assert_vector(s.get_global_transform_with_canvas().get_scale()).is_equal_approx(Vector2(2, 2), Vector2(0.01, 0.01))
+	assert_float(s.screen_top()).is_equal_approx(108.0, 0.01)
+	Display.use_prefs(DisplayPrefs.new())
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+	await get_tree().process_frame
+	assert_vector(_origin(s)).is_equal_approx(Vector2(4, 125.5), Vector2(0.01, 0.01))
+	_restore_root()
+
+func test_does_not_lift_at_normal() -> void:
+	_big_root()
+	_bar()
+	var s := _hosted_strip()
+	await get_tree().process_frame
+	assert_vector(_origin(s)).is_equal_approx(Vector2(4, 164), Vector2(0.01, 0.01))
+	assert_float(s.screen_top()).is_equal_approx(164.0, 0.01)
+	_restore_root()
+
+func test_does_not_lift_over_a_hidden_bar() -> void:
+	_big_root()
+	_bar().hide()
+	var s := _hosted_strip()
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
+	await get_tree().process_frame
+	assert_vector(_origin(s)).is_equal_approx(Vector2(4, 152), Vector2(0.01, 0.01))
+	_restore_root()
+
+func test_no_bar_no_lift() -> void:
+	_big_root()
+	var s := _hosted_strip()
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
+	await get_tree().process_frame
+	assert_vector(_origin(s)).is_equal_approx(Vector2(4, 152), Vector2(0.01, 0.01))
+	_restore_root()
+
+func test_returns_to_the_corner_back_at_normal() -> void:
+	_big_root()
+	_bar()
+	var s := _hosted_strip()
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
+	await get_tree().process_frame
+	Display.use_prefs(DisplayPrefs.new())
+	await get_tree().process_frame
+	assert_vector(_origin(s)).is_equal_approx(Vector2(4, 164), Vector2(0.01, 0.01))
+	assert_vector(s.get_global_transform_with_canvas().get_scale()).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
+	_restore_root()
