@@ -41,17 +41,7 @@ func _write_meta(text: String) -> void:
 	f.store_string(text)
 	f.close()
 
-func _open(dir: String) -> void:
-	calls = []
-	runner = scene_runner(SCENE)
-	screen = runner.scene() as TitleScreen
-	var recorded := calls
-	screen.quit_game = func() -> void: recorded.append("quit")
-	screen.start_new_game = func() -> void: recorded.append("new_game")
-	screen.start_continue = func() -> void: recorded.append("continue")
-	screen.read_save(dir)
-
-func _open_with_steps(dir: String, steps: Dictionary[int, Callable]) -> void:
+func _open(dir: String, steps: Dictionary[int, Callable] = SaveMigrations.chain()) -> void:
 	calls = []
 	runner = scene_runner(SCENE)
 	screen = runner.scene() as TitleScreen
@@ -80,7 +70,7 @@ func _make_older() -> void:
 func _open_older() -> void:
 	_make_older()
 	var steps: Dictionary[int, Callable] = {0: _looking_to_facing}
-	_open_with_steps(DIR, steps)
+	_open(DIR, steps)
 
 func _saved() -> void:
 	SaveStore.save_slot(_sample(), DIR)

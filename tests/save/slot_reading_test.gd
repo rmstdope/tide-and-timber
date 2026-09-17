@@ -119,7 +119,7 @@ func test_newer_save_names_its_game_version() -> void:
 func test_newer_save_without_readable_version_is_broken() -> void:
 	SaveStore.save_slot(_sample(), DIR)
 	for meta: Dictionary in [{"version": 2}, {"version": 2, "game_version": ""}, {"version": 2, "game_version": 4},
-			{"version": 2, "game_version": "0.4\nx"}, {"version": 2, "game_version": "12345678901234567"}]:
+			{"version": 2, "game_version": "0.4\nx"}, {"version": 2, "game_version": "0.4\n"}, {"version": 2, "game_version": "12345678901234567"}]:
 		_write_meta(meta)
 		_assert_broken(SlotReading.open(DIR))
 

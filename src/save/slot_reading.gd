@@ -4,7 +4,7 @@ extends RefCounted
 
 enum State { NONE, READY, NEWER, BROKEN }
 
-const GAME_VERSION_PATTERN := "^[0-9A-Za-z.+-]{1,16}$"
+const GAME_VERSION_PATTERN := "^[0-9A-Za-z.+-]{1,16}\\z"
 
 static var _game_version_regex: RegEx = RegEx.create_from_string(GAME_VERSION_PATTERN)
 
