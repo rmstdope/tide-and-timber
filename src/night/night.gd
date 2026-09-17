@@ -80,6 +80,13 @@ func _advance_line(delta: float) -> void:
 		line = SunsetLine.new()
 		line.start()
 
+## Collapses him on the spot now, as the cold would: the normal fall, black, losses and next morning.
+## Ignored while a collapse is running.
+func collapse_now() -> void:
+	if collapse != null:
+		return
+	_start_collapse()
+
 func _start_collapse() -> void:
 	if builder.mode == Builder.Mode.PLACING:
 		builder.abandon_placing()
