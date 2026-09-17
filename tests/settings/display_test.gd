@@ -9,6 +9,7 @@ func after_test() -> void:
 func test_the_gate_run_never_touches_the_real_file() -> void:
 	assert_object(Display.prefs).is_not_null()
 	assert_str(Display.prefs.path).is_equal("")
+	assert_str(Display.startup_path(get_tree())).is_equal("")
 
 func test_use_prefs_tells_every_view() -> void:
 	var fired := [0]

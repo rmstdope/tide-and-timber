@@ -60,7 +60,10 @@ func value(s: Setting) -> int:
 			return ui_size
 		Setting.TEXT_SIZE:
 			return text_size
-	return cues
+		Setting.CUES:
+			return cues
+	assert(false, "no value for setting %d" % s)
+	return 0
 
 ## Moves the setting by delta, stopping at its ends. True, saved and announced, if the value changed.
 func step(s: Setting, delta: int) -> bool:
