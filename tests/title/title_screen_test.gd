@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 
 const SCENE := "res://src/title/title_screen.tscn"
+const NO_SAVE := "user://test_saves/title_none"   # never created
 
 var runner: GdUnitSceneRunner
 var screen: TitleScreen
@@ -13,18 +14,18 @@ func before_test() -> void:
 	var recorded := calls
 	screen.quit_game = func() -> void: recorded.append("quit")
 	screen.start_new_game = func() -> void: recorded.append("new_game")
+	screen.start_continue = func() -> void: recorded.append("continue")
+	screen.read_save(NO_SAVE)
 
 func _plank(unique: String) -> PanelContainer:
 	return screen.get_node("%" + unique) as PanelContainer
 
 func assert_highlighted(unique: String) -> void:
-	var other := "Quit" if unique == "NewGame" else "NewGame"
-	assert_object(_plank(unique).get_theme_stylebox("panel")) \
-		.override_failure_message("%s should be highlighted" % unique) \
-		.is_same(TitleScreen.PLANK_HIGHLIGHT_STYLE)
-	assert_object(_plank(other).get_theme_stylebox("panel")) \
-		.override_failure_message("%s should not be highlighted" % other) \
-		.is_same(TitleScreen.PLANK_STYLE)
+	for plank: String in ["Continue", "NewGame", "Quit"]:
+		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == unique else TitleScreen.PLANK_STYLE
+		assert_object(_plank(plank).get_theme_stylebox("panel")) \
+			.override_failure_message("%s should%s be highlighted" % [plank, "" if plank == unique else " not"]) \
+			.is_same(want)
 
 func _fade_alpha() -> float:
 	return (screen.get_node("%Fade") as CanvasItem).modulate.a
@@ -136,3 +137,7 @@ func test_waves_move() -> void:
 		any_moved = any_moved or (waves[i] as Control).position.x != first[i]
 		assert_float(absf(drift)).is_less_equal(TitleScreen.WAVE_AMPLITUDE_PX)
 	assert_bool(any_moved).is_true()
+
+func test_no_save_shows_two_planks() -> void:
+	assert_bool(_plank("Continue").visible).is_false()
+	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(118.0)
