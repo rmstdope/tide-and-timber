@@ -84,4 +84,8 @@ static func _rect(node: Control) -> Rect2:
 
 static func _put(node: Control, rect: Rect2) -> void:
 	node.position = rect.position
+	# Width first, then refresh the cached minimum: a wrapped label's minimum height follows its width,
+	# and a Control is never set smaller than the minimum it last cached.
+	node.size = Vector2(rect.size.x, node.size.y)
+	node.update_minimum_size()
 	node.size = rect.size

@@ -18,8 +18,15 @@ var _paused_by_box := false
 var _shakes_seen := 0
 var _shake: Tween
 var strip: MenuStrip
+var _box_normal: BoxLayout   # the box as the scene has it, captured before anything places it
+var _box: BoxLayout          # the box as drawn now
 
 func _ready() -> void:
+	var box_lines: Array[Control] = [%FirstLine, %SecondLine]
+	_box_normal = BoxLayout.of(%Box.get_node("Panel"), box_lines, %TryAgain, %KeepPlaying)
+	Display.changed.connect(_fit_box)
+	get_tree().root.size_changed.connect(_fit_box)
+	_fit_box()
 	rules = DawnSave.new(func() -> Error: return save_game.call())
 	_connect_button(%TryAgain, DawnSave.Choice.TRY_AGAIN)
 	_connect_button(%KeepPlaying, DawnSave.Choice.KEEP_PLAYING)
@@ -61,6 +68,14 @@ func _input(event: InputEvent) -> void:
 			rules.select(DawnSave.Choice.TRY_AGAIN)
 		MenuPush.Step.RIGHT:
 			rules.select(DawnSave.Choice.KEEP_PLAYING)
+		MenuPush.Step.UP:
+			if not _box.stacked:
+				return
+			rules.select(DawnSave.Choice.TRY_AGAIN)
+		MenuPush.Step.DOWN:
+			if not _box.stacked:
+				return
+			rules.select(DawnSave.Choice.KEEP_PLAYING)
 		MenuPush.Step.SELECT:
 			rules.press(rules.selected)
 		MenuPush.Step.BACK:
@@ -69,6 +84,13 @@ func _input(event: InputEvent) -> void:
 			return
 	_after_rules()
 	get_viewport().set_input_as_handled()
+
+## Lays the box out for the current UI scale: side by side, or stacked when too wide.
+func _fit_box() -> void:
+	var labels: Array[Label] = [%FirstLine, %SecondLine]
+	var nodes: Array[Control] = [%FirstLine, %SecondLine]
+	_box = _box_normal.at(UiScale.current(Display.prefs, get_tree().root), %TryAgain.size, %KeepPlaying.size, BoxLayout.label_heights(labels))
+	_box.place(%Box.get_node("Panel"), nodes, %TryAgain, %KeepPlaying)
 
 func _connect_button(button: Control, which: DawnSave.Choice) -> void:
 	button.gui_input.connect(func(event: InputEvent) -> void:
