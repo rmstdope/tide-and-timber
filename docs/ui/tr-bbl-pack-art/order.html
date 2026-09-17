@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Art swap order</title><link rel="stylesheet" href="style.css"></head><body>
+<h1>Question 3 — what moves onto the new art first?</h1>
+<p>The change comes in three parts: <b>the island</b> (sand, sea, grass, bushes, rocks, and our palm, driftwood, spring and shellfish in the new colours), <b>the man</b>, and <b>the item icons and HUD</b>. Each part can go out on its own. Each row shows what a player would see after each step. Players only see a step if a release happens part-way; everyone who tries the game in between sees it too.</p>
+<div class="opt rec" id="a"><h2>Order A — island, then man, then icons and HUD (recommended)</h2>
+<div class="dim">Why recommended: the island fills most of the screen and settles the colours, so the man and the icons are then judged against the real background rather than the old one. The HUD comes last because its colour-blind cues were only just agreed and should be rechecked once, against the finished look.</div></div>
+<div class="opt" id="b"><h2>Order B — man, then island, then icons and HUD</h2>
+<div class="dim">The man is what a player watches most, so the change is felt first — but for a while a pack figure walks on today's pale beach.</div></div>
+<div class="opt" id="c"><h2>Order C — everything at once</h2>
+<div class="dim">No in-between look at all, but one large change that can't be tried out part by part; nothing new appears until all of it is ready.</div></div>
+<script src="assets.js"></script><script src="common.js"></script><script>
+function mini(el,label,st){const cell=document.createElement('div');cell.className='cell';el.appendChild(cell);const x=canvas(cell,160,90,2);
+  const t=document.createElement('div');t.textContent=label;cell.appendChild(t);
+  const P=st.island?PAL.pack:null;
+  if(st.island){tile(x,'pack_Floors_Tiles',24,176,0,0,160,24);tile(x,'pack_Floors_Tiles',96,356,0,24,160,68);tile(x,'pack_Water_tiles',0,0,0,68,160,90);put(x,'pack_Vegetation',0,0,32,32,120,0);}
+  else{tile(x,'ours_beach_tiles',0,0,0,0,160,24);tile(x,'ours_beach_tiles',16,0,0,24,160,62);tile(x,'ours_beach_tiles',64,0,0,62,160,72);tile(x,'ours_beach_tiles',80,0,0,72,160,90);put(x,'ours_beach_boulder',0,0,32,32,120,0);}
+  put(x,'ours_beach_palm',0,0,32,48,10,4,P);put(x,'ours_beach_driftwood',0,0,32,8,40,56,P);put(x,'ours_beach_spring',0,0,32,24,110,36,P);
+  if(st.man){const b=bbox('pack_Idle_Down-Sheet',0,64,64);const c=document.createElement('canvas');c.width=64;c.height=64;const k=c.getContext('2d');k.drawImage(IMG['pack_Idle_Down-Sheet'],0,0,64,64,0,0,64,64);x.drawImage(c,b.x0,b.y0,b.x1-b.x0+1,b.y1-b.y0+1,72,34,b.x1-b.x0+1,b.y1-b.y0+1);}
+  else x.drawImage(IMG.ours_man_man,0,0,16,24,72,36,16,24);
+  x.fillStyle=st.hud?'rgba(40,28,13,.9)':'rgba(20,14,24,.8)';x.fillRect(40,74,80,14);
+  ['coconut','driftwood','empty_shell','fresh_water','shellfish'].forEach((n,i)=>put(x,'ours_items_'+n,0,0,10,10,44+i*15,76,st.hud?PAL.pack:null));
+}
+load().then(()=>{
+ const rows={a:[['today',{}],['1. island',{island:1}],['2. + man',{island:1,man:1}],['3. + icons & HUD',{island:1,man:1,hud:1}]],
+  b:[['today',{}],['1. man',{man:1}],['2. + island',{island:1,man:1}],['3. + icons & HUD',{island:1,man:1,hud:1}]],
+  c:[['today',{}],['1. everything',{island:1,man:1,hud:1}]]};
+ for(const [id,steps] of Object.entries(rows)){const r=document.createElement('div');r.className='row';document.getElementById(id).appendChild(r);steps.forEach(([l,s])=>mini(r,l,s));}
+});
+</script></body></html>

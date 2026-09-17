@@ -1,0 +1,10 @@
+:root{--bg:#1b1420;--fg:#f4e3c1;--dim:#b9a88a;--acc:#ffe27a;--card:#2a2030}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;padding:24px;line-height:1.45}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 4px;color:var(--acc)}
+p{max-width:820px}.dim{color:var(--dim);font-size:14px}
+.opt{background:var(--card);border-radius:10px;padding:16px;margin:18px 0;max-width:980px}
+.rec{outline:2px solid var(--acc)}
+canvas{image-rendering:pixelated;display:block;margin:10px 0;max-width:100%;height:auto!important}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end}.cell{text-align:center;font-size:13px;color:var(--dim)}
+table{border-collapse:collapse;font-size:14px}td,th{padding:4px 10px;border-bottom:1px solid #443a48;text-align:left}
+.sw{display:inline-block;width:14px;height:14px;margin:1px}

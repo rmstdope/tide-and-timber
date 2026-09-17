@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Castaway details</title><link rel="stylesheet" href="style.css"></head><body>
+<h1>Round 2 — the man's look, how he wakes, and the HUD</h1>
+<p class="dim">Clothes and hair in these drawings are painted automatically as rough stand-ins, so they'll look neater once they're painted by hand.</p>
+<h1 style="margin-top:22px">4 — What does the castaway look like?</h1>
+<div class="opt rec" id="l1"><h2>Look 1 — dark hair and stubble, pale torn shirt, blue rolled trousers, bare feet (recommended)</h2><div class="dim">Why: it keeps today's man's colours (pale shirt, blue trousers), so anyone who's played already knows him, and the hair makes him a person, not a mannequin.</div></div>
+<div class="opt" id="l2"><h2>Look 2 — the pack's bald head, shirt and trousers only</h2><div class="dim">Less painting (clothes only), but he stays bald and faceless.</div></div>
+<div class="opt" id="l3"><h2>Look 3 — dark hair, no shirt (lost at sea), blue rolled trousers</h2><div class="dim">Makes the shipwreck feel rougher. Less painting than Look 1, but there's more bare skin against the sand, so he's harder to spot.</div></div>
+<h1 style="margin-top:22px">5 — How does he get up on the beach?</h1>
+<p class="dim">This is the moment after the shipwreck, and every morning after he's collapsed.</p>
+<div class="opt rec" id="w1"><h2>Wake 1 — his collapse played backwards: lying down, pushes himself up, stands (recommended)</h2><div class="dim">Why: waking mirrors collapsing, so the morning after reads as the answer to the night before, and no new art is needed.</div></div>
+<div class="opt" id="w2"><h2>Wake 2 — he's already standing when the picture fades in</h2><div class="dim">Simplest, but the "I washed up here" moment disappears.</div></div>
+<h1 style="margin-top:22px">6 — How far does the HUD change?</h1>
+<p class="dim">This is the bar of 8 slots along the bottom. The icons get repainted in the pack's colours either way, and the lettering stays the same.</p>
+<div class="opt rec" id="h1"><h2>HUD 1 — same bar and shape, only the colours change to the pack's (recommended)</h2><div class="dim">Why: the bar's layout, sizes and colour-blind marks were only just agreed. Changing only the colours keeps all of that intact.</div></div>
+<div class="opt" id="h2"><h2>HUD 2 — a wooden frame around the bar and slots, to match the pack's crates and workbench</h2><div class="dim">Cosier, but it's a new drawn frame that has to scale to 1.5× cleanly, and the marks have to be rechecked on wood.</div></div>
+<script src="assets.js"></script><script src="common.js"></script><script>
+const SC=4;
+function stage(el,label,draw,frames,w,h,scale,bg){const cell=document.createElement('div');cell.className='cell';el.appendChild(cell);const x=canvas(cell,w,h,scale||SC);
+  const t=document.createElement('div');t.textContent=label;cell.appendChild(t);let f=0;
+  const tick=()=>{tile(x,'pack_Floors_Tiles',96,356,0,0,w,h);draw(x,f%frames);f++};tick();setInterval(tick,170);}
+function paint(k,w,h,look){const d=k.getImageData(0,0,w,h);let x0=w,y0=h,x1=0,y1=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d.data[(y*w+x)*4+3]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
+  const H=y1-y0;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=(y*w+x)*4;if(!d.data[i+3])continue;const r=d.data[i],g=d.data[i+1],b=d.data[i+2];
+    if(!(r>g&&g>b&&r>90))continue;const lum=(r+g+b)/3/180;const rel=(y-y0)/H;let c=null;
+    if(look.hair&&rel<0.14)c=[70,44,28];
+    else if(look.hair&&rel>=0.28&&rel<0.36&&((x+y)%2))c=[110,80,60];
+    else if(look.shirt&&rel>0.4&&rel<0.66)c=[223,227,237];
+    else if(rel>=0.66&&rel<0.86)c=[71,98,140];
+    if(c){d.data[i]=c[0]*lum;d.data[i+1]=c[1]*lum;d.data[i+2]=c[2]*lum}}
+  k.putImageData(d,0,0)}
+function sheet(key,fw,n,look,rev){return (x,f)=>{const c=document.createElement('canvas');c.width=fw;c.height=fw;const k=c.getContext('2d');
+  const fr=rev?n-1-f:f;k.drawImage(IMG[key],fr*fw,0,fw,fw,0,0,fw,fw);if(look)paint(k,fw,fw,look);x.drawImage(c,-(fw-40)/2,-(fw-40)/2-4)}}
+load().then(()=>{
+  [['l1',{hair:1,shirt:1}],['l2',{shirt:1}],['l3',{hair:1}]].forEach(([id,look])=>{const r=document.createElement('div');r.className='row';document.getElementById(id).appendChild(r);
+    stage(r,'stands',sheet('pack_Idle_Down-Sheet',64,4,look),4,40,40);stage(r,'walks',sheet('pack_Walk_Down-Sheet',64,6,look),6,40,40);stage(r,'sideways',sheet('pack_Walk_Side-Sheet',64,6,look),6,40,40);stage(r,'gathers',sheet('pack_Collect_Down-Sheet',64,8,look),8,40,40);});
+  const L={hair:1,shirt:1};
+  let r=document.createElement('div');r.className='row';document.getElementById('w1').appendChild(r);
+  const seq1=(x,f)=>{ if(f<5){sheet('pack_Death_Down-Sheet',64,8,L,true)(x,7)} else if(f<13){sheet('pack_Death_Down-Sheet',64,8,L,true)(x,f-5)} else sheet('pack_Idle_Down-Sheet',64,4,L)(x,(f-13)%4)};
+  stage(r,'wakes (loops)',seq1,22,40,40);
+  r=document.createElement('div');r.className='row';document.getElementById('w2').appendChild(r);
+  const seq2=(x,f)=>{sheet('pack_Idle_Down-Sheet',64,4,L)(x,f%4); if(f<8){x.fillStyle=`rgba(0,0,0,${1-f/8})`;x.fillRect(0,0,40,40)}};
+  stage(r,'fades in (loops)',seq2,22,40,40);
+  for(const [id,wood] of [['h1',0],['h2',1]]){r=document.createElement('div');r.className='row';document.getElementById(id).appendChild(r);
+    stage(r,'bottom of the screen, at game size ×3',(x)=>{
+      tile(x,'pack_Water_tiles',0,0,0,24,200,40);
+      const bx=16,by=12,sw=20;
+      if(wood){x.fillStyle='#281c0d';x.fillRect(bx-3,by-3,8*sw+6,sw+6);x.fillStyle='#9f6c3f';x.fillRect(bx-2,by-2,8*sw+4,sw+4);x.fillStyle='#865932';for(let i=0;i<8*sw+4;i+=6)x.fillRect(bx-2+i,by-2,1,sw+4);}
+      else{x.fillStyle='rgba(40,28,13,.85)';x.fillRect(bx-2,by-2,8*sw+4,sw+4);}
+      for(let i=0;i<8;i++){x.fillStyle=wood?'#dcb07a':'#edb786';x.globalAlpha=wood?1:.25;x.fillRect(bx+i*sw+1,by+1,sw-2,sw-2);x.globalAlpha=1;
+        if(i===2){x.strokeStyle='#dfe3ed';x.lineWidth=1;x.strokeRect(bx+i*sw+.5,by+.5,sw-1,sw-1)}}
+      ['coconut','driftwood','empty_shell','fresh_water','shellfish'].forEach((n,i)=>put(x,'ours_items_'+n,0,0,10,10,bx+i*sw+5,by+5,PAL.pack));
+    },1,200,40,3);}
+});
+</script></body></html>

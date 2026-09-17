@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Island colours</title><link rel="stylesheet" href="style.css"></head><body>
+<h1>Question 1 — whose colours does the island use?</h1>
+<p>The new art pack comes with its own colours. Our palm, driftwood, spring, shellfish, coconuts, item icons and HUD were painted in ours. The pack has no palm, no shellfish, no spring and no coconut, so those stay ours in shape whichever you pick — the question is what colours they end up in. Each drawing is the same bit of beach at the game's real size, shown 3× larger. The man here is the pack's figure only as a stand-in (question 2 is who he is). The row under each beach is the item icons as they'd look.</p>
+<p class="dim">Colour changes on our own art below are done automatically for the drawing, so they're rougher than a hand repaint would be.</p>
+<div class="opt rec" id="a"><h2>Palette A — the pack's colours become the game's (recommended)</h2>
+<div>Our palm, driftwood, spring, shellfish, coconuts, icons and HUD are repainted in the pack's colours. One set of colours for everything.</div>
+<div class="dim">Why recommended: the usual way to use a bought art pack is to take on its colours, so the pack's shading stays as its artist drew it and only our handful of pieces need touching up.</div></div>
+<div class="opt" id="b"><h2>Palette B — our colours stay; the pack is recoloured to ours</h2>
+<div>Everything, the pack included, is squeezed onto the 37 colours our art uses today. Keeps today's look, but the pack loses much of its shading (it has about 300 colours) and every new piece from it needs recolouring too.</div></div>
+<div class="opt" id="c"><h2>Palette C — no shared colours; each piece keeps its own</h2>
+<div>Nothing is recoloured. Cheapest, but our pale palm and bright sea sit next to the pack's deeper greens and blues, and it shows.</div></div>
+<script src="assets.js"></script><script src="common.js"></script><script>
+function beach(el,mode){const x=canvas(el,320,180,3);
+  const P=PAL.pack,O=PAL.ours;
+  const packPal = mode==='b'?O:null;   // pack art recoloured?
+  const oursPal = mode==='a'?P:null;   // our art recoloured?
+  // ground: pack tiles
+  tile(x,'pack_Floors_Tiles',24,176,0,0,320,56,packPal);
+  tile(x,'pack_Floors_Tiles',96,356,0,56,320,132,packPal);
+  tile(x,'pack_Water_tiles',0,0,0,132,320,180,packPal);
+  put(x,'pack_Vegetation',0,0,32,32,20,18,packPal);
+  put(x,'pack_Vegetation',0,32,32,32,250,12,packPal);
+  put(x,'pack_Rocks',96,16,32,32,270,80,packPal);
+  // our props
+  put(x,'ours_beach_palm',0,0,32,48,70,20,oursPal);put(x,'ours_beach_palm',0,0,32,48,190,14,oursPal);
+  put(x,'ours_beach_driftwood',0,0,32,8,120,110,oursPal);
+  put(x,'ours_beach_spring',0,0,32,24,210,78,oursPal);
+  put(x,'ours_beach_shellfish',0,0,12,6,60,122,oursPal);
+  put(x,'ours_beach_coconut',0,0,6,6,98,70,oursPal);put(x,'ours_beach_boulder',0,0,32,32,20,92,oursPal);
+  const b=bbox('pack_Idle_Down-Sheet',0,64,64); put(x,'pack_Idle_Down-Sheet',b.x0,b.y0,b.x1-b.x0+1,b.y1-b.y0+1,156,82,packPal);
+  put(x,'pack_Bonfire_01-Sheet',0,0,32,32,150,40,packPal);
+  // HUD strip
+  x.fillStyle='rgba(20,14,24,.8)';x.fillRect(96,160,128,16);
+  ['coconut','driftwood','empty_shell','fresh_water','shellfish'].forEach((n,i)=>put(x,'ours_items_'+n,0,0,10,10,103+i*24,163,oursPal));
+}
+function swatches(el,list){const d=document.createElement('div');d.innerHTML=list.slice(0,48).map(c=>`<span class="sw" style="background:${c}"></span>`).join('');el.appendChild(d)}
+load().then(()=>{beach(document.getElementById('a'),'a');swatches(document.getElementById('a'),PAL.pack);
+ beach(document.getElementById('b'),'b');swatches(document.getElementById('b'),PAL.ours);
+ beach(document.getElementById('c'),'c');});
+</script></body></html>
