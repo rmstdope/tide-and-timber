@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset=utf-8><title>Settings screen — option B</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=../tr-asx.3-continue/common.css><script src=../tr-asx.3-continue/scene.js></script><script src=s.js></script></head><body><script>
+page('Option B — no Settings board yet: Settings goes straight to Controls','While Controls is the only setting, the Settings plank opens the Controls page directly. A Settings board with a Controls plank appears only when the size and colour settings arrive, so players would later find an extra step in front of Controls. Each picture is at 2x the 320x180 base; art is indicative.'+KC,[
+['1. Title, Settings highlighted',scene(menu([{t:'Continue',sub:'DAY 4'},{t:'New Game'},{t:'Settings',sel:1},{t:'Quit'}],196)+HK(0)),'Select opens the Controls page at once.'],
+['2. Controls page',ctrl(),'Back returns to picture 1 (title) or the Paused board, Settings highlighted.'],
+['3. From the pause board',play(board('Paused',['Resume','Settings','Quit to title'],1,90)+HK(1)),'Settings here also opens the Controls page directly.']]);
+</script></body></html>

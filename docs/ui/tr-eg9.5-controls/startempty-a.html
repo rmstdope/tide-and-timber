@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset=utf-8><title>Start with an empty action — option A</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=../tr-asx.3-continue/common.css><script src=../tr-asx.3-continue/scene.js></script><script src=s.js></script></head><body><script>
+page("Option A (recommended) — Start warns first, like Back does","On the Controls page, with an action left with no key, Start opens the same box Back opens. Set a key stays on the page; Leave resumes play straight away, because Start was pressed. Each picture is at 2x the 320x180 base; art is indicative."+KC,[
+['1. Controls page, Build list has no key',ctrl(),'Start pressed.'],
+['2. The box',`<div class="screen" style="background:#2c1d16"><div style="position:absolute;left:0;right:0;top:12px;text-align:center;font-size:16px;color:#fff4d6">Controls</div>`+box(['Build list has no key.','Leave anyway?'],['Set a key','Leave'],0)+`</div>`,'Set a key highlighted. Back = Set a key. Leave: play resumes at once.'],
+['3. After Leave',play(''),'Play continues from the same moment.']]);
+</script></body></html>

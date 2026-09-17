@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset=utf-8><title>Settings screen — option A</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=../tr-asx.3-continue/common.css><script src=../tr-asx.3-continue/scene.js></script><script src=s.js></script></head><body><script>
+page('Option A (recommended) — a small Settings board with one plank, Controls','Settings opens a wooden board like the pause board, over whatever was behind it. For now it holds one plank, Controls; the UI size, text size and colour rows join it later as more planks. Each picture is at 2x the 320x180 base; art is indicative.'+KC,[
+['1. From the title screen',scene(board('Settings',['Controls'],0,120)+HK(1)),'Heading Settings, one plank, Controls highlighted. Select and Back in the strip.'],
+['2. Controls chosen',ctrl(),'The agreed Controls page. Back from it returns to picture 1, Controls highlighted.'],
+['3. Back from the Settings board, title',scene(menu([{t:'Continue',sub:'DAY 4'},{t:'New Game'},{t:'Settings',sel:1},{t:'Quit'}],196)+HK(0)),'Back on the title menu with Settings highlighted.'],
+['4. From the pause board',play(board('Settings',['Controls'],0,120)+HK(1)),'Same board over the dimmed, frozen game. Back returns to the Paused board with Settings highlighted, still paused.']]);
+</script></body></html>

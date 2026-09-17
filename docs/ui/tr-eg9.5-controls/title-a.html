@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset=utf-8><title>Title menu — option A</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=../tr-asx.3-continue/common.css><script src=../tr-asx.3-continue/scene.js></script><script src=s.js></script></head><body><script>
+page('Option A (recommended) — a Settings plank just above Quit','Settings is one more plank, second to last, as most games place it. Up/Down wrap round all of them as agreed. Each picture is at 2x the 320x180 base; art is indicative.'+KC,[
+['1. A save exists',scene(menu([{t:'Continue',sel:1,sub:'DAY 4'},{t:'New Game'},{t:'Settings'},{t:'Quit'}],196)+HK(0)),'Four planks; Continue highlighted on opening, as agreed.'],
+['2. No save',scene(menu([{t:'New Game',sel:1},{t:'Settings'},{t:'Quit'}],222)+HK(0)),'Three planks; New Game highlighted on opening.'],
+['3. Quit highlighted, pushed down',scene(menu([{t:'Continue',sub:'DAY 4'},{t:'New Game'},{t:'Settings'},{t:'Quit',sel:1}],196)+HK(0)),'The next push down wraps to the top plank.']]);
+</script></body></html>

@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset=utf-8><title>Title menu — option B</title><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel=stylesheet href=../tr-asx.3-continue/common.css><script src=../tr-asx.3-continue/scene.js></script><script src=s.js></script></head><body><script>
+const G=(s)=>`<div style="position:absolute;right:12px;top:10px;padding:6px 8px;font-size:9px;color:#fff4d6;background:${s?'#c98a4a':'#8a5a34'};border:3px solid ${s?'#fff1c9':'#4f301b'}">⚙ Settings</div>`;
+page('Option B — a small Settings sign in the top-right corner','The menu planks stay as they are; Settings is a small sign in the corner. The highlight reaches it by pushing up from the top plank, which replaces the wrap-round there — a change to what is already agreed. Each picture is at 2x the 320x180 base; art is indicative.'+KC,[
+['1. A save exists',scene(menu([{t:'Continue',sel:1,sub:'DAY 4'},{t:'New Game'},{t:'Quit'}],212)+G(0)+HK(0)),'Planks unchanged; the sign sits in the corner.'],
+['2. Up from Continue',scene(menu([{t:'Continue',sub:'DAY 4'},{t:'New Game'},{t:'Quit'}],212)+G(1)+HK(0)),'The highlight jumps to the sign; down returns to Continue.']]);
+</script></body></html>
