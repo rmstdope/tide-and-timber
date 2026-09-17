@@ -30,8 +30,15 @@ var open_settings: Callable = _open_settings                # tests replace it
 var quit_to_title: Callable = _quit_to_title               # tests replace it
 var open_debug: Callable = _open_debug                      # tests replace it
 var strip: MenuStrip
+var _quit_normal: BoxLayout   # the quit box as the scene has it, captured before anything places it
+var _quit_box: BoxLayout      # the quit box as drawn now
 
 func _ready() -> void:
+	var box_lines: Array[Control] = [%FirstLine, %SecondLine]
+	_quit_normal = BoxLayout.of(%QuitBox.get_node("Panel"), box_lines, %Stay, %Quit)
+	Display.changed.connect(_fit_quit_box)
+	get_tree().root.size_changed.connect(_fit_quit_box)
+	_fit_quit_box()
 	rules = PauseMenu.new(with_skip_story, debug_tools)
 	if debug_tools:
 		%DebugPanel.closed.connect(_on_debug_closed)
@@ -167,6 +174,14 @@ func _refresh() -> void:
 	%Quit.add_theme_stylebox_override("panel", _style(rules.box_selected == PauseMenu.Choice.QUIT))
 	if rules.box_open:
 		%SecondLine.text = PauseMenu.quit_warning(has_saved.call())
+		_fit_quit_box()
+
+## Lays the quit box out for the current UI scale and words: side by side, or stacked when too wide.
+func _fit_quit_box() -> void:
+	var labels: Array[Label] = [%FirstLine, %SecondLine]
+	var nodes: Array[Control] = [%FirstLine, %SecondLine]
+	_quit_box = _quit_normal.at(UiScale.current(Display.prefs, get_tree().root), %Stay.size, %Quit.size, BoxLayout.label_heights(labels))
+	_quit_box.place(%QuitBox.get_node("Panel"), nodes, %Stay, %Quit)
 
 func _open_settings() -> void:
 	%SettingsBoard.open(true)
