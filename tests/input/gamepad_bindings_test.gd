@@ -63,12 +63,14 @@ func test_build_back_is_escape_and_pad_b() -> void:
 func test_by_position_a_is_bottom() -> void:
 	assert_array(_game_actions_matching(_button(JOY_BUTTON_A))) \
 		.contains_exactly_in_any_order([&"use", &"build_accept", &"menu_accept"])
-	assert_array(_game_actions_matching(_button(JOY_BUTTON_B))).contains_exactly([&"build_back"])
+	assert_array(_game_actions_matching(_button(JOY_BUTTON_B))).contains_exactly_in_any_order([&"build_back", &"menu_cancel"])
 
 func test_unused_pad_inputs_bind_nothing() -> void:
-	for b: JoyButton in [JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT,
+	for b: JoyButton in [JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN,
 			JOY_BUTTON_X, JOY_BUTTON_BACK, JOY_BUTTON_LEFT_STICK, JOY_BUTTON_RIGHT_STICK, JOY_BUTTON_RIGHT_SHOULDER]:
 		assert_array(_game_actions_matching(_button(b))).override_failure_message("button %d is bound" % b).is_empty()
+	assert_array(_game_actions_matching(_button(JOY_BUTTON_DPAD_LEFT))).contains_exactly([&"menu_left"])   # the save-failed box (tr-asx.2)
+	assert_array(_game_actions_matching(_button(JOY_BUTTON_DPAD_RIGHT))).contains_exactly([&"menu_right"])
 	for axis: JoyAxis in [JOY_AXIS_RIGHT_X, JOY_AXIS_RIGHT_Y, JOY_AXIS_TRIGGER_LEFT, JOY_AXIS_TRIGGER_RIGHT]:
 		assert_array(_game_actions_matching(_motion(axis, 1.0))).override_failure_message("axis %d is bound" % axis).is_empty()
 

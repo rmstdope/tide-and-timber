@@ -10,8 +10,9 @@ var player_position := Vector2.ZERO
 var player_facing: Walk.Facing = Walk.Facing.DOWN
 var inventory_slots: Array[Dictionary] = []      # Inventory.to_slots() shape
 var taken: Dictionary = {}                       # prop id (String) -> Array[Vector2i] of layout cells taken
+var clock_minutes: float = GameClock.START_MINUTES   # the clock's total_minutes at the save
 
-## The files of one slot, by file stem: {"meta": {...}, "player": {...}, "inventory": {...}, "world": {...}}.
+## The files of one slot, by file stem: {"meta": {...}, "player": {...}, "inventory": {...}, "world": {...}, "clock": {...}}.
 func to_files() -> Dictionary:
 	var slots := []
 	for slot in inventory_slots:
@@ -27,17 +28,22 @@ func to_files() -> Dictionary:
 		"player": {"x": player_position.x, "y": player_position.y, "facing": Walk.facing_name(player_facing)},
 		"inventory": {"slots": slots},
 		"world": {"taken": world},
+		"clock": {"total_minutes": clock_minutes},
 	}
 
 ## The reverse. Returns null when any file is missing or malformed, or when meta.version != VERSION.
 static func from_files(files: Dictionary) -> SaveData:
-	for stem in ["meta", "player", "inventory", "world"]:
+	for stem in ["meta", "player", "inventory", "world", "clock"]:
 		if not files.get(stem) is Dictionary:
 			return null
 	var version: Variant = files["meta"].get("version")
 	if not _is_whole(version) or int(version) != VERSION:
 		return null
 	var data := SaveData.new()
+	var minutes: Variant = files["clock"].get("total_minutes")
+	if not _is_number(minutes) or float(minutes) < 0.0:
+		return null
+	data.clock_minutes = float(minutes)
 	var player: Dictionary = files["player"]
 	if not _is_number(player.get("x")) or not _is_number(player.get("y")):
 		return null

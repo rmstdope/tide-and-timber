@@ -107,3 +107,36 @@ func test_add_minutes_not_crossing_1830() -> void:
 	dn.start()
 	dn.clock.total_minutes = 1115.0
 	assert_bool(dn.add_minutes(30.0)).is_false()
+
+func test_dawn_emitted_once_at_06_00() -> void:
+	var seen := []
+	dn.dawn.connect(func() -> void: seen.append(1))
+	dn.start()
+	dn.tick(1529.0)
+	assert_int(seen.size()).is_equal(0)
+	assert_str(_n("TimeLabel").text).is_equal("05:50")   # DAY 2 already: the day turns at midnight
+	dn.tick(2.0)
+	assert_int(seen.size()).is_equal(1)
+	assert_str(_n("TimeLabel").text).is_equal("06:00")
+	dn.tick(100.0)
+	assert_int(seen.size()).is_equal(1)
+	dn.tick(2060.0)
+	assert_int(seen.size()).is_equal(2)
+
+func test_dawn_after_refresh() -> void:
+	var labels := []
+	dn.dawn.connect(func() -> void: labels.append(_n("DayLabel").text))
+	dn.start()
+	dn.tick(1531.0)
+	assert_array(labels).is_equal(["DAY 2"])
+
+func test_add_minutes_across_06_00_emits_dawn_once() -> void:
+	var seen := []
+	dn.dawn.connect(func() -> void: seen.append(_n("TimeLabel").text))
+	dn.start()
+	dn.clock.total_minutes = 1785.0
+	dn.add_minutes(30.0)
+	assert_array(seen).is_equal(["06:10"])
+	dn.add_minutes(30.0)
+	dn.tick(1.0)
+	assert_int(seen.size()).is_equal(1)

@@ -5,6 +5,7 @@ extends Node2D
 
 const WAKE_CELL := Vector2i(92, 14)     # wet sand at the waterline, under the beach's spawn column
 const WAKE_SHEET := preload("res://assets/man/man_wake.png")
+const Preview := preload("res://src/day_night/day_night_preview.gd")
 const SURF_VOLUME := 0.6                # the intro's surf volume, so the cut from the black beat is seamless
 
 var wake := WakeUp.new()
@@ -21,7 +22,9 @@ func _ready() -> void:
 	%Beach.get_node("%Decor").add_child(WaveWash.new())
 	_last_position = player.global_position
 	wake.control_given.connect(_on_control_given)
+	%DayNight.time_scale = Preview.parse_args(OS.get_cmdline_user_args()).speed   # --clock-speed=N, a developer speed-up
 	_refresh()
+	%Autosave.watch(%Beach, %DayNight)
 
 func _process(delta: float) -> void:
 	tick(delta)

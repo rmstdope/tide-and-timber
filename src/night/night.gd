@@ -17,6 +17,7 @@ var day_night: DayNight
 var beach: Beach
 var builder: Builder
 var player: Player
+var autosave: Autosave
 var _pending := ""                   # a line waiting for another line to go
 var _begun := false
 var _interactor_mode := Node.PROCESS_MODE_INHERIT
@@ -24,6 +25,7 @@ var _interactor_mode := Node.PROCESS_MODE_INHERIT
 func _ready() -> void:
 	day_night = %DayNight
 	beach = %Beach
+	autosave = %Autosave
 	builder = beach.get_node("%Builder")
 	player = beach.get_node("%Player")
 	watch.warned.connect(_say.bind(WARN_TEXT))
@@ -103,11 +105,12 @@ func _on_went_black() -> void:
 	var t := day_night.clock.total_minutes
 	taken = NightLoss.losses(beach.inventory)
 	NightLoss.apply(beach.inventory, taken)
-	day_night.add_minutes(NightWatch.next_morning(t) - t)
 	var cell := WakeSpot.beside_lean_to(builder.lean_to.anchor(), Waking.WAKE_CELL) if builder.lean_to else Waking.WAKE_CELL
 	player.global_position = BeachLayout.cell_centre(cell)
 	player.facing = Walk.Facing.DOWN
 	(beach.get_node("%Camera") as LooseCamera).snap_to_target()
+	autosave.hold_line()   # the clock's jump saves him here at 06:00, loss applied; his dawn line waits until he is up
+	day_night.add_minutes(NightWatch.next_morning(t) - t)
 	watch.reset(day_night.clock.total_minutes)
 
 func _on_morning() -> void:
@@ -119,6 +122,7 @@ func _on_got_up() -> void:
 	player.give_control()
 	beach.get_node("%Interactor").process_mode = _interactor_mode
 	collapse = null
+	autosave.release_line()
 
 func _refresh() -> void:
 	%Frost.set_amount(watch.frost)

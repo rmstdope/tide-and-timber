@@ -100,3 +100,9 @@ func test_waves_are_heard_on_the_beach() -> void:
 
 func test_beach_builder_gets_the_clock() -> void:
 	assert_object(_node("Beach").get_node("%Builder").day_night).is_same(_node("DayNight"))
+
+func test_autosave_watches_the_clock() -> void:
+	var autosave := _node("Autosave")
+	assert_object(autosave).is_instanceof(Autosave)
+	assert_bool((_node("DayNight") as DayNight).dawn.is_connected((autosave as Autosave).on_dawn)).is_true()
+	assert_float((_node("DayNight") as DayNight).time_scale).is_equal(1.0)

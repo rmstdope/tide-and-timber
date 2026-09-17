@@ -26,3 +26,13 @@ func test_fades_out_then_is_gone() -> void:
 	line.advance(0.25)
 	assert_bool(line.is_showing()).is_false()
 	assert_float(line.alpha()).is_equal(0.0)
+
+func test_hold_can_be_shorter() -> void:
+	var line := SunsetLine.new(3.0)
+	line.start()
+	line.advance(3.4)
+	assert_float(line.alpha()).is_equal(1.0)
+	line.advance(0.35)
+	assert_float(line.alpha()).is_equal_approx(0.5, 0.0001)   # 3.75 s: halfway through the 0.5 s fade-out
+	line.advance(0.25)
+	assert_bool(line.is_showing()).is_false()
