@@ -17,6 +17,8 @@ static func show_over(host: Node2D, text: String) -> RisingLine:
 	var line := RisingLine.new()
 	line.name = NODE_NAME
 	line.position = START
+	if host.is_inside_tree():
+		line.scale = Vector2.ONE * UiScale.current(Display.prefs, host.get_tree().root)
 	line.z_index = 20
 	var label := Label.new()
 	label.text = text

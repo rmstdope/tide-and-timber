@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://src/hud/hint_view.gd" id="8_hint"]
 [ext_resource type="PackedScene" path="res://src/autosave/autosave.tscn" id="9_autosave"]
 [ext_resource type="PackedScene" path="res://src/pause/pause.tscn" id="10_pause"]
+[ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
 
 [node name="Waking" type="Node2D"]
 script = ExtResource("1_waking")
@@ -72,6 +73,10 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="UiScale" type="Node" parent="Night/LineLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 166)
+
 [node name="CoverLayer" type="CanvasLayer" parent="Night"]
 layer = 30
 
@@ -83,10 +88,10 @@ offset_bottom = 180.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="CardLayer" type="CanvasLayer" parent="Night"]
+[node name="BlackLineLayer" type="CanvasLayer" parent="Night"]
 layer = 31
 
-[node name="BlackLine" type="Label" parent="Night/CardLayer"]
+[node name="BlackLine" type="Label" parent="Night/BlackLineLayer"]
 unique_name_in_owner = true
 visible = false
 offset_top = 82.0
@@ -98,16 +103,23 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="UiScale" type="Node" parent="Night/BlackLineLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 90)
+
+[node name="CardLayer" type="CanvasLayer" parent="Night"]
+layer = 31
+
 [node name="Card" type="Control" parent="Night/CardLayer"]
 unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("7_card")
 
-[node name="Overlay" type="CanvasLayer" parent="."]
-layer = 20
+[node name="MoveHintLayer" type="CanvasLayer" parent="."]
+layer = 19
 
-[node name="MoveHint" type="Control" parent="Overlay"]
+[node name="MoveHint" type="Control" parent="MoveHintLayer"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 3
@@ -117,14 +129,14 @@ offset_right = 320.0
 offset_bottom = 180.0
 mouse_filter = 2
 
-[node name="Band" type="ColorRect" parent="Overlay/MoveHint"]
+[node name="Band" type="ColorRect" parent="MoveHintLayer/MoveHint"]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 14.0
 mouse_filter = 2
 color = Color(0.047, 0.051, 0.078, 0.75)
 
-[node name="Line" type="Control" parent="Overlay/MoveHint"]
+[node name="Line" type="Control" parent="MoveHintLayer/MoveHint"]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 14.0
@@ -132,6 +144,13 @@ mouse_filter = 2
 script = ExtResource("8_hint")
 hint = 0
 word_colour = Color(1, 0.964706, 0.878431, 1)
+
+[node name="UiScale" type="Node" parent="MoveHintLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 180)
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+layer = 20
 
 [node name="Cover" type="ColorRect" parent="Overlay"]
 unique_name_in_owner = true

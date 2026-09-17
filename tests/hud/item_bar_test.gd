@@ -50,3 +50,19 @@ func test_name_hides_when_hovered_slot_empties() -> void:
 func test_slots_stop_the_mouse() -> void:
 	for slot in bar.slots:
 		assert_int(slot.mouse_filter).is_equal(Control.MOUSE_FILTER_STOP)
+
+func test_name_plank_stays_on_screen_at_largest() -> void:
+	var root := get_tree().root
+	var saved_size := root.size
+	var saved_mode := root.content_scale_mode
+	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	root.size = Vector2i(640, 360)
+	Display.use_prefs(DisplayPrefs.new())
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
+	inv.add(K.SHELLFISH)
+	bar.slots[0].mouse_entered.emit()
+	var x := bar.position.x + bar.name_plank.position.x
+	root.size = saved_size
+	root.content_scale_mode = saved_mode
+	Display.use_prefs(DisplayPrefs.new())
+	assert_float(x).is_greater_equal(82.0)

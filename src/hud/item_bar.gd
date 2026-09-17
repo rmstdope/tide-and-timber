@@ -67,11 +67,16 @@ func _show_name(i: int) -> void:
 	var w := ceili(name_label.get_minimum_size().x) + 8
 	name_plank.size = Vector2(w, 13)
 	var centre := 3 + i * 17 + 8
-	var left := 2 - position.x
-	var right := SCREEN_WIDTH - 2 - position.x - w
+	var half := SCREEN_WIDTH / 2.0 / _scale()
+	var left := SCREEN_WIDTH / 2.0 - half + 2 - position.x
+	var right := SCREEN_WIDTH / 2.0 + half - 2 - position.x - w
 	name_plank.position = Vector2(clampf(floorf(centre - w / 2.0), left, right), -19)
 	name_plank.show()
 	name_plank.queue_redraw()
+
+# The bar's layer scale: it grows about the bottom centre, so the visible span is 160 ± 160 / s.
+func _scale() -> float:
+	return UiScale.current(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, PLANK_SIZE), Color("#7a5030"))

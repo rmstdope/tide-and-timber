@@ -15,6 +15,13 @@ func _ready() -> void:
 	verb_label.add_theme_color_override(&"font_color", Color("#f4e3c1"))
 	add_child(verb_label)
 	InputDevice.changed.connect(_on_device_changed)
+	Display.changed.connect(_rescale)
+	get_tree().root.size_changed.connect(_rescale)
+	_rescale()
+
+# Grows with UI size about its own origin, the prompt's bottom centre.
+func _rescale() -> void:
+	scale = Vector2.ONE * UiScale.current(Display.prefs, get_tree().root)
 
 ## The player's Use key or button on the device in use, or null when Use has none there.
 func picture() -> DeviceHints.Picture:

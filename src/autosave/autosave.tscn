@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/autosave/autosave.gd" id="1_autosave"]
 [ext_resource type="Script" path="res://src/autosave/journal_icon.gd" id="2_journal"]
 [ext_resource type="StyleBox" path="res://src/title/plank.tres" id="3_plank"]
+[ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
 
 [node name="Autosave" type="Node"]
 process_mode = 3
@@ -50,6 +51,10 @@ theme_override_font_sizes/font_size = 8
 text = "Another morning. Still here."
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="UiScale" type="Node" parent="Line"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 166)
 
 [node name="BoxLayer" type="CanvasLayer" parent="."]
 layer = 30

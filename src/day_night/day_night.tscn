@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/day_night/day_night.gd" id="1_dn"]
 [ext_resource type="StyleBox" path="res://src/title/plank.tres" id="2_plank"]
 [ext_resource type="Script" path="res://src/day_night/clock_dial.gd" id="3_dial"]
+[ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
 
 [node name="DayNight" type="Node"]
 process_mode = 1
@@ -16,6 +17,10 @@ color = Color(1, 1, 1, 1)
 unique_name_in_owner = true
 layer = 10
 visible = false
+
+[node name="UiScale" type="Node" parent="Hud"]
+script = ExtResource("ui_scale")
+anchor = Vector2(0, 0)
 
 [node name="Plank" type="Panel" parent="Hud"]
 unique_name_in_owner = true
@@ -60,7 +65,14 @@ text = "13:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Sunset" type="Control" parent="Hud"]
+[node name="SunsetLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="UiScale" type="Node" parent="SunsetLayer"]
+script = ExtResource("ui_scale")
+anchor = Vector2(160, 166)
+
+[node name="Sunset" type="Control" parent="SunsetLayer"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 3
@@ -71,13 +83,13 @@ offset_right = 308.0
 offset_bottom = 166.0
 mouse_filter = 2
 
-[node name="Band" type="ColorRect" parent="Hud/Sunset"]
+[node name="Band" type="ColorRect" parent="SunsetLayer/Sunset"]
 offset_right = 296.0
 offset_bottom = 16.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.45)
 
-[node name="Text" type="Label" parent="Hud/Sunset"]
+[node name="Text" type="Label" parent="SunsetLayer/Sunset"]
 offset_right = 296.0
 offset_bottom = 16.0
 mouse_filter = 2
