@@ -8,6 +8,10 @@ signal row_clicked(thing: int)
 const SIZE := Vector2(196, 41)
 const ROW_SIZE := Vector2(190, 11)
 const ROW_TOP: Array[int] = [14, 27]
+const STACKED_SIZE := Vector2(150, 61)
+const STACKED_ROW_SIZE := Vector2(144, 21)
+const STACKED_ROW_TOP: Array[int] = [14, 37]
+const LINE_HEIGHT := 9.0                # the cost line's top below the name line's top when stacked
 const TEXT := Color("#fff6e0")
 const GREYED := Color("#c9b79c")
 const BORDER := Color("#5c3a22")
@@ -19,6 +23,8 @@ var rows: Array[Control] = []
 var name_labels: Array[Label] = []
 var cost_labels: Array[Label] = []
 var _menu: BuildMenu
+## True while every row shows its cost under its name. Set only by _place; read it, never write it.
+var stacked := false
 
 const SCREEN_MARGIN := 4.0
 const ABOVE_HIM := 28.0                 # his screen point to the list's bottom edge
@@ -29,9 +35,9 @@ var _placed := false
 
 ## Top-left on the 320x180 screen of the list drawn at scale s: its bottom-left corner RIGHT_OF_HIM right of
 ## and ABOVE_HIM above him, kept on screen; when wider than the screen less both margins, centred instead.
-static func top_left_for(man_on_screen: Vector2, s: float = 1.0) -> Vector2:
-	var w := SIZE.x * s
-	var h := SIZE.y * s
+static func top_left_for(man_on_screen: Vector2, s: float = 1.0, box: Vector2 = SIZE) -> Vector2:
+	var w := box.x * s
+	var h := box.y * s
 	var x := roundf((320.0 - w) / 2.0) if w > 320.0 - 2.0 * SCREEN_MARGIN \
 			else clampf(roundf(man_on_screen.x) + RIGHT_OF_HIM, SCREEN_MARGIN, 320.0 - SCREEN_MARGIN - w)
 	var y := maxf(2.0, roundf(roundf(man_on_screen.y) - ABOVE_HIM - h))
@@ -48,32 +54,63 @@ func _place() -> void:
 		return
 	var s := UiScale.current(Display.prefs, get_tree().root)
 	scale = Vector2(s, s)
-	position = top_left_for(_man, s)
+	position = top_left_for(_man, s, list_size())
+
+## STACKED_SIZE while stacked, else SIZE.
+func list_size() -> Vector2:
+	return STACKED_SIZE if stacked else SIZE
+
+func _row_size() -> Vector2:
+	return STACKED_ROW_SIZE if stacked else ROW_SIZE
+
+func _row_tops() -> Array[int]:
+	return STACKED_ROW_TOP if stacked else ROW_TOP
+
+func _layout() -> void:
+	size = list_size()
+	title_label.size.x = size.x
+	var row_size := _row_size()
+	for i in BuildMenu.LINE_COUNT:
+		rows[i].position = Vector2(3, _row_tops()[i])
+		rows[i].size = row_size
+		name_labels[i].position = Vector2(3, 2)
+		name_labels[i].size = Vector2(row_size.x - 6, 8)
+		name_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if stacked:
+			cost_labels[i].position = Vector2(3, 2 + LINE_HEIGHT)
+			cost_labels[i].size = Vector2(row_size.x - 6, 8)
+			cost_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		else:
+			cost_labels[i].position = Vector2(0, 2)
+			cost_labels[i].size = Vector2(184, 8)
+			cost_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	queue_redraw()
 
 func _ready() -> void:
 	hide()
 	Display.changed.connect(_place)
 	get_tree().root.size_changed.connect(_place)
-	size = SIZE
 	mouse_filter = MOUSE_FILTER_IGNORE
-	title_label = _label("Build", Vector2(0, 3), Vector2(SIZE.x, 8), HORIZONTAL_ALIGNMENT_CENTER)
+	title_label = _label("Build")
+	title_label.position = Vector2(0, 3)
+	title_label.size = Vector2(SIZE.x, 8)
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_color_override(&"font_color", TEXT)
 	add_child(title_label)
 	for i in BuildMenu.LINE_COUNT:
 		var row := Control.new()
-		row.position = Vector2(3, ROW_TOP[i])
-		row.size = ROW_SIZE
 		row.mouse_filter = MOUSE_FILTER_STOP
 		row.mouse_entered.connect(func() -> void: row_hovered.emit(i))
 		row.gui_input.connect(_on_row_input.bind(i))
 		add_child(row)
 		rows.append(row)
-		var name_label := _label("", Vector2(3, 2), Vector2(ROW_SIZE.x - 6, 8), HORIZONTAL_ALIGNMENT_LEFT)
-		var cost_label := _label("", Vector2(0, 2), Vector2(184, 8), HORIZONTAL_ALIGNMENT_RIGHT)
+		var name_label := _label("")
+		var cost_label := _label("")
 		row.add_child(name_label)
 		row.add_child(cost_label)
 		name_labels.append(name_label)
 		cost_labels.append(cost_label)
+	_layout()
 
 func show_menu(menu: BuildMenu) -> void:
 	_menu = menu
@@ -87,22 +124,20 @@ func show_menu(menu: BuildMenu) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, SIZE), BORDER)
-	draw_rect(Rect2(1, 1, SIZE.x - 2, SIZE.y - 2), FILL)
+	var box := list_size()
+	draw_rect(Rect2(Vector2.ZERO, box), BORDER)
+	draw_rect(Rect2(1, 1, box.x - 2, box.y - 2), FILL)
 	if _menu and _menu.highlighted >= 0:
-		draw_rect(Rect2(Vector2(3, ROW_TOP[_menu.highlighted]), ROW_SIZE), HIGHLIGHT)
+		draw_rect(Rect2(Vector2(3, _row_tops()[_menu.highlighted]), _row_size()), HIGHLIGHT)
 
 func _on_row_input(event: InputEvent, i: int) -> void:
 	var click := event as InputEventMouseButton
 	if click and click.button_index == MOUSE_BUTTON_LEFT and click.pressed:
 		row_clicked.emit(i)
 
-func _label(text: String, at: Vector2, box: Vector2, align: HorizontalAlignment) -> Label:
+func _label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.position = at
-	label.size = box
-	label.horizontal_alignment = align
 	label.mouse_filter = MOUSE_FILTER_IGNORE
 	label.add_theme_font_size_override(&"font_size", 8)
 	return label

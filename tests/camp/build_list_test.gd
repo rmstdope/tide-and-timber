@@ -16,3 +16,13 @@ func test_top_left_at_larger_scales() -> void:
 	assert_vector(BuildList.top_left_for(Vector2(160, 90), 1.5)).is_equal(Vector2(22, 2))
 	assert_vector(BuildList.top_left_for(Vector2(100, 150), 2.0)).is_equal(Vector2(-36, 40))
 	assert_vector(BuildList.top_left_for(Vector2(160, 90), 2.0)).is_equal(Vector2(-36, 2))
+
+func test_top_left_for_a_stacked_list() -> void:
+	assert_vector(BuildList.top_left_for(Vector2(100, 150), 2.0, BuildList.STACKED_SIZE)).is_equal(Vector2(16, 2))
+	assert_vector(BuildList.top_left_for(Vector2(60, 170), 2.0, BuildList.STACKED_SIZE)).is_equal(Vector2(16, 20))
+	assert_vector(BuildList.top_left_for(Vector2(160, 90))).is_equal(Vector2(120, 21))
+
+func test_stacked_words_fit() -> void:
+	assert_float(BuildList.STACKED_ROW_SIZE.x - 6).is_greater_equal(15 * 8)
+	assert_float(BuildList.STACKED_SIZE.x * 2).is_less_equal(320 - 2 * BuildList.SCREEN_MARGIN)
+	assert_float(BuildList.STACKED_ROW_TOP[1] + BuildList.STACKED_ROW_SIZE.y).is_less_equal(BuildList.STACKED_SIZE.y - 1)
