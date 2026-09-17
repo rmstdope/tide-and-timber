@@ -86,6 +86,10 @@ func _settle() -> void:
 func _node(unique: String) -> Control:
 	return screen.get_node("%" + unique) as Control
 
+# gdUnit's simulate_mouse_move takes window coordinates; the scene's rects are in the 320x180 canvas.
+func _to_window(canvas_point: Vector2) -> Vector2:
+	return get_tree().root.get_final_transform() * canvas_point
+
 func _a_move() -> InputEventMouseMotion:
 	var move := InputEventMouseMotion.new()
 	move.relative = Vector2(1, 0)
@@ -211,11 +215,12 @@ func test_a_plank_scrolled_out_of_the_band_is_out_of_the_pointer_s_reach() -> vo
 	await _settle()
 	var quit := _node("Quit")
 	assert_bool(_shown("Quit")).is_false()
-	assert_bool(quit.get_global_rect().has_point(Vector2(160, 172))).is_true()   # where it would lie
-	runner.simulate_mouse_move(Vector2(160, 172))
+	var at := quit.get_global_rect().get_center()
+	assert_bool(_node("MenuClip").get_global_rect().has_point(at)).is_false()   # below the band
+	runner.simulate_mouse_move(_to_window(at))
 	await runner.await_input_processed()
 	# the clip keeps it out of reach: it neither takes the highlight nor scrolls the menu to itself
-	assert_int(screen.menu.highlighted).is_not_equal(TitleMenu.Choice.QUIT)
+	assert_int(screen.menu.highlighted).is_equal(TitleMenu.Choice.CONTINUE)
 	assert_int(screen.menu_offset).is_equal(0)
 
 func test_a_plank_inside_the_band_still_takes_the_pointer() -> void:
@@ -223,5 +228,6 @@ func test_a_plank_inside_the_band_still_takes_the_pointer() -> void:
 	_saved()
 	await _settle()
 	assert_bool(_shown("NewGame")).is_true()
-	_node("NewGame").gui_input.emit(_a_move())
+	runner.simulate_mouse_move(_to_window(_node("NewGame").get_global_rect().get_center()))
+	await runner.await_input_processed()
 	assert_int(screen.menu.highlighted).is_equal(TitleMenu.Choice.NEW_GAME)
