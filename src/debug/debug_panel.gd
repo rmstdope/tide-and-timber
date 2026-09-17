@@ -32,6 +32,7 @@ var rules := DebugMenu.new()
 var strip: MenuStrip
 var shaking_row := -1       # row index being shaken, -1 when none
 var shake_x := 0.0          # its current x offset
+var _shake_tween: Tween
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
@@ -147,8 +148,11 @@ func _apply(o: DebugMenu.Outcome) -> void:
 			resume_requested.emit()
 
 func _shake(index: int) -> void:
+	if _shake_tween != null and _shake_tween.is_valid():
+		_shake_tween.kill()   # a second refusal restarts the shake rather than racing the first
 	shaking_row = index
 	var t := create_tween()
+	_shake_tween = t
 	var from := 0.0
 	for x in SHAKE_STEPS:
 		t.tween_method(_set_shake_x, from, x, Shake.WIGGLE_STEP)

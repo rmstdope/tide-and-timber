@@ -193,3 +193,15 @@ func test_mouse_clicks_a_tab_and_a_row() -> void:
 	assert_int(panel.rules.page).is_equal(DebugMenu.Page.STORY)
 	_press(DebugPanel.row_rect(0).get_center())
 	assert_array(picked).is_equal(["x"])
+
+func test_a_second_refusal_restarts_the_shake() -> void:
+	pause.debug_menu().add_row(DebugMenu.Page.TIME,
+			DebugRow.new("No", Callable(), Callable(), func() -> DebugRow.Result: return DebugRow.Result.REFUSED))
+	await _open_panel()
+	await _tap(KEY_ENTER)
+	await _real_seconds(0.15)
+	await _tap(KEY_ENTER)
+	await _real_seconds(0.15)
+	assert_int(panel.shaking_row).is_equal(0)
+	await _real_seconds(0.3)
+	assert_int(panel.shaking_row).is_equal(-1)
