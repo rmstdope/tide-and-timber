@@ -1,0 +1,89 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Camp survives a collapse</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>:root{--bg:#f7efe0;--ink:#2b2230;--dim:#7a6b5e;--card:#fffaf0}
+@media (prefers-color-scheme:dark){:root{--bg:#17151c;--ink:#efe6d6;--dim:#a79a8c;--card:#221f29}}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}
+h1{font-size:22px;margin:0 0 4px}.lede{color:var(--dim);max-width:75ch;margin:0 0 20px}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+figure{margin:0;background:var(--card);border-radius:8px;padding:8px}
+svg.px{width:100%;height:auto;display:block;image-rendering:pixelated;border-radius:3px}
+figcaption{font-size:13px;padding:6px 2px 0}figcaption b{display:block}figcaption span{color:var(--dim)}
+text{font-family:'Press Start 2P',monospace}
+h2{font-size:17px;margin:40px 0 4px;padding-top:12px;border-top:2px solid #d9ae62}</style></head><body><script>
+
+const P={sand:'#f0cf8a',sandDk:'#d9ae62',wet:'#c49a5a',shallow:'#6fc3c0',deep:'#2f6f9a',foam:'#eef6f4',jungle:'#3f7a3a',jungleDk:'#2c5a2a',woodDk:'#5c3a22',wood:'#8a5a34',woodLt:'#b98452',skin:'#e0a172',shirt:'#b8462e',pants:'#3d4f6e',hair:'#4a2c1a',text:'#fff6e0',rock:'#8d8a86',fire:'#ff9a2a',fireY:'#ffe06a',red:'#e0503a',ok:'#8fd06a'};
+const r=(x,y,w,h,c,o='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}" ${o}/>`;
+const t=(x,y,s,sz=6,c=P.text,a='start')=>`<text x="${x}" y="${y}" font-size="${sz}" fill="${c}" text-anchor="${a}">${s}</text>`;
+const svg=i=>`<svg class="px" viewBox="0 0 320 180" shape-rendering="crispEdges">${i}</svg>`;
+function beach(){let s=r(0,0,320,180,P.sand)+r(0,0,320,30,P.jungle);
+ for(let x=0;x<320;x+=12)s+=r(x,26,8,8,P.jungleDk);
+ s+=r(0,138,320,6,P.wet)+r(0,144,320,4,P.foam)+r(0,148,320,16,P.shallow)+r(0,164,320,16,P.deep);
+ for(let x=0;x<320;x+=16)for(let y=40;y<136;y+=16)if((x*7+y*3)%5===0)s+=r(x+5,y+6,3,2,P.sandDk);
+ s+=r(20,60,12,9,P.rock)+r(282,96,14,10,P.rock)+r(240,44,18,3,P.wood)+r(60,120,14,3,P.wood);return s}
+function man(x,y,face='down'){return r(x,y,8,7,P.skin)+r(x,y,8,2,P.hair)+r(x-1,y+7,10,8,P.shirt)+r(x,y+15,3,6,P.pants)+r(x+5,y+15,3,6,P.pants)}
+function leanto(x,y,o=''){return `<g ${o}>`+r(x,y+24,40,4,P.woodDk)+`<polygon points="${x},${y+26} ${x+34},${y} ${x+40},${y+2} ${x+8},${y+28}" fill="${P.wood}"/>`+[4,12,20,28].map(i=>r(x+i,y+22-i*0.7,6,2,P.woodLt)).join('')+r(x+34,y,3,28,P.woodDk)+'</g>'}
+function fire(x,y,lit=true,o=''){let s=`<g ${o}>`+r(x,y+8,14,3,P.woodDk)+r(x+2,y+6,10,3,P.wood);
+ if(lit)s+=`<circle cx="${x+7}" cy="${y+6}" r="26" fill="#ffc060" opacity=".18"/>`+`<polygon points="${x+2},${y+7} ${x+7},${y-6} ${x+12},${y+7}" fill="${P.fire}"/><polygon points="${x+5},${y+7} ${x+7},${y} ${x+9},${y+7}" fill="${P.fireY}"/>`;
+ return s+'</g>'}
+function ghost(inner,okay){return `<g opacity=".55">${inner}</g>`+`<g opacity=".25">${r(0,0,0,0,'#000')}</g>`}
+function plank(x,y,w,h){return r(x,y,w,h,P.woodDk)+r(x+1,y+1,w-2,h-2,P.wood)}
+function bar(n){let s=plank(110,160,100,16);for(let i=0;i<5;i++){s+=r(114+i*19,163,16,10,P.woodDk);}
+ s+=r(117,167,10,2,P.woodLt)+r(119,165,6,2,P.wood)+t(130,172,n,5,P.text,'end');return s}
+function hint(x,y,w,s){return r(x,y,w,12,'#000','opacity=".55"')+t(x+w/2,y+8.5,s,5,P.text,'middle')}
+function fig(title,sub,inner){return `<figure>${svg(inner)}<figcaption><b>${title}</b><span>${sub}</span></figcaption></figure>`}
+function clock(s){return plank(6,4,50,16)+t(31,14.5,s,5,P.text,'middle')}
+function black(o){return r(0,0,320,180,'#000',`opacity="${o}"`)}
+function list(x,y,items,sel){let h=16+items.length*13;let s=plank(x,y,98,h)+t(x+49,y+10,'BUILD',6,P.text,'middle');
+ items.forEach((it,i)=>{const yy=y+14+i*13;if(i===sel)s+=r(x+3,yy,92,11,P.woodLt);const c=it[2]?P.text:'#c9b79c';s+=t(x+6,yy+8,it[0],5,c)+t(x+92,yy+8,it[1],5,c,'end')});return s}
+function night(){return r(0,0,320,180,'#101a40','opacity=".55"')}
+function ash(x,y){return r(x,y+8,14,3,'#6a625c')+r(x+3,y+6,8,2,'#8a827a')}
+function line(w){return r(40,150,240,16,'#000','opacity=".45"')+t(160,161,w,6,P.text,'middle')}
+function wlist(x,y,w,title,items,sel){let h=16+items.length*13;let s=plank(x,y,w,h)+t(x+w/2,y+10,title,6,P.text,'middle');
+ items.forEach((it,i)=>{const yy=y+14+i*13;if(i===sel)s+=r(x+3,yy,w-6,11,P.woodLt);const c=it[2]?P.text:'#c9b79c';s+=t(x+6,yy+8,it[0],5,c)+t(x+w-6,yy+8,it[1],5,c,'end')});return s}
+function ptr(x,y){return `<polygon points="${x},${y} ${x},${y+9} ${x+3},${y+7} ${x+6},${y+11} ${x+7},${y+10} ${x+5},${y+6} ${x+8},${y+6}" fill="#fff" stroke="#000" stroke-width=".6"/>`}
+
+const put=(id,a)=>document.getElementById(id).innerHTML=a.join('');
+function slotbar(items){let s=plank(88,160,144,17);for(let i=0;i<8;i++){s+=r(91+i*17.6,163,15,11,P.woodDk);}
+ items.forEach((it,i)=>{const x=91+i*17.6;s+=r(x+3,166,9,4,it[1])+t(x+14,173,it[0],4,P.text,'end')});return s}
+const W='#b98452',SH='#e8d7c0',CO='#7a5230',FW='#6fc3e8',ES='#d8c7a8';
+function dial(day,time){return plank(6,4,44,30)+t(28,12,day,4.5,P.text,'middle')+t(28,30,time,5,P.text,'middle')+`<path d="M16 24 A12 8 0 0 1 40 24" stroke="${P.woodLt}" fill="none"/>`}
+function glow(cx,cy,rr=30){return `<circle cx="${cx}" cy="${cy}" r="${rr}" fill="#ffc060" opacity=".25"/>`}
+function camp(){return leanto(146,98)+fire(196,112)}
+function fallen(x,y){return r(x-4,y+14,8,7,P.skin)+r(x-4,y+14,2,7,P.hair)+r(x+4,y+13,12,8,P.shirt)+r(x+16,y+15,10,3,P.pants)+r(x+16,y+19,10,2,P.pants)}
+function kneel(x,y){return r(x,y+6,8,7,P.skin)+r(x,y+6,8,2,P.hair)+r(x-1,y+13,10,8,P.shirt)+r(x-1,y+21,10,3,P.pants)}
+function frost(o){return `<defs><radialGradient id="fr${o}"><stop offset="55%" stop-color="#cfe6ff" stop-opacity="0"/><stop offset="100%" stop-color="#cfe6ff" stop-opacity="${o}"/></radialGradient></defs><rect width="320" height="180" fill="url(#fr${o})"/>`}
+function card(lines,w=200){const h=20+lines.length*12;const x=160-w/2,y=90-h/2;let s=plank(x,y,w,h);lines.forEach((l,i)=>s+=t(160,y+14+i*12,l[0],l[1]||5,l[2]||P.text,'middle'));return s}
+function rise(x,y,s){return t(x,y,s,5,'#fff6e0','middle')}
+
+const inv2=slotbar([['5',W],['2',SH],['1',CO],['1',FW]]);
+const inv3=slotbar([['9',W],['2',SH],['1',CO],['1',FW]]);
+const cd=card([['DAY 2',6],['The night took:',5,'#e8d7c0'],['4 Driftwood'],['1 Shellfish'],['1 Coconut']],150);
+function page(title,lede,sections){document.title=title;document.body.innerHTML=`<h1>${title}</h1><p class="lede">${lede}</p>`+sections.map((s,i)=>`<h2>${s[0]}</h2><div class="strip">${s[1].join('')}</div>`).join('')}
+
+const parts=[];const page0=page;
+page=(t,l,s)=>parts.push([t,l,s]);
+
+page('The camp survives a collapse — agreed','He collapsed away from camp, but the fire he lit is still going: it burns until 07:00 as always, then goes to ash. The collapse costs things and time, never the camp.',[
+['Morning after a collapse',[
+fig('06:00 beside the lean-to, fire lit','He wakes beside his camp; the fire still glows faintly in the dawn. Card as before.',beach()+camp()+man(172,84)+dial('DAY 2','06:00')+inv2+cd),
+fig('06:40, card gone','He can warm up, cook, or walk off. Nothing new to read.',beach()+camp()+man(210,96)+dial('DAY 2','06:40')+inv2),
+fig('07:00, burns to ash','Same as any morning: Fire can be built again on the ash.',beach()+leanto(146,98)+ash(196,112)+man(210,96)+dial('DAY 2','07:00')+inv2)]],
+['The other camps',[
+fig('Lean-to, no fire built','He wakes beside the lean-to; it stands as he left it.',beach()+leanto(146,98)+man(172,84)+dial('DAY 2','06:00')+inv2+cd),
+fig('Lean-to, fire already ash','A fire lit on an earlier day went out at 07:00; the ash is still there.',beach()+leanto(146,98)+ash(196,112)+man(172,84)+dial('DAY 2','06:00')+inv2+cd),
+fig('No camp','Unchanged: he wakes where he first woke.',beach()+man(150,84)+dial('DAY 2','06:00')+inv2+cd)]]]);
+
+page('Continue brings back the whole camp','The 06:00 save keeps the camp exactly: the lean-to, and the fire lit or as ash. Quit after waking, pick Continue, and it is all there, the fire still due to go out at 07:00.',[
+['Before quitting, and after Continue',[
+fig('06:05, he quits','Camp built, fire still lit.',beach()+camp()+man(172,84)+dial('DAY 2','06:05')+inv2),
+fig('Continue: back at 06:00','Same camp, same fire, same bar.',beach()+camp()+man(172,84)+dial('DAY 2','06:00')+inv2),
+fig('Continue: fire was ash','Ash comes back as ash; Fire buildable on it.',beach()+leanto(146,98)+ash(196,112)+man(172,84)+dial('DAY 3','06:00')+inv2)]]]);
+
+page('The morning card is unchanged','The card lists only what the night took. The camp standing beside him says the rest.',[
+['The card',[
+fig('Things lost','As agreed before.',beach()+camp()+man(172,84)+dial('DAY 2','06:00')+inv2+cd),
+fig('Nothing lost','As agreed before.',beach()+camp()+man(172,84)+dial('DAY 2','06:00')+slotbar([['1',CO]])+card([['DAY 2',6],['I made it through.',5]],150))]]]);
+
+document.title=parts[0][0];
+document.body.innerHTML=parts.map((p,i)=>(i?`<h2>${p[0]}</h2><p class="lede">${p[1]}</p>`:`<h1>${p[0]}</h1><p class="lede">${p[1]} Each picture is the game's 320×180 screen; art, colours and positions are indicative.</p>`)+p[2].map(s=>`<h2>${s[0]}</h2><div class="strip">${s[1].join('')}</div>`).join('')).join('');
+</script></body></html>
