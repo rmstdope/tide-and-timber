@@ -10,6 +10,7 @@ const FADE_IN_SECONDS := 1.0
 const LIE_SECONDS := 2.0                # still, after the picture is fully up
 const PUSH_UP_SECONDS := 0.4
 const SIT_SECONDS := 0.8
+const FALL_FRAMES := 8                  # the columns of assets/man/death.png
 const HINT_WALK_PIXELS := 32.0          # "a few steps": two tiles
 const HINT_FADE_SECONDS := 0.5
 

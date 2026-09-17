@@ -66,6 +66,15 @@ func play_pose(anim: StringName) -> void:
 	if %Sprite.animation != anim:
 		%Sprite.play(anim)
 
+## Holds one frame of an animation and stops there: the collapse and the waking drive the fall frame
+## by frame. Every way back to walking calls %Sprite.play(), which unpauses him, and no walking
+## animation is ever named death_*, so that always fires.
+func show_frame(anim: StringName, index: int) -> void:
+	if %Sprite.animation != anim:
+		%Sprite.animation = anim
+	%Sprite.pause()
+	%Sprite.frame = index
+
 ## Hands him to the player standing still facing down; a key held until now does not walk him.
 func give_control() -> void:
 	for action in MOVE_ACTIONS:

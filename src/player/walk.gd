@@ -58,6 +58,10 @@ static func animation_for(facing: Facing, moving: bool, wading: bool = false, ru
 static func collect_animation_for(facing: Facing, wading: bool = false) -> StringName:
 	return StringName(("wade_" if wading else "") + "collect_" + _NAMES[facing])
 
+## The fall's animation for the way he was facing when he went down; the waking plays it backwards.
+static func fall_animation_for(facing: Facing) -> StringName:
+	return StringName("death_" + _NAMES[facing])
+
 ## How fast his animation runs: half pace in the water, its own pace everywhere else.
 static func animation_scale(wading: bool) -> float:
 	return WADE_SPEED / SPEED if wading else 1.0

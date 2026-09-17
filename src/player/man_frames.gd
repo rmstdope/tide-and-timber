@@ -10,6 +10,9 @@ const IDLE_FPS := 6.0
 const WALK_FPS := 12.0
 const RUN_FPS := 16.0
 const COLLECT_FPS := 12.0
+## 8 frames over Collapse.FALL_SECONDS. Nothing plays the fall whole: the collapse and the waking
+## set its frame themselves, forwards and then backwards.
+const DEATH_FPS := 4.0
 const WAKE_FRAME_SIZE := Vector2i(64, 64)
 const WAKE_POSES: Array[StringName] = [&"lie", &"push_up", &"sit"]   # also the frame order of man_wake.png
 
@@ -17,6 +20,7 @@ const IDLE_SHEET := preload("res://assets/man/idle.png")
 const WALK_SHEET := preload("res://assets/man/walk.png")
 const RUN_SHEET := preload("res://assets/man/run.png")
 const COLLECT_SHEET := preload("res://assets/man/collect.png")
+const DEATH_SHEET := preload("res://assets/man/death.png")
 
 static func build() -> SpriteFrames:
 	var frames := SpriteFrames.new()
@@ -30,9 +34,12 @@ static func build() -> SpriteFrames:
 			_add(frames, Walk.collect_animation_for(facing, wading), COLLECT_SHEET, 8, false,
 				COLLECT_FPS, facing, wading)
 			# No wade_run_*: wading is one pace whether Shift is held, so he shows the wading walk.
+			# No wade_death_* either: he keeps his legs if he goes down in the shallows.
 			if not wading:
 				_add(frames, Walk.animation_for(facing, true, false, true), RUN_SHEET, 6, true,
 					RUN_FPS, facing, false)
+				_add(frames, Walk.fall_animation_for(facing), DEATH_SHEET, WakeUp.FALL_FRAMES, false,
+					DEATH_FPS, facing, false)
 	return frames
 
 ## Adds his getting-up poses from man_wake.png, one still frame each, beside the walk animations.
