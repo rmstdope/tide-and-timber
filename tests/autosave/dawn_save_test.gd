@@ -114,3 +114,12 @@ func test_release_without_a_save_shows_nothing() -> void:
 	r.cancel()
 	r.release_line()
 	assert_bool(r.line.is_showing()).is_false()
+
+func test_try_again_while_held_waits_for_release() -> void:
+	var r := _rules([ERR_FILE_CANT_WRITE, OK])
+	r.hold_line()
+	r.dawn()
+	r.press(B.TRY_AGAIN)
+	assert_bool(r.line.is_showing()).is_false()
+	r.release_line()
+	assert_bool(r.line.is_showing()).is_true()

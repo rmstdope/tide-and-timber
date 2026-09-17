@@ -105,12 +105,12 @@ func _on_went_black() -> void:
 	var t := day_night.clock.total_minutes
 	taken = NightLoss.losses(beach.inventory)
 	NightLoss.apply(beach.inventory, taken)
-	autosave.hold_line()   # saved now, at 06:00 with the loss; his dawn line waits until he is up
-	day_night.add_minutes(NightWatch.next_morning(t) - t)
 	var cell := WakeSpot.beside_lean_to(builder.lean_to.anchor(), Waking.WAKE_CELL) if builder.lean_to else Waking.WAKE_CELL
 	player.global_position = BeachLayout.cell_centre(cell)
 	player.facing = Walk.Facing.DOWN
 	(beach.get_node("%Camera") as LooseCamera).snap_to_target()
+	autosave.hold_line()   # the clock's jump saves him here at 06:00, loss applied; his dawn line waits until he is up
+	day_night.add_minutes(NightWatch.next_morning(t) - t)
 	watch.reset(day_night.clock.total_minutes)
 
 func _on_morning() -> void:

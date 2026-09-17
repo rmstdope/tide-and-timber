@@ -176,6 +176,8 @@ func test_saved_at_black_with_the_loss_applied_and_line_when_he_gets_up() -> voi
 	night.tick(0.5)
 	assert_int(saves.size()).is_equal(1)
 	assert_int(saves[0].inventory_slots[0]["count"]).is_equal(5)
+	assert_vector(saves[0].player_position).is_equal(BeachLayout.cell_centre(Waking.WAKE_CELL))
+	assert_int(saves[0].player_facing).is_equal(Walk.Facing.DOWN)
 	assert_float(dn.clock.total_minutes).is_equal(1800.0)
 	var autosave := _n("Autosave") as Autosave
 	autosave.tick(0.5)
@@ -186,3 +188,23 @@ func test_saved_at_black_with_the_loss_applied_and_line_when_he_gets_up() -> voi
 	assert_bool(autosave.get_node("%Dawn").visible).is_true()
 	dn.tick(1.0)
 	assert_int(saves.size()).is_equal(1)
+
+func test_failed_save_at_black_then_try_again_shows_line_when_up() -> void:
+	var autosave := _n("Autosave") as Autosave
+	var results := [ERR_FILE_CANT_WRITE, OK]
+	autosave.save_game = func() -> Error:
+		saves.append(beach.capture())
+		return results.pop_front()
+	_collapse_now()
+	night.tick(2.5)
+	assert_bool(autosave.get_node("%Box").visible).is_true()
+	assert_bool(waking.get_tree().paused).is_true()
+	autosave.rules.press(DawnSave.Choice.TRY_AGAIN)
+	autosave._after_rules()
+	assert_bool(waking.get_tree().paused).is_false()
+	assert_int(saves.size()).is_equal(2)
+	autosave.tick(0.5)
+	assert_bool(autosave.get_node("%Dawn").visible).is_false()
+	night.tick(100.0)
+	autosave.tick(0.5)
+	assert_bool(autosave.get_node("%Dawn").visible).is_true()
