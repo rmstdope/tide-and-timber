@@ -64,3 +64,83 @@ func test_unplugging_the_last_pad_shows_keys() -> void:
 	_pad_press("Xbox Series Controller")
 	InputDevice.tracker.pad_disconnected(0, PackedStringArray())
 	assert_str(strip.text()).is_equal("[Enter] Select")
+
+# --- UI size: the strip grows but keeps its bottom-left corner on screen ---
+
+var _saved_size: Vector2i
+var _saved_mode: Window.ContentScaleMode
+
+func _big_root() -> void:
+	_saved_size = get_tree().root.size
+	_saved_mode = get_tree().root.content_scale_mode
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	get_tree().root.size = Vector2i(640, 360)
+	Display.use_prefs(DisplayPrefs.new())
+
+func _restore_root() -> void:
+	Display.use_prefs(DisplayPrefs.new())
+	get_tree().root.size = _saved_size
+	get_tree().root.content_scale_mode = _saved_mode
+
+func _step(times: int) -> void:
+	for i in times:
+		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+
+func test_screen_transform_pins_the_bottom_left() -> void:
+	assert_bool(MenuStrip.screen_transform(1.0) == Transform2D(0.0, Vector2.ONE, 0.0, Vector2(4, 164))).is_true()
+	assert_vector(MenuStrip.screen_transform(2.0).origin).is_equal(Vector2(4, 152))
+	assert_vector(MenuStrip.screen_transform(2.0).get_scale()).is_equal(Vector2(2, 2))
+	assert_vector(MenuStrip.screen_transform(1.5).origin).is_equal(Vector2(4, 158))
+
+func test_grows_in_the_corner_under_a_scaled_layer() -> void:
+	_big_root()
+	var layer := auto_free(CanvasLayer.new()) as CanvasLayer
+	var scaler := UiScale.new()
+	scaler.anchor = OverlayScale.ANCHOR_CENTRE
+	layer.add_child(scaler)
+	var host := Control.new()
+	host.size = Vector2(320, 180)
+	layer.add_child(host)
+	add_child(layer)
+	var s := MenuStrip.new()
+	host.add_child(s)
+	s.show_hint(DeviceHints.Hint.SELECT_BACK)
+	_step(2)
+	await get_tree().process_frame
+	var t := s.get_global_transform_with_canvas()
+	assert_vector(t.origin).is_equal_approx(Vector2(4, 152), Vector2(0.01, 0.01))
+	assert_vector(t.get_scale()).is_equal_approx(Vector2(2, 2), Vector2(0.01, 0.01))
+	Display.use_prefs(DisplayPrefs.new())
+	await get_tree().process_frame
+	t = s.get_global_transform_with_canvas()
+	assert_vector(t.origin).is_equal_approx(Vector2(4, 164), Vector2(0.01, 0.01))
+	assert_vector(t.get_scale()).is_equal_approx(Vector2(1, 1), Vector2(0.01, 0.01))
+	_restore_root()
+
+func test_grows_in_the_corner_under_a_scaled_control() -> void:
+	_big_root()
+	var host := auto_free(Control.new()) as Control
+	host.size = Vector2(320, 180)
+	host.pivot_offset = Vector2(160, 90)
+	host.scale = Vector2(1.5, 1.5)
+	add_child(host)
+	var s := MenuStrip.new()
+	host.add_child(s)
+	_step(1)
+	await get_tree().process_frame
+	var t := s.get_global_transform_with_canvas()
+	assert_vector(t.origin).is_equal_approx(Vector2(4, 158), Vector2(0.01, 0.01))
+	assert_vector(t.get_scale()).is_equal_approx(Vector2(1.5, 1.5), Vector2(0.01, 0.01))
+	_restore_root()
+
+func test_unscaled_host_grows_it_in_place() -> void:
+	_big_root()
+	var host := auto_free(Control.new()) as Control
+	add_child(host)
+	var s := MenuStrip.new()
+	host.add_child(s)
+	_step(2)
+	await get_tree().process_frame
+	assert_vector(s.position).is_equal_approx(Vector2(4, 152), Vector2(0.001, 0.001))
+	assert_vector(s.scale).is_equal(Vector2(2, 2))
+	_restore_root()
