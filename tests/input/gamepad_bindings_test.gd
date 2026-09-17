@@ -67,14 +67,27 @@ func test_by_position_a_is_bottom() -> void:
 	assert_array(_game_actions_matching(_button(JOY_BUTTON_B))).contains_exactly_in_any_order([&"build_back", &"menu_cancel"])
 
 func test_unused_pad_inputs_bind_nothing() -> void:
-	for b: JoyButton in [JOY_BUTTON_X, JOY_BUTTON_BACK, JOY_BUTTON_LEFT_STICK, JOY_BUTTON_RIGHT_STICK, JOY_BUTTON_RIGHT_SHOULDER]:
+	for b: JoyButton in [JOY_BUTTON_BACK, JOY_BUTTON_LEFT_STICK, JOY_BUTTON_RIGHT_STICK]:
 		assert_array(_game_actions_matching(_button(b))).override_failure_message("button %d is bound" % b).is_empty()
+	assert_array(_game_actions_matching(_button(JOY_BUTTON_X))).contains_exactly([&"menu_clear"])   # the Controls page (tr-eg9.5.3)
+	assert_array(_game_actions_matching(_button(JOY_BUTTON_RIGHT_SHOULDER))).contains_exactly([&"menu_tab"])
 	assert_array(_game_actions_matching(_button(JOY_BUTTON_DPAD_LEFT))).contains_exactly([&"menu_left"])   # menus (tr-eg9.2)
 	assert_array(_game_actions_matching(_button(JOY_BUTTON_DPAD_RIGHT))).contains_exactly([&"menu_right"])
 	assert_array(_game_actions_matching(_button(JOY_BUTTON_DPAD_UP))).contains_exactly([&"menu_up"])
 	assert_array(_game_actions_matching(_button(JOY_BUTTON_DPAD_DOWN))).contains_exactly([&"menu_down"])
 	for axis: JoyAxis in [JOY_AXIS_RIGHT_X, JOY_AXIS_RIGHT_Y, JOY_AXIS_TRIGGER_LEFT, JOY_AXIS_TRIGGER_RIGHT]:
 		assert_array(_game_actions_matching(_motion(axis, 1.0))).override_failure_message("axis %d is bound" % axis).is_empty()
+
+func test_menu_page_keys() -> void:
+	for k: Key in [KEY_Q, KEY_E]:
+		assert_bool(InputMap.event_is_action(_key(k), &"menu_tab")).override_failure_message("menu_tab lacks key %d" % k).is_true()
+	for b: JoyButton in [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER]:
+		assert_bool(InputMap.event_is_action(_button(b), &"menu_tab")).override_failure_message("menu_tab lacks button %d" % b).is_true()
+	for k: Key in [KEY_DELETE, KEY_BACKSPACE]:
+		assert_bool(InputMap.event_is_action(_key(k), &"menu_clear")).override_failure_message("menu_clear lacks key %d" % k).is_true()
+	assert_bool(InputMap.event_is_action(_button(JOY_BUTTON_X), &"menu_clear")).is_true()
+	assert_bool(InputMap.event_is_action(_key(KEY_A), &"menu_left")).is_true()
+	assert_bool(InputMap.event_is_action(_key(KEY_D), &"menu_right")).is_true()
 
 func _has_motion(action: StringName, axis: JoyAxis, value: float) -> bool:
 	for e: InputEvent in InputMap.action_get_events(action):

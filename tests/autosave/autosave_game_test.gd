@@ -9,6 +9,7 @@ var dn: DayNight
 var autosave: Autosave
 
 func before_test() -> void:
+	InputDevice.reset()
 	runner = scene_runner("res://src/beach/beach.tscn")
 	beach = runner.scene() as Beach
 	dn = load("res://src/day_night/day_night.tscn").instantiate()
@@ -24,6 +25,7 @@ func before_test() -> void:
 func after_test() -> void:
 	autosave.get_tree().paused = false
 	_rm("user://test_saves")
+	InputDevice.reset()
 
 func _rm(path: String) -> void:
 	if FileAccess.file_exists(path):
@@ -67,3 +69,40 @@ func test_unwritable_folder_opens_the_box() -> void:
 	dn.tick(1531.0)
 	assert_bool(_n("Box").visible).is_true()
 	assert_bool(autosave.get_tree().paused).is_true()
+
+func _pad(button: JoyButton) -> void:
+	for pressed: bool in [true, false]:
+		var e := InputEventJoypadButton.new()
+		e.device = 0
+		e.button_index = button
+		e.pressed = pressed
+		Input.parse_input_event(e)
+		Input.flush_buffered_events()
+		await runner.await_input_processed()
+
+func _mouse_moved() -> void:
+	var move := InputEventMouseMotion.new()
+	move.position = Vector2(300, 20)
+	move.relative = Vector2(2, 0)
+	Input.parse_input_event(move)
+	Input.flush_buffered_events()
+	await runner.await_input_processed()
+
+func _tap(key: Key) -> void:
+	runner.simulate_key_pressed(key)
+	await runner.await_input_processed()
+
+func test_box_over_play_and_the_build_hint_show_the_same_device() -> void:
+	var hint := beach.get_node("%KeyHint") as KeyHint
+	hint.show_hint(DeviceHints.Hint.BUILD_LIST)
+	autosave.save_game = func() -> Error: return ERR_FILE_CANT_WRITE
+	autosave.on_dawn()
+	await _pad(JOY_BUTTON_DPAD_RIGHT)
+	assert_str(autosave.strip.text()).is_equal("(A) Select   (B) Back")
+	assert_str(hint.text()).is_equal("(A) Build   (B) Close")
+	await _mouse_moved()
+	assert_str(autosave.strip.text()).is_equal("(A) Select   (B) Back")
+	assert_str(hint.text()).is_equal("(A) Build   (B) Close")
+	await _tap(KEY_RIGHT)
+	assert_str(autosave.strip.text()).is_equal("[Enter] Select   [Esc] Back")
+	assert_str(hint.text()).is_equal("[E] Build   [Esc] Close")

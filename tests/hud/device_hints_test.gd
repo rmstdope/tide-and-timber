@@ -172,3 +172,46 @@ func test_build_hint_falls_back_when_a_menu_takes_the_use_key() -> void:
 	p.set_slot(CA.USE, CD.CONTROLLER, 0, _button(JOY_BUTTON_B))
 	assert_str(_with(p, H.BUILD_LIST, K.XBOX)).is_equal("(A) Build   (B) Close")
 
+
+func test_keyboard_select_text() -> void:
+	assert_str(_text(H.SELECT, K.KEYBOARD)).is_equal("[Enter] Select")
+	assert_str(_text(H.SELECT_BACK, K.KEYBOARD)).is_equal("[Enter] Select   [Esc] Back")
+
+func test_pad_select_text() -> void:
+	assert_str(_text(H.SELECT, K.XBOX)).is_equal("(A) Select")
+	assert_str(_text(H.SELECT, K.PLAYSTATION)).is_equal("(✕) Select")
+	assert_str(_text(H.SELECT, K.NINTENDO)).is_equal("(B) Select")
+
+func test_pad_select_back_text() -> void:
+	assert_str(_text(H.SELECT_BACK, K.XBOX)).is_equal("(A) Select   (B) Back")
+	assert_str(_text(H.SELECT_BACK, K.PLAYSTATION)).is_equal("(✕) Select   (○) Back")
+	assert_str(_text(H.SELECT_BACK, K.NINTENDO)).is_equal("(B) Select   (A) Back")
+
+func test_menu_buttons_are_the_play_buttons_on_a_pad() -> void:
+	for kind: DeviceTracker.Kind in PADS:
+		for pair: Array in [[DeviceHints.Slot.SELECT, DeviceHints.Slot.BOTTOM], [DeviceHints.Slot.BACK, DeviceHints.Slot.RIGHT]]:
+			var menu: DeviceHints.Picture = DeviceHints.pictures(kind, pair[0])[0]
+			var play: DeviceHints.Picture = DeviceHints.pictures(kind, pair[1])[0]
+			assert_str(menu.label).is_equal(play.label)
+			assert_that(menu.face).is_equal(play.face)
+
+# The menu's buttons are fixed: rebinding Use never changes them.
+func test_select_ignores_a_rebound_use() -> void:
+	var c := Controls.new()
+	var e := InputEventKey.new()
+	e.physical_keycode = KEY_F
+	c.set_slot(Controls.Action.USE, Controls.Device.KEYBOARD, 0, e)
+	assert_str(DeviceHints.as_text(DeviceHints.line(H.SELECT, K.KEYBOARD, "", c))).is_equal("[Enter] Select")
+
+# --- the Controls page (tr-eg9.5.3)
+
+func test_controls_page_strip() -> void:
+	assert_str(_text(H.CONTROLS_PAGE, K.KEYBOARD)).is_equal("[Q][E] Tab   [Enter] Change   [Del] Clear   [Esc] Back")
+	assert_str(_text(H.CONTROLS_PAGE, K.XBOX)).is_equal("(LB)(RB) Tab   (A) Change   (X) Clear   (B) Back")
+	assert_str(_text(H.CONTROLS_PAGE, K.PLAYSTATION)).is_equal("(L1)(R1) Tab   (✕) Change   (□) Clear   (○) Back")
+	assert_str(_text(H.CONTROLS_PAGE, K.NINTENDO)).is_equal("(L)(R) Tab   (B) Change   (Y) Clear   (A) Back")
+
+func test_controls_page_strip_fits() -> void:
+	var font: Font = load("res://assets/fonts/PressStart2P-Regular.ttf")
+	var w := HintLine.width(DeviceHints.line(H.CONTROLS_PAGE, K.KEYBOARD), font)
+	assert_float(w + 8 + MenuStrip.LEFT).is_less_equal(316.0)

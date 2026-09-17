@@ -68,23 +68,24 @@ func _fade_alpha() -> float:
 
 func test_d_pad_moves_and_wraps() -> void:
 	await _tap(JOY_BUTTON_DPAD_DOWN)
-	assert_int(screen.menu.highlighted).is_equal(C.QUIT)
+	assert_int(screen.menu.highlighted).is_equal(C.SETTINGS)
 	await _tap(JOY_BUTTON_DPAD_DOWN)
-	assert_int(screen.menu.highlighted).is_equal(C.NEW_GAME)
-	await _tap(JOY_BUTTON_DPAD_UP)
 	assert_int(screen.menu.highlighted).is_equal(C.QUIT)
+	await _tap(JOY_BUTTON_DPAD_UP)
+	assert_int(screen.menu.highlighted).is_equal(C.SETTINGS)
 
 func test_held_stick_moves_one_step() -> void:
 	for v: float in [0.3, 0.6, 0.9, 1.0]:
 		await _stick(JOY_AXIS_LEFT_Y, v)
-	assert_int(screen.menu.highlighted).is_equal(C.QUIT)
+	assert_int(screen.menu.highlighted).is_equal(C.SETTINGS)
 
 func test_stick_pushes_again_after_centre() -> void:
 	for v: float in [1.0, 0.0, 1.0]:
 		await _stick(JOY_AXIS_LEFT_Y, v)
-	assert_int(screen.menu.highlighted).is_equal(C.NEW_GAME)
+	assert_int(screen.menu.highlighted).is_equal(C.QUIT)
 
 func test_a_picks_quit() -> void:
+	await _tap(JOY_BUTTON_DPAD_DOWN)
 	await _tap(JOY_BUTTON_DPAD_DOWN)
 	await _tap(JOY_BUTTON_A)
 	assert_array(calls).is_equal(["quit"])

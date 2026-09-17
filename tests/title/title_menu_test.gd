@@ -8,6 +8,8 @@ func test_starts_on_new_game_unlocked() -> void:
 func test_move_down_then_wraps() -> void:
 	var menu := TitleMenu.new()
 	menu.move(1)
+	assert_int(menu.highlighted).is_equal(TitleMenu.Choice.SETTINGS)
+	menu.move(1)
 	assert_int(menu.highlighted).is_equal(TitleMenu.Choice.QUIT)
 	menu.move(1)
 	assert_int(menu.highlighted).is_equal(TitleMenu.Choice.NEW_GAME)
@@ -52,9 +54,9 @@ func _start_over_open() -> TitleMenu:
 	menu.pick(C.NEW_GAME)
 	return menu
 
-func test_no_save_has_two_choices() -> void:
+func test_no_save_has_three_choices() -> void:
 	var menu := TitleMenu.new()
-	assert_array(menu.choices).is_equal([C.NEW_GAME, C.QUIT])
+	assert_array(menu.choices).is_equal([C.NEW_GAME, C.SETTINGS, C.QUIT])
 	menu.hover(C.CONTINUE)
 	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
 	assert_int(menu.pick(C.CONTINUE)).is_equal(A.NONE)
@@ -62,9 +64,9 @@ func test_no_save_has_two_choices() -> void:
 	assert_bool(menu.locked).is_false()
 	assert_int(menu.box).is_equal(TitleMenu.Box.NONE)
 
-func test_save_has_three_choices_continue_highlighted() -> void:
+func test_save_has_four_choices_continue_highlighted() -> void:
 	var menu := _save_menu()
-	assert_array(menu.choices).is_equal([C.CONTINUE, C.NEW_GAME, C.QUIT])
+	assert_array(menu.choices).is_equal([C.CONTINUE, C.NEW_GAME, C.SETTINGS, C.QUIT])
 	assert_int(menu.highlighted).is_equal(C.CONTINUE)
 
 func test_three_choices_wrap() -> void:
@@ -150,8 +152,8 @@ func _replace_open() -> TitleMenu:
 func test_unreadable_save_dims_continue() -> void:
 	var menu := _dimmed_menu()
 	assert_bool(menu.continue_dimmed).is_true()
-	assert_array(menu.choices).is_equal([C.CONTINUE, C.NEW_GAME, C.QUIT])
-	assert_array(menu.selectable()).is_equal([C.NEW_GAME, C.QUIT])
+	assert_array(menu.choices).is_equal([C.CONTINUE, C.NEW_GAME, C.SETTINGS, C.QUIT])
+	assert_array(menu.selectable()).is_equal([C.NEW_GAME, C.SETTINGS, C.QUIT])
 	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
 	assert_bool(TitleMenu.new(true, true).continue_dimmed).is_false()
 	assert_bool(TitleMenu.new().continue_dimmed).is_false()
@@ -161,7 +163,7 @@ func test_dimmed_continue_is_skipped() -> void:
 	menu.move(-1)
 	assert_int(menu.highlighted).is_equal(C.QUIT)
 	menu.move(-1)
-	assert_int(menu.highlighted).is_equal(C.NEW_GAME)
+	assert_int(menu.highlighted).is_equal(C.SETTINGS)
 	menu.move(1)
 	assert_int(menu.highlighted).is_equal(C.QUIT)
 	menu.move(1)
@@ -210,3 +212,22 @@ func test_readable_save_still_opens_start_over_box() -> void:
 	menu.pick(C.NEW_GAME)
 	assert_int(menu.box).is_equal(TitleMenu.Box.START_OVER)
 	assert_int(menu.box_selected).is_equal(B.KEEP_MY_ISLAND)
+
+func test_pick_settings_opens_and_blocks_the_menu() -> void:
+	var menu := TitleMenu.new()
+	assert_int(menu.pick(C.SETTINGS)).is_equal(A.OPEN_SETTINGS)
+	assert_bool(menu.settings_open).is_true()
+	assert_bool(menu.locked).is_false()
+	menu.move(1)
+	menu.hover(C.QUIT)
+	assert_int(menu.pick(C.QUIT)).is_equal(A.NONE)
+	assert_int(menu.highlighted).is_equal(C.SETTINGS)
+
+func test_close_settings_highlights_settings() -> void:
+	var menu := TitleMenu.new()
+	menu.pick(C.SETTINGS)
+	menu.close_settings()
+	assert_bool(menu.settings_open).is_false()
+	assert_int(menu.highlighted).is_equal(C.SETTINGS)
+	menu.move(1)
+	assert_int(menu.highlighted).is_equal(C.QUIT)

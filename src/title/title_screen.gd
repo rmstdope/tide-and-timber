@@ -4,9 +4,9 @@ extends Control
 
 const INTRO_SCENE := "res://src/intro/intro.tscn"
 const GAME_SCENE := "res://src/waking/waking.tscn"
-const MENU_TOP := 118.0                 # the menu's place with no save
-const MENU_TOP_WITH_SAVE := 104.0       # three planks still clear the bottom edge
-const MENU_TOP_DIMMED := 96.0           # Continue, reason line, New Game, Quit clear the bottom edge
+const MENU_TOP := 97.0                  # the menu's place: three planks with no save
+const MENU_TOP_WITH_SAVE := 83.0        # four planks still clear the bottom edge
+const MENU_TOP_DIMMED := 75.0           # Continue, reason line, New Game, Settings, Quit clear the bottom edge
 const REASON_NEWER := "Save is from a newer version"
 const REASON_BROKEN := "This save couldn't be opened"
 const FADE_SECONDS := 1.0
@@ -27,6 +27,7 @@ var quit_game: Callable = _quit_game          # tests replace these three
 var start_new_game: Callable = _start_new_game
 var start_continue: Callable = _start_continue
 var migration_steps: Dictionary[int, Callable] = SaveMigrations.chain()   # tests replace it
+var strip: MenuStrip
 
 func _ready() -> void:
 	%Version.text = "v" + str(ProjectSettings.get_setting("application/config/version"))
@@ -34,11 +35,16 @@ func _ready() -> void:
 		_wave_home_x.append(wave.position.x)
 	_connect_plank(%Continue, TitleMenu.Choice.CONTINUE)
 	_connect_plank(%NewGame, TitleMenu.Choice.NEW_GAME)
+	_connect_plank(%Settings, TitleMenu.Choice.SETTINGS)
+	%SettingsBoard.closed.connect(_on_settings_closed)
 	_connect_plank(%Quit, TitleMenu.Choice.QUIT)
 	_connect_box_button(%KeepMyIsland, TitleMenu.BoxButton.KEEP_MY_ISLAND)
 	_connect_box_button(%StartOver, TitleMenu.BoxButton.START_OVER)
 	_connect_box_button(%Cancel, TitleMenu.BoxButton.CANCEL)
 	_connect_box_button(%ReplaceStartOver, TitleMenu.BoxButton.START_OVER)
+	strip = MenuStrip.new()
+	add_child(strip)
+	move_child(strip, %Fade.get_index())   # above the dim and both boxes, under the fade
 	read_save(SaveStore.SLOT_DIR)
 	InputDevice.set_menu_open(self, true)
 
@@ -102,6 +108,8 @@ static func _is_left_press(event: InputEvent) -> bool:
 func _input(event: InputEvent) -> void:
 	if menu.locked:
 		return
+	if menu.settings_open:
+		return   # the Settings board, a child, reads it
 	var step := InputDevice.menu_step(event)
 	if menu.box != TitleMenu.Box.NONE:
 		match step:
@@ -138,6 +146,12 @@ func _act(action: TitleMenu.Action) -> void:
 			_fade_then(func() -> void: start_new_game.call())
 		TitleMenu.Action.CONTINUE:
 			_fade_then(func() -> void: start_continue.call())
+		TitleMenu.Action.OPEN_SETTINGS:
+			%SettingsBoard.open(false)
+
+func _on_settings_closed() -> void:
+	menu.close_settings()
+	_refresh()
 
 func _fade_then(done: Callable) -> void:
 	var fade := create_tween()
@@ -151,6 +165,7 @@ func _refresh() -> void:
 	$Menu/Continue/Lines/Label.add_theme_color_override("font_color",
 			LABEL_DIMMED_COLOR if menu.continue_dimmed else LABEL_COLOR)
 	%NewGame.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.NEW_GAME))
+	%Settings.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.SETTINGS))
 	%Quit.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.QUIT))
 	%Dim.visible = menu.box != TitleMenu.Box.NONE
 	%StartOverBox.visible = menu.box == TitleMenu.Box.START_OVER
@@ -159,6 +174,8 @@ func _refresh() -> void:
 	%StartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
 	%Cancel.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.CANCEL))
 	%ReplaceStartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
+	strip.show_hint(DeviceHints.Hint.SELECT_BACK if menu.box != TitleMenu.Box.NONE else DeviceHints.Hint.SELECT)
+	strip.visible = not menu.settings_open   # the board shows its own Select / Back strip
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
 	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE

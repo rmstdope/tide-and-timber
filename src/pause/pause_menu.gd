@@ -15,6 +15,7 @@ var highlighted: Plank = Plank.RESUME
 var box_open := false
 var box_selected: Choice = Choice.STAY
 var quitting := false               # set by pressing QUIT; never cleared
+var settings_open := false          # the Settings board is over this board; the board takes no input
 
 func _init(with_skip_story := false) -> void:
 	items.append(Plank.RESUME)
@@ -31,6 +32,7 @@ func open() -> bool:
 	highlighted = Plank.RESUME
 	box_open = false
 	box_selected = Choice.STAY
+	settings_open = false
 	return true
 
 ## Ignored unless the board takes input. Wraps round `items`.
@@ -56,6 +58,7 @@ func pick(item: Plank) -> Outcome:
 			is_open = false
 			return Outcome.SKIP_STORY
 		Plank.SETTINGS:
+			settings_open = true
 			return Outcome.OPEN_SETTINGS
 	box_open = true
 	box_selected = Choice.STAY
@@ -85,9 +88,24 @@ func box_press(choice: Choice) -> Outcome:
 func box_cancel() -> Outcome:
 	return box_press(Choice.STAY)
 
+## Back from the Settings board: the board takes input again, SETTINGS highlighted, still open. Ignored unless settings_open.
+func close_settings() -> void:
+	if not settings_open:
+		return
+	settings_open = false
+	highlighted = Plank.SETTINGS
+
+## The Settings board resumes play: closes Settings and the board together. RESUMED, or NONE unless settings_open.
+func resume_from_settings() -> Outcome:
+	if not settings_open:
+		return Outcome.NONE
+	settings_open = false
+	is_open = false
+	return Outcome.RESUMED
+
 ## The quit box's second line.
 static func quit_warning(saved: bool) -> String:
 	return SAVED_LINE if saved else UNSAVED_LINE
 
 func _board_takes_input() -> bool:
-	return is_open and not box_open and not quitting
+	return is_open and not box_open and not quitting and not settings_open
