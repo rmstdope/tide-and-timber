@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Tall box — C</title><script src="common.js"></script><script src="tall.js"></script></head><body><script>
+const B=[4,176];
+page('C — A tall box may cover the bottom of the screen, and scrolls only if it still does not fit',
+'While a box is up the game is paused behind the dim, so a box too tall for the room above the strip grows down over the item bar and the Select / Back strip, which are hidden while it is up. If even the whole screen is too short, it scrolls as in A.',[
+ fig('Pause Quit box, Largest','Whole box shows. No strip.',scene(true)+box(PAUSE,B,0,0)),
+ fig('Dawn-save box, Largest','Still too tall: opens at the top, ▼.',scene(true)+box(DAWN,B,0,0)),
+ fig('Dawn-save, Down','Scrolls as in A.',scene(true)+box(DAWN,B,40,0))],
+'Cost: at large sizes the Select / Back strip disappears while the box is up, the one place a new player learns which button confirms; and it still needs A’s rule for the tallest boxes.');
+</script></body></html>

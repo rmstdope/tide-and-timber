@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Tall box — B</title><script src="common.js"></script><script src="tall.js"></script></head><body><script>
+const B=[4,84];
+const pg=(items,sel,last)=>box(items,B,0,sel).replace(/<text[^>]*>▼<\/text>/,'')+(last?'':t(236,78,'▼',8,'#ffe2a8','middle'));
+page('B — The box shows its words a page at a time, like a story line',
+'When the box does not fit, it opens on the words alone, as many as fit, with a ▼ in the corner. Select (or a click) turns to the next page; the last page holds the buttons. Nothing scrolls. Back on any page does what Back does today (Stay / Keep playing). Up on the button page goes back a page.',[
+ fig('1. Pause Quit box opens','The words. ▼: Select for more.',scene()+pg(PAUSE.slice(0,3),-1)),
+ fig('2. Select','The buttons, Stay highlighted.',scene()+pg(PAUSE.slice(3),0,1)),
+ fig('Dawn-save, page 1','Picture and heading.',scene()+pg(DAWN.slice(0,3),-1)),
+ fig('Dawn-save, page 2','The warning.',scene()+pg(DAWN.slice(3,6),-1)),
+ fig('Dawn-save, page 3','Try again highlighted.',scene()+pg(DAWN.slice(6),0,1))],
+'Cost: an extra press, and one that could come right after the button page appears — a player tapping Select twice to read on would press Stay or Try again. It also differs from every list that scrolls.');
+</script></body></html>
