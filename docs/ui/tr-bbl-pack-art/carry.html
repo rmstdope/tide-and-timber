@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>When he carries</title>
+<link rel="stylesheet" href="style.css">
+<script src="carry-sprites.js"></script></head><body>
+<h1>6 — When does the man carry something?</h1>
+<p>The pack gives him a "carrying" pose: arms raised in front, as if holding a bundle, standing, walking and running. Everything he picks up in the game today goes straight into his bag, so he never actually has anything in his hands and never puts anything down. The question is when (if ever) this pose should show.</p>
+<p class="dim">Below: his ordinary moves on the left, the carrying pose on the right, as the pack draws them (before the castaway clothes are painted on).</p>
+<div class="opt"><div class="row" id="compare"></div></div>
+
+<div class="opt rec"><h2>Option A (chosen)  — Not yet: he never uses the carrying pose in this step (recommended)</h2>
+<div class="dim">He stands, walks and runs normally whatever is in his bag. The pose waits, like the swinging and fishing moves, for a later piece of work where he really holds something. Why: in games like this the pose shows what you can see him holding; raising empty arms would look like a mistake, and this step is about new art, not new play.</div>
+<div class="row" id="a"></div></div>
+
+<div class="opt"><h2>Option B — Whenever the chosen slot on the bar holds something</h2>
+<div class="dim">Pick a slot with a coconut in it and he walks with arms up; pick an empty slot and he walks normally. Cost: he'd be in the pose most of the day with nothing drawn in his arms, unless we also draw every item in his hands (new art for five items, three directions).</div>
+<div class="row" id="b"></div></div>
+
+<div class="opt"><h2>Option C — Only while he has driftwood in his bag</h2>
+<div class="dim">Timber is the one bulky thing, so he carries it in his arms until he's used or dropped all of it. Cost: from the first plank on the beach until the shelter's built, he walks with raised empty arms, and the bag rather than the scene decides the look.</div>
+<div class="row" id="c"></div></div>
+
+<div class="opt"><h2>Option D — A new "carry in his arms, set it down" action</h2>
+<div class="dim">Some things (say, a big log) are picked up into his arms instead of the bag, slow him down, and are set down with the same button. Cost: that's new play with its own questions (what, how slow, where it can go down), so it would be its own piece of work later; this step would drop the pose for now, same as A.</div>
+<div class="row" id="d"></div></div>
+<script>
+const I={};Promise.all(Object.entries(SP).map(([k,v])=>new Promise(r=>{const i=new Image();i.onload=()=>{I[k]=i;r()};i.src=v}))).then(go);
+function spr(el,key,label,flip,bag){const w=document.createElement('div');w.className='cell';const c=document.createElement('canvas');c.width=64;c.height=64;c.style.width='192px';c.style.height='192px';
+ c.style.background='#d9b77a';c.style.borderRadius='6px';w.appendChild(c);const t=document.createElement('div');t.innerHTML=label;w.appendChild(t);el.appendChild(w);
+ const x=c.getContext('2d');x.imageSmoothingEnabled=false;let f=0;const n=I[key].width/64;
+ setInterval(()=>{x.clearRect(0,0,64,64);x.save();if(flip){x.translate(64,0);x.scale(-1,1)}x.drawImage(I[key],f*64,0,64,64,0,0,64,64);x.restore();
+  if(bag!==undefined){x.fillStyle='#2a2030';x.fillRect(20,54,24,9);x.fillStyle=bag?'#ffe27a':'#554a58';x.fillRect(22,56,5,5);x.fillStyle='#554a58';x.fillRect(29,56,5,5);x.fillRect(36,56,5,5)}
+  f=(f+1)%n},140)}
+function go(){
+ const cm=document.getElementById('compare');
+ spr(cm,'Idle_Down','Standing');spr(cm,'Walk_Down','Walking');spr(cm,'Carry_Idle_Down','<b>Carrying</b>, standing');spr(cm,'Carry_Walk_Down','<b>Carrying</b>, walking');spr(cm,'Carry_Run_Side','<b>Carrying</b>, running');
+ const a=document.getElementById('a');spr(a,'Walk_Down','Bag empty: walks');spr(a,'Walk_Down','Coconut, shells, driftwood in bag: still walks');spr(a,'Collect_Down','Gathering: the gathering move, as agreed');
+ const b=document.getElementById('b');spr(b,'Walk_Down','Chosen slot empty',0,false);spr(b,'Carry_Walk_Down','Chosen slot has a coconut (nothing in his arms)',0,true);
+ const c=document.getElementById('c');spr(c,'Walk_Down','No driftwood in bag');spr(c,'Carry_Walk_Down','One piece of driftwood in bag');spr(c,'Carry_Run_Side','…running with it',1);
+ const d=document.getElementById('d');spr(d,'Walk_Down','This step: walks normally');spr(d,'Carry_Walk_Down','Later piece of work: walking with a log in his arms (log not drawn)');
+}
+</script></body></html>
