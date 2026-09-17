@@ -290,9 +290,7 @@ func _frame_later() -> void:
 ## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
 ## mark row kept at the panel's top or bottom.
 func mark_centre(up: bool) -> Vector2:
-	var marks := %Marks as Control
-	var y := ScrollWindow.MARK_ROW / 2.0 if up else marks.size.y - ScrollWindow.MARK_ROW / 2.0
-	return Vector2(marks.size.x / 2.0, y)
+	return ScrollWindow.mark_centre(Rect2(Vector2.ZERO, (%Marks as Control).size), up)
 
 func _draw_marks() -> void:
 	var marks := %Marks as Control
@@ -349,9 +347,9 @@ func _draw_quit_marks() -> void:
 		return
 	var marks: Control = _quit_panel().get_node("Marks")
 	if _quit_frame.shows_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
 	if _quit_frame.shows_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _open_settings() -> void:
 	%SettingsBoard.open(true)

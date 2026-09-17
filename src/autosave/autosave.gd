@@ -143,9 +143,9 @@ func _draw_box_marks() -> void:
 		return
 	var marks: Control = _box_panel().get_node("Marks")
 	if _box_frame.shows_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
 	if _box_frame.shows_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _connect_button(button: Control, which: DawnSave.Choice) -> void:
 	button.gui_input.connect(func(event: InputEvent) -> void:

@@ -146,10 +146,9 @@ func _draw_box_marks() -> void:
 		return
 	var marks: Control = _box_panel().get_node("Marks")
 	if _box_frame.shows_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
 	if _box_frame.shows_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0),
-				false)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _restack() -> void:
 	var now := stacks_at(get_global_transform_with_canvas().get_scale().x) if is_inside_tree() else false
@@ -546,10 +545,13 @@ func _draw() -> void:
 		return
 	draw_rect(Rect2(0, 0, 320, view.position.y), BACKGROUND)                   # covers content scrolled above the view
 	draw_rect(Rect2(0, view.end.y, 320, 180.0 - view.end.y), BACKGROUND)       # and below it, strip gap included
+	# The mark rows sit just outside the view, one MARK_ROW deep above it and one below.
+	var rows := Rect2(view.position - Vector2(0, ScrollWindow.MARK_ROW),
+			view.size + Vector2(0, 2.0 * ScrollWindow.MARK_ROW))
 	if shows_mark_above():
-		ScrollWindow.draw_mark(self, Vector2(160, view.position.y - ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, true), true)
 	if shows_mark_below():
-		ScrollWindow.draw_mark(self, Vector2(160, view.end.y + ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, false), false)
 
 func _width(font: Font, text: String) -> float:
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x

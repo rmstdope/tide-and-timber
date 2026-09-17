@@ -294,9 +294,7 @@ func _push_box(push: BoxLayout.Push) -> void:
 ## The centre one mark is drawn on, in that box's Marks units: the box's horizontal centre, in the
 ## top mark row (up) or the bottom one.
 func box_mark_centre(which: TitleMenu.Box, up: bool) -> Vector2:
-	var marks := _box_marks(which)
-	return Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0) if up \
-			else Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0)
+	return ScrollWindow.mark_centre(Rect2(Vector2.ZERO, _box_marks(which).size), up)
 
 func _box_marks(which: TitleMenu.Box) -> Control:
 	return (%StartOverBox if which == TitleMenu.Box.START_OVER else %ReplaceBox).get_node("Marks") as Control
@@ -417,9 +415,9 @@ func _plank_for(choice: TitleMenu.Choice) -> Control:
 func _draw_menu_marks() -> void:
 	var marks := %MenuMarks as Control
 	if shows_menu_mark_above():
-		ScrollWindow.draw_mark(marks, Vector2(160, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
 	if shows_menu_mark_below():
-		ScrollWindow.draw_mark(marks, Vector2(160, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
 	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE

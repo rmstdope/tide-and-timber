@@ -44,3 +44,16 @@ func test_mark_origin_centres_the_glyph() -> void:
 	var font := load("res://assets/fonts/PressStart2P-Regular.ttf") as Font
 	assert_that(ScrollWindow.mark_origin(font, Vector2(78, 5), true)).is_equal(Vector2(74, 9))
 	assert_that(ScrollWindow.mark_origin(font, Vector2(78, 69), false)).is_equal(Vector2(74, 73))
+
+func test_mark_centre_sits_in_the_row_inside_each_edge() -> void:
+	assert_that(ScrollWindow.mark_centre(Rect2(0, 0, 156, 74), true)).is_equal(Vector2(78, 5))
+	assert_that(ScrollWindow.mark_centre(Rect2(0, 0, 156, 74), false)).is_equal(Vector2(78, 69))
+	assert_that(ScrollWindow.mark_centre(Rect2(0, 0, 320, 120), true)).is_equal(Vector2(160, 5))
+	assert_that(ScrollWindow.mark_centre(Rect2(0, 0, 320, 120), false)).is_equal(Vector2(160, 115))
+
+func test_mark_centre_follows_the_areas_own_origin() -> void:
+	var view := Rect2(0, 22, 320, 120)
+	var rows := Rect2(view.position - Vector2(0, ScrollWindow.MARK_ROW),
+			view.size + Vector2(0, 2.0 * ScrollWindow.MARK_ROW))
+	assert_that(ScrollWindow.mark_centre(rows, true)).is_equal(Vector2(160, 17))
+	assert_that(ScrollWindow.mark_centre(rows, false)).is_equal(Vector2(160, 147))

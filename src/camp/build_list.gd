@@ -241,9 +241,9 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, box), BORDER)
 	draw_rect(Rect2(1, 1, box.x - 2, box.y - 2), FILL)
 	if shows_mark_above():
-		ScrollWindow.draw_mark(self, Vector2(box.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, box), true), true)
 	if shows_mark_below():
-		ScrollWindow.draw_mark(self, Vector2(box.x / 2.0, box.y - ScrollWindow.MARK_ROW / 2.0), false)
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, box), false), false)
 
 ## The highlight line, drawn on content so it scrolls and clips with the rows.
 func _draw_highlight() -> void:
