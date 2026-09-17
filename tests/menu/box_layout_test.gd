@@ -191,6 +191,9 @@ func test_a_button_taller_than_the_view_is_scrolled_up_to() -> void:
 	assert_float(f.clip.size.y).is_equal(32.0)
 	assert_int(f.offset).is_equal(100)
 	assert_that(f.pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 89))
+	# Within one line-step of its top (86): the push stops there rather than scrolling past it.
+	assert_that(l.framed(46, 98, 92).pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)) \
+		.is_equal(Vector2i(BoxLayout.Side.RIGHT, 86))
 
 func test_left_right_move_and_show_just_enough() -> void:
 	assert_that(_at(0).pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
