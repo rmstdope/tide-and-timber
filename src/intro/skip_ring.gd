@@ -14,6 +14,8 @@ var progress := 0.0:                    # 0..1; setting it calls queue_redraw()
 		queue_redraw()
 
 func _draw() -> void:
-	draw_arc(CENTER, RADIUS, 0.0, TAU, 24, TRACK, WIDTH, false)
+	for run in PixelRuns.arc(CENTER, RADIUS, WIDTH, 0.0, TAU):
+		draw_rect(run, TRACK)
 	if progress > 0.0:
-		draw_arc(CENTER, RADIUS, -PI / 2, -PI / 2 + TAU * progress, 24, FILL, WIDTH, false)
+		for run in PixelRuns.arc(CENTER, RADIUS, WIDTH, -PI / 2, -PI / 2 + TAU * progress):
+			draw_rect(run, FILL)

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/title/title_screen.gd" id="1_title"]
 [ext_resource type="StyleBox" path="res://src/title/plank.tres" id="2_plank"]
 [ext_resource type="PackedScene" path="res://src/settings/settings_board.tscn" id="3_settings"]
+[ext_resource type="Script" path="res://src/display/pixel_polygon.gd" id="4_pixelpoly"]
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -67,7 +68,8 @@ offset_bottom = 145.0
 mouse_filter = 2
 color = Color(0.172549, 0.427451, 0.568627, 1)
 
-[node name="Wreck" type="Polygon2D" parent="."]
+[node name="Wreck" type="Node2D" parent="."]
+script = ExtResource("4_pixelpoly")
 color = Color(0.352941, 0.227451, 0.141176, 1)
 polygon = PackedVector2Array(240, 94, 285, 94, 280, 107, 235, 107)
 
