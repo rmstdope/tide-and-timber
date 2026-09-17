@@ -228,3 +228,21 @@ func test_open_clears_debug_open() -> void:
 	d.is_open = false
 	d.open()
 	assert_bool(d.debug_open).is_false()
+
+func test_leave_closes_everything_and_refuses_open() -> void:
+	var d := PauseMenu.new(false, true)
+	d.open()
+	d.pick(I.DEBUG)
+	d.leave()
+	assert_bool(d.is_open).is_false()
+	assert_bool(d.debug_open).is_false()
+	assert_bool(d.box_open).is_false()
+	assert_bool(d.settings_open).is_false()
+	assert_bool(d.leaving).is_true()
+	assert_bool(d.open()).is_false()
+	assert_int(d.resume_from_debug()).is_equal(O.NONE)
+	var highlighted := d.highlighted
+	d.move(1)
+	assert_int(d.highlighted).is_equal(highlighted)
+	assert_int(d.pick(I.RESUME)).is_equal(O.NONE)
+	assert_bool(d.is_open).is_false()

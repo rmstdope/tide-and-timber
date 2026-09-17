@@ -17,6 +17,7 @@ var box_selected: Choice = Choice.STAY
 var quitting := false               # set by pressing QUIT; never cleared
 var settings_open := false          # the Settings board is over this board; the board takes no input
 var debug_open := false             # the Debug panel is up; the board takes no input
+var leaving := false                # a Debug story jump is fading the screen out; never cleared (the scene is replaced)
 
 func _init(with_skip_story := false, with_debug := false) -> void:
 	items.append(Plank.RESUME)
@@ -27,9 +28,9 @@ func _init(with_skip_story := false, with_debug := false) -> void:
 		items.append(Plank.DEBUG)
 	items.append(Plank.QUIT_TO_TITLE)
 
-## Opens the board on RESUME with the box closed. False, changing nothing, if already open or quitting.
+## Opens the board on RESUME with the box closed. False, changing nothing, if already open, quitting or leaving.
 func open() -> bool:
-	if is_open or quitting:
+	if is_open or quitting or leaving:
 		return false
 	is_open = true
 	highlighted = Plank.RESUME
@@ -38,6 +39,14 @@ func open() -> bool:
 	settings_open = false
 	debug_open = false
 	return true
+
+## A Debug story jump: closes the board and anything over it at once and takes no more input.
+func leave() -> void:
+	is_open = false
+	box_open = false
+	settings_open = false
+	debug_open = false
+	leaving = true
 
 ## Ignored unless the board takes input. Wraps round `items`.
 func move(step: int) -> void:
@@ -130,4 +139,4 @@ static func quit_warning(saved: bool) -> String:
 	return SAVED_LINE if saved else UNSAVED_LINE
 
 func _board_takes_input() -> bool:
-	return is_open and not box_open and not quitting and not settings_open and not debug_open
+	return is_open and not box_open and not quitting and not settings_open and not debug_open and not leaving
