@@ -1,6 +1,8 @@
 class_name BuildList
 extends Control
 ## The wooden Build list: a title and two rows, drawn from a BuildMenu.
+## When it is taller than the room above its hint, it is framed to fit and scrolls to the highlight,
+## with ▲ / ▼ where rows are hidden.
 
 signal row_hovered(thing: int)
 signal row_clicked(thing: int)
@@ -19,7 +21,12 @@ const GREYED := Color("#c9b79c")
 const BORDER := Color("#5c3a22")
 const FILL := Color("#8a5a34")
 const HIGHLIGHT := Color("#b98452")
+const CONTENT_TOP := 3.0                # the title's top: the scrolled content starts here
+const CONTENT_BOTTOM_MARGIN := 3.0      # the last row's bottom to the list's bottom
+const SCREEN_HEIGHT := 180.0            # the band's bottom edge when no hint is shown
 
+var clip: Control
+var content: Control
 var title_label: Label
 var rows: Array[Control] = []
 var name_labels: Array[Label] = []
@@ -27,6 +34,12 @@ var cost_labels: Array[Label] = []
 var _menu: BuildMenu
 ## True while every row shows its cost under its name. Set only by _place; read it, never write it.
 var stacked := false
+## Whole units the content is scrolled up; 0 while the list fits. Owned by frame(); reset only by place_beside.
+var offset := 0
+## True while the content does not fit the room above the hint. Set only by frame(); read it, never write it.
+var scrolls := false
+## The hint whose on-screen top bounds the list from below; null when none.
+var hint: Control
 
 const SCREEN_MARGIN := 4.0
 const ABOVE_HIM := 28.0                 # his screen point to the list's bottom edge
@@ -49,6 +62,15 @@ static func top_left_for(man_on_screen: Vector2, s: float = 1.0, box: Vector2 = 
 func place_beside(man_on_screen: Vector2) -> void:
 	_man = man_on_screen
 	_placed = true
+	offset = 0
+	_place()
+
+## Bounds the list from below by h's on-screen top while h is visible, re-framing whenever h moves, resizes,
+## shows or hides.
+func use_hint(h: Control) -> void:
+	hint = h
+	h.item_rect_changed.connect(_place)
+	h.visibility_changed.connect(_place)
 	_place()
 
 func _place() -> void:
@@ -59,6 +81,65 @@ func _place() -> void:
 	_layout()
 	scale = Vector2(s, s)
 	position = top_left_for(_man, s, list_size())
+	_frame(s)
+
+## Frames the list, already scaled by s and placed, to the band read from the hint.
+func _frame(s: float) -> void:
+	# The list's own transform is not used because frame() changes it; its parent may be a CanvasLayer,
+	# which is not a CanvasItem.
+	var parent_t := get_global_transform_with_canvas() * get_transform().affine_inverse()
+	var b := ScrollWindow.band(parent_t, _hint_top())
+	frame(b.x, b.y, s)
+
+## The hint's on-screen top while it is visible, else the screen's bottom edge.
+func _hint_top() -> float:
+	if hint != null and hint.is_visible_in_tree():
+		return HintLift.screen_rect(hint).position.y
+	return SCREEN_HEIGHT
+
+## Frames the list, already scaled by s and placed, to the band [band_top, band_bottom] in its parent's units,
+## and scrolls the content so the highlighted row is wholly visible.
+func frame(band_top: float, band_bottom: float, s: float) -> void:
+	var box := list_size()
+	var room := floorf((band_bottom - band_top) / s)
+	if box.y <= room:
+		scrolls = false
+		offset = 0
+		size = box
+		clip.position = Vector2.ZERO
+		clip.size = box
+		content.position = Vector2.ZERO
+	else:
+		scrolls = true
+		var view_h := room - 2.0 * ScrollWindow.MARK_ROW
+		if _menu != null and _menu.highlighted >= 0:
+			var e := _item_extent(_menu.highlighted)
+			offset = ScrollWindow.follow(_content_height(), view_h, e.x, e.y, offset)
+		position.y = band_top
+		size = Vector2(box.x, room)
+		clip.position = Vector2(0, ScrollWindow.MARK_ROW)
+		clip.size = Vector2(box.x, view_h)
+		content.position = Vector2(0, -(CONTENT_TOP + offset))
+	queue_redraw()
+
+## True while ▲ is drawn: scrolling, with content hidden above.
+func shows_mark_above() -> bool:
+	return scrolls and ScrollWindow.hidden_above(offset)
+
+## True while ▼ is drawn: scrolling, with content hidden below.
+func shows_mark_below() -> bool:
+	return scrolls and ScrollWindow.hidden_below(offset, _content_height(), clip.size.y)
+
+## The scrolled content's height: the title's top to the last row's bottom.
+func _content_height() -> float:
+	return list_size().y - CONTENT_TOP - CONTENT_BOTTOM_MARGIN
+
+## Row i's top and bottom in the content's own units. The first row reaches the title, the last the bottom.
+func _item_extent(i: int) -> Vector2:
+	var top := 0.0 if i == 0 else _row_tops()[i] - CONTENT_TOP
+	var bottom := _content_height() if i == BuildMenu.LINE_COUNT - 1 \
+			else _row_tops()[i] + _row_size().y - CONTENT_TOP
+	return Vector2(top, bottom)
 
 ## True when a list side_by_side_width wide, drawn at scale s, is wider than the screen.
 static func stacks(side_by_side_width: float, s: float) -> bool:
@@ -104,6 +185,8 @@ func _layout() -> void:
 			cost_labels[i].position = Vector2(0, 2)
 			cost_labels[i].size = Vector2(184, 8)
 			cost_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	content.size = list_size()
+	content.queue_redraw()
 	queue_redraw()
 
 func _ready() -> void:
@@ -111,18 +194,26 @@ func _ready() -> void:
 	Display.changed.connect(_place)
 	get_tree().root.size_changed.connect(_place)
 	mouse_filter = MOUSE_FILTER_IGNORE
+	clip = Control.new()
+	clip.clip_contents = true
+	clip.mouse_filter = MOUSE_FILTER_IGNORE
+	add_child(clip)
+	content = Control.new()
+	content.mouse_filter = MOUSE_FILTER_IGNORE
+	content.draw.connect(_draw_highlight)
+	clip.add_child(content)
 	title_label = _label("Build")
 	title_label.position = Vector2(0, 3)
 	title_label.size = Vector2(SIZE.x, 8)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_color_override(&"font_color", TEXT)
-	add_child(title_label)
+	content.add_child(title_label)
 	for i in BuildMenu.LINE_COUNT:
 		var row := Control.new()
 		row.mouse_filter = MOUSE_FILTER_STOP
 		row.mouse_entered.connect(func() -> void: row_hovered.emit(i))
 		row.gui_input.connect(_on_row_input.bind(i))
-		add_child(row)
+		content.add_child(row)
 		rows.append(row)
 		var name_label := _label("")
 		var cost_label := _label("")
@@ -142,14 +233,22 @@ func show_menu(menu: BuildMenu) -> void:
 		name_labels[i].add_theme_color_override(&"font_color", colour)
 		cost_labels[i].add_theme_color_override(&"font_color", colour)
 	_place()
+	content.queue_redraw()
 	queue_redraw()
 
 func _draw() -> void:
-	var box := list_size()
+	var box := size
 	draw_rect(Rect2(Vector2.ZERO, box), BORDER)
 	draw_rect(Rect2(1, 1, box.x - 2, box.y - 2), FILL)
+	if shows_mark_above():
+		ScrollWindow.draw_mark(self, Vector2(box.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+	if shows_mark_below():
+		ScrollWindow.draw_mark(self, Vector2(box.x / 2.0, box.y - ScrollWindow.MARK_ROW / 2.0), false)
+
+## The highlight line, drawn on content so it scrolls and clips with the rows.
+func _draw_highlight() -> void:
 	if _menu and _menu.highlighted >= 0:
-		draw_rect(Rect2(Vector2(3, _row_tops()[_menu.highlighted]), _row_size()), HIGHLIGHT)
+		content.draw_rect(Rect2(Vector2(3, _row_tops()[_menu.highlighted]), _row_size()), HIGHLIGHT)
 
 func _on_row_input(event: InputEvent, i: int) -> void:
 	var click := event as InputEventMouseButton
