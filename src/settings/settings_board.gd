@@ -19,9 +19,11 @@ const BASE_HEIGHT := 180.0
 
 var rules := SettingsMenu.new()
 var strip: MenuStrip
-var open_controls: Callable = func() -> void: pass     # the Controls page, when it exists (tr-eg9.5.3)
+var open_controls: Callable = _open_controls   # tests replace it
 
 func _ready() -> void:
+	%ControlsPage.closed.connect(_on_controls_closed)
+	%ControlsPage.resume_requested.connect(_on_controls_resume)
 	var h := BOARD_H_ONE + (rules.items.size() - 1) * PLANK_STEP
 	%Panel.position = Vector2(BOARD_X, (BASE_HEIGHT - h) / 2.0)
 	%Panel.size = Vector2(BOARD_W, h)
@@ -46,6 +48,18 @@ func _ready() -> void:
 func open(from_pause: bool) -> void:
 	if rules.open(from_pause):
 		_refresh()
+
+func _open_controls() -> void:
+	rules.show_controls()
+	%ControlsPage.open(rules.from_pause)
+	_refresh()
+
+func _on_controls_closed() -> void:
+	rules.close_controls()
+	_refresh()
+
+func _on_controls_resume() -> void:
+	_apply(rules.resume_from_controls())
 
 # The menu step is checked before the pause action: Esc is both, and means Back here.
 func _input(event: InputEvent) -> void:
