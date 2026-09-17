@@ -194,7 +194,8 @@ func test_mouse_clicks_a_tab_and_a_row() -> void:
 	await _open_panel()
 	_press(DebugPanel.tab_rect(3).get_center())
 	assert_int(panel.rules.page).is_equal(DebugMenu.Page.STORY)
-	_press(DebugPanel.row_rect(0).get_center())
+	var added := panel.rules.rows_of(DebugMenu.Page.STORY).size() - 1   # after the page's own story points
+	_press(DebugPanel.row_rect(added).get_center())
 	assert_array(picked).is_equal(["x"])
 
 func test_a_second_refusal_restarts_the_shake() -> void:

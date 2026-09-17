@@ -12,6 +12,7 @@ func before_test() -> void:
 	runner = scene_runner(SCENE)
 	intro = runner.scene() as Intro
 	intro.end_story = func() -> void: pass
+	intro.enter_story = func(_p: StoryPoints.Point) -> void: pass
 	pause = intro.get_node("%Pause")
 
 func after_test() -> void:
@@ -61,5 +62,6 @@ func test_story_panel_dims_time_items_place_surv() -> void:
 	assert_int(panel.rules.highlighted).is_equal(1)
 	await _tap(KEY_E)
 	assert_int(panel.rules.page).is_equal(DebugMenu.Page.STORY)
+	await _tap(KEY_UP)   # up wraps to the last row, one added here after the page's own story points
 	await _tap(KEY_ENTER)
 	assert_array(called).is_equal(["select %d" % DebugMenu.Page.STORY])
