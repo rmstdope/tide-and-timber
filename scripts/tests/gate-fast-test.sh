@@ -210,6 +210,21 @@ test_stale_own_override_cfg_is_overwritten() {
   rm -rf "$S"
 }
 
+test_refuses_while_another_run_holds_the_lock() {
+  local name="${FUNCNAME[0]}"; sandbox; make_fake_godot
+  mkdir "$S/repo/gate-fast.gate.lock"
+  printf '%s\n' "$$" > "$S/repo/gate-fast.gate.lock/pid"
+  run_gate
+  if [ "$code" != 1 ]; then fail "$name" "exit $code"
+  elif ! grep -qF "gate-fast: another gate-fast is already running in $S/repo (pid $$); wait for it to finish" "$S/err"; then
+    fail "$name" "stderr: $(cat "$S/err")"
+  elif [ -e "$S/calls" ]; then fail "$name" "godot was called"
+  elif [ -e "$S/repo/override.cfg" ]; then fail "$name" "override.cfg written"
+  elif [ ! -d "$S/repo/gate-fast.gate.lock" ]; then fail "$name" "the holder's lock was removed"
+  else ok "$name"; fi
+  rm -rf "$S"
+}
+
 test_missing_godot_exits_1
 test_default_godot_comes_from_path
 test_arguments_exit_2
@@ -224,4 +239,5 @@ test_override_cfg_removed_when_the_run_is_signalled
 test_user_dir_name_is_stable_per_checkout_and_distinct_between_them
 test_foreign_override_cfg_refuses
 test_stale_own_override_cfg_is_overwritten
+test_refuses_while_another_run_holds_the_lock
 exit "$failed"

@@ -21,6 +21,7 @@
 
 # Written by scripts/gate-fast while it runs, and removed when it exits.
 /override.cfg
+/gate-fast.gate.lock/
 
 # MacOS
 .DS_Store
