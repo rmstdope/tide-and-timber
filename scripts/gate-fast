@@ -20,7 +20,7 @@ fi
 
 slug="$(printf '%s' "$(basename "$repo")" | tr -c 'A-Za-z0-9._-' '_')-$(printf '%s' "$repo" | shasum | cut -c1-8)"
 
-if [ -e "$repo/override.cfg" ] && [ "$(head -n 1 "$repo/override.cfg")" != "; temporary: written by scripts/gate-fast, removed when it exits" ]; then
+if [ -e "$repo/override.cfg" ] && { [ ! -f "$repo/override.cfg" ] || [ "$(head -n 1 "$repo/override.cfg")" != "; temporary: written by scripts/gate-fast, removed when it exits" ]; }; then
   say "override.cfg already exists in $repo and was not written by gate-fast; move it aside and rerun"
   exit 1
 fi

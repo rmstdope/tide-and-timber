@@ -35,9 +35,11 @@ func test_project_settings_match_the_pixel_art_setup() -> void:
 # user:// directory of its own through an override.cfg, so the live setting is not what ships.
 # What a player's copy uses is what the tracked file says.
 func test_the_shipped_user_dir_is_the_players_own() -> void:
-	var text := FileAccess.get_file_as_string("res://project.godot")
-	assert_str(text).contains("config/use_custom_user_dir=true")
-	assert_str(text).contains("config/custom_user_dir_name=\"Tide and Timber\"")
+	var shipped := ConfigFile.new()
+	assert_int(shipped.load("res://project.godot")).is_equal(OK)
+	assert_bool(shipped.get_value("application", "config/use_custom_user_dir", false)).is_true()
+	assert_str(str(shipped.get_value("application", "config/custom_user_dir_name", ""))) \
+		.is_equal("Tide and Timber")
 
 func test_main_scene_is_the_title_screen() -> void:
 	var path: String = ProjectSettings.get_setting("application/run/main_scene", "")
