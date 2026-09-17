@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Waiting box — C</title><script src="common.js"></script><script src="wait.js"></script></head><body><script>
+const RULE='full';
+const N='Walk right', PK='Press a new key', PB='Press a new button';
+const combos=[[1,1,'Normal UI, Normal text'],[2,1,'Largest UI, Normal text'],[1.5,1.5,'Large UI, Large text'],[2,1.5,'Largest UI, Large text'],[1.5,2,'Large UI, Largest text'],[2,2,'Largest UI, Largest text']];
+page('Option C — the box gives way to the whole screen','Past the point where a panel fits, the panel and its border go: the words sit straight on the dimmed page, using the whole screen, and the cancel line is the picture with its ring. The words keep the chosen size longer still, and stop growing only when the screen itself runs out.',
+ combos.map(c=>fig(c[2],cap(c[0],c[1],RULE,N,PK),waitScreen(c[0],c[1],RULE,N,PK,'Esc')))
+ .concat([fig('Controller, Largest UI, Largest text',cap(2,2,RULE,N,PB),waitScreen(2,2,RULE,N,PB,'B'))]),
+ 'Cost: at the biggest sizes there is no box any more, so the moment looks different from every other box in the game, and the cancel words are gone as in B.');
+</script></body></html>
