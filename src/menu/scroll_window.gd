@@ -48,6 +48,8 @@ static func mark_origin(font: Font, centre: Vector2, up: bool) -> Vector2:
 
 ## Draws ▲ (up) or ▼ centred on centre, in canvas's units, in ControlsPage.QUIET.
 ## Call only while canvas draws: drawing outside a draw notification errors.
+## canvas is a Control, not any CanvasItem, because the mark takes the theme's default font.
+## A list drawn on a bare CanvasItem needs a font passed in instead.
 static func draw_mark(canvas: Control, centre: Vector2, up: bool) -> void:
 	var font: Font = canvas.get_theme_default_font()
 	canvas.draw_string(font, mark_origin(font, centre, up), "▲" if up else "▼",

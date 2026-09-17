@@ -92,14 +92,15 @@ func test_a_grown_row_is_where_it_is_drawn() -> void:
 	var board := await _open_settings()
 	await await_idle_frame()
 	await await_idle_frame()
-	var text_row := board.get_node("%TextSize") as Control
 	var ui_row := board.get_node("%UiSize") as Control
-	# Where the stacked Text size row is drawn: its centre inside the layer, grown 2x about (160, 90).
-	var drawn := pause.transform * text_row.get_global_rect().get_center()
-	var local := text_row.get_global_transform_with_canvas().affine_inverse() * drawn
-	assert_bool(Rect2(Vector2.ZERO, text_row.size).has_point(local)).is_true()
-	var in_ui := ui_row.get_global_transform_with_canvas().affine_inverse() * drawn
-	assert_bool(Rect2(Vector2.ZERO, ui_row.size).has_point(in_ui)).is_false()
+	var text_row := board.get_node("%TextSize") as Control
+	# The scrolled board's UI size row spans (86, 60) 148x28, so its centre is (160, 74) inside the
+	# layer; grown 2x about (160, 90) it is drawn at (160, 58).
+	var drawn := Vector2(160, 58)
+	var local := ui_row.get_global_transform_with_canvas().affine_inverse() * drawn
+	assert_bool(Rect2(Vector2.ZERO, ui_row.size).has_point(local)).is_true()
+	var in_text := text_row.get_global_transform_with_canvas().affine_inverse() * drawn
+	assert_bool(Rect2(Vector2.ZERO, text_row.size).has_point(in_text)).is_false()
 
 func test_dawn_save_box_grows_about_the_centre() -> void:
 	_step(2)

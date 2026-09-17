@@ -169,3 +169,20 @@ func test_rows_are_clipped() -> void:
 		assert_bool(clip.is_ancestor_of(_node(unique))) \
 			.override_failure_message("%s is not inside the clip" % unique).is_true()
 	assert_bool(clip.is_ancestor_of(_node("ControlsPage"))).is_false()
+
+func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
+	_size(2)
+	_title()
+	await _open()
+	var marks := _node("Marks")
+	assert_that(marks.get_rect()).is_equal(Rect2(0, 0, 156, 74))
+	assert_int(marks.get_signal_connection_list("draw").size()) \
+		.override_failure_message("%Marks has no draw handler, so no mark is ever drawn").is_greater(0)
+	# The two mark rows: the panel's top 10 units and its bottom 10.
+	var font := load("res://assets/fonts/PressStart2P-Regular.ttf") as Font
+	var up := ScrollWindow.mark_origin(font, Vector2(marks.size.x / 2.0, ScrollWindow.MARK_ROW / 2.0), true)
+	var down := ScrollWindow.mark_origin(font,
+			Vector2(marks.size.x / 2.0, marks.size.y - ScrollWindow.MARK_ROW / 2.0), false)
+	assert_that(up).is_equal(Vector2(74, 9))
+	assert_that(down).is_equal(Vector2(74, 73))
+	assert_float(down.y).is_less_equal(marks.size.y)
