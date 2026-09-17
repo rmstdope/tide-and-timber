@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 const EXPECTED := {
 	"display/window/size/viewport_width": 320,
 	"display/window/size/viewport_height": 180,
-	"display/window/stretch/mode": "viewport",
+	"display/window/stretch/mode": "canvas_items",
 	"display/window/stretch/aspect": "keep",
 	"display/window/stretch/scale_mode": "integer",
 	"rendering/textures/canvas_textures/default_texture_filter": 0,
