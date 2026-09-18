@@ -4,6 +4,8 @@ extends Control
 ## with a ring that fills while the cancel key is held. It has no rules; ControlsPage feeds it.
 
 const DIM := Color(0, 0, 0, 0.35)       # pause.tscn QuitBox/Dim
+# PANEL and the three baselines are the Normal-size anchors the measured layout must reproduce;
+# the tests pin layout_at against them, so they stay even though _draw reads `layout` instead.
 const PANEL := Rect2(60, 52, 200, 76)
 const NAME_BASELINE := 70.0
 const PRESS_BASELINE := 86.0
@@ -22,6 +24,7 @@ const LINE_STEP := 16.0                 # a word row's height at Text size Norma
 const BASELINE_IN_ROW := 10.0           # a name/press row's top to its baseline
 const HOLD_BASELINE_IN_ROW := 8.0
 const RING_SIZE := 10.0
+const FIT_EPSILON := 0.001       # name_lines wraps on area / rel; _fits multiplies instead
 
 ## The whole measured layout in page units; the host layer multiplies by the UI scale.
 class Layout extends RefCounted:
@@ -49,6 +52,7 @@ func _ready() -> void:
 	add_child(ring)
 	Display.changed.connect(_relayout)
 	get_tree().root.size_changed.connect(_relayout)
+	_relayout()   # show_for may have run before the node entered the tree
 
 ## What to show; progress 0..1 fills the ring, which is hidden at 0.
 func show_for(p_lines: PackedStringArray, p_items: Array, progress: float) -> void:
@@ -87,7 +91,12 @@ static func hold_width(p_items: Array, font: Font) -> int:
 	return _word(HOLD, font) + GAP + HintLine.picture_width(p_items[1]) + GAP + _word(TO_CANCEL, font)
 
 static func _word(s: String, font: Font) -> int:
-	return ceili(font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE).x)
+	return ceili(_word_f(s, font))
+
+## A word's unrounded width at font size 8 - what ControlsPage.name_lines wraps on, so _fits must
+## judge a wrapped line by the same measure or it rejects a line the wrapper just accepted.
+static func _word_f(s: String, font: Font) -> float:
+	return font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, HintLine.FONT_SIZE).x
 
 func _draw() -> void:
 	if lines.is_empty() or layout == null:
@@ -104,7 +113,7 @@ func _draw() -> void:
 		y += layout.step
 	y += HOLD_GAP
 	for row: Array in layout.hold:
-		var x := roundf(160.0 - _row_width(row, layout.rel, font) / 2.0)
+		var x := roundf(layout.panel.get_center().x - _row_width(row, layout.rel, font) / 2.0)
 		for i in row.size():
 			if i > 0:
 				x += GAP
@@ -127,7 +136,9 @@ func _grown(font: Font, text: String, at: Vector2, rel: float) -> void:
 	draw_set_transform_matrix(Transform2D.IDENTITY)
 
 func _centred(font: Font, text: String, baseline: float, rel: float) -> void:
-	_grown(font, text, Vector2(roundf(160.0 - ceilf(_word(text, font) * rel) / 2.0), baseline), rel)
+	var mid := layout.panel.get_center().x
+	_grown(font, text, Vector2(roundf(mid - ceilf(_word(text, font) * rel) / 2.0), baseline), rel)
+
 ## A hold row's width in page units: its items at `rel`, one GAP between each adjacent pair. The
 ## ring is not part of it: the row is centred on its words and picture, and the ring follows.
 static func _row_width(row: Array, rel: float, font: Font) -> float:
@@ -170,9 +181,10 @@ static func layout_at(p_lines: PackedStringArray, p_items: Array, rel: float, ui
 	l.panel = Rect2(roundf(160.0 - panel_w / 2.0), roundf(90.0 - panel_h / 2.0), panel_w, panel_h)
 	var last: Array = l.hold[l.hold.size() - 1]
 	var row_w := _row_width(last, rel, font)
+	var mid := l.panel.get_center().x
 	var row_top := l.panel.position.y + TOP_PAD + word_rows * l.step + HOLD_GAP \
 			+ (l.hold.size() - 1) * l.hold_h
-	l.ring = Vector2(roundf(160.0 - row_w / 2.0) + row_w + RING_GAP, roundi(row_top + l.pic_dy - 0.5))
+	l.ring = Vector2(roundf(mid - row_w / 2.0) + row_w + RING_GAP, roundi(row_top + l.pic_dy - 0.5))
 	l.fits = _fits(l, area, ui, font)
 	return l
 
@@ -181,10 +193,10 @@ static func _fits(l: Layout, area: float, ui: float, font: Font) -> bool:
 	if l.panel.size.y * ui > SCREEN.y - 2.0 * SpokenLine.SCREEN_MARGIN:
 		return false
 	for line in l.names:
-		if ceilf(_word(line, font) * l.rel) > area:
+		if _word_f(line, font) * l.rel > area + FIT_EPSILON:
 			return false
 	for line in l.presses:
-		if ceilf(_word(line, font) * l.rel) > area:
+		if _word_f(line, font) * l.rel > area + FIT_EPSILON:
 			return false
 	for row: Array in l.hold:
 		if _row_width(row, l.rel, font) > area:
@@ -192,15 +204,21 @@ static func _fits(l: Layout, area: float, ui: float, font: Font) -> bool:
 	return l.ring.x + RING_SIZE <= l.panel.end.x
 
 ## The layout actually drawn: the words at `total` on-screen scale, stepped down one whole screen
-## pixel at a time until the box fits, never below Text size Normal (rel 1.0), which always fits.
+## pixel at a time until the box fits. The floor is rel 1.0 - Text size Normal, which always fits -
+## and is returned as rel 1.0 exactly, not as the nearest rung, so the box never lays out larger than
+## Text size Normal without having been found to fit.
 static func choose_layout(p_lines: PackedStringArray, p_items: Array, ui: float, total: float,
 		k: int, font: Font) -> Layout:
-	var floor_n := roundi(ui * maxi(1, k))
-	var best: Layout = null
-	for n in range(roundi(total * maxi(1, k)), floor_n - 1, -1):
-		best = layout_at(p_lines, p_items, (float(n) / maxi(1, k)) / ui, ui, font)
-		if best.fits:
-			break
-	if best == null:
-		best = layout_at(p_lines, p_items, 1.0, ui, font)
-	return best
+	var whole := maxi(1, k)
+	var top := total / ui               # the words' scale the player asked for; 1.0 at Text Normal
+	if top > 1.0:
+		for n in range(roundi(total * whole), 0, -1):
+			var rel := (float(n) / whole) / ui
+			if rel > top:
+				continue                # a rung above what was asked for, from rounding n up
+			if rel <= 1.0:
+				break                   # never below Text size Normal, whatever ui * k is
+			var l := layout_at(p_lines, p_items, rel, ui, font)
+			if l.fits:
+				return l
+	return layout_at(p_lines, p_items, 1.0, ui, font)

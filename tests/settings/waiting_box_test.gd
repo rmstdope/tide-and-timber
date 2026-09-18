@@ -26,12 +26,14 @@ func test_box_fits() -> void:
 	assert_float(WaitingBox.PANEL.end.y).is_less_equal(180.0)
 	assert_float(WaitingBox.HOLD_TOP + 10).is_less_equal(WaitingBox.PANEL.end.y - 4)
 
+# About the Normal-size constant PANEL, not about what is drawn above Text/UI size Normal: there the
+# plank is layout.panel, which fit_width clamps to the screen (test_the_panel_stops_at_the_screen_margin).
 # The waiting box is drawn inside a page scaled by s about the fixed screen point (160, 90), in the
 # waking scene and on the title alike, so a local y maps to screen 90 + s * (y - 90) with no node
 # needed. It fits at every UI size, which is why it gets no Clip and never scrolls.
 # It is, separately, wider than the screen at Largest; that belongs to tr-eg9.6.5.4.3 and is
 # deliberately not checked here.
-func test_the_panel_fits_the_screen_at_every_ui_size() -> void:
+func test_the_normal_size_panel_fits_the_screen_at_every_ui_size() -> void:
 	for s: float in [1.0, 1.5, 2.0]:
 		assert_float(90.0 + s * (WaitingBox.PANEL.position.y - 90.0)) \
 			.override_failure_message("top at scale %f" % s).is_greater_equal(ScrollWindow.EDGE)
@@ -166,3 +168,53 @@ func test_growth_is_held_back_one_whole_pixel_at_a_time() -> void:
 	assert_float(pad.rel).is_less_equal(2.0)
 	assert_float(pad.rel * 1.5 * 2).is_equal(roundf(pad.rel * 1.5 * 2))
 	assert_bool(pad.fits).is_true()
+
+# The largest rung that fits is taken, not the first tried and not a collapse to Text size Normal.
+func test_the_largest_rung_that_fits_is_the_one_taken() -> void:
+	var items := WaitingBox.hold_items(D.CONTROLLER, K.XBOX)
+	var ui := 2.0
+	var k := 2
+	# The rung above the one chosen must genuinely not fit, and the chosen one must.
+	for total: float in [2.5, 3.0, 3.5, 4.0]:
+		var l := WaitingBox.choose_layout(PAD_LINES, items, ui, total, k, font)
+		assert_bool(l.fits).override_failure_message("total %f" % total).is_true()
+		var chosen_n := roundi(l.rel * ui * k)
+		var top_n := roundi(total * k)
+		assert_int(chosen_n).override_failure_message("total %f" % total).is_less_equal(top_n)
+		for n in range(top_n, chosen_n, -1):
+			var above := WaitingBox.layout_at(PAD_LINES, items, (float(n) / k) / ui, ui, font)
+			assert_bool(above.fits) \
+				.override_failure_message("rung %d above the chosen %d at total %f fits after all"
+					% [n, chosen_n, total]).is_false()
+
+# A rung strictly between Text size Normal and the asked-for size is reachable and is taken.
+func test_an_intermediate_rung_is_taken_when_the_full_size_does_not_fit() -> void:
+	var items := WaitingBox.hold_items(D.CONTROLLER, K.XBOX)
+	var full := WaitingBox.layout_at(PAD_LINES, items, 2.0, 1.5, font)
+	assert_bool(full.fits).override_failure_message("the full size must not fit for this case").is_false()
+	var l := WaitingBox.choose_layout(PAD_LINES, items, 1.5, 3.0, 4, font)
+	assert_bool(l.fits).is_true()
+	assert_float(l.rel).is_greater(1.0)
+	assert_float(l.rel).is_less(2.0)
+
+# Text size Normal is rel 1.0 exactly at every UI size, including one whose ui * k is not whole:
+# rounding the rung count up must never draw the box larger than Text size Normal.
+func test_text_size_normal_is_rel_one_at_every_ui_size() -> void:
+	var items := WaitingBox.hold_items(D.CONTROLLER, K.XBOX)
+	for ui: float in [1.0, 1.5, 5.0 / 3.0, 2.0]:
+		for k in [1, 2, 3]:
+			var l := WaitingBox.choose_layout(PAD_LINES, items, ui, ui, k, font)
+			assert_float(l.rel).override_failure_message("ui %f, k %d" % [ui, k]).is_equal(1.0)
+			assert_bool(l.fits).override_failure_message("ui %f, k %d" % [ui, k]).is_true()
+
+# No rung above the size the player asked for is ever drawn.
+func test_no_rung_above_the_asked_for_size_is_drawn() -> void:
+	var items := WaitingBox.hold_items(D.CONTROLLER, K.XBOX)
+	for ui: float in [1.0, 1.5, 5.0 / 3.0, 2.0]:
+		for mult: float in [1.0, 1.5, 2.0]:
+			for k in [1, 2, 3]:
+				var l := WaitingBox.choose_layout(PAD_LINES, items, ui, ui * mult, k, font)
+				var case := "ui %f x %f, k %d" % [ui, mult, k]
+				assert_float(l.rel).override_failure_message(case).is_less_equal(mult)
+				assert_float(l.rel).override_failure_message(case).is_greater_equal(1.0)
+				assert_bool(l.fits).override_failure_message(case).is_true()
