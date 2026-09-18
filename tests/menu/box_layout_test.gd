@@ -229,3 +229,71 @@ func test_wheel_push_reads_only_a_wheel_press() -> void:
 	assert_int(BoxLayout.wheel_push(wheel.call(MOUSE_BUTTON_WHEEL_UP, false))).is_equal(-1)
 	assert_int(BoxLayout.wheel_push(wheel.call(MOUSE_BUTTON_LEFT, true))).is_equal(-1)
 	assert_int(BoxLayout.wheel_push(InputEventKey.new())).is_equal(-1)
+
+func test_widest() -> void:
+	assert_float(BoxLayout.widest(1.0)).is_equal(312.0)
+	assert_float(BoxLayout.widest(1.5)).is_equal(204.0)
+	assert_float(BoxLayout.widest(2.0)).is_equal(152.0)
+	assert_float(BoxLayout.stacked_width(296, 1.5)).is_equal(204.0)
+
+func test_grown_words_widen_the_box_then_wrap() -> void:
+	var widths := func(i: int) -> float: return 0.0 if i == 0 else 640.0
+	var heights := func(i: int, w: float) -> float: return 12.0 if i == 0 else (28.0 if w >= 400.0 else 56.0)
+	var l := _normal().at(1.0, B, B, heights, widths)
+	assert_bool(l.stacked).is_false()
+	assert_that(l.lines[1]).is_equal(Rect2(8, 28, 296, 56))
+	# the pair is centred across the grown 312: (312 - 216) / 2
+	assert_that(l.left).is_equal(Rect2(48, 94, 104, 20))
+	assert_that(l.right).is_equal(Rect2(160, 94, 104, 20))
+	assert_that(l.panel).is_equal(Rect2(4, 28, 312, 124))
+
+func test_grown_words_widen_the_box_without_wrapping() -> void:
+	var widths := func(_i: int) -> float: return 200.0
+	var l := _normal().at(1.0, B, B, fake, widths)
+	assert_that(l.panel).is_equal(Rect2(12, 42, 296, 96))
+
+func test_grown_buttons_stay_centred_side_by_side() -> void:
+	var l := _normal().at(1.0, Vector2(110, 24), Vector2(110, 24), fake)
+	assert_bool(l.stacked).is_false()
+	assert_that(l.left).is_equal(Rect2(34, 66, 110, 24))
+	assert_that(l.right).is_equal(Rect2(152, 66, 110, 24))
+	assert_that(l.panel).is_equal(Rect2(12, 40, 296, 100))
+
+func test_button_size_never_shrinks_a_button() -> void:
+	var small := PanelContainer.new()
+	small.custom_minimum_size = Vector2(40, 12)
+	var big := PanelContainer.new()
+	big.custom_minimum_size = Vector2(180, 26)
+	var normal := Rect2(40, 66, 104, 20)
+	assert_that(BoxLayout.button_size(small, normal)).is_equal(Vector2(104, 20))
+	assert_that(BoxLayout.button_size(big, normal)).is_equal(Vector2(180, 26))
+	small.free()
+	big.free()
+
+func _label() -> Label:
+	var label := Label.new()
+	label.text = "Nothing has been saved yet."
+	label.add_theme_font_size_override("font_size", 8)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size = Vector2(120, 12)
+	add_child(label)
+	return label
+
+func test_label_widths_measures_unwrapped_and_restores_autowrap() -> void:
+	var label := _label()
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.update_minimum_size()
+	var min_x := label.get_minimum_size().x
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var labels: Array[Label] = [label]
+	assert_float(BoxLayout.label_widths(labels, 2.0).call(0)).is_equal(ceilf(min_x * 2.0))
+	assert_int(label.autowrap_mode).is_equal(TextServer.AUTOWRAP_WORD_SMART)
+	label.free()
+
+func test_label_heights_scales_by_rel() -> void:
+	var label := _label()
+	var labels: Array[Label] = [label]
+	var one: float = BoxLayout.label_heights(labels, 1.0).call(0, 148.0)
+	var two: float = BoxLayout.label_heights(labels, 2.0).call(0, 296.0)
+	assert_float(two).is_equal(2.0 * one)
+	label.free()

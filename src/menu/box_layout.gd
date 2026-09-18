@@ -47,18 +47,45 @@ static func of(panel_node: Control, line_nodes: Array[Control], left_node: Contr
 	n.right = _rect(right_node)
 	return n
 
-## Width of a stacked box at scale s: the widest even width that fits SCREEN_WIDTH / s less both margins,
-## never wider than normal_width.
-static func stacked_width(normal_width: float, s: float) -> float:
-	return minf(normal_width, 2.0 * floorf((SCREEN_WIDTH / s - 2.0 * SCREEN_MARGIN) / 2.0))
+## The widest box, in box units, that keeps SCREEN_MARGIN clear on each screen side at scale s.
+## Always even, so a box centred on SCREEN_CENTRE keeps equal margins.
+static func widest(s: float) -> float:
+	return 2.0 * floorf((SCREEN_WIDTH / s - 2.0 * SCREEN_MARGIN) / 2.0)
 
-## Height needed by labels[i] at a given width: sets its width, returns get_minimum_size().y.
-## For at()'s needed_height.
-static func label_heights(labels: Array[Label]) -> Callable:
+## Width of a stacked box at scale s: never wider than normal_width, never wider than widest(s).
+static func stacked_width(normal_width: float, s: float) -> float:
+	return minf(normal_width, widest(s))
+
+## Each label's unwrapped words width in box units at relative text scale rel: (index: int) -> float.
+## Measures with autowrap off, since a wrapped Label's minimum width is one word, then puts its
+## autowrap back. For at()'s line_width.
+static func label_widths(labels: Array[Label], rel: float) -> Callable:
+	return func(index: int) -> float:
+		var label := labels[index]
+		var wrap := label.autowrap_mode
+		label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		label.update_minimum_size()
+		var width := ceilf(label.get_minimum_size().x * rel)
+		label.autowrap_mode = wrap
+		label.update_minimum_size()
+		return width
+
+## Height needed by labels[i] at a width in box units, its words at relative scale rel: sets the
+## label's own width to width / rel, returns ceilf(get_minimum_size().y * rel). For at()'s needed_height.
+static func label_heights(labels: Array[Label], rel := 1.0) -> Callable:
 	return func(index: int, width: float) -> float:
 		var label := labels[index]
-		label.size = Vector2(width, label.size.y)
-		return label.get_minimum_size().y
+		label.size = Vector2(width / rel, label.size.y)
+		return ceilf(label.get_minimum_size().y * rel)
+
+## The size a button needs for its grown words, never smaller than `normal`, the scene's rect for it.
+## Refits its GrownWords child named "Label" first, so the minimum is never a frame stale.
+static func button_size(button: Control, normal: Rect2) -> Vector2:
+	var words := button.get_node_or_null("Label") as GrownWords
+	if words != null:
+		words.refit()
+	var m := button.get_combined_minimum_size()
+	return Vector2(maxf(normal.size.x, m.x), maxf(normal.size.y, m.y))
 
 ## On a Normal layout: whether the buttons, at their actual sizes, are wider than the screen side by side.
 func stacks_at(s: float, left_size: Vector2, right_size: Vector2) -> bool:
@@ -66,18 +93,28 @@ func stacks_at(s: float, left_size: Vector2, right_size: Vector2) -> bool:
 	var gap := right.position.x - left.end.x
 	return (side + left_size.x + gap + right_size.x + side) * s > SCREEN_WIDTH
 
-## On a Normal layout: the layout at scale s. Not stacking: a copy of this layout (stacked false).
-## needed_height is (index: int, width: float) -> float.
-func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callable) -> BoxLayout:
+## On a Normal layout: the layout at scale s. The box widens to hold its lines' grown words and its
+## buttons, never past widest(s), recentred on SCREEN_CENTRE; then its lines wrap taller. When the buttons
+## are too wide side by side it stacks them, left on top, and narrows to stacked_width.
+## needed_height is (index: int, width: float) -> float. line_width is (index: int) -> float, each line's
+## grown words width; an invalid Callable means the Normal widths. Nothing grown: this layout's rects.
+func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callable,
+		line_width := Callable()) -> BoxLayout:
 	var l := BoxLayout.new()
-	if not stacks_at(s, left_size, right_size):
-		l.panel = panel
-		l.lines = lines.duplicate()
-		l.left = left
-		l.right = right
-		return l
-	l.stacked = true
-	var w := stacked_width(panel.size.x, s)
+	var stacking := stacks_at(s, left_size, right_size)
+	var gap := right.position.x - left.end.x
+	var content := 0.0
+	for i in lines.size():
+		var words := line_width.call(i) as float if line_width.is_valid() else lines[i].size.x
+		content = maxf(content, lines[i].position.x + words + (panel.size.x - lines[i].end.x))
+	if stacking:
+		content = maxf(content, 2.0 * left.position.x + maxf(left_size.x, right_size.x))
+	else:
+		# side by side the pair keeps only the screen margins: stacks_at already ensures it fits the screen
+		content = maxf(content, left_size.x + gap + right_size.x + 2.0 * SCREEN_MARGIN)
+	var w := minf(maxf(panel.size.x, 2.0 * ceilf(content / 2.0)), widest(s))
+	if stacking:
+		w = minf(w, stacked_width(panel.size.x, s))
 	for i in lines.size():
 		var line := Rect2()
 		line.position.x = lines[i].position.x
@@ -88,10 +125,20 @@ func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callab
 			line.position.y = l.lines[i - 1].end.y + (lines[i].position.y - lines[i - 1].end.y)
 		line.size.y = maxf(lines[i].size.y, needed_height.call(i, line.size.x))
 		l.lines.append(line)
-	l.left = Rect2(Vector2(roundf((w - left_size.x) / 2.0), l.lines[-1].end.y + (left.position.y - lines[-1].end.y)), left_size)
-	l.right = Rect2(Vector2(roundf((w - right_size.x) / 2.0), l.left.end.y + (right.position.x - left.end.x)), right_size)
-	var h := l.right.end.y + (panel.size.y - left.end.y)
-	l.panel = Rect2(Vector2(roundf(SCREEN_CENTRE.x - w / 2.0), roundf(SCREEN_CENTRE.y - h / 2.0)), Vector2(w, h))
+	var y := l.lines[-1].end.y + (left.position.y - lines[-1].end.y)
+	if stacking:
+		l.stacked = true
+		l.left = Rect2(Vector2(roundf((w - left_size.x) / 2.0), y), left_size)
+		l.right = Rect2(Vector2(roundf((w - right_size.x) / 2.0), l.left.end.y + gap), right_size)
+	else:
+		var x0 := roundf((w - (left_size.x + gap + right_size.x)) / 2.0)
+		l.left = Rect2(Vector2(x0, y), left_size)
+		l.right = Rect2(Vector2(x0 + left_size.x + gap, y), right_size)
+	var h := maxf(l.left.end.y, l.right.end.y) + (panel.size.y - left.end.y)
+	if w == panel.size.x and h == panel.size.y:
+		l.panel = panel
+	else:
+		l.panel = Rect2(Vector2(roundf(SCREEN_CENTRE.x - w / 2.0), roundf(SCREEN_CENTRE.y - h / 2.0)), Vector2(w, h))
 	return l
 
 ## This layout with only the left button shown: the left button centred across the panel, and, when
@@ -234,11 +281,14 @@ func _show(side: BoxLayout.Side) -> int:
 	var span := _span(side)
 	return ScrollWindow.follow(content_height(), clip.size.y, span.x, span.y, offset)
 
-## Writes panel, lines, left and right to the nodes, as position and size.
-func place(panel_node: Control, line_nodes: Array[Control], left_node: Control, right_node: Control) -> void:
+## Writes panel, lines, left and right to the nodes, as position and size. Each line node is scaled by
+## rel about its top-left and sized in its own units (its rect / rel); the panel and buttons never scale.
+func place(panel_node: Control, line_nodes: Array[Control], left_node: Control, right_node: Control,
+		rel := 1.0) -> void:
 	_put(panel_node, panel)
 	for i in line_nodes.size():
-		_put(line_nodes[i], lines[i])
+		line_nodes[i].scale = Vector2.ONE * rel
+		_put(line_nodes[i], Rect2(lines[i].position, lines[i].size / rel))
 	_put(left_node, left)
 	_put(right_node, right)
 
