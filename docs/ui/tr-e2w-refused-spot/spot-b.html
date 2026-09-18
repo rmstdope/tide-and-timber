@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Option B — Shapes by default</title><script src="common.js"></script></head><body><script>
+page('Option B — Colour cues starts on Shapes','Nothing about the outline changes; the setting simply starts on Shapes for a new player, so the ✕ and the Controls "!" are on until someone switches them off.',[
+['What a new player sees','',[
+ fig('Settings, first time','Colour cues already reads Shapes.',r(0,0,320,180,'#2c1d16')+t(160,22,'Settings',7,P.text,'middle')+vrow(60,40,200,'UI size','Normal',0)+vrow(60,58,200,'Text size','Normal',0)+vrow(60,76,200,'Colour cues','Shapes',1)+t(160,108,'Adds shapes to warnings shown in colour.',4.5,'#ffe2a8','middle')),
+ fig('Cannot build','Red outline with a ✕.',scene(0,1,0)),
+ fig('Someone who switched to Standard','Back to red alone — and invisible on jungle to a red-green colour-blind player.',scene(0,0,0),1)],
+ 'Covers every shape at once, but a player who turns Shapes off to tidy the screen, or shares a save folder, is back to the gap. Also needs a decision about players who already have a saved Standard.']]);
+</script></body></html>
