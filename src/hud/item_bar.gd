@@ -4,8 +4,7 @@ extends Control
 
 const PLANK_SIZE := Vector2(141, 22)    # 8 * 17 + 5
 const GROUP := &"item_bar"               # HintLift finds the drawn bar through it
-const TOP := 157.0                      # y of the plank in the 320x180 base
-const SCREEN_WIDTH := 320
+const TOP := Screen.HEIGHT - 23.0       # the plank's top, 23 above the bottom of the picture
 const NAME_HEIGHT := 13.0               # the name plank's Normal height
 const NAME_BOTTOM := -6.0               # its bottom edge above the bar, whatever its height
 
@@ -17,7 +16,7 @@ var _hovered := -1
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	position = Vector2(roundi((SCREEN_WIDTH - PLANK_SIZE.x) / 2), TOP)
+	position = Vector2(roundi((Screen.WIDTH - PLANK_SIZE.x) / 2), TOP)
 	size = PLANK_SIZE
 	mouse_filter = MOUSE_FILTER_STOP
 	for i in Inventory.SLOT_COUNT:
@@ -78,12 +77,11 @@ func _show_name(i: int) -> void:
 	name_label.scale = Vector2.ONE * rel
 	name_plank.size = Vector2(w, h)
 	var centre := 3 + i * 17 + 8
-	var half := SCREEN_WIDTH / 2.0 / _scale()
-	var left := SCREEN_WIDTH / 2.0 - half + 2 - position.x
-	var right := SCREEN_WIDTH / 2.0 + half - 2 - position.x - w
-	# A plank wider than the visible span cannot be clamped inside it; centre it on the screen.
-	var x := clampf(floorf(centre - w / 2.0), left, right) if left <= right \
-			else roundf(SCREEN_WIDTH / 2.0 - position.x - w / 2.0)
+	var half := Screen.WIDTH / 2.0 / _scale()
+	var left := Screen.WIDTH / 2.0 - half + 2 - position.x
+	var right := Screen.WIDTH / 2.0 + half - 2 - position.x - w
+	# At 640x360 every plank fits the visible span (item_bar_test.gd holds that), so it is only clamped.
+	var x := clampf(floorf(centre - w / 2.0), left, right)
 	name_plank.position = Vector2(x, NAME_BOTTOM - h)
 	name_plank.show()
 	name_plank.queue_redraw()
@@ -93,7 +91,7 @@ func _refit_name() -> void:
 	if _hovered >= 0:
 		_show_name(_hovered)
 
-# The bar's layer scale: it grows about the bottom centre, so the visible span is 160 ± 160 / s.
+# The bar's layer scale: it grows about the bottom centre, so the visible span is Screen.CENTRE.x ± Screen.CENTRE.x / s.
 func _scale() -> float:
 	return UiScale.current(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 

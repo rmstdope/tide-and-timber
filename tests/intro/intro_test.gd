@@ -51,7 +51,7 @@ func test_opens_black_on_the_first_caption() -> void:
 
 func test_taps_walk_the_captions_in_order() -> void:
 	var captions := ["Then the storm found us.", "The mast gave way.", "..."]
-	var bar_y := [138.0, 138.0, 79.0]
+	var bar_y := [Intro.CAPTION_BAR_Y, Intro.CAPTION_BAR_Y, Intro.BLACK_BEAT_CAPTION_BAR_Y]
 	for i in 3:
 		await _tap()
 		assert_str(_node("Caption").text).is_equal(captions[i])
@@ -125,7 +125,7 @@ func test_escape_pauses_on_the_four_plank_board() -> void:
 		assert_str((_pause_node(unique).get_node("Label/Words") as Label).text).is_equal(words[unique])
 		assert_bool((_pause_node(unique) as Control).visible).is_true()
 	_highlighted("Resume")
-	assert_that((_pause_node("Panel") as Control).get_rect()).is_equal(Rect2(88, 32, 144, 116))
+	assert_that((_pause_node("Panel") as Control).get_rect()).is_equal(Rect2((Screen.WIDTH - 144) / 2.0, (Screen.HEIGHT - 116) / 2.0, 144, 116))   # centred
 	intro.tick(10.0)
 	assert_int(_node("Picture").picture).is_equal(0)
 	assert_array(calls).is_empty()

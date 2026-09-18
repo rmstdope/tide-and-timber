@@ -33,7 +33,7 @@ func test_starts_hidden() -> void:
 	assert_str(line.text).is_equal("")
 
 func test_text_is_centred_in_the_box() -> void:
-	assert_vector(DebugKeyLine.text_at("Speed x4")).is_equal(Vector2(145, 10))
+	assert_vector(DebugKeyLine.text_at("Speed x4")).is_equal(Vector2(Screen.CENTRE.x - 15, 10))   # "Speed x4" is 30 wide
 	assert_float(DebugKeyLine.text_at("Walk through things off").x).is_greater_equal(DebugKeyLine.BOX.position.x)
 
 func test_attach_builds_the_layer() -> void:

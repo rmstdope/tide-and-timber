@@ -10,7 +10,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
 	layer = CanvasLayer.new()
@@ -37,7 +37,7 @@ func test_largest_text_widens_the_card() -> void:
 	await _step(DisplayPrefs.Setting.TEXT_SIZE, 2)
 	_show(["DAY 3", NightLoss.NOTHING])
 	assert_float(card.size.x).is_equal(304.0)
-	assert_float(card.position.x).is_equal(8.0)
+	assert_float(card.position.x).is_equal((Screen.WIDTH - 304.0) / 2.0)
 	for l in card.labels:
 		assert_that(l.scale).is_equal(Vector2(2, 2))
 
@@ -49,12 +49,14 @@ func test_largest_text_grows_the_card_taller() -> void:
 func test_a_line_too_long_for_the_screen_wraps() -> void:
 	await _step(DisplayPrefs.Setting.UI_SIZE, 2)
 	await _step(DisplayPrefs.Setting.TEXT_SIZE, 2)
-	_show(["DAY 3", NightLoss.NOTHING])
+	# No card line the game writes is too long for the 640-wide picture even at UI and Text Largest
+	# ("I made it through." grows to 304 of the 320 that fit), so the line here is twice that one.
+	_show(["DAY 3", NightLoss.NOTHING + " " + NightLoss.NOTHING])
 	var ui := UiScale.current(Display.prefs, get_tree().root)
 	assert_float(card.size.x).is_equal(TextScale.fit_width(160, 1000, ui))
 	# the layer grows the card about the screen's centre by ui
-	assert_float(160.0 - card.size.x * ui / 2.0).is_greater_equal(0.0)
-	assert_float(160.0 + card.size.x * ui / 2.0).is_less_equal(320.0)
+	assert_float(Screen.CENTRE.x - card.size.x * ui / 2.0).is_greater_equal(0.0)
+	assert_float(Screen.CENTRE.x + card.size.x * ui / 2.0).is_less_equal(Screen.WIDTH)
 	var rel := TextScale.relative(Display.prefs, get_tree().root)
 	assert_float(card.size.y).is_greater(float(MorningCardView.height_for(2, rel)))
 

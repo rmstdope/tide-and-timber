@@ -6,8 +6,6 @@ extends RefCounted
 ## framed() fits a laid-out box to the room above its strip; pushed() says what a push does to its
 ## highlight and scroll.
 
-const SCREEN_WIDTH := 320.0
-const SCREEN_CENTRE := Vector2(160, 90)
 const SCREEN_MARGIN := 4.0          # kept clear on each side of a stacked box, in 320x180 units
 const LINE_STEP := 11.0             # one line of size-8 words, with the labels' line spacing: one push or wheel notch
 
@@ -48,9 +46,9 @@ static func of(panel_node: Control, line_nodes: Array[Control], left_node: Contr
 	return n
 
 ## The widest box, in box units, that keeps SCREEN_MARGIN clear on each screen side at scale s.
-## Always even, so a box centred on SCREEN_CENTRE keeps equal margins.
+## Always even, so a box centred on Screen.CENTRE keeps equal margins.
 static func widest(s: float) -> float:
-	return 2.0 * floorf((SCREEN_WIDTH / s - 2.0 * SCREEN_MARGIN) / 2.0)
+	return 2.0 * floorf((Screen.WIDTH / s - 2.0 * SCREEN_MARGIN) / 2.0)
 
 ## Width of a stacked box at scale s: never wider than normal_width, never wider than widest(s).
 static func stacked_width(normal_width: float, s: float) -> float:
@@ -94,10 +92,10 @@ static func button_size(button: Control, normal: Rect2) -> Vector2:
 func stacks_at(s: float, left_size: Vector2, right_size: Vector2) -> bool:
 	var side := left.position.x
 	var gap := right.position.x - left.end.x
-	return (side + left_size.x + gap + right_size.x + side) * s > SCREEN_WIDTH
+	return (side + left_size.x + gap + right_size.x + side) * s > Screen.WIDTH
 
 ## On a Normal layout: the layout at scale s. The box widens to hold its lines' grown words and its
-## buttons, never past widest(s), recentred on SCREEN_CENTRE; then its lines wrap taller. When the buttons
+## buttons, never past widest(s), recentred on Screen.CENTRE; then its lines wrap taller. When the buttons
 ## are too wide side by side it stacks them, left on top, and narrows to stacked_width.
 ## needed_height is (index: int, width: float) -> float. line_width is (index: int) -> float, each line's
 ## grown words width; an invalid Callable means the Normal widths. Nothing grown: this layout's rects.
@@ -139,11 +137,11 @@ func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callab
 	if w == panel.size.x and h == panel.size.y:
 		l.panel = panel
 	else:
-		l.panel = Rect2(Vector2(roundf(SCREEN_CENTRE.x - w / 2.0), roundf(SCREEN_CENTRE.y - h / 2.0)), Vector2(w, h))
+		l.panel = Rect2(Vector2(roundf(Screen.CENTRE.x - w / 2.0), roundf(Screen.CENTRE.y - h / 2.0)), Vector2(w, h))
 	return l
 
 ## This layout with only the left button shown: the left button centred across the panel, and, when
-## stacked, the panel only as tall as one button needs, re-centred on SCREEN_CENTRE. `right` is left
+## stacked, the panel only as tall as one button needs, re-centred on Screen.CENTRE. `right` is left
 ## as it was; the caller hides that button. Returns a new BoxLayout; this one is unchanged.
 func one_button() -> BoxLayout:
 	var l := BoxLayout.new()
@@ -156,7 +154,7 @@ func one_button() -> BoxLayout:
 	l.left.position.x = roundf((panel.size.x - left.size.x) / 2.0)
 	if stacked:
 		l.panel.size.y -= right.end.y - left.end.y
-		l.panel.position.y = roundf(SCREEN_CENTRE.y - l.panel.size.y / 2.0)
+		l.panel.position.y = roundf(Screen.CENTRE.y - l.panel.size.y / 2.0)
 	return l
 
 ## Where the scrolled content starts inside the unframed panel: the first line's top.

@@ -2,8 +2,8 @@ extends GdUnitTestSuite
 
 # The pixel-art project settings tr-ae0.1 pins, plus the title screen wiring from tr-b4o.1.
 const EXPECTED := {
-	"display/window/size/viewport_width": 320,
-	"display/window/size/viewport_height": 180,
+	"display/window/size/viewport_width": 640,
+	"display/window/size/viewport_height": 360,
 	"display/window/stretch/mode": "canvas_items",
 	"display/window/stretch/aspect": "keep",
 	"display/window/stretch/scale_mode": "integer",

@@ -18,27 +18,27 @@ func test_hold_line_words() -> void:
 func test_box_fits() -> void:
 	for kind: DeviceTracker.Kind in [K.KEYBOARD, K.XBOX, K.PLAYSTATION, K.NINTENDO]:
 		for d: Controls.Device in D.values():
-			var ring_end := 160 + WaitingBox.hold_width(WaitingBox.hold_items(d, kind), font) / 2.0 + WaitingBox.RING_GAP + 10
+			var ring_end := Screen.CENTRE.x + WaitingBox.hold_width(WaitingBox.hold_items(d, kind), font) / 2.0 + WaitingBox.RING_GAP + 10
 			assert_float(ring_end).is_less_equal(WaitingBox.PANEL.end.x - 4)
 	var texts: Array = Controls.NAMES.values() + [ControlsMenu.PRESS_KEY, ControlsMenu.PRESS_BUTTON]
 	for t: String in texts:
 		assert_float(_w(t)).override_failure_message(t).is_less_equal(WaitingBox.PANEL.size.x - 8)
-	assert_float(WaitingBox.PANEL.end.y).is_less_equal(180.0)
+	assert_float(WaitingBox.PANEL.end.y).is_less_equal(Screen.HEIGHT)
 	assert_float(WaitingBox.HOLD_TOP + 10).is_less_equal(WaitingBox.PANEL.end.y - 4)
 
 # About the Normal-size constant PANEL, not about what is drawn above Text/UI size Normal: there the
 # plank is layout.panel, which fit_width clamps to the screen (test_the_panel_stops_at_the_screen_margin).
-# The waiting box is drawn inside a page scaled by s about the fixed screen point (160, 90), in the
-# waking scene and on the title alike, so a local y maps to screen 90 + s * (y - 90) with no node
+# The waiting box is drawn inside a page scaled by s about the fixed screen point Screen.CENTRE, in the
+# waking scene and on the title alike, so a local y maps to screen Screen.CENTRE.y + s * (y - Screen.CENTRE.y) with no node
 # needed. It fits at every UI size, which is why it gets no Clip and never scrolls.
 # It is, separately, wider than the screen at Largest; that belongs to tr-eg9.6.5.4.3 and is
 # deliberately not checked here.
 func test_the_normal_size_panel_fits_the_screen_at_every_ui_size() -> void:
 	for s: float in [1.0, 1.5, 2.0]:
-		assert_float(90.0 + s * (WaitingBox.PANEL.position.y - 90.0)) \
+		assert_float(Screen.CENTRE.y + s * (WaitingBox.PANEL.position.y - Screen.CENTRE.y)) \
 			.override_failure_message("top at scale %f" % s).is_greater_equal(ScrollWindow.EDGE)
-		assert_float(90.0 + s * (WaitingBox.PANEL.end.y - 90.0)) \
-			.override_failure_message("bottom at scale %f" % s).is_less_equal(180.0 - ScrollWindow.EDGE)
+		assert_float(Screen.CENTRE.y + s * (WaitingBox.PANEL.end.y - Screen.CENTRE.y)) \
+			.override_failure_message("bottom at scale %f" % s).is_less_equal(Screen.HEIGHT - ScrollWindow.EDGE)
 
 var KEY_LINES := PackedStringArray(["Walk right", ControlsMenu.PRESS_KEY])
 var PAD_LINES := PackedStringArray(["Walk right", ControlsMenu.PRESS_BUTTON])
@@ -68,7 +68,7 @@ func test_normal_layout_is_todays_geometry() -> void:
 	assert_float(l.panel.position.y + WaitingBox.TOP_PAD + 2.0 * WaitingBox.LINE_STEP + WaitingBox.HOLD_GAP) \
 		.is_equal(WaitingBox.HOLD_TOP)
 	assert_vector(l.ring).is_equal(Vector2(
-		roundi(160 + WaitingBox.hold_width(_key_items(), font) / 2.0 + WaitingBox.RING_GAP),
+		roundi(Screen.CENTRE.x + WaitingBox.hold_width(_key_items(), font) / 2.0 + WaitingBox.RING_GAP),
 		roundi(WaitingBox.HOLD_TOP - 0.5)))
 
 func test_normal_layout_is_todays_geometry_on_a_pad() -> void:
@@ -86,28 +86,39 @@ func test_words_grow_and_the_panel_widens() -> void:
 	assert_int(l.hold.size()).is_equal(1)
 	assert_float(l.step).is_equal(32.0)
 	assert_float(l.panel.size.y).is_equal(124.0)
-	assert_float(l.panel.position.y).is_equal(28.0)
-	assert_float(l.panel.position.y + l.panel.size.y / 2.0).is_equal(90.0)
+	assert_float(l.panel.position.y).is_equal(Screen.CENTRE.y - 124.0 / 2.0)
+	assert_float(l.panel.position.y + l.panel.size.y / 2.0).is_equal(Screen.CENTRE.y)
 	assert_float(l.panel.size.x).is_greater(WaitingBox.PANEL.size.x)
 	assert_bool(l.fits).is_true()
 
-# At UI size Largest the plank stops at the screen margin, and the ring sits flush with its edge.
+# layout_at and choose_layout are node-free arithmetic taking the UI scale as a number. On the 640x360
+# picture UI size Largest (2.0) never makes the plank reach the screen margin, so the cap, the wrap and
+# the held-back growth below are exercised at CAP_UI = 4.0, a scale no player reaches: it is the scale
+# at which the 640-wide picture is as tight as the 320-wide one was at 2.0.
+const CAP_UI := 4.0
+
+static func _capped_w() -> float:
+	return floorf((Screen.WIDTH - 2.0 * SpokenLine.SCREEN_MARGIN) / CAP_UI)
+
+# At the capping scale the plank stops at the screen margin, and the ring ends at its edge.
 func test_the_panel_stops_at_the_screen_margin() -> void:
-	var l := WaitingBox.layout_at(KEY_LINES, _key_items(), 1.0, 2.0, font)
-	assert_float(l.panel.size.x).is_equal(156.0)
-	assert_float(l.panel.position.x).is_equal(82.0)
+	var l := WaitingBox.layout_at(KEY_LINES, _key_items(), 1.0, CAP_UI, font)
+	assert_float(l.panel.size.x).is_equal(_capped_w())
+	assert_float(l.panel.position.x).is_equal(roundf(Screen.CENTRE.x - _capped_w() / 2.0))
 	assert_int(l.names.size()).is_equal(1)
 	assert_int(l.presses.size()).is_equal(1)
 	assert_int(l.hold.size()).is_equal(1)
 	assert_float(l.panel.size.y).is_equal(76.0)
-	assert_float(l.ring.x + WaitingBox.RING_SIZE).is_equal(l.panel.end.x)
+	# The capped plank (158) is 2 wider than the 156 the centred hold line and the ring's room on each side
+	# need, so the ring ends 1 short of the plank's edge (flush at 156 on the 320-wide picture).
+	assert_float(l.ring.x + WaitingBox.RING_SIZE).is_equal(l.panel.end.x - 1.0)
 	assert_bool(l.fits).is_true()
 
 # Past the cap the words wrap at spaces, and the hold line splits without breaking the picture off.
 func test_words_that_no_longer_fit_wrap_at_spaces() -> void:
 	var items := WaitingBox.hold_items(D.CONTROLLER, K.XBOX)
-	var l := WaitingBox.layout_at(PAD_LINES, items, 2.0, 2.0, font)
-	assert_float(l.panel.size.x).is_equal(156.0)
+	var l := WaitingBox.layout_at(PAD_LINES, items, 2.0, CAP_UI, font)
+	assert_float(l.panel.size.x).is_equal(_capped_w())
 	assert_array(Array(l.names)).is_equal(["Walk", "right"])
 	assert_array(Array(l.presses)).is_equal(["Press a", "new", "button"])
 	assert_int(l.hold.size()).is_equal(2)
@@ -146,12 +157,12 @@ func test_text_normal_always_fits() -> void:
 						assert_bool(l.fits).override_failure_message(
 							"%s / %s at ui %f, kind %d" % [name, asking, ui, kind]).is_true()
 
-# UI Largest with Text Largest: the words are held back to Text size Normal, and the box still fits.
+# At the capping scale with the words asked twice as large (what UI and Text Largest were on 320x180): the words are held back to Text size Normal, and the box still fits.
 func test_largest_ui_and_text_hold_the_words_back() -> void:
-	var l := WaitingBox.choose_layout(KEY_LINES, _key_items(), 2.0, 4.0, 2, font)
+	var l := WaitingBox.choose_layout(KEY_LINES, _key_items(), CAP_UI, 2.0 * CAP_UI, 1, font)
 	assert_float(l.rel).is_equal(1.0)
 	assert_bool(l.fits).is_true()
-	assert_float(l.panel.size.x).is_equal(156.0)
+	assert_float(l.panel.size.x).is_equal(_capped_w())
 	assert_float(l.panel.size.y).is_equal(76.0)
 	assert_int(l.names.size()).is_equal(1)
 	assert_int(l.presses.size()).is_equal(1)
@@ -190,9 +201,9 @@ func test_the_largest_rung_that_fits_is_the_one_taken() -> void:
 # A rung strictly between Text size Normal and the asked-for size is reachable and is taken.
 func test_an_intermediate_rung_is_taken_when_the_full_size_does_not_fit() -> void:
 	var items := WaitingBox.hold_items(D.CONTROLLER, K.XBOX)
-	var full := WaitingBox.layout_at(PAD_LINES, items, 2.0, 1.5, font)
+	var full := WaitingBox.layout_at(PAD_LINES, items, 2.0, 3.0, font)
 	assert_bool(full.fits).override_failure_message("the full size must not fit for this case").is_false()
-	var l := WaitingBox.choose_layout(PAD_LINES, items, 1.5, 3.0, 4, font)
+	var l := WaitingBox.choose_layout(PAD_LINES, items, 3.0, 6.0, 2, font)
 	assert_bool(l.fits).is_true()
 	assert_float(l.rel).is_greater(1.0)
 	assert_float(l.rel).is_less(2.0)

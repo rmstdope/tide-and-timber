@@ -28,4 +28,4 @@ func _draw() -> void:
 ## The global px rectangle the beach camera shows.
 func view() -> Rect2:
 	var camera := beach.get_node("%Camera") as Node2D
-	return Rect2(camera.global_position - Vector2(160, 90), Vector2(320, 180))
+	return Rect2(camera.global_position - Screen.CENTRE, Screen.SIZE)

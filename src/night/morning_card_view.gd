@@ -69,7 +69,7 @@ func relayout() -> void:
 		l.size = Vector2(inner / rel, 8)
 		drawn += maxi(1, l.get_line_count())
 	size = Vector2(w, height_for(drawn, rel))
-	position = Vector2(roundi((320 - w) / 2.0), roundi((180 - size.y) / 2.0))
+	position = Vector2(roundi((Screen.WIDTH - w) / 2.0), roundi((Screen.HEIGHT - size.y) / 2.0))
 	queue_redraw()
 
 func _draw() -> void:

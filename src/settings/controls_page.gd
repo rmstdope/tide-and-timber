@@ -18,29 +18,32 @@ const QUIET := HudColours.DIM         # the fixed line and an ordinary empty slo
 const ORANGE := HudColours.WARN       # a dash in a row with no key on this tab, and the no-key line
 const SLOT_OUTLINE := Color("#ffe27a")
 const FONT_SIZE := 8
-const HEADING_BASELINE := 11.0
-const TAB_RECTS := [Rect2(78, 14, 72, 11), Rect2(154, 14, 88, 11)]   # Keyboard, Controller
+const CONTENT_H := 153.0                 # the heading's top (3) to the second fixed line's baseline (156), at Normal
+const TOP_SHIFT := floorf((Screen.HEIGHT - CONTENT_H) / 2.0) - 3.0   # the whole block centred on the page
+const HEADING_BASELINE := 11.0 + TOP_SHIFT
+const TAB_TOP := 14.0 + TOP_SHIFT
+const TAB_RECTS := [Rect2(Screen.CENTRE.x - 82.0, TAB_TOP, 72, 11), Rect2(Screen.CENTRE.x - 6.0, TAB_TOP, 88, 11)]   # Keyboard, Controller
 const TAB_NAMES := ["Keyboard", "Controller"]
-const LIST_X := 16.0
 const LIST_W := 288.0
+const LIST_X := (Screen.WIDTH - LIST_W) / 2.0
 const ROW_H := 11.0
-const NAME_X := 20.0
-const SLOT_XS := [144.0, 212.0]          # left edge of slot 0 and slot 1
+const NAME_X := LIST_X + 4.0
+const SLOT_XS := [LIST_X + 128.0, LIST_X + 196.0]          # left edge of slot 0 and slot 1
 const SLOT_W := 60.0
-const KEYBOARD_FIXED := ["Menus always use the arrow keys,", "Enter and Esc"]   # one agreed sentence, broken to fit 320
+const KEYBOARD_FIXED := ["Menus always use the arrow keys,", "Enter and Esc"]   # one agreed sentence, broken to fit the list's width
 const CONTROLLER_FIXED_WORDS := ["Menus always use the d-pad,", "and"]          # then (A) after the first, (B) after "and"
 const RESET_NAMES := ["Reset keyboard to defaults", "Reset controller to defaults"]
 const SCREEN_MARGIN := 2.0
 const LIST_W_STACKED := 148.0            # fits inside the 160 units a 2x page shows, with margins
-const SLOT_XS_STACKED := [96.0, 164.0]   # two 60-wide slots, 8 apart, centred in the stacked list
+const SLOT_XS_STACKED := [Screen.CENTRE.x - 64.0, Screen.CENTRE.x + 4.0]   # two 60-wide slots, 8 apart, centred in the stacked list
 const NAME_LINE_STEP := 10.0             # baseline to baseline when a stacked name wraps
 const NAME_WRAP_W := 132.0               # both Reset names break before "to": "Reset keyboard to" (136) does not fit
-const CONTENT_TOP := 3.0                 # the heading's top: HEADING_BASELINE less the font's 8-unit ascent; the scrolled content starts here
+const CONTENT_TOP := 3.0 + TOP_SHIFT     # the heading's top: HEADING_BASELINE less the font's 8-unit ascent; the scrolled content starts here
 
 var rules: ControlsMenu
 var offset := 0                          # whole units the content is scrolled up; 0 while it fits. Owned by frame().
 var scrolls := false                     # the content is not wholly inside the band; derived by frame(), never set elsewhere
-var view := Rect2(0, 0, 320, 180)        # where content shows, in page units; the whole page while it fits
+var view := Rect2(Vector2.ZERO, Screen.SIZE)   # where content shows, in page units; the whole page while it fits
 var stacked := false                     # derived by _restack, never set elsewhere; always layout.stacked
 var layout := ControlsLayout.make(false, 1.0, 1.0)   # where every word, tab, row and slot goes; derived by _restack
 var strip: MenuStrip
@@ -200,10 +203,10 @@ func frame(band_top: float, band_bottom: float) -> void:
 	if CONTENT_TOP >= band_top and bottom <= band_bottom:
 		scrolls = false
 		offset = 0
-		view = Rect2(0, 0, 320, 180)
+		view = Rect2(Vector2.ZERO, Screen.SIZE)
 	else:
 		scrolls = true
-		view = Rect2(0, band_top + ScrollWindow.MARK_ROW, 320,
+		view = Rect2(0, band_top + ScrollWindow.MARK_ROW, Screen.WIDTH,
 				band_bottom - band_top - 2.0 * ScrollWindow.MARK_ROW)
 		var content := bottom - CONTENT_TOP
 		if rules.row == ControlsMenu.RESET_ROW:
@@ -464,10 +467,12 @@ func _refresh() -> void:
 		(%Safe.get_node("Label") as GrownWords).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
 		(%Other.get_node("Label") as GrownWords).text = "Reset" if reset else "Leave"
 		%Other.visible = not no_pad
-		_fit_box()
+		# Styled before fitting: a button's minimum size includes its plank's margins, so a box first
+		# fitted unstyled would centre a button narrower than the one it draws.
 		for b: ControlsMenu.BoxButton in [ControlsMenu.BoxButton.SAFE, ControlsMenu.BoxButton.OTHER]:
 			_box_button(b).add_theme_stylebox_override("panel",
 					PLANK_HIGHLIGHT_STYLE if rules.box_selected == b else PLANK_STYLE)
+		_fit_box()
 	strip.visible = not waiting
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if box_up else DeviceHints.Hint.CONTROLS_PAGE)
 	if rules.is_open:   # after show_hint, so the strip's on-screen top is current
@@ -485,9 +490,9 @@ func _exit_tree() -> void:
 func _draw() -> void:
 	if rules == null or not rules.is_open:
 		return
-	draw_rect(Rect2(0, 0, 320, 180), BACKGROUND)
+	draw_rect(Rect2(Vector2.ZERO, Screen.SIZE), BACKGROUND)
 	draw_set_transform(Vector2(0, shift()))
-	_centred_words("Controls", 160.0, layout.heading_baseline, TEXT)
+	_centred_words("Controls", Screen.CENTRE.x, layout.heading_baseline, TEXT)
 	for i in layout.tab_count():
 		var rect := layout.tab_rect(i)
 		draw_style_box(PLANK_HIGHLIGHT_STYLE if rules.device == i else PLANK_STYLE, rect)
@@ -527,8 +532,8 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	if not scrolls:
 		return
-	draw_rect(Rect2(0, 0, 320, view.position.y), BACKGROUND)                   # covers content scrolled above the view
-	draw_rect(Rect2(0, view.end.y, 320, 180.0 - view.end.y), BACKGROUND)       # and below it, strip gap included
+	draw_rect(Rect2(0, 0, Screen.WIDTH, view.position.y), BACKGROUND)                   # covers content scrolled above the view
+	draw_rect(Rect2(0, view.end.y, Screen.WIDTH, Screen.HEIGHT - view.end.y), BACKGROUND)       # and below it, strip gap included
 	# The mark rows sit just outside the view, one MARK_ROW deep above it and one below.
 	var rows := Rect2(view.position - Vector2(0, ScrollWindow.MARK_ROW),
 			view.size + Vector2(0, 2.0 * ScrollWindow.MARK_ROW))
@@ -552,12 +557,12 @@ func _glyphs(text: String, at: Vector2, colour: Color) -> void:
 func _centred_words(text: String, centre_x: float, baseline: float, colour: Color) -> void:
 	_words(text, Vector2(roundf(centre_x - ceilf(ControlsLayout.width(text) * layout.rel) / 2.0), baseline), colour)
 
-# Lines of items (words and button pictures), each centred on 160, the first baseline at `first`.
+# Lines of items (words and button pictures), each centred on the picture, the first baseline at `first`.
 func _lines(lines: Array, first: float, colour: Color) -> void:
 	for j in lines.size():
 		var line: Array = lines[j]
 		var y := first + j * layout.line_step()
-		var x := roundf(160.0 - ControlsLayout.line_width(line, layout.rel) / 2.0)
+		var x := roundf(Screen.CENTRE.x - ControlsLayout.line_width(line, layout.rel) / 2.0)
 		for k in line.size():
 			if k > 0:
 				x += ControlsLayout.gap(line[k - 1], line[k], layout.rel)

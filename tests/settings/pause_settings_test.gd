@@ -83,13 +83,13 @@ func test_settings_opens_the_board_over_the_frozen_game() -> void:
 	assert_str((board.get_node("%Heading") as Label).text).is_equal("Settings")
 	assert_str((_board_node("Controls").get_node("Row/Label/Words") as Label).text).is_equal("Controls")
 	assert_bool(is_same(_board_node("UiSize").get_theme_stylebox("panel"), SettingsBoard.PLANK_HIGHLIGHT_STYLE)).is_true()
-	assert_that(_board_node("Panel").get_rect()).is_equal(Rect2(8, 21, 304, 138))
+	assert_that(_board_node("Panel").get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, floorf((Screen.HEIGHT - SettingsBoard.BOARD_H) / 2.0), SettingsBoard.BOARD_W, SettingsBoard.BOARD_H))
 	assert_str(board.strip.text()).is_equal("[Enter] Select   [Esc] Back")
 
 func test_board_fits_and_the_strip_clears_it() -> void:
 	await _open_settings()
 	var panel := _board_node("Panel").get_global_rect()
-	assert_bool(Rect2(0, 0, 320, 180).encloses(panel)).is_true()
+	assert_bool(Rect2(Vector2.ZERO, Screen.SIZE).encloses(panel)).is_true()
 	assert_bool(panel.intersects(board.strip.get_global_rect())).is_false()
 
 func test_up_and_down_move_between_rows() -> void:

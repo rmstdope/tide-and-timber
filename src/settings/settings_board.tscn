@@ -9,24 +9,24 @@
 visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 mouse_filter = 2
 script = ExtResource("1_board")
 
 [node name="Dim" type="ColorRect" parent="."]
 layout_mode = 0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 color = Color(0.05, 0.04, 0.06, 0.45)
 
 [node name="Panel" type="Panel" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 8.0
-offset_top = 21.0
-offset_right = 312.0
-offset_bottom = 159.0
+offset_left = 168.0
+offset_top = 111.0
+offset_right = 472.0
+offset_bottom = 249.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_board")
 

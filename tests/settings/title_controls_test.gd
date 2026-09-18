@@ -65,4 +65,4 @@ func test_start_does_nothing_from_the_title() -> void:
 func test_page_covers_the_title() -> void:
 	await _open_page()
 	assert_int(page.mouse_filter).is_equal(Control.MOUSE_FILTER_STOP)
-	assert_that(page.get_global_rect()).is_equal(Rect2(0, 0, 320, 180))
+	assert_that(page.get_global_rect()).is_equal(Rect2(Vector2.ZERO, Screen.SIZE))

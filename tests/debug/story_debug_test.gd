@@ -38,7 +38,7 @@ func test_story_board_has_debug_fourth_of_five() -> void:
 		assert_float(plank.position.y + plank.size.y).is_less_equal(board.size.y)
 		if i > 0:
 			assert_float((_node(names[i - 1]) as Control).position.y).is_less(plank.position.y)
-	assert_float(board.position.y + board.size.y).is_less_equal(180.0)
+	assert_float(board.position.y + board.size.y).is_less_equal(Screen.HEIGHT)
 
 func test_story_panel_dims_time_items_place_surv() -> void:
 	var called: Array[String] = []

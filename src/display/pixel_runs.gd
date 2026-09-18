@@ -1,7 +1,7 @@
 class_name PixelRuns
 extends RefCounted
 ## Shapes turned into whole-art-pixel rects, so they stay chunky when the window draws finer than
-## the 320x180 base. Each result is one Rect2(x, y, length, 1) per horizontal run of pixels,
+## the picture's units. Each result is one Rect2(x, y, length, 1) per horizontal run of pixels,
 ## rows top to bottom, runs left to right.
 
 ## The art pixels whose centres (x + 0.5, y + 0.5) lie inside the polygon

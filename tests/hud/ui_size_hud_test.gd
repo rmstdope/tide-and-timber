@@ -8,7 +8,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 
@@ -30,6 +30,14 @@ func _is_scaled(n: Node, s: float, about: Vector2) -> bool:
 	var layer := _layer_of(n)
 	return layer != null and layer.transform.is_equal_approx(OverlayScale.layer_transform(s, about))
 
+## The spoken lines' bottom centre: their bottom is 14 above the picture's.
+const LINE_BOTTOM := Vector2(Screen.CENTRE.x, Screen.HEIGHT - 14)
+## The build hint band's bottom centre.
+const HINT_BOTTOM := Vector2(Screen.CENTRE.x, KeyHint.TOP + KeyHint.HEIGHT)
+## A hint lifted above the bar grown 2x (its top Screen.HEIGHT - 46) sits HintLift.GAP above it; at 1.5x, above Screen.HEIGHT - 34.5.
+const LIFTED_BOTTOM_2 := Screen.HEIGHT - 46 - HintLift.GAP
+const LIFTED_BOTTOM_1_5 := Screen.HEIGHT - 34.5 - HintLift.GAP
+
 func test_clock_grows_about_the_top_left() -> void:
 	var dn := _scene("res://src/day_night/day_night.tscn")
 	var hud := dn.get_node("%Hud") as CanvasLayer
@@ -41,35 +49,35 @@ func test_sunset_line_grows_about_its_bottom_centre() -> void:
 	var dn := _scene("res://src/day_night/day_night.tscn")
 	var sunset := dn.get_node("%Sunset")
 	assert_bool(_layer_of(sunset) != dn.get_node("%Hud")).is_true()
-	assert_bool(_is_scaled(sunset, 2.0, Vector2(160, 166))).is_true()
+	assert_bool(_is_scaled(sunset, 2.0, LINE_BOTTOM)).is_true()
 
 func test_item_bar_grows_about_the_bottom_centre() -> void:
 	var beach := _scene("res://src/beach/beach.tscn")
-	assert_bool(_is_scaled(beach.get_node("%ItemBar"), 2.0, Vector2(160, 180))).is_true()
+	assert_bool(_is_scaled(beach.get_node("%ItemBar"), 2.0, OverlayScale.ANCHOR_BOTTOM_CENTRE)).is_true()
 	assert_bool(_layer_of(beach.get_node("%BuildList")).transform == Transform2D.IDENTITY).is_true()
 
 func test_build_hint_grows_about_its_bottom_centre() -> void:
 	var beach := _scene("res://src/beach/beach.tscn")
-	assert_bool(_is_scaled(beach.get_node("%KeyHint"), 2.0, Vector2(160, 148))).is_true()
+	assert_bool(_is_scaled(beach.get_node("%KeyHint"), 2.0, HINT_BOTTOM)).is_true()
 
 func test_move_hint_grows_about_the_bottom_centre() -> void:
 	var waking := _scene("res://src/waking/waking.tscn")
 	var hint := waking.get_node("%MoveHint")
-	assert_bool(_is_scaled(hint, 2.0, Vector2(160, 180))).is_true()
+	assert_bool(_is_scaled(hint, 2.0, OverlayScale.ANCHOR_BOTTOM_CENTRE)).is_true()
 	var cover_layer := _layer_of(waking.get_node("%Cover"))
 	assert_bool(cover_layer.transform == Transform2D.IDENTITY).is_true()
 	assert_int(cover_layer.layer).is_greater(_layer_of(hint).layer)
 
 func test_lines_grow_about_their_bottom_centre() -> void:
 	var waking := _scene("res://src/waking/waking.tscn")
-	var bottom := Vector2(160, 166)
+	var bottom := LINE_BOTTOM
 	assert_bool(_is_scaled(waking.get_node("%NightLine"), 2.0, bottom)).is_true()
 	assert_bool(_is_scaled(waking.get_node("%Beach").get_node("%ShelterLine"), 2.0, bottom)).is_true()
 	assert_bool(_is_scaled(waking.get_node("%Autosave").get_node("%Dawn"), 2.0, bottom)).is_true()
 	var black := waking.get_node("%BlackLine")
-	assert_bool(_is_scaled(black, 2.0, Vector2(160, 90))).is_true()
+	assert_bool(_is_scaled(black, 2.0, Screen.CENTRE)).is_true()
 	assert_int(_layer_of(black).layer).is_equal(31)
-	assert_bool(_is_scaled(waking.get_node("%Card"), 2.0, Vector2(160, 90))).is_true()
+	assert_bool(_is_scaled(waking.get_node("%Card"), 2.0, Screen.CENTRE)).is_true()
 
 func test_use_prompt_grows_about_its_bottom_centre() -> void:
 	var beach := _scene("res://src/beach/beach.tscn")
@@ -93,29 +101,31 @@ func test_build_hint_lifts_above_the_bar() -> void:
 	var hint := beach.get_node("%KeyHint") as KeyHint
 	hint.show_hint(DeviceHints.Hint.BUILD_LIST)
 	await get_tree().process_frame
-	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(132.0, 0.01)
-	assert_float(hint.position.y).is_equal_approx(128.0, 0.01)
-	assert_float(hint.position.x).is_equal(float(roundi((320 - hint.size.x) / 2.0)))
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(LIFTED_BOTTOM_2, 0.01)
+	# its 24-tall screen band tops out at HEIGHT - 72; back in its units about HEIGHT - 32: 32 + 40 / 2
+	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 52, 0.01)
+	assert_float(hint.position.x).is_equal(float(roundi((Screen.WIDTH - hint.size.x) / 2.0)))
 	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	await get_tree().process_frame
-	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(143.5, 0.01)
-	assert_float(hint.position.y).is_equal_approx(133.0, 0.01)
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(LIFTED_BOTTOM_1_5, 0.01)
+	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 47, 0.01)   # its 18-tall screen band tops out at HEIGHT - 54.5; back in its units about HEIGHT - 32: 32 + 22.5 / 1.5
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
-	assert_float(hint.position.y).is_equal_approx(136.0, 0.01)
+	assert_float(hint.position.y).is_equal_approx(KeyHint.TOP, 0.01)
 
 func test_move_hint_lifts_above_the_bar() -> void:
 	var waking := _scene("res://src/waking/waking.tscn")
 	var hint := waking.get_node("%MoveHint") as Control
 	await get_tree().process_frame
-	assert_float(hint.position.y).is_equal_approx(142.0, 0.01)
-	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(132.0, 0.01)
+	# lifted 48 on screen, 24 in its own units, from its Normal top Screen.HEIGHT - 14
+	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 14 - 24, 0.01)
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(LIFTED_BOTTOM_2, 0.01)
 	assert_float(hint.position.x).is_equal(0.0)
-	assert_vector(hint.size).is_equal(Vector2(320, 14))
+	assert_vector(hint.size).is_equal(Vector2(Screen.WIDTH, 14))
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
-	assert_float(hint.position.y).is_equal_approx(166.0, 0.01)
+	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 14, 0.01)
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	await get_tree().process_frame
-	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(143.5, 0.01)
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(LIFTED_BOTTOM_1_5, 0.01)

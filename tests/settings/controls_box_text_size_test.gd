@@ -13,7 +13,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Pause.debug_tools = false
 	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
@@ -116,7 +116,9 @@ func _text_up(steps: int) -> void:
 func test_largest_text_widens_the_box() -> void:
 	await _open_reset()
 	await _text_up(2)
-	assert_float(_panel_rect().size.x).is_equal(312.0)
+	# 8 + 608 (the longest line's words, grown 2x) + 8: the words' own width, inside BoxLayout.widest(1.0) = 632.
+	assert_float(_panel_rect().size.x).is_equal(624.0)
+	assert_float(_panel_rect().size.x).is_less(BoxLayout.widest(UiScale.current(Display.prefs, get_tree().root)))
 	assert_that(_box_node("Lines").scale).is_equal(Vector2(2, 2))
 
 func test_ok_alone_stays_centred() -> void:

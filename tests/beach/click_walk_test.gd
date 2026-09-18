@@ -101,7 +101,7 @@ func test_second_click_redirects() -> void:
 	assert_int(_marks().size()).is_less_equal(1)
 
 func test_click_on_bar_does_not_walk() -> void:
-	runner.simulate_mouse_move(player.get_viewport().get_final_transform() * Vector2(100, 165))
+	runner.simulate_mouse_move(player.get_viewport().get_final_transform() * Vector2(Screen.CENTRE.x - 60, ItemBar.TOP + 8))   # on the item bar's plank
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	await runner.await_input_processed()
 	await await_millis(300)

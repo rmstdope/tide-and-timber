@@ -76,7 +76,7 @@ func test_debug_plank_sits_above_quit_to_title() -> void:
 	assert_str((_node("Debug").get_node("Label/Words") as Label).text).is_equal("Debug")
 	var board := _node("Panel") as Control
 	assert_float(board.size.y).is_equal(Pause.BOARD_H_THREE + Pause.PLANK_STEP)
-	assert_float(board.position.y + board.size.y).is_less_equal(180.0)
+	assert_float(board.position.y + board.size.y).is_less_equal(Screen.HEIGHT)
 	var quit := _node("QuitToTitle") as Control
 	assert_float(quit.position.y + quit.size.y).is_less_equal(board.size.y)
 

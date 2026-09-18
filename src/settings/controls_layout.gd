@@ -26,7 +26,7 @@ var _names := {}             # name String -> PackedStringArray, for every actio
 
 ## True when the rows, with the screen margins, do not fit across at UI scale p_ui with words grown by p_rel.
 static func stacks(p_ui: float, p_rel: float) -> bool:
-	if (ControlsPage.LIST_W + 2.0 * ControlsPage.SCREEN_MARGIN) * p_ui > 320.0:
+	if (ControlsPage.LIST_W + 2.0 * ControlsPage.SCREEN_MARGIN) * p_ui > Screen.WIDTH:
 		return true
 	var action := 0.0
 	for a: int in Controls.Action.values():
@@ -119,18 +119,18 @@ static func make(p_stacked: bool, p_rel: float, p_ui: float) -> ControlsLayout:
 func _make_tabs() -> void:
 	var pad := 4.0 if stacked else 8.0
 	var h := ControlsPage.ROW_H + grow
-	var top := 14.0 + grow
+	var top := ControlsPage.TAB_TOP + grow
 	var w0 := pad + ceilf(width(ControlsPage.TAB_NAMES[0]) * rel)
 	var w1 := pad + ceilf(width(ControlsPage.TAB_NAMES[1]) * rel)
-	# Equality is meant: stacked at Text Normal and UI 2x the sum is exactly 320, which keeps today's stacked tabs side by side (controls_layout_test.gd::test_stacked_rows_at_text_normal_are_todays).
-	if (w0 + TAB_GAP + w1 + 2.0 * ControlsPage.SCREEN_MARGIN) * ui <= 320.0:
-		var x0 := roundf(160.0 - (w0 + TAB_GAP + w1) / 2.0)
+	# Equality is meant: stacked at Text Normal and UI 2x the sum is exactly the picture's width, which keeps today's stacked tabs side by side (controls_layout_test.gd::test_stacked_rows_at_text_normal_are_todays).
+	if (w0 + TAB_GAP + w1 + 2.0 * ControlsPage.SCREEN_MARGIN) * ui <= Screen.WIDTH:
+		var x0 := roundf(Screen.CENTRE.x - (w0 + TAB_GAP + w1) / 2.0)
 		_tabs = [Rect2(x0, top, w0, h), Rect2(x0 + w0 + TAB_GAP, top, w1, h)]
 	else:
 		var a := TextScale.fit_width(w0, w0, ui)
 		var b := TextScale.fit_width(w1, w1, ui)
-		_tabs = [Rect2(roundf(160.0 - a / 2.0), top, a, h),
-			Rect2(roundf(160.0 - b / 2.0), top + h + TAB_GAP, b, h)]
+		_tabs = [Rect2(roundf(Screen.CENTRE.x - a / 2.0), top, a, h),
+			Rect2(roundf(Screen.CENTRE.x - b / 2.0), top + h + TAB_GAP, b, h)]
 	list_top = _tabs[1].end.y + 3.0
 
 func _make_side_by_side_rows() -> void:
@@ -150,7 +150,7 @@ func _make_stacked_rows() -> void:
 			widest = maxf(widest, width(line))
 	var inset := ControlsPage.LIST_W_STACKED - ControlsPage.NAME_WRAP_W
 	list_w = TextScale.fit_width(ControlsPage.LIST_W_STACKED, ceilf(widest * rel) + inset, ui)
-	list_x = roundf((320.0 - list_w) / 2.0)
+	list_x = roundf((Screen.WIDTH - list_w) / 2.0)
 	var wrap := list_w - inset
 	for name: String in _every_name():
 		var fits := true
@@ -221,7 +221,7 @@ func name_lines(r: int, device: Controls.Device) -> PackedStringArray:
 func name_x(line: String) -> float:
 	var w := ceilf(width(line) * rel)
 	if stacked and w > list_w - 8.0:
-		return roundf(160.0 - w / 2.0)
+		return roundf(Screen.CENTRE.x - w / 2.0)
 	return name_origin(0).x
 
 ## What a point on the page hits: Vector2i(row, slot), slot -1 on the Reset row; Vector2i(-1, -1) for nothing.

@@ -12,8 +12,8 @@ static func build_texture() -> GradientTexture2D:
 	g.colors = PackedColorArray([Color(ICE, 0.0), Color(ICE, 1.0)])
 	var t := GradientTexture2D.new()
 	t.gradient = g
-	t.width = 320
-	t.height = 180
+	t.width = int(Screen.WIDTH)
+	t.height = int(Screen.HEIGHT)
 	t.fill = GradientTexture2D.FILL_RADIAL
 	t.fill_from = Vector2(0.5, 0.5)
 	t.fill_to = Vector2(1.0, 0.5)
@@ -22,7 +22,7 @@ static func build_texture() -> GradientTexture2D:
 func _ready() -> void:
 	texture = build_texture()
 	position = Vector2.ZERO
-	size = Vector2(320, 180)
+	size = Screen.SIZE
 	expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	stretch_mode = TextureRect.STRETCH_SCALE
 	mouse_filter = MOUSE_FILTER_IGNORE

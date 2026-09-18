@@ -17,9 +17,9 @@ static func relative(prefs: DisplayPrefs, window: Window) -> float:
 ## while that fits the screen at UI scale `ui`; else the screen less SpokenLine.SCREEN_MARGIN each side.
 static func fit_width(normal_width: float, words_width: float, ui: float) -> float:
 	var want := maxf(normal_width, words_width)
-	if want * ui <= SpokenLine.SCREEN_WIDTH:
+	if want * ui <= Screen.WIDTH:
 		return want
-	return floorf((SpokenLine.SCREEN_WIDTH - 2.0 * SpokenLine.SCREEN_MARGIN) / ui)
+	return floorf((Screen.WIDTH - 2.0 * SpokenLine.SCREEN_MARGIN) / ui)
 
 ## How many units a line `line_height` tall grows at relative scale `rel`: ceilf(line_height * rel)
 ## - line_height. 0 at rel 1.0. Containers add this per line of words so every edge stays on a whole unit.

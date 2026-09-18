@@ -27,7 +27,6 @@ func setup(p_inventory: Inventory) -> void:
 	(%ShelterLine as SpokenLine).say(SHELTER_TEXT)
 	%BuildList.row_hovered.connect(_on_row_hovered)
 	%BuildList.row_clicked.connect(_on_row_clicked)
-	%BuildList.use_hint(%KeyHint)
 
 func open_list() -> void:
 	var from_placing := mode == Mode.PLACING

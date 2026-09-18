@@ -1,6 +1,8 @@
 extends GdUnitTestSuite
 ## The Settings board at a larger Text size: the heading, the row names, ◀ value ▶, › and the line under
 ## the list grow; planks widen and grow taller to fit, and a stacked row's cells flow onto further lines.
+## At the default 1280x720 window the rows stack only at UI Largest and Text Largest, so that is where the
+## stacked test runs.
 
 const TITLE := "res://src/title/title_screen.tscn"
 const NO_SAVE := "user://test_saves/text_size_none"   # never created
@@ -17,7 +19,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
 
@@ -80,8 +82,10 @@ func test_large_text_rows_grow_side_by_side() -> void:
 	assert_vector(line.scale).is_equal(Vector2(1.5, 1.5))
 	assert_vector(line.position).is_equal(Vector2(12, 132))
 	assert_float(line.size.y).is_equal(28.0)
-	assert_that(board.rest_panel).is_equal(Rect2(8, -1, 304, 182))
-	assert_bool(board.scrolls).is_true()
+	# 182 tall, centred on the picture; it fits the 360-tall picture, so it does not scroll.
+	assert_that(board.rest_panel).is_equal(Rect2(SettingsBoard.BOARD_X, floorf((Screen.HEIGHT - 182.0) / 2.0),
+			SettingsBoard.BOARD_W, 182))
+	assert_bool(board.scrolls).is_false()
 	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.UI_SIZE)
 
 func test_largest_ui_and_text_stack_and_nothing_leaves_the_panel() -> void:
@@ -89,15 +93,16 @@ func test_largest_ui_and_text_stack_and_nothing_leaves_the_panel() -> void:
 	Display.prefs.step(S.TEXT_SIZE, 2)
 	await _open()
 	assert_bool(board.stacked).is_true()
-	assert_float(board.rest_panel.size.x).is_equal(156.0)
-	assert_bool((_node("ColourCues").get_node("Row/Label") as GrownWords).wrapped).is_true()
+	assert_float(board.rest_panel.size.x).is_equal(SettingsBoard.panel_width(2.0))
+	# Retired in tr-1o0.1: the Colour cues line wrapping. No UI size, Text size and window wraps it at 640x360.
+	assert_bool((_node("ColourCues").get_node("Row/Label") as GrownWords).wrapped).is_false()
 	assert_bool((_node("UiSize").get_node("Row/Label") as GrownWords).wrapped).is_false()
 	var h := _node(PLANKS[0]).size.y
 	for name: String in PLANKS:
 		var plank := _node(name)
 		assert_float(plank.size.y).override_failure_message(name + " height").is_equal(h)
 		assert_float(plank.get_rect().position.x).is_greater_equal(0.0)
-		assert_float(plank.get_rect().end.x).is_less_equal(156.0)
+		assert_float(plank.get_rect().end.x).is_less_equal(board.rest_panel.size.x)
 		for child: Node in plank.get_node("Row").get_children():
 			var c := child as Control
 			if c != null and c.visible:
@@ -109,7 +114,8 @@ func test_largest_ui_and_text_stack_and_nothing_leaves_the_panel() -> void:
 		var c := child as Control
 		if c != null and c.visible:
 			sizes.append(c.get_combined_minimum_size())
-	assert_float(cues.size.y).is_equal(4.0 + SettingsBoard.flow_height(sizes, 144))
+	var inner := board.rest_panel.size.x - 2.0 * SettingsBoard.PANEL_SIDE - SettingsBoard.PLANK_STYLE.get_minimum_size().x
+	assert_float(cues.size.y).is_equal(4.0 + SettingsBoard.flow_height(sizes, inner))
 
 func test_text_size_change_keeps_the_highlight_and_back_to_normal() -> void:
 	await _open()
@@ -123,5 +129,6 @@ func test_text_size_change_keeps_the_highlight_and_back_to_normal() -> void:
 	Display.use_prefs(DisplayPrefs.new())
 	await _settle()
 	assert_that(_node("UiSize").get_rect()).is_equal(Rect2(52, 28, 200, 16))
-	assert_that(board.rest_panel).is_equal(Rect2(8, 21, 304, 138))
+	assert_that(board.rest_panel).is_equal(Rect2(SettingsBoard.BOARD_X,
+			floorf((Screen.HEIGHT - SettingsBoard.BOARD_H) / 2.0), SettingsBoard.BOARD_W, SettingsBoard.BOARD_H))
 	assert_vector(_node("Line").scale).is_equal(Vector2.ONE)

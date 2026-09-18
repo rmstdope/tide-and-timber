@@ -67,7 +67,7 @@ func _mouse_clicked() -> void:
 func test_opens_with_enter_select_only() -> void:
 	assert_str(screen.strip.text()).is_equal("[Enter] Select")
 	assert_bool(screen.strip.is_visible_in_tree()).is_true()
-	assert_vector(screen.strip.position).is_equal(Vector2(4, 164))
+	assert_vector(screen.strip.position).is_equal(Vector2(4, Screen.HEIGHT - 16))
 
 func test_opens_with_the_pads_select_when_a_pad_is_connected() -> void:
 	InputDevice.reset(PackedStringArray(["Xbox Series Controller"]))

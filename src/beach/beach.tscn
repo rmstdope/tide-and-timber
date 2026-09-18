@@ -68,7 +68,7 @@ script = ExtResource("6_bar")
 
 [node name="UiScale" type="Node" parent="BarLayer"]
 script = ExtResource("ui_scale")
-anchor = Vector2(160, 180)
+anchor = Vector2(320, 360)
 
 [node name="Hud" type="CanvasLayer" parent="."]
 layer = 10
@@ -78,8 +78,8 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 
 [node name="BuildList" type="Control" parent="Hud"]
 unique_name_in_owner = true
@@ -98,7 +98,7 @@ script = ExtResource("11_hint")
 
 [node name="UiScale" type="Node" parent="KeyHintLayer"]
 script = ExtResource("ui_scale")
-anchor = Vector2(160, 148)
+anchor = Vector2(320, 328)
 
 [node name="ShelterLineLayer" type="CanvasLayer" parent="."]
 layer = 10
@@ -108,10 +108,10 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_left = 12.0
-offset_top = 150.0
-offset_right = 308.0
-offset_bottom = 166.0
+offset_left = 172.0
+offset_top = 330.0
+offset_right = 468.0
+offset_bottom = 346.0
 mouse_filter = 2
 script = ExtResource("spoken_line")
 
@@ -132,7 +132,7 @@ vertical_alignment = 1
 
 [node name="UiScale" type="Node" parent="ShelterLineLayer"]
 script = ExtResource("ui_scale")
-anchor = Vector2(160, 166)
+anchor = Vector2(320, 346)
 
 [node name="Cover" type="CanvasLayer" parent="."]
 layer = 30
@@ -140,7 +140,7 @@ layer = 30
 [node name="BuildCover" type="ColorRect" parent="Cover"]
 unique_name_in_owner = true
 visible = false
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)

@@ -5,7 +5,7 @@ extends Control
 ## At larger sizes it lifts above the item bar when it would cover it.
 
 const LEFT := 4.0      # the version number's inset from the right edge, mirrored
-const BOTTOM := 176.0  # level with the bottom of the title's version number
+const BOTTOM := Screen.HEIGHT - 4.0  # level with the bottom of the title's version number
 
 var view: HintView
 

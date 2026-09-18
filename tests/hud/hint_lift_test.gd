@@ -8,7 +8,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 
 func after_test() -> void:
@@ -18,6 +18,12 @@ func after_test() -> void:
 
 func _rect_approx(a: Rect2, b: Rect2) -> bool:
 	return a.position.is_equal_approx(b.position) and a.size.is_equal_approx(b.size)
+
+## The item bar's plank on screen at UI scale s: it grows about the picture's bottom centre.
+func _plank(s: float) -> Rect2:
+	var at := Vector2(roundi((Screen.WIDTH - ItemBar.PLANK_SIZE.x) / 2), ItemBar.TOP)
+	return Rect2(Vector2(Screen.CENTRE.x + (at.x - Screen.CENTRE.x) * s, Screen.HEIGHT - (Screen.HEIGHT - at.y) * s),
+		ItemBar.PLANK_SIZE * s)
 
 func test_no_bar_no_lift() -> void:
 	assert_float(HintLift.lift(Rect2(4, 152, 296, 24), 12.0, Rect2())).is_equal(0.0)
@@ -38,9 +44,9 @@ func test_grown_hint_clear_of_the_bar_stays() -> void:
 func test_bar_rect_is_the_plank_on_screen() -> void:
 	scene_runner("res://src/beach/beach.tscn")
 	await get_tree().process_frame
-	assert_bool(_rect_approx(HintLift.bar_rect(get_tree()), Rect2(90, 157, 141, 22))).is_true()
+	assert_bool(_rect_approx(HintLift.bar_rect(get_tree()), _plank(1.0))).is_true()
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
-	assert_bool(_rect_approx(HintLift.bar_rect(get_tree()), Rect2(20, 134, 282, 44))).is_true()
+	assert_bool(_rect_approx(HintLift.bar_rect(get_tree()), _plank(2.0))).is_true()
 
 func test_hidden_bar_has_no_rect() -> void:
 	var beach := scene_runner("res://src/beach/beach.tscn").scene()
@@ -62,14 +68,16 @@ func test_place_converts_to_the_parent_units() -> void:
 	add_child(bar_layer)
 	var layer := auto_free(CanvasLayer.new()) as CanvasLayer
 	var ui := UiScale.new()
-	ui.anchor = Vector2(160, 180)
+	ui.anchor = Vector2(Screen.CENTRE.x, Screen.HEIGHT)
 	layer.add_child(ui)
 	var c := Control.new()
-	c.size = Vector2(320, 14)
+	c.size = Vector2(Screen.WIDTH, 14)
 	layer.add_child(c)
 	add_child(layer)
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
-	assert_float(HintLift.place(c, 166.0, 14.0)).is_equal_approx(-48.0, 0.01)
-	assert_float(c.position.y).is_equal_approx(142.0, 0.01)
-	assert_float(HintLift.screen_rect(c).end.y).is_equal_approx(132.0, 0.01)
+	# at 2x the line's screen top is Screen.HEIGHT - 28 and the plank's is Screen.HEIGHT - 46: lifted 48 on
+	# screen to sit GAP above it, 24 in the line's own units
+	assert_float(HintLift.place(c, Screen.HEIGHT - 14, 14.0)).is_equal_approx(-48.0, 0.01)
+	assert_float(c.position.y).is_equal_approx(Screen.HEIGHT - 14 - 24, 0.01)
+	assert_float(HintLift.screen_rect(c).end.y).is_equal_approx(_plank(2.0).position.y - HintLift.GAP, 0.01)
 	assert_float(c.position.x).is_equal(0.0)

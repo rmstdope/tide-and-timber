@@ -3,7 +3,7 @@ extends Control
 ## The key hint band along the bottom while building, showing the device's pictures.
 ## Lifts above the item bar at larger sizes when it would cover it.
 
-const TOP := 136.0
+const TOP := Screen.HEIGHT - 44.0
 const HEIGHT := 12.0
 const BAND := Color(0, 0, 0, 0.55)
 const TEXT := HudColours.PALE
@@ -20,7 +20,7 @@ func _ready() -> void:
 	Display.changed.connect(_layout_later)
 	get_tree().root.size_changed.connect(_layout_later)
 
-## Shows the band for BUILD_LIST or PLACING, centred on the 320 px picture.
+## Shows the band for BUILD_LIST or PLACING, centred on the picture.
 func show_hint(h: DeviceHints.Hint) -> void:
 	view.hint = h
 	_layout()
@@ -33,7 +33,7 @@ func _layout() -> void:
 	var w := view.line_width() + 8
 	var h := HEIGHT + view.grown_by()
 	size = Vector2(w, h)
-	position.x = roundi((320 - w) / 2.0)
+	position.x = roundi((Screen.WIDTH - w) / 2.0)
 	HintLift.place(self, TOP + HEIGHT - h, HEIGHT)
 	view.position = Vector2.ZERO
 	view.size = size

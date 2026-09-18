@@ -2,10 +2,10 @@ class_name DebugReadout
 extends Control
 ## The readout box top-right while DebugSwitches.readout is on.
 
-const BOX_X := 236.0
+const BOX_X := Screen.WIDTH - 84.0   # 4 clear of the right edge, with BOX_W 80
 const BOX_Y := 4.0
 const BOX_W := 80.0
-const LINE_X := 240.0
+const LINE_X := BOX_X + 4.0
 const FIRST_LINE_Y := 7.0
 const LINE_STEP := 8.0
 const BOX := Color(0, 0, 0, 0.6)
@@ -16,7 +16,7 @@ var player: Player        # null in the story
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
-	size = Vector2(320, 180)
+	size = Screen.SIZE
 	visible = DebugSwitches.readout
 
 func _process(_delta: float) -> void:

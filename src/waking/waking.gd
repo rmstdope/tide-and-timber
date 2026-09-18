@@ -5,7 +5,7 @@ extends Node2D
 
 const WAKE_CELL := Vector2i(92, 14)     # wet sand at the waterline, under the beach's spawn column
 const Preview := preload("res://src/day_night/day_night_preview.gd")
-const MOVE_HINT_TOP := 166.0         # %MoveHint's offset_top in waking.tscn
+const MOVE_HINT_TOP := Screen.HEIGHT - 14.0   # %MoveHint's offset_top in waking.tscn
 const MOVE_HINT_HEIGHT := 14.0       # its band's height
 const SURF_VOLUME := 0.6                # the intro's surf volume, so the cut from the black beat is seamless
 

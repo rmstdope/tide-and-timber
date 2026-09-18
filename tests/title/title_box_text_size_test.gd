@@ -1,5 +1,8 @@
 extends GdUnitTestSuite
 ## At larger Text size the title's Start over and Replace boxes grow their words; grown buttons stack.
+## On the 640x360 picture in the default 1280x720 window, the smallest combination that stacks the Start over
+## buttons is UI size Large and Text size Largest (Text size alone widens the box to the screen's margins but
+## never stacks it).
 
 const SCENE := "res://src/title/title_screen.tscn"
 const ROOT := "user://test_saves"
@@ -16,7 +19,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 
 func after_test() -> void:
@@ -91,8 +94,9 @@ func _text_up(steps: int) -> void:
 	await await_idle_frame()
 
 func test_large_text_stacks_the_start_over_buttons() -> void:
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)   # UI size Large
 	await _open_start_over_box()
-	await _text_up(1)
+	await _text_up(2)                                     # Text size Largest
 	assert_bool(screen._start_over_box.stacked).is_true()
 	var keep := _rect("%KeepMyIsland")
 	var start := _rect("%StartOver")
@@ -107,10 +111,11 @@ func test_grown_button_is_wide_enough_for_its_words() -> void:
 func test_both_boxes_are_laid_out_before_they_open() -> void:
 	await _open_start_over_box()
 	await _text_up(2)
-	assert_float(screen._replace_box.panel.size.x).is_equal(312.0)
+	assert_float(screen._replace_box.panel.size.x).is_equal(BoxLayout.widest(1.0))   # the widest a box gets: the picture less its two margins
 	assert_float(_control("%ReplaceBox").size.x).is_equal(_control("%StartOverBox").size.x)
 
 func test_text_normal_is_todays_layout() -> void:
 	await _open_start_over_box()
-	assert_that(_panel_rect("StartOver")).is_equal(Rect2(12, 42, 296, 96))
-	assert_that(_panel_rect("Replace")).is_equal(Rect2(12, 42, 296, 96))
+	var today := Rect2(Screen.CENTRE - Vector2(148, 48), Vector2(296, 96))   # 296x96, centred on the picture
+	assert_that(_panel_rect("StartOver")).is_equal(today)
+	assert_that(_panel_rect("Replace")).is_equal(today)

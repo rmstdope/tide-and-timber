@@ -17,7 +17,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Pause.debug_tools = false
 	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
@@ -76,10 +76,19 @@ func test_text_size_change_regrows_the_open_box() -> void:
 
 func test_ui_size_change_refits_the_open_box() -> void:
 	await _open_box()
+	var was := _box().layout
 	_size(S.UI_SIZE, 2)
-	assert_float(_box().layout.panel.size.x).is_equal(156.0)
-	assert_float(_box().layout.panel.size.x * UiScale.current(Display.prefs, get_tree().root)) \
-		.is_less_equal(320.0)
+	# On the 640x360 picture the Normal plank fits at UI size Largest, so the refit keeps its width and
+	# only has to be a fresh layout for the new UI scale; it no longer reaches the screen-margin cap
+	# (that arithmetic is waiting_box_test's test_the_panel_stops_at_the_screen_margin).
+	var root := get_tree().root
+	var ui := UiScale.current(Display.prefs, root)
+	assert_float(ui).is_equal(2.0)
+	assert_object(_box().layout).is_not_same(was)
+	assert_that(_box().layout.panel).is_equal(WaitingBox.choose_layout(_box().lines, _box().items, ui,
+		TextScale.total(Display.prefs, root), OverlayScale.whole_scale(root), _box().get_theme_default_font()).panel)
+	assert_float(_box().layout.panel.size.x).is_equal(WaitingBox.PANEL.size.x)
+	assert_float(_box().layout.panel.size.x * ui).is_less_equal(Screen.WIDTH)
 
 func test_the_ring_moves_with_the_words() -> void:
 	await _open_box()
@@ -94,12 +103,12 @@ func test_the_ring_moves_with_the_words() -> void:
 func test_a_window_resize_refits_the_box() -> void:
 	await _open_box()
 	_size(S.TEXT_SIZE, 2)
-	get_tree().root.size = Vector2i(320, 180)
+	get_tree().root.size = Vector2i(640, 360)
 	await await_idle_frame()
 	assert_float(_box().layout.panel.size.y * UiScale.current(Display.prefs, get_tree().root)) \
-		.is_less_equal(172.0)
+		.is_less_equal(Screen.HEIGHT - 2.0 * SpokenLine.SCREEN_MARGIN)
 
 func test_normal_text_draws_as_before() -> void:
 	await _open_box()
 	assert_that(_box().layout.panel).is_equal(WaitingBox.PANEL)
-	assert_float(_box().ring.position.y).is_equal(96.0)
+	assert_float(_box().ring.position.y).is_equal(WaitingBox.HOLD_TOP)

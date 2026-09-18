@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 
 func test_title_wreck_is_a_pixel_polygon_with_the_same_points() -> void:
 	var title: Node = auto_free(load("res://src/title/title_screen.tscn").instantiate())
-	var wreck := title.get_node("Wreck")
+	var wreck := title.get_node("Art/Wreck")
 	assert_bool(wreck is PixelPolygon).is_true()
 	if not wreck is PixelPolygon:
 		return

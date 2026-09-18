@@ -16,7 +16,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
 
@@ -53,10 +53,14 @@ func test_menu_top_at_normal_is_unchanged() -> void:
 	assert_float(TitleScreen.menu_top_at(75, 92, 1.0)).is_equal(75.0)
 
 func test_menu_top_at_keeps_clear_of_the_strip() -> void:
-	assert_float(TitleScreen.menu_top_at(97, 60, 1.5)).is_equal(66.0)
-	assert_float(TitleScreen.menu_top_at(97, 60, 2.0)).is_equal(30.0)
-	assert_float(TitleScreen.menu_top_at(83, 81, 1.5)).is_equal(34.0)
-	assert_float(TitleScreen.menu_top_at(83, 81, 2.0)).is_equal(0.0)
+	# A strip high enough to reach the grown menu (158 and 152: a strip at s 1.5 and 2 on a 180-high picture).
+	assert_float(TitleScreen.menu_top_at(97, 60, 1.5, -1.0, 158)).is_equal(66.0)
+	assert_float(TitleScreen.menu_top_at(97, 60, 2.0, -1.0, 152)).is_equal(30.0)
+	assert_float(TitleScreen.menu_top_at(83, 81, 1.5, -1.0, 158)).is_equal(34.0)
+	assert_float(TitleScreen.menu_top_at(83, 81, 2.0, -1.0, 152)).is_equal(0.0)
+	# On today's picture the default strip sits low enough that Largest only grows the menu about its centre:
+	# 194 + 60 / 2 - 60 * 2 / 2 = 164, and its bottom 284 stays clear of the strip.
+	assert_float(TitleScreen.menu_top_at(TitleScreen.MENU_TOP, 60, 2.0)).is_equal(TitleScreen.MENU_TOP - 30.0)
 
 func test_menu_top_at_a_grown_menu_at_normal_ui() -> void:
 	assert_float(TitleScreen.menu_top_at(83, 104, 1.0, 81, 164)).is_equal(58.0)
@@ -70,22 +74,23 @@ func test_menu_grows_centred_and_clear_of_the_strip() -> void:
 	await get_tree().process_frame
 	var menu := screen.get_node("%Menu") as Control
 	assert_vector(menu.scale).is_equal(Vector2(2, 2))
-	assert_float(menu.position.x).is_equal(-160.0)
-	assert_float(menu.get_global_rect().get_center().x).is_equal_approx(160.0, 0.01)
+	assert_float(menu.position.x).is_equal(-Screen.CENTRE.x)
+	assert_float(menu.get_global_rect().get_center().x).is_equal_approx(Screen.CENTRE.x, 0.01)
 	assert_float(menu.get_global_rect().end.y).is_less_equal(screen.strip.get_global_rect().position.y - 2)
 
 func test_boxes_and_board_grow_about_the_centre() -> void:
 	_open()
 	_step(2)
 	await get_tree().process_frame   # the boxes are framed once the strip's own deferred layout has run
-	for unique: String in ["StartOverBox", "ReplaceBox"]:   # framed to the room above the strip, so centred on it
+	for unique: String in ["StartOverBox", "ReplaceBox"]:   # framed to the room above the strip
 		var c := screen.get_node("%" + unique) as Control
 		assert_vector(c.scale).is_equal(Vector2(2, 2))
-		assert_vector(c.position + c.pivot_offset).is_equal(Vector2(160, 90))
-		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Vector2(160, 76), EPS)
+		assert_vector(c.position + c.pivot_offset).is_equal(Screen.CENTRE)
+		# The strip no longer reaches a box at Largest on a 640x360 picture, so the room is the whole picture.
+		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Screen.CENTRE, EPS)
 	var settings := screen.get_node("%SettingsBoard") as Control
 	assert_vector(settings.scale).is_equal(Vector2(2, 2))
-	assert_vector(settings.get_global_rect().get_center()).is_equal_approx(Vector2(160, 90), EPS)
+	assert_vector(settings.get_global_rect().get_center()).is_equal_approx(Screen.CENTRE, EPS)
 	assert_vector((screen.get_node("%Version") as Control).scale).is_equal(Vector2.ONE)
 	assert_vector((screen.get_node("Title") as Control).scale).is_equal(Vector2.ONE)
 
@@ -96,10 +101,10 @@ func test_back_to_normal_puts_the_title_back() -> void:
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
 	var menu := screen.get_node("%Menu") as Control
-	assert_vector(menu.position).is_equal(Vector2(0, 97))
+	assert_vector(menu.position).is_equal(Vector2(0, TitleScreen.MENU_TOP))
 	assert_vector(menu.scale).is_equal(Vector2.ONE)
 	assert_vector(board.scale).is_equal(Vector2.ONE)
-	assert_vector(screen.strip.position).is_equal(Vector2(4, 164))
+	assert_vector(screen.strip.position).is_equal(Vector2(4, Screen.HEIGHT - 16))
 
 func test_title_board_grows_while_ui_size_changes_and_keeps_the_highlight() -> void:
 	_open()
@@ -111,7 +116,7 @@ func test_title_board_grows_while_ui_size_changes_and_keeps_the_highlight() -> v
 	assert_bool(board.visible).is_true()
 	assert_bool(screen.menu.settings_open).is_true()
 	await get_tree().process_frame
-	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 158), EPS)
+	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, Screen.HEIGHT - 22), EPS)
 
 func test_launched_at_largest_the_board_strip_is_in_the_corner() -> void:
 	_step(2)
@@ -119,13 +124,13 @@ func test_launched_at_largest_the_board_strip_is_in_the_corner() -> void:
 	await _tap(KEY_DOWN)
 	await _tap(KEY_ENTER)
 	await get_tree().process_frame
-	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 152), EPS)
+	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, Screen.HEIGHT - 28), EPS)
 	assert_vector(board.strip.get_global_transform_with_canvas().get_scale()).is_equal_approx(Vector2(2, 2), EPS)
 
 func test_a_window_resize_regrows_the_title() -> void:
 	_step(1)
 	_open()
-	get_tree().root.size = Vector2i(960, 540)
+	get_tree().root.size = Vector2i(1920, 1080)
 	await get_tree().process_frame
 	assert_vector(board.scale).is_equal_approx(Vector2(5.0 / 3.0, 5.0 / 3.0), EPS)
 	assert_vector((screen.get_node("%Menu") as Control).scale).is_equal_approx(Vector2(5.0 / 3.0, 5.0 / 3.0), EPS)

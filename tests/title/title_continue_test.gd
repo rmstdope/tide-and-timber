@@ -143,13 +143,13 @@ func test_save_shows_continue_with_the_day() -> void:
 	assert_bool(_visible("%DayLine")).is_true()
 	assert_str(_text("%DayLine/Words")).is_equal("DAY 4")
 	assert_highlighted("Continue")
-	assert_float((_node("%Menu") as Control).position.y).is_equal(83.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP_WITH_SAVE)
 
 func test_menu_fits_with_a_save() -> void:
 	_saved()
 	await await_idle_frame()
 	var menu := (_node("%Menu") as Control).get_global_rect()
-	assert_bool(Rect2(0, 0, 320, 180).encloses(menu)).override_failure_message("menu at %s" % menu).is_true()
+	assert_bool(Rect2(Vector2.ZERO, Screen.SIZE).encloses(menu)).override_failure_message("menu at %s" % menu).is_true()
 	assert_bool(menu.intersects((_node("%Version") as Control).get_global_rect())).is_false()
 	for path in ["MenuClip/Menu/Continue/Lines/Label/Words", "%DayLine/Words"]:
 		var label := _node(path) as Label
@@ -261,7 +261,7 @@ func test_click_outside_the_box_does_nothing() -> void:
 func test_box_words_fit() -> void:
 	_saved()
 	await await_idle_frame()
-	var view := Rect2(0, 0, 320, 180)
+	var view := Rect2(Vector2.ZERO, Screen.SIZE)
 	for box in ["StartOverBox", "ReplaceBox"]:
 		var panel := _node(box) as Control
 		assert_bool(view.encloses(panel.get_global_rect())).is_true()
@@ -309,7 +309,7 @@ func test_newer_save_dims_continue_with_its_reason() -> void:
 	_assert_dimmed()
 	assert_bool(_visible("%Reason")).is_true()
 	assert_str(_text("%Reason/Words")).is_equal("Save is from a newer version")
-	assert_float((_node("%Menu") as Control).position.y).is_equal(75.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP_DIMMED)
 
 func test_broken_save_dims_continue_with_its_reason() -> void:
 	_broken()
@@ -331,23 +331,23 @@ func test_readable_save_has_no_reason() -> void:
 	assert_bool(_visible("%Reason")).is_false()
 	assert_highlighted("Continue")
 	assert_object((_node("MenuClip/Menu/Continue/Lines/Label/Words") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
-	assert_float((_node("%Menu") as Control).position.y).is_equal(83.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP_WITH_SAVE)
 
 func test_no_save_has_no_reason() -> void:
 	_open("user://test_saves/none")
 	assert_bool(_visible("%Reason")).is_false()
 	assert_bool(_visible("%Continue")).is_false()
-	assert_float((_node("%Menu") as Control).position.y).is_equal(97.0)
+	assert_float((_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP)
 
 func test_dimmed_menu_fits() -> void:
 	_newer()
 	await await_idle_frame()
-	var view := Rect2(0, 0, 320, 180)
+	var view := Rect2(Vector2.ZERO, Screen.SIZE)
 	var version := (_node("%Version") as Control).get_global_rect()
 	for plank: String in ["Continue", "NewGame", "Settings", "Quit"]:
 		var rect := _plank(plank).get_global_rect()
 		assert_float(rect.size.x).override_failure_message("%s width" % plank).is_equal(90.0)
-		assert_float(rect.position.x).override_failure_message("%s x" % plank).is_equal(115.0)
+		assert_float(rect.position.x).override_failure_message("%s x" % plank).is_equal(Screen.CENTRE.x - 45.0)   # a 90-wide plank centred on the picture
 		assert_bool(view.encloses(rect)).override_failure_message("%s at %s" % [plank, rect]).is_true()
 		assert_bool(rect.intersects(version)).is_false()
 	var reason := _node("%Reason/Words") as Label
@@ -459,7 +459,7 @@ func test_replace_box_words_fit() -> void:
 	assert_int(second.get_line_count()).is_less_equal(3)
 	assert_float(float(second.get_line_count() * second.get_line_height())).is_less_equal(second.size.y)
 	assert_float(second.get_global_rect().end.y).is_less_equal(_plank("Cancel").get_global_rect().position.y)
-	assert_bool(Rect2(0, 0, 320, 180).encloses((_node("%ReplaceBox") as Control).get_global_rect())).is_true()
+	assert_bool(Rect2(Vector2.ZERO, Screen.SIZE).encloses((_node("%ReplaceBox") as Control).get_global_rect())).is_true()
 
 func test_readable_save_new_game_box_unchanged() -> void:
 	await _open_start_over_box()
