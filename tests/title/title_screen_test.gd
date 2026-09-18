@@ -126,7 +126,7 @@ func test_input_during_fade_is_ignored() -> void:
 
 func test_waves_move() -> void:
 	var waves := screen.get_node("%Waves").get_children()
-	var recorded: Array[float] = [20.0, 100.0, 190.0]   # home x in title_screen.tscn
+	var recorded: Array[float] = [20.0, 100.0, 190.0, 330.0, 470.0]   # home x in title_screen.tscn
 	await runner.simulate_frames(1, 25)
 	var first: Array[float] = []
 	for wave: Control in waves:
