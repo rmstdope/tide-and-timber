@@ -1,26 +1,20 @@
 # Instructions for the fleet
 
-## The project
+# The project
 
 Tide and Timber is a single-player 2D pixel-art survival and life-sim game with a story that
-ends, aimed at a public release to players. A man is stranded on an island in the sea, discovers it
-is inhabited by other people and creatures, survives, and builds himself a home. The player is a
+ends, aimed at a public release to players. The player is a
 member of the public who bought or downloaded it; nobody else reads its output. "Working" means the
-game runs, saves and loads, and the story can be played from the wreck to the ending.
+game runs, saves and loads, and the story can be played from start to end.
 
 It ships as native desktop executables for macOS and Windows, uploaded to Steam and/or itch.io. CI
-runs the tests on every pull request and every merge to main and builds no exports; the navigator
-builds them locally with `scripts/gate-full` and publishes tagged releases to the store by hand.
-Saves and settings are local files in the OS user-data directory, mirrored by the store's cloud
-sync. There is no server of our own, so "down" means only a broken build or a corrupted save.
+builds every merge to main; the navigator publishes tagged releases to the store by hand. Saves and
+settings are local files in the OS user-data directory, mirrored by the store's cloud sync. There is
+no server of our own, so "down" means only a broken build or a corrupted save.
 
-A new player sees a title screen, picks New Game, watches a short pixel-art shipwreck cutscene and
-wakes on the beach with nothing. The first thing they came to do is survive the first night: find
-water and food and raise a shelter with a fire before dark, the day/night clock being the pressure.
-There is no permadeath: collapsing means waking next morning having lost some items and time, and a
-daily autosave is the undo. Keyboard+mouse and gamepad are both fully supported, menus included. It
-looks like Stardew Valley: 16x16 tiles, top-down 3/4 view, warm saturated palette, integer-scaled
-from a 320x180 base. It follows game conventions, not OS ones: in-world pixel UI, controller glyphs,
+Keyboard+mouse and gamepad are both fully supported, menus included. The game is a 2D pixel game,
+16x16 tiles, top-down 3/4 view, warm saturated palette, integer-scaled
+from a 640x360 base. It follows game conventions, not OS ones: in-world pixel UI, controller glyphs,
 Esc/Start pauses. Accessibility baseline: rebindable controls, scalable UI and text,
 colour-blind-safe cues, no timing-critical inputs in the story. It has to feel **cozy, curious,
 resilient**.
