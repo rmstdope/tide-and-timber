@@ -6,7 +6,7 @@ func test_title_wreck_is_a_pixel_polygon_with_the_same_points() -> void:
 	assert_bool(wreck is PixelPolygon).is_true()
 	if not wreck is PixelPolygon:
 		return
-	assert_that((wreck as PixelPolygon).polygon).is_equal(PackedVector2Array([Vector2(240, 94), Vector2(285, 94), Vector2(280, 107), Vector2(235, 107)]))
+	assert_that((wreck as PixelPolygon).polygon).is_equal(PackedVector2Array([Vector2(500, 193), Vector2(545, 193), Vector2(540, 206), Vector2(495, 206)]))
 	assert_that((wreck as PixelPolygon).color).is_equal(Color(0.352941, 0.227451, 0.141176, 1))
 
 func test_setters_keep_their_values() -> void:
