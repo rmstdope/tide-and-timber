@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# Has this exact tree already passed the gate? (tr-piz) Modelled on scripts/ci-needed.
+#
+#     scripts/ci-gated "$(git rev-parse 'HEAD^{tree}')"
+#
+#   A green gate run uploads an artifact named `gated-tree-<tree sha>'. A squash merge of an
+#   up-to-date pull request has exactly the tree its pull-request run gated, so the push to main
+#   need not gate it again. A merge made while behind main has a different tree and is gated.
+#
+#   env      GITHUB_REPOSITORY (owner/repo); gh authenticates from GH_TOKEN.
+#   stdout   exactly one line, `run=true' or `run=false' - the shape $GITHUB_OUTPUT takes.
+#   stderr   why: `ci-gated: tree <tree> already gated green', `ci-gated: tree <tree> not gated
+#            yet', or `ci-gated: could not ask GitHub, running everything'.
+#   exit 0   an answer was given. Any failure to ask answers `run=true'.
+#   exit 2   not exactly one 40-hex lowercase argument: usage error, nothing on stdout.
+#
+# Only unexpired artifacts from runs whose head repository is this repository count, so a fork's
+# pull request can never pre-record a tree.
+#
+# No `-e' on purpose: a crash must never be a skip. The only `echo run=false' is the one below.
+
+set -uo pipefail
+
+if [[ $# -ne 1 || ! "$1" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "usage: ci-gated <tree-sha>" >&2
+  exit 2
+fi
+tree="$1"
+
+cannot() {
+  echo "ci-gated: could not ask GitHub, running everything" >&2
+  echo run=true
+  exit 0
+}
+
+[[ -n "${GITHUB_REPOSITORY:-}" ]] || cannot
+
+json="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=gated-tree-$tree&per_page=100")" || cannot
+count="$(printf '%s' "$json" | jq '[.artifacts[] | select(.expired == false and .workflow_run.head_repository_id == .workflow_run.repository_id)] | length' 2>/dev/null)" || cannot
+[[ "$count" =~ ^[0-9]+$ ]] || cannot
+
+if [[ "$count" -ge 1 ]]; then
+  echo "ci-gated: tree $tree already gated green" >&2
+  echo run=false
+  exit 0
+fi
+
+echo "ci-gated: tree $tree not gated yet" >&2
+echo run=true
