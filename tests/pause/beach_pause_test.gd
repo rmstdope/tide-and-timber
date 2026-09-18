@@ -64,9 +64,9 @@ func _highlighted(unique: String) -> void:
 func _plank_text(unique: String) -> String:
 	return (_node(unique).get_node("Label/Words") as Label).text
 
-# The quit box's buttons are plain Labels: only the board's planks grow by Text size.
+# The quit box's button words sit in a GrownWords holder.
 func _button_text(unique: String) -> String:
-	return (_node(unique).get_node("Label") as Label).text
+	return (_node(unique).get_node("Label") as GrownWords).text
 
 func _open_box() -> void:
 	_control()

@@ -204,7 +204,7 @@ func test_no_controller_box() -> void:
 	assert_bool((page.get_node("%Box") as Control).visible).is_true()
 	assert_bool(_box().visible).is_false()
 	assert_str((page.get_node("%Lines") as Label).text).is_equal("Connect a controller to change its buttons.")
-	assert_str((page.get_node("%Safe").get_node("Label") as Label).text).is_equal("OK")
+	assert_str((page.get_node("%Safe").get_node("Label") as GrownWords).text).is_equal("OK")
 	assert_bool((page.get_node("%Other") as Control).visible).is_false()
 	await _pad(JOY_BUTTON_START)
 	assert_bool((page.get_node("%Box") as Control).visible).is_true()

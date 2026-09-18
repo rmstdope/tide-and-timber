@@ -94,7 +94,7 @@ func _box_node(unique: String) -> Control:
 	return page.get_node("%" + unique) as Control
 
 func _box_label(unique: String) -> String:
-	return (_box_node(unique).get_node("Label") as Label).text
+	return (_box_node(unique).get_node("Label") as GrownWords).text
 
 func _panel() -> Control:
 	return page.get_node("%Box/Panel") as Control

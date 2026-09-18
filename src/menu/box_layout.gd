@@ -103,16 +103,16 @@ func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callab
 	var l := BoxLayout.new()
 	var stacking := stacks_at(s, left_size, right_size)
 	var gap := right.position.x - left.end.x
-	var content := 0.0
+	var need := 0.0
 	for i in lines.size():
 		var words := line_width.call(i) as float if line_width.is_valid() else lines[i].size.x
-		content = maxf(content, lines[i].position.x + words + (panel.size.x - lines[i].end.x))
+		need = maxf(need, lines[i].position.x + words + (panel.size.x - lines[i].end.x))
 	if stacking:
-		content = maxf(content, 2.0 * left.position.x + maxf(left_size.x, right_size.x))
+		need = maxf(need, 2.0 * left.position.x + maxf(left_size.x, right_size.x))
 	else:
 		# side by side the pair keeps only the screen margins: stacks_at already ensures it fits the screen
-		content = maxf(content, left_size.x + gap + right_size.x + 2.0 * SCREEN_MARGIN)
-	var w := minf(maxf(panel.size.x, 2.0 * ceilf(content / 2.0)), widest(s))
+		need = maxf(need, left_size.x + gap + right_size.x + 2.0 * SCREEN_MARGIN)
+	var w := minf(maxf(panel.size.x, 2.0 * ceilf(need / 2.0)), widest(s))
 	if stacking:
 		w = minf(w, stacked_width(panel.size.x, s))
 	for i in lines.size():

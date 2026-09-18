@@ -459,8 +459,8 @@ func _refresh() -> void:
 		var reset := rules.box == ControlsMenu.Box.RESET
 		var no_pad := rules.box == ControlsMenu.Box.NO_PAD
 		%Lines.text = "\n".join(rules.box_lines())
-		(%Safe.get_node("Label") as Label).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
-		(%Other.get_node("Label") as Label).text = "Reset" if reset else "Leave"
+		(%Safe.get_node("Label") as GrownWords).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
+		(%Other.get_node("Label") as GrownWords).text = "Reset" if reset else "Leave"
 		%Other.visible = not no_pad
 		_fit_box()
 		for b: ControlsMenu.BoxButton in [ControlsMenu.BoxButton.SAFE, ControlsMenu.BoxButton.OTHER]:

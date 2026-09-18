@@ -92,7 +92,7 @@ func _box_node(unique: String) -> Control:
 	return page.get_node("%" + unique) as Control
 
 func _box_label(unique: String) -> String:
-	return (_box_node(unique).get_node("Label") as Label).text
+	return (_box_node(unique).get_node("Label") as GrownWords).text
 
 func _assert_board_on_controls() -> void:
 	assert_bool(page.visible).is_false()

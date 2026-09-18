@@ -294,8 +294,13 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/QuitBox/Panel/Clip/Content/Stay"]
+[node name="Label" type="Control" parent="Board/QuitBox/Panel/Clip/Content/Stay"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+
+[node name="Words" type="Label" parent="Board/QuitBox/Panel/Clip/Content/Stay/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
@@ -313,8 +318,13 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="Board/QuitBox/Panel/Clip/Content/Quit"]
+[node name="Label" type="Control" parent="Board/QuitBox/Panel/Clip/Content/Quit"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+
+[node name="Words" type="Label" parent="Board/QuitBox/Panel/Clip/Content/Quit/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
