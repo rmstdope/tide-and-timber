@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Controls — A</title><script src="common.js"></script></head><body><script>
+page('Controls page, option A — the "!" stays a Shapes extra','The Controls page is left as it is: on Standard an action with no button shows an orange dash; on Shapes it shows "! —". The Colour cues setting keeps this one job, and its hint "Adds shapes to warnings shown in colour." stays true.',[
+['Standard','',[
+ fig('Standard','Orange dash on the Build row.',controls('—')),
+ fig('Standard — red-green colour-blind','The orange dash is still somewhat lighter than the grey ones: just short of the bar we use.',controls('—'),1)]],
+['Shapes','',[fig('Shapes','"! —" on the Build row.',controls('! —')),fig('Shapes — red-green colour-blind','The "!" carries it.',controls('! —'),1)],
+ 'Recommended. This gap is borderline rather than invisible, it only matters while rebinding (never in play), and it keeps the setting meaningful rather than removing a choice the team agreed earlier.']]);
+</script></body></html>
