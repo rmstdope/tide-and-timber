@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Controls bottom — A</title><script src="common.js"></script><script src="bottom.js"></script></head><body><script>
+page('A — The whole Reset row shows; the last line stays below the ▼',
+'Up from the top, or Down to the end, highlights Reset keyboard to defaults and shows all of it. The lines under it fit only in part: the last one stays hidden under the ▼, and no key or scroll reaches it. Down again goes back to the top as today. Drawn at Largest UI, keyboard tab, from the title screen.',[
+ fig('1. Reset highlighted','Whole row in view. Last line cut off, ▼ shows.',controls(8,RESET_TOP)),
+ fig('2. Down','Wraps to Walk up at the top, as today.',controls(0,0))],
+'Cost: breaks “nothing is ever cut off” — the ▼ points at words a player can never read (from pause, where there is less room, more of them are hidden). Smallest change.');
+</script></body></html>
