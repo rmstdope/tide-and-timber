@@ -57,3 +57,23 @@ between the two steps.
 **Prevent by.** After any bulk `git apply`, check `git diff --stat` before a second mechanical pass;
 never filter `git apply` output.
 **Seen before.** No.
+
+## A reachability probe that reads the wrong flag reports "unreachable"
+
+**What happened.** Increment 7's 27-combination probe first reported that the Controls page's
+Reset and Leaving boxes never scroll, contradicting green suites. Two probe mistakes compounded:
+it read `page._box_layout.scrolls` (the unframed rest layout, whose `scrolls` is never set; the
+framed one is `page._box_frame`, likewise `pause._quit_frame`), and for scenes built in
+`before_test` it swapped in a new prefs object with `Display.use_prefs(p)` instead of stepping
+`Display.prefs` as the suites do.
+
+**Why.** Every box surface has two BoxLayouts (rest and framed) with the same field names; only
+the framed one carries `scrolls` / `offset`.
+
+**Cost.** Two extra probe rounds (~20 minutes); a wrong retirement would have deleted live tests.
+
+**Prevent by.** A probe reads the flag the surface's own suite asserts (`_assert_scrolls` /
+`_assert_precondition` in that suite), and changes sizes the way that suite does. Cross-check one
+combination the suite already proves before trusting a "none".
+
+**Seen before.** No.
