@@ -179,3 +179,43 @@ func test_closed_capture_ignores_everything() -> void:
 
 func test_no_pads_holds_nothing() -> void:
 	assert_array(SlotCapture.held_axes_now()).is_empty()
+
+# --- the fullscreen shortcut's Alt (Windows and Linux rules)
+
+func _open_keys(mac: bool) -> void:
+	cap.mac = mac
+	cap.open(D.KEYBOARD)
+
+func test_alt_then_shortcut_keeps_waiting() -> void:
+	_open_keys(false)
+	assert_int(cap.read(_key(KEY_ALT))).is_equal(SlotCapture.Result.WAITING)
+	assert_int(cap.read(_key(KEY_NONE))).is_equal(SlotCapture.Result.WAITING)       # the blanked Enter press
+	assert_int(cap.read(_key(KEY_NONE, false))).is_equal(SlotCapture.Result.WAITING)
+	assert_int(cap.read(_key(KEY_ALT, false))).is_equal(SlotCapture.Result.WAITING)
+	assert_bool(cap.is_open).is_true()
+	assert_object(cap.taken).is_null()
+
+func test_alt_tapped_alone_is_taken_on_release() -> void:
+	_open_keys(false)
+	assert_int(cap.read(_key(KEY_ALT))).is_equal(SlotCapture.Result.WAITING)
+	assert_int(cap.read(_key(KEY_ALT, false))).is_equal(SlotCapture.Result.TAKEN)
+	assert_int((cap.taken as InputEventKey).physical_keycode).is_equal(KEY_ALT)
+	assert_bool(cap.is_open).is_false()
+
+func test_alt_then_another_key_takes_that_key() -> void:
+	_open_keys(false)
+	cap.read(_key(KEY_ALT))
+	assert_int(cap.read(_key(KEY_F))).is_equal(SlotCapture.Result.TAKEN)
+	assert_int((cap.taken as InputEventKey).physical_keycode).is_equal(KEY_F)
+
+func test_reopening_forgets_a_pending_alt() -> void:
+	_open_keys(false)
+	cap.read(_key(KEY_ALT))
+	cap.close()
+	cap.open(D.KEYBOARD)
+	assert_int(cap.read(_key(KEY_ALT, false))).is_equal(SlotCapture.Result.WAITING)
+
+func test_on_mac_alt_is_taken_on_press() -> void:
+	_open_keys(true)
+	assert_int(cap.read(_key(KEY_ALT))).is_equal(SlotCapture.Result.TAKEN)
+	assert_int((cap.taken as InputEventKey).physical_keycode).is_equal(KEY_ALT)

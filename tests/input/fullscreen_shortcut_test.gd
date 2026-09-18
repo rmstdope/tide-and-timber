@@ -109,3 +109,20 @@ func test_during_the_intro_nothing_advances() -> void:
 	assert_int(story.panel).is_equal(panel)
 	assert_int(story.held_count).is_equal(0)
 	assert_bool(story.skip_hint_shown).is_false()
+
+func test_while_the_box_waits_nothing_is_bound() -> void:
+	InputDevice.use_controls(Controls.new())
+	var screen := _title()
+	var page := (screen.get_node("%SettingsBoard") as SettingsBoard).get_node("%ControlsPage") as ControlsPage
+	page.capture.mac = false
+	for key: Key in [KEY_DOWN, KEY_ENTER, KEY_UP, KEY_ENTER, KEY_ENTER]:   # Settings, Controls, Walk up's key
+		await _send(key, true)
+		await _send(key, false)
+	var box := page.get_node("%WaitingBox") as WaitingBox
+	assert_bool(box.visible).is_true()
+	await _alt_enter()
+	assert_bool(Display.prefs.fullscreen).is_true()
+	assert_bool(page.capture.is_open).is_true()
+	assert_bool(box.visible).is_true()
+	var slot := InputDevice.controls.slot(Controls.Action.WALK_UP, Controls.Device.KEYBOARD, 0) as InputEventKey
+	assert_int(slot.physical_keycode).is_equal(KEY_W)
