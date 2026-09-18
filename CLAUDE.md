@@ -22,6 +22,10 @@ resilient**.
 Built with Godot 4.7 (Homebrew's `godot` cask) and GDScript, tests under gdUnit4 (vendored in `addons/`). Unity, Unreal and
 any custom engine are ruled out: licensing and weight, and no hand-rolled renderer or ECS.
 
+Story and game-design decisions follow the agreed sections of
+[`docs/game-vision.md`](docs/game-vision.md), the master story and mechanics
+reference. Its proposals and open questions are not requirements.
+
 ## Four Eye Principle
 
 *Read by `skills/implement-bead` and `skills/plan-bead` by this exact heading: the implementer's

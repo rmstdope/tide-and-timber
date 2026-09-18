@@ -1,0 +1,266 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1640" height="1160" viewBox="0 0 1640 1160" role="img" aria-labelledby="title desc">
+  <title id="title">Tide and Timber: island story map</title>
+  <desc id="desc">Proposed spoiler-filled island map. Begin on the southern beach, cross Lantern Woods to Hearthvale village, then restore a route into the eastern jungle. Four farming-gated buried engines occupy the southeast, northeast, north, and west. Restoration opens return paths to the village. All four engines power the sealed control room under Stillheart Hill. Village visits support stages 3, 7, 9, 12, 15, and 17. The epilogue is on another world. A separate interior schematic shows power links rather than walking routes.</desc>
+  <defs>
+    <pattern id="waves" width="72" height="46" patternUnits="userSpaceOnUse">
+      <path d="M8 24 Q18 17 28 24 T48 24" fill="none" stroke="#91c5bd" stroke-width="2" opacity=".23"/>
+    </pattern>
+    <pattern id="blight" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="#514457"/>
+      <path d="M0 14L14 0M-4 4L4-4M10 18L18 10" stroke="#86748a" stroke-width="2"/>
+    </pattern>
+    <symbol id="tree" viewBox="0 0 40 52">
+      <path d="M18 32h6v20h-6z" fill="#795841"/>
+      <path d="M20 0C3 4 0 17 5 24C-2 35 12 43 21 38C34 42 44 29 35 22C41 9 30 2 20 0" fill="#35734c" stroke="#26533e" stroke-width="2"/>
+      <path d="M14 9Q7 17 11 22" stroke="#73a357" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="palm" viewBox="0 0 54 60">
+      <path d="M28 24Q22 43 27 58" fill="none" stroke="#826044" stroke-width="6"/>
+      <path d="M27 25Q2 4 0 27Q12 18 27 25M27 25Q4 30 8 44Q15 32 27 25M27 25Q25-2 39 4Q32 12 27 25M27 25Q45 7 54 25Q40 19 27 25M27 25Q51 30 46 45Q40 34 27 25" fill="#326f4f" stroke="#285a43" stroke-width="2"/>
+    </symbol>
+    <symbol id="peak" viewBox="0 0 80 62">
+      <path d="M1 59L37 3L78 59Z" fill="#87928a" stroke="#596d65" stroke-width="3"/>
+      <path d="M37 3L20 30L33 24L41 32L48 23L58 32Z" fill="#e4e6c9"/>
+      <path d="M37 4L45 59H77Z" fill="#536e67" opacity=".45"/>
+    </symbol>
+    <symbol id="house" viewBox="0 0 52 52">
+      <path d="M8 22h36v28H8z" fill="#f3d495" stroke="#775b43" stroke-width="2"/>
+      <path d="M2 24L26 3L50 24Z" fill="#bd674c" stroke="#704d3c" stroke-width="2"/>
+      <path d="M23 34h10v16H23z" fill="#705943"/>
+      <path d="M12 29h8v9h-8z" fill="#b1d8c0"/>
+    </symbol>
+    <symbol id="engine" viewBox="0 0 48 48">
+      <rect x="3" y="3" width="42" height="42" rx="7" fill="#f9e7bd" stroke="#493e48" stroke-width="3"/>
+      <path d="M10 15h9v7h9v7h10M10 33h28" fill="none" stroke="#493e48" stroke-width="3"/>
+    </symbol>
+    <symbol id="gate" viewBox="0 0 32 32">
+      <path d="M16 1L31 16L16 31L1 16Z" fill="#c45d48" stroke="#fff0ce" stroke-width="2"/>
+      <path d="M11 10v12M21 10v12M11 16h10" stroke="#fff0ce" stroke-width="2"/>
+    </symbol>
+    <style>
+      text { font-family: "Avenir Next", "Trebuchet MS", sans-serif; fill: #263e37; }
+      .title { font-size: 36px; font-weight: 800; letter-spacing: 2px; }
+      .subtitle { font-size: 17px; fill: #4d665b; }
+      .region { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+      .label { font-size: 18px; font-weight: 700; }
+      .small { font-size: 15px; }
+      .tiny { font-size: 13px; }
+      .pale { fill: #fff1cd; }
+      .muted { fill: #52695c; }
+      .tag { fill: #f9e7bd; stroke: #927c58; stroke-width: 1.5; }
+      .trail-back { fill: none; stroke: #7c694d; stroke-width: 11; stroke-linejoin: round; stroke-linecap: round; }
+      .trail { fill: none; stroke: #f6d99e; stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }
+      .return { fill: none; stroke: #ecf2ce; stroke-width: 4; stroke-dasharray: 9 7; stroke-linecap: round; }
+      .leader { fill: none; stroke: #635b47; stroke-width: 2; }
+      .power { fill: none; stroke: #b8b7a2; stroke-width: 2; stroke-dasharray: 5 5; }
+    </style>
+  </defs>
+
+  <rect width="1640" height="1160" fill="#f5ebd4"/>
+  <text x="46" y="57" class="title">TIDE &amp; TIMBER</text>
+  <text x="47" y="89" class="subtitle">An island to make a home on. A world waiting to travel.</text>
+  <text x="1594" y="47" text-anchor="end" class="label">STORY GEOGRAPHY / DRAFT 01</text>
+  <text x="1594" y="76" text-anchor="end" class="subtitle">Spoilers / proposed names / not to scale</text>
+
+  <rect x="28" y="118" width="1118" height="872" rx="24" fill="#2b8589"/>
+  <rect x="28" y="118" width="1118" height="872" rx="24" fill="url(#waves)"/>
+  <path d="M142 452Q114 353 208 298L270 218Q350 148 446 178L528 145Q624 119 700 173L786 150Q892 179 925 234L1005 271Q1082 310 1089 414L1062 480Q1125 561 1072 655L1018 730Q1045 811 943 849L837 866Q787 934 694 916L599 956Q500 958 440 923L342 935Q268 917 259 857L181 831Q109 794 144 722L110 633Q85 552 142 452Z" fill="#184e60" opacity=".35" transform="translate(8 13)"/>
+  <path d="M142 452Q114 353 208 298L270 218Q350 148 446 178L528 145Q624 119 700 173L786 150Q892 179 925 234L1005 271Q1082 310 1089 414L1062 480Q1125 561 1072 655L1018 730Q1045 811 943 849L837 866Q787 934 694 916L599 956Q500 958 440 923L342 935Q268 917 259 857L181 831Q109 794 144 722L110 633Q85 552 142 452Z" fill="#d9c687" stroke="#add5be" stroke-width="9"/>
+  <path d="M160 448L224 318L325 257L462 264L491 411L408 567L270 676L177 648L148 555Z" fill="#61865a"/>
+  <path d="M289 230Q412 167 500 207L580 173L705 208L790 181L898 252L875 335L740 342L648 310L535 353L450 293Z" fill="#9aa47b"/>
+  <path d="M692 346Q837 264 970 321L1050 389L1021 476L1069 568L1010 673L884 729L790 665L733 565Z" fill="#479461"/>
+  <path d="M760 464Q826 396 940 441L991 515L957 602L863 644L774 586Z" fill="#347d56"/>
+  <path d="M276 690Q414 596 531 619L669 615L752 699L769 808L663 872L498 883L360 849L260 797Z" fill="#a8b96b"/>
+  <path d="M568 355L680 327L768 408L719 559L665 612L556 585L505 474Z" fill="#7e945f"/>
+  <path d="M196 700Q264 645 353 703L388 789L342 850L228 795Z" fill="#6c9557"/>
+  <path d="M340 864Q451 843 547 883L576 939Q495 947 442 918L344 929L290 887Z" fill="#f3d9a0"/>
+
+  <path d="M853 303Q833 410 888 479T940 589Q923 652 831 697T679 741Q605 758 558 841" fill="none" stroke="#567d6a" stroke-width="24"/>
+  <path d="M853 303Q833 410 888 479T940 589Q923 652 831 697T679 741Q605 758 558 841" fill="none" stroke="#76b6aa" stroke-width="16"/>
+  <ellipse cx="955" cy="617" rx="74" ry="45" fill="#75b0a2" stroke="#426d60" stroke-width="3"/>
+  <path d="M734 332L771 384L740 432M452 282L421 354L458 396M278 503L319 541L286 591" fill="none" stroke="#566a52" stroke-width="12" stroke-linecap="round"/>
+
+  <use href="#peak" x="370" y="196" width="90" height="68"/>
+  <use href="#peak" x="452" y="175" width="88" height="66"/>
+  <use href="#peak" x="637" y="180" width="83" height="64"/>
+  <use href="#peak" x="749" y="188" width="75" height="59"/>
+  <use href="#peak" x="809" y="210" width="74" height="58"/>
+  <use href="#tree" x="179" y="408" width="48" height="63"/>
+  <use href="#tree" x="221" y="360" width="45" height="60"/>
+  <use href="#tree" x="241" y="500" width="52" height="68"/>
+  <use href="#tree" x="179" y="565" width="50" height="65"/>
+  <use href="#tree" x="365" y="542" width="44" height="60"/>
+  <use href="#tree" x="259" y="712" width="40" height="53"/>
+  <use href="#tree" x="301" y="756" width="39" height="52"/>
+  <use href="#tree" x="361" y="808" width="39" height="52"/>
+  <use href="#tree" x="218" y="764" width="36" height="49"/>
+  <use href="#tree" x="664" y="411" width="46" height="60"/>
+  <use href="#palm" x="787" y="448" width="52" height="60"/>
+  <use href="#palm" x="916" y="474" width="54" height="62"/>
+  <use href="#palm" x="1000" y="501" width="51" height="60"/>
+  <use href="#palm" x="773" y="555" width="51" height="60"/>
+  <use href="#palm" x="998" y="686" width="50" height="58"/>
+  <use href="#palm" x="904" y="378" width="48" height="56"/>
+
+  <path class="trail-back" d="M449 897L402 848L345 786L365 750L478 721L567 728L668 697L749 654L802 612L854 545L920 574L964 610M854 545L883 455L973 362M973 362L958 299L873 277L750 268L625 276L568 263M625 276L477 308L410 358L341 446M567 728L604 639L622 564"/>
+  <path class="trail" d="M449 897L402 848L345 786L365 750L478 721L567 728L668 697L749 654L802 612L854 545L920 574L964 610M854 545L883 455L973 362M973 362L958 299L873 277L750 268L625 276L568 263M625 276L477 308L410 358L341 446M567 728L604 639L622 564"/>
+  <path class="return" d="M964 641L927 714L811 766L667 785L567 753"/>
+  <path class="return" d="M568 287L504 381L451 457L467 571L487 674"/>
+  <path class="return" d="M341 472L318 581L375 662L458 709"/>
+
+  <path d="M710 613L775 615L797 650L767 687L722 675L702 645Z" fill="url(#blight)" stroke="#c9aa95" stroke-width="2"/>
+  <path d="M934 578L985 578L1008 606L994 649L946 659L923 625Z" fill="url(#blight)"/>
+  <path d="M950 330L993 331L1016 361L998 392L956 397L936 365Z" fill="url(#blight)"/>
+  <path d="M542 236L579 227L605 255L592 290L550 298L526 268Z" fill="url(#blight)"/>
+  <path d="M309 415L348 412L375 447L351 481L311 477L292 447Z" fill="url(#blight)"/>
+
+  <rect x="453" y="617" width="94" height="77" rx="4" fill="#826544" stroke="#ead5a1" stroke-width="3"/>
+  <path d="M464 629h71M464 644h71M464 659h71M464 674h71" stroke="#b39156" stroke-width="5"/>
+  <path d="M474 626v10M495 641v10M516 656v10M480 671v10" stroke="#8ab05b" stroke-width="7"/>
+  <use href="#house" x="549" y="660" width="52" height="52"/>
+  <use href="#house" x="492" y="711" width="47" height="47"/>
+  <use href="#house" x="542" y="763" width="44" height="44"/>
+  <use href="#house" x="613" y="708" width="51" height="51"/>
+  <use href="#house" x="601" y="765" width="42" height="42"/>
+  <circle cx="574" cy="735" r="18" fill="#e5c48a" stroke="#88714b" stroke-width="2"/>
+  <path d="M604 546Q622 522 640 546V572H604Z" fill="#667969" stroke="#dfd8ad" stroke-width="3"/>
+  <path d="M616 546h12v25h-12z" fill="#384f48"/>
+  <path d="M429 891L449 870L470 891Z" fill="#b56c4c" stroke="#754d3b" stroke-width="2"/>
+  <path d="M440 891L449 876L457 891Z" fill="#463e34"/>
+
+  <use href="#engine" x="940" y="592" width="48" height="48"/>
+  <use href="#engine" x="951" y="342" width="48" height="48"/>
+  <use href="#engine" x="543" y="241" width="48" height="48"/>
+  <use href="#engine" x="315" y="427" width="48" height="48"/>
+  <use href="#gate" x="731" y="637" width="32" height="32"/>
+  <use href="#gate" x="910" y="564" width="32" height="32"/>
+  <use href="#gate" x="928" y="392" width="32" height="32"/>
+  <use href="#gate" x="607" y="260" width="32" height="32"/>
+  <use href="#gate" x="361" y="388" width="32" height="32"/>
+  <use href="#gate" x="605" y="583" width="32" height="32"/>
+
+  <text x="731" y="631" class="label pale">G0</text>
+  <text x="908" y="559" class="label pale">G1</text>
+  <text x="960" y="417" class="label pale">G2</text>
+  <text x="610" y="308" class="label">G3</text>
+  <text x="393" y="408" class="label pale">G4</text>
+  <text x="642" y="605" class="label">G5</text>
+
+  <rect x="339" y="910" width="257" height="55" rx="9" class="tag"/>
+  <text x="354" y="933" class="label">CASTAWAY COVE</text>
+  <text x="354" y="954" class="small">1 / first night and beach shelter</text>
+  <rect x="161" y="822" width="222" height="53" rx="9" class="tag"/>
+  <text x="175" y="844" class="label">LANTERN WOODS</text>
+  <text x="175" y="865" class="small">2 / the path to people</text>
+  <text x="463" y="610" class="small">PLAYER'S FARM</text>
+  <text x="619" y="701" class="tiny">LIBRARY</text>
+  <rect x="398" y="813" width="361" height="59" rx="9" class="tag"/>
+  <text x="414" y="838" class="region">HEARTHVALE</text>
+  <text x="414" y="859" class="small">3, 7, 9, 12, 15, 17 / home and community</text>
+  <path d="M575 810V783" class="leader"/>
+  <rect x="773" y="684" width="245" height="54" rx="9" class="tag"/>
+  <text x="786" y="707" class="label">WITHERED CROSSING</text>
+  <text x="786" y="727" class="small">4-5 / first remedy opens jungle</text>
+  <path d="M773 698L750 677" class="leader"/>
+
+  <text x="742" y="474" class="region pale">HUMMING JUNGLE</text>
+  <text x="759" y="499" class="small pale">6 / the soil answers</text>
+  <circle cx="854" cy="545" r="9" fill="#f9e7bd" stroke="#365e4e" stroke-width="3"/>
+  <path d="M838 534Q828 545 838 556M870 534Q880 545 870 556" fill="none" stroke="#efe4bb" stroke-width="3"/>
+  <rect x="846" y="643" width="236" height="38" rx="8" class="tag"/>
+  <text x="858" y="668" class="label">E1 / 8 / Drowned engine</text>
+  <text x="873" y="585" class="small pale">REEDWATER BASIN</text>
+  <rect x="839" y="310" width="263" height="32" rx="8" class="tag"/>
+  <text x="852" y="332" class="label">E2 / 10 / Choked engine</text>
+  <text x="859" y="298" class="label">CANOPY REACH</text>
+
+  <rect x="416" y="191" width="272" height="36" rx="8" class="tag"/>
+  <text x="430" y="215" class="label">E3 / 11 / Cold engine</text>
+  <text x="439" y="174" class="label">FROSTGLASS HOLLOW</text>
+  <text x="683" y="241" class="label">SUNSTEP TERRACES</text>
+  <text x="690" y="261" class="tiny">Warmth-bearing plants before G3</text>
+  <text x="427" y="338" class="small">Western pass / after E3</text>
+  <text x="207" y="334" class="region pale">OLDROOT WOOD</text>
+  <text x="218" y="356" class="small pale">Companion plants before G4</text>
+  <rect x="178" y="483" width="262" height="53" rx="9" class="tag"/>
+  <text x="192" y="506" class="label">E4 / 13 / Lightless engine</text>
+  <text x="192" y="525" class="small">Hollowroot Descent</text>
+  <rect x="487" y="473" width="247" height="54" rx="9" class="tag"/>
+  <text x="501" y="497" class="label">STILLHEART HILL</text>
+  <text x="501" y="518" class="small">14, 16, 17 / control entrance</text>
+  <path d="M622 529V540" class="leader"/>
+
+  <rect x="761" y="776" width="227" height="30" rx="7" fill="#ecf2ce"/>
+  <text x="773" y="797" class="small">R1 / canal walk / after E1</text>
+  <rect x="392" y="552" width="60" height="28" rx="7" fill="#ecf2ce"/>
+  <text x="404" y="572" class="small">R2</text>
+  <rect x="302" y="598" width="60" height="28" rx="7" fill="#ecf2ce"/>
+  <text x="314" y="618" class="small">R3</text>
+  <text x="931" y="258" class="tiny">After E2</text>
+  <path d="M77 221V162M77 162L65 183M77 162L89 183" fill="none" stroke="#f4e7bd" stroke-width="3"/>
+  <text x="68" y="149" class="label pale">N</text>
+  <text x="79" y="938" class="small pale">Surface geography</text>
+  <text x="79" y="961" class="small pale">Symbols show buried entrances, not exposed engines.</text>
+
+  <rect x="1171" y="118" width="441" height="402" rx="16" fill="#283f3f"/>
+  <text x="1194" y="153" class="region pale">BENEATH THE ISLAND</text>
+  <text x="1194" y="181" class="small pale">Power schematic / not walking routes</text>
+  <path class="power" d="M1240 241L1392 320L1536 241M1240 401L1392 320L1536 401"/>
+  <rect x="1208" y="211" width="66" height="57" rx="8" fill="#f1dfb6"/>
+  <text x="1241" y="235" text-anchor="middle" class="label">E3</text>
+  <text x="1241" y="255" text-anchor="middle" class="tiny">Cold</text>
+  <rect x="1502" y="211" width="78" height="57" rx="8" fill="#f1dfb6"/>
+  <text x="1541" y="235" text-anchor="middle" class="label">E2</text>
+  <text x="1541" y="255" text-anchor="middle" class="tiny">Choked</text>
+  <rect x="1204" y="376" width="82" height="57" rx="8" fill="#f1dfb6"/>
+  <text x="1245" y="400" text-anchor="middle" class="label">E4</text>
+  <text x="1245" y="420" text-anchor="middle" class="tiny">Lightless</text>
+  <rect x="1498" y="376" width="86" height="57" rx="8" fill="#f1dfb6"/>
+  <text x="1541" y="400" text-anchor="middle" class="label">E1</text>
+  <text x="1541" y="420" text-anchor="middle" class="tiny">Drowned</text>
+  <rect x="1296" y="273" width="192" height="128" rx="13" fill="#53695b" stroke="#dfd1aa" stroke-width="2"/>
+  <text x="1392" y="296" text-anchor="middle" class="small pale">G5 / all four engines</text>
+  <text x="1392" y="322" text-anchor="middle" class="label pale">14 / outer room</text>
+  <path d="M1322 335H1462" stroke="#c3b398" stroke-width="2"/>
+  <text x="1392" y="357" text-anchor="middle" class="small pale">G6 / final farm remedy</text>
+  <text x="1392" y="384" text-anchor="middle" class="label pale">16 / dark heart</text>
+  <text x="1194" y="462" class="small pale">Visit outer room, return home for stage 15.</text>
+  <text x="1194" y="487" class="small pale">Fight to the source. Cure it. Then launch.</text>
+
+  <rect x="1171" y="537" width="441" height="229" rx="16" fill="#e5d9b7"/>
+  <text x="1194" y="572" class="region">THE GROWING JOURNEY</text>
+  <text x="1194" y="603" class="small">G0  First remedy / opens the jungle</text>
+  <text x="1194" y="631" class="small">G1  Wet beds + filtering reeds</text>
+  <text x="1194" y="659" class="small">G2  Irrigation + climbing plants</text>
+  <text x="1194" y="687" class="small">G3  Sheltered beds + warming plants</text>
+  <text x="1194" y="715" class="small">G4  Luminous companion ecosystem</text>
+  <text x="1194" y="747" class="tiny">All ingredients are reachable before their own gate.</text>
+
+  <rect x="1171" y="783" width="441" height="207" rx="16" fill="#d9e1bc"/>
+  <text x="1194" y="818" class="region">18 / THE FIRST GARDEN</text>
+  <text x="1194" y="848" class="small">Another world. A short epilogue.</text>
+  <path d="M1457 950Q1510 882 1586 939" fill="#a7b38c" stroke="#778868" stroke-width="2"/>
+  <path d="M1526 930V895M1526 910Q1498 909 1502 890Q1521 889 1526 910M1527 903Q1533 879 1555 883Q1553 905 1527 903" fill="#508555" stroke="#386348" stroke-width="3"/>
+  <text x="1194" y="883" class="small">The whole island travels:</text>
+  <text x="1194" y="908" class="small">home, farm, and community.</text>
+  <text x="1194" y="964" class="tiny">Not a fifth island region or another full campaign.</text>
+
+  <rect x="28" y="1007" width="1584" height="127" rx="16" fill="#e7dcc0"/>
+  <text x="48" y="1039" class="label">READING THE MAP</text>
+  <path d="M49 1068H100" class="trail-back"/>
+  <path d="M49 1068H100" class="trail"/>
+  <text x="113" y="1074" class="small">Main route (gates still apply)</text>
+  <path d="M49 1104H100" stroke="#6f8669" stroke-width="4" stroke-dasharray="9 7"/>
+  <text x="113" y="1110" class="small">Return opened by restoration</text>
+  <use href="#gate" x="423" y="1054" width="29" height="29"/>
+  <text x="466" y="1074" class="small">G = access gate</text>
+  <use href="#engine" x="423" y="1090" width="29" height="29"/>
+  <text x="466" y="1110" class="small">E = buried engine entrance</text>
+  <rect x="698" y="1056" width="30" height="24" fill="url(#blight)"/>
+  <text x="740" y="1074" class="small">Darkness / shown at initial obstructions</text>
+  <text x="699" y="1110" class="small">Numbers 1-18 refer to story stages.</text>
+  <text x="1161" y="1040" class="label">RETURN ROUTES</text>
+  <text x="1161" y="1065" class="small">R1 Canal walk / E1 restored</text>
+  <text x="1161" y="1089" class="small">R2 Ridge return / E3 restored</text>
+  <text x="1161" y="1113" class="small">R3 West return / E4 restored</text>
+</svg>
