@@ -51,12 +51,16 @@ func _node(unique: String) -> Control:
 func _screen(n: Control) -> Rect2:
 	return n.get_global_transform_with_canvas() * Rect2(Vector2.ZERO, n.size)
 
+## A board of that size centred on the picture, as lay_out() rests it.
+func _centred(size: Vector2) -> Rect2:
+	return Rect2(((Screen.SIZE - size) / 2.0).floor(), size)
+
 func _words(unique: String) -> GrownWords:
 	return _node(unique).get_node("Label") as GrownWords
 
 func test_normal_text_lays_out_as_before() -> void:
 	await _open()
-	assert_that(pause.rest_panel).is_equal(Rect2(88, 42, 144, 96))
+	assert_that(pause.rest_panel).is_equal(_centred(Vector2(144, 96)))
 	assert_that(_node("Resume").get_rect()).is_equal(Rect2(12, 28, 120, 16))
 	assert_that(_node("QuitToTitle").get_rect()).is_equal(Rect2(12, 68, 120, 16))
 	assert_vector(_node("Heading").scale).is_equal(Vector2.ONE)
@@ -64,7 +68,7 @@ func test_normal_text_lays_out_as_before() -> void:
 func test_large_text_widens_the_planks_and_the_board() -> void:
 	Display.prefs.step(S.TEXT_SIZE, 1)
 	await _open()
-	assert_that(pause.rest_panel).is_equal(Rect2(68, 34, 184, 112))
+	assert_that(pause.rest_panel).is_equal(_centred(Vector2(184, 112)))
 	assert_that(_node("Resume").get_rect()).is_equal(Rect2(12, 32, 160, 20))
 	assert_that(_node("Settings").get_rect()).is_equal(Rect2(12, 56, 160, 20))
 	assert_that(_node("QuitToTitle").get_rect()).is_equal(Rect2(12, 80, 160, 20))
@@ -77,6 +81,10 @@ func test_largest_ui_and_text_wrap_only_the_long_plank() -> void:
 	Display.prefs.step(S.UI_SIZE, 2)
 	Display.prefs.step(S.TEXT_SIZE, 2)
 	await _open()
+	# Precondition: the layout under test. At 640x360 no UI/Text combination reaches it (tr-1o0.1:
+	# UI Largest + Text Largest rests a 236x128 board that neither wraps nor scrolls); navigator decision.
+	assert_bool(_words("QuitToTitle").wrapped).override_failure_message("the long plank does not wrap").is_true()
+	assert_bool(pause.scrolls).override_failure_message("the board does not scroll").is_true()
 	assert_that(pause.rest_panel).is_equal(Rect2(82, -7, 156, 194))
 	assert_bool(_words("QuitToTitle").wrapped).is_true()
 	assert_bool(_words("Settings").wrapped).is_false()
@@ -87,7 +95,7 @@ func test_largest_ui_and_text_wrap_only_the_long_plank() -> void:
 	for name: String in ["Resume", "Settings", "QuitToTitle"]:
 		var r := _screen(_node(name))
 		assert_float(r.position.x).is_greater_equal(0.0)
-		assert_float(r.end.x).is_less_equal(320.0)
+		assert_float(r.end.x).is_less_equal(Screen.WIDTH)
 	# The highlighted plank is now taller than the band above the strip, so the scroll brings its top
 	# to the view's top and nothing of it is hidden above.
 	assert_float(_screen(_node("Resume")).position.y).is_equal(_screen(_node("Clip")).position.y)
@@ -103,5 +111,5 @@ func test_text_size_change_keeps_the_highlight() -> void:
 	assert_float(pause.rest_panel.size.x).is_equal(184.0)
 	Display.use_prefs(DisplayPrefs.new())
 	await _settle()
-	assert_that(pause.rest_panel).is_equal(Rect2(88, 42, 144, 96))
+	assert_that(pause.rest_panel).is_equal(_centred(Vector2(144, 96)))
 	assert_int(pause.rules.highlighted).is_equal(PauseMenu.Plank.SETTINGS)

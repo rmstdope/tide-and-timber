@@ -98,7 +98,7 @@ script = ExtResource("11_hint")
 
 [node name="UiScale" type="Node" parent="KeyHintLayer"]
 script = ExtResource("ui_scale")
-anchor = Vector2(320, 296)
+anchor = Vector2(320, 328)
 
 [node name="ShelterLineLayer" type="CanvasLayer" parent="."]
 layer = 10
@@ -132,7 +132,7 @@ vertical_alignment = 1
 
 [node name="UiScale" type="Node" parent="ShelterLineLayer"]
 script = ExtResource("ui_scale")
-anchor = Vector2(320, 332)
+anchor = Vector2(320, 346)
 
 [node name="Cover" type="CanvasLayer" parent="."]
 layer = 30

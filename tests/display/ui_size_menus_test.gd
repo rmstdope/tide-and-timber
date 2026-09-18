@@ -2,6 +2,8 @@ extends GdUnitTestSuite
 ## UI size grows the pause layer, the dawn-save box, the morning card and the build list; strips keep their corner.
 
 const EPS := Vector2(0.01, 0.01)
+## Where a hint strip sits once lifted above the item bar at UI Largest: 72 above the picture's bottom.
+const LIFTED := Vector2(4, Screen.HEIGHT - 72)
 
 var _saved_size: Vector2i
 var _saved_mode: Window.ContentScaleMode
@@ -13,7 +15,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Pause.debug_tools = false
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
@@ -61,10 +63,10 @@ func test_paused_board_strip_lifts_above_the_bar() -> void:
 	waking.tick(5.0)
 	await _tap(KEY_ESCAPE)
 	await get_tree().process_frame
-	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
+	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(LIFTED, EPS)
 	var resume := pause.get_node("%Resume") as Control
 	var centre := resume.get_global_transform_with_canvas() * (Vector2(120, 16) / 2)
-	assert_float(centre.x).is_equal_approx(160.0, 0.01)
+	assert_float(centre.x).is_equal_approx(Screen.CENTRE.x, 0.01)
 
 func test_settings_board_grows_while_ui_size_changes_and_keeps_the_highlight() -> void:
 	var board := await _open_settings()
@@ -94,9 +96,10 @@ func test_a_grown_row_is_where_it_is_drawn() -> void:
 	await await_idle_frame()
 	var ui_row := board.get_node("%UiSize") as Control
 	var text_row := board.get_node("%TextSize") as Control
-	# The scrolled board's UI size row spans (86, 60) 148x28, so its centre is (160, 74) inside the
-	# layer; grown 2x about (160, 90) it is drawn at (160, 58).
-	var drawn := Vector2(160, 58)
+	# The UI size row's centre inside the layer, grown 2x about the picture's centre, is where it is drawn.
+	var in_layer := ui_row.get_global_rect().get_center()
+	var drawn := OverlayScale.layer_transform(2.0, Screen.CENTRE) * in_layer
+	assert_bool(drawn.is_equal_approx(in_layer)).is_false()
 	var local := ui_row.get_global_transform_with_canvas().affine_inverse() * drawn
 	assert_bool(Rect2(Vector2.ZERO, ui_row.size).has_point(local)).is_true()
 	var in_text := text_row.get_global_transform_with_canvas().affine_inverse() * drawn
@@ -109,7 +112,7 @@ func test_dawn_save_box_grows_about_the_centre() -> void:
 	autosave.save_game = func() -> Error: return FAILED
 	autosave.on_dawn()
 	await get_tree().process_frame
-	assert_vector(autosave.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
+	assert_vector(autosave.strip.get_global_transform_with_canvas().origin).is_equal_approx(LIFTED, EPS)
 
 func test_morning_card_grows_about_the_centre() -> void:
 	_step(2)
@@ -128,9 +131,9 @@ func test_build_list_grows_beside_him() -> void:
 	var him := Vector2(100, 150)
 	_step(1)
 	list.place_beside(him)
-	get_tree().root.size = Vector2i(1280, 720)   # k = 1: Large rounds up to 2
+	get_tree().root.size = Vector2i(640, 360)   # k = 1: Large rounds up to 2
 	assert_vector(list.scale).is_equal(Vector2(2, 2))
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 	list.place_beside(him)
 	assert_vector(list.scale).is_equal(Vector2.ONE)
@@ -140,7 +143,9 @@ func test_build_list_grows_beside_him() -> void:
 	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 1.5))
 	_step(1)
 	assert_vector(list.scale).is_equal(Vector2(2, 2))
-	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 2.0, BuildList.STACKED_SIZE))
+	# At 640x360 UI size alone no longer stacks the list (tests/camp/build_list_stack_test.gd reaches that).
+	assert_bool(list.stacked).is_false()
+	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 2.0))
 	assert_bool((list.get_parent() as CanvasLayer).transform == Transform2D.IDENTITY).is_true()
 
 func test_launched_at_largest_the_pause_strip_lifts_above_the_bar() -> void:
@@ -153,18 +158,18 @@ func test_launched_at_largest_the_pause_strip_lifts_above_the_bar() -> void:
 	waking.tick(5.0)
 	await _tap(KEY_ESCAPE)
 	await get_tree().process_frame
-	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
+	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(LIFTED, EPS)
 
 func test_settings_board_strip_lifts_above_the_bar() -> void:
 	_step(2)
 	var board := await _open_settings()
 	await get_tree().process_frame
-	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 108), EPS)
-	assert_float(board.strip.screen_top()).is_equal_approx(108.0, 0.01)
-	assert_float(HintLift.screen_rect(board.strip).end.y).is_equal_approx(132.0, 0.01)
+	assert_vector(board.strip.get_global_transform_with_canvas().origin).is_equal_approx(LIFTED, EPS)
+	assert_float(board.strip.screen_top()).is_equal_approx(LIFTED.y, 0.01)
+	assert_float(HintLift.screen_rect(board.strip).end.y).is_equal_approx(LIFTED.y + 24.0, 0.01)
 
 func test_strips_stay_put_at_normal_in_the_waking_scene() -> void:
 	waking.tick(5.0)
 	await _tap(KEY_ESCAPE)
 	await get_tree().process_frame
-	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, 164), EPS)
+	assert_vector(pause.strip.get_global_transform_with_canvas().origin).is_equal_approx(Vector2(4, Screen.HEIGHT - 16), EPS)

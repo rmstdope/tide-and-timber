@@ -1,6 +1,11 @@
 extends GdUnitTestSuite
 ## The build list's words grow with Text size: the list grows with them, stacks from the grown row,
 ## and a stacked line too wide for the list wraps between words.
+##
+## At 640x360 the list stacks only at UI Largest and Text Largest (its grown side-by-side width, 340,
+## drawn 2x, is wider than Screen.WIDTH); UI size alone never stacks it (196 * 2 fits). The stacked list
+## there is 252 wide, well inside the picture, so no combination wraps a line: the wrapping tests below
+## assert layouts no player reaches at this picture size.
 
 const HIM := Vector2(100, 150)
 
@@ -51,7 +56,7 @@ func test_text_large_widens_the_side_by_side_list() -> void:
 func test_text_normal_is_exactly_as_today() -> void:
 	for ui_size in 3:
 		var list := _open(ui_size, 0)
-		var stacked: bool = ui_size == 2
+		var stacked := false     # UI size alone never stacks it: 196 * 2 < Screen.WIDTH
 		assert_bool(list.stacked).is_equal(stacked)
 		assert_vector(list.size).is_equal(BuildList.STACKED_SIZE if stacked else BuildList.SIZE)
 		for i in BuildMenu.LINE_COUNT:
@@ -70,7 +75,7 @@ func test_text_normal_is_exactly_as_today() -> void:
 		remove_child(list)
 
 func test_text_largest_stacks_and_widens() -> void:
-	var list := _open(0, 2)
+	var list := _open(2, 2)
 	assert_bool(list.stacked).is_true()
 	assert_vector(list.size).is_equal(Vector2(252, 101))
 	for i in BuildMenu.LINE_COUNT:
@@ -110,7 +115,8 @@ func test_no_word_runs_past_the_list() -> void:
 			remove_child(list)
 
 func test_a_text_size_change_relays_out_at_once() -> void:
-	var list := _open(0, 0)
+	var list := _open(2, 0)
+	assert_bool(list.stacked).is_false()
 	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
 	assert_bool(list.stacked).is_true()
 	assert_vector(list.size).is_equal(Vector2(252, 101))
@@ -121,10 +127,11 @@ func test_a_text_size_change_relays_out_at_once() -> void:
 	assert_vector(list.name_labels[0].scale).is_equal(Vector2.ONE)
 
 func test_the_highlight_keeps_its_row_when_text_grows() -> void:
-	var list := _open(0, 0)
+	var list := _open(2, 0)
 	_menu.move(1)
 	assert_int(_menu.highlighted).is_equal(1)
 	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
+	assert_bool(list.stacked).is_true()
 	assert_int(_menu.highlighted).is_equal(1)
 	assert_float(list.rows[1].position.y).is_equal(61.0)
 
@@ -135,10 +142,11 @@ func test_side_by_side_width_grows_with_the_words() -> void:
 	assert_float(list.side_by_side_width(2.0)).is_equal(340.0)
 
 func test_a_small_window_still_fits() -> void:
-	var list := _open(0, 2, Vector2i(640, 360))
+	var list := _open(2, 2, Screen.MIN_WINDOW)
+	assert_bool(list.stacked).is_true()
 	assert_vector(list.size).is_equal(Vector2(252, 101))
 	assert_float(list.position.x).is_greater_equal(0.0)
-	assert_float(list.position.x + list.size.x).is_less_equal(320.0)
+	assert_float(list.position.x + list.size.x * list.scale.x).is_less_equal(Screen.WIDTH)
 
 func test_largest_ui_and_text_wraps_the_cost() -> void:
 	var list := _open(2, 2)

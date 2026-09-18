@@ -22,15 +22,15 @@ func test_multiplier_for_each_size() -> void:
 func test_current_rounds_with_the_window() -> void:
 	var root := get_tree().root
 	var p := DisplayPrefs.new()
-	root.size = Vector2i(2560, 1440)
+	root.size = Vector2i(1280, 720)
 	assert_float(UiScale.current(p, root)).is_equal(1.0)
 	p.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	assert_float(UiScale.current(p, root)).is_equal(1.5)
-	root.size = Vector2i(1280, 720)
+	root.size = Vector2i(640, 360)
 	assert_float(UiScale.current(p, root)).is_equal(2.0)
-	root.size = Vector2i(3840, 2160)
+	root.size = Vector2i(1920, 1080)
 	assert_float(UiScale.current(p, root)).is_equal_approx(5.0 / 3.0, 0.0001)
-	root.size = Vector2i(2560, 1440)
+	root.size = Vector2i(1280, 720)
 	p.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	assert_float(UiScale.current(p, root)).is_equal(2.0)
 
@@ -44,7 +44,7 @@ func _layer() -> CanvasLayer:
 	return layer
 
 func test_follows_display_changed() -> void:
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	var layer := _layer()
 	assert_bool(layer.transform == Transform2D.IDENTITY).is_true()
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
@@ -55,8 +55,8 @@ func test_follows_display_changed() -> void:
 	assert_bool(layer.transform == Transform2D.IDENTITY).is_true()
 
 func test_follows_the_window() -> void:
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	var layer := _layer()
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
-	get_tree().root.size = Vector2i(1280, 720)
+	get_tree().root.size = Vector2i(640, 360)
 	assert_float(layer.transform.get_scale().x).is_equal(2.0)

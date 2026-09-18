@@ -103,7 +103,7 @@ func test_no_save_order_and_words() -> void:
 			order.append(child.name)
 	assert_array(order).is_equal(["Continue", "NewGame", "Settings", "Quit"])
 	assert_bool(_is_highlighted(_plank("NewGame"))).is_true()
-	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(97.0)
+	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP)
 
 func test_down_from_new_game_is_settings() -> void:
 	await _press(KEY_DOWN)
@@ -149,8 +149,8 @@ func test_click_on_settings_opens_the_board() -> void:
 
 func test_menu_fits_with_four_planks() -> void:
 	_saved()
-	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(83.0)
+	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP_WITH_SAVE)
 	await await_idle_frame()
 	var menu := (screen.get_node("%Menu") as Control).get_global_rect()
-	assert_bool(Rect2(0, 0, 320, 180).encloses(menu)).override_failure_message("menu at %s" % menu).is_true()
+	assert_bool(Rect2(Vector2.ZERO, Screen.SIZE).encloses(menu)).override_failure_message("menu at %s" % menu).is_true()
 	assert_bool(menu.intersects((screen.get_node("%Version") as Control).get_global_rect())).is_false()

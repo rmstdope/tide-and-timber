@@ -1,5 +1,8 @@
 extends GdUnitTestSuite
 ## The pause Quit box stacks its buttons, left on top, when side by side is wider than the screen.
+## Reached the player's way: the default 1280x720 window (k = 2) at UI Largest and Text Largest, the
+## largest combination there is. Since tr-1o0.1 (640x360) even that lays the box out side by side
+## and unscrolled, so every stacking test fails its precondition: a navigator decision.
 
 var runner: GdUnitSceneRunner
 var waking: Waking
@@ -12,7 +15,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 	Pause.debug_tools = false
 	InputDevice.reset()
@@ -38,6 +41,19 @@ func after_test() -> void:
 func _size_up(steps: int) -> void:
 	for i in steps:
 		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+
+## UI Largest and Text Largest: the largest combination a player can set. Set before opening the box.
+func _route() -> void:
+	_size_up(2)
+	for i in 2:
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
+
+func _assert_precondition() -> void:
+	assert_bool(pause._quit_box.stacked).override_failure_message("precondition: the box is not stacked").is_true()
+
+## A panel of that size centred on the picture, as the box lays it out.
+func _centred(size: Vector2) -> Rect2:
+	return Rect2(((Screen.SIZE - size) / 2.0).floor(), size)
 
 func _node(unique: String) -> Control:
 	return pause.get_node("%" + unique)
@@ -68,7 +84,7 @@ func _highlighted(unique: String) -> void:
 		.override_failure_message(unique + " is not highlighted").is_true()
 
 func _assert_normal() -> void:
-	assert_that(_panel_rect()).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_panel_rect()).is_equal(_centred(Vector2(296, 96)))
 	assert_that(_rect("FirstLine")).is_equal(Rect2(8, 8, 280, 12))
 	assert_that(_rect("SecondLine")).is_equal(Rect2(8, 28, 280, 28))
 	assert_that(_rect("Stay")).is_equal(Rect2(40, 66, 104, 20))
@@ -79,8 +95,9 @@ func test_normal_is_todays_layout() -> void:
 	_assert_normal()
 
 func test_stacks_at_largest() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	assert_that(_panel_rect()).is_equal(Rect2(84, 28, 152, 124))
 	assert_that(_rect("FirstLine")).is_equal(Rect2(8, 8, 136, 12))
 	assert_that(_rect("SecondLine")).is_equal(Rect2(8, 28, 136, 28))
@@ -91,8 +108,9 @@ func test_stacks_at_largest() -> void:
 	assert_bool(get_tree().paused).is_true()
 
 func test_stacks_at_large() -> void:
-	_size_up(1)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	assert_that(_panel_rect()).is_equal(Rect2(58, 28, 204, 124))
 	assert_that(_rect("SecondLine")).is_equal(Rect2(8, 28, 188, 28))
 	assert_that(_rect("Stay")).is_equal(Rect2(50, 66, 104, 20))
@@ -101,7 +119,9 @@ func test_stacks_at_large() -> void:
 func test_stacking_while_up_keeps_the_highlight() -> void:
 	await _open_box()
 	await _tap(KEY_RIGHT)
-	_size_up(2)
+	_route()
+	await await_idle_frame()
+	_assert_precondition()
 	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)
 	_highlighted("Quit")
 	assert_that(_rect("Quit").position).is_equal(Vector2(24, 94))
@@ -110,16 +130,18 @@ func test_stacking_while_up_keeps_the_highlight() -> void:
 	_highlighted("Quit")
 
 func test_window_resize_refits() -> void:
-	_size_up(1)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	assert_float(_panel().size.x).is_equal(204.0)
 	get_tree().root.size = Vector2i(1280, 720)
 	assert_float(_panel().size.x).is_equal(152.0)
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 
 func test_second_line_change_refits() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	assert_float(_node("SecondLine").size.y).is_equal(28.0)
 	pause.has_saved = func() -> bool: return true
 	await _tap(KEY_LEFT)
@@ -139,8 +161,9 @@ func test_up_down_do_nothing_side_by_side() -> void:
 	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)
 
 func test_stacked_buttons_do_not_overlap() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	var stay := _node("Stay").get_global_rect()
 	var quit := _node("Quit").get_global_rect()
 	var content := (pause.get_node("%QuitBox/Panel/Clip/Content") as Control).get_global_rect()
@@ -149,15 +172,17 @@ func test_stacked_buttons_do_not_overlap() -> void:
 	assert_bool(content.encloses(quit)).is_true()
 
 func test_select_when_stacked_quits() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _tap(KEY_RIGHT)
 	await _tap(KEY_ENTER)
 	assert_bool(pause.rules.quitting).is_true()
 
 func test_back_when_stacked_closes_the_box() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _tap(KEY_ESCAPE)
 	assert_bool(_node("QuitBox").visible).is_false()
 	_highlighted("QuitToTitle")

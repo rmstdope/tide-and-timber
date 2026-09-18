@@ -1,6 +1,9 @@
 extends GdUnitTestSuite
 ## The Controls page's box on the title, where the strip sits lower than in the waking scene, is framed
 ## to its own band.
+## Reached the player's way: the default 1280x720 window (k = 2) at UI Largest and Text Largest, the only
+## combination at which the box stacks (tr-1o0.1, 640x360). On the title its band is 155 deep and the stacked
+## box rests 136 tall, so it never scrolls there: the test asserts that precondition first and stays red.
 
 const SCENE := "res://src/title/title_screen.tscn"
 const NO_SAVE := "user://test_saves/title_controls_scroll_none"   # never created
@@ -16,7 +19,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
 	InputDevice.use_controls(Controls.new())
@@ -55,14 +58,23 @@ func _rect(node: Control) -> Rect2:
 
 func test_title_largest_is_framed_to_its_own_band() -> void:
 	_size_up(2)
+	for i in 2:
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
 	await _open_page()
 	for i in 8:
 		await _press(KEY_DOWN)
 	await _press(KEY_ENTER)
 	await get_tree().process_frame
-	assert_float(page.strip.screen_top()).is_equal(152.0)
-	assert_that(_rect(page.get_node("%Box/Panel") as Control)).is_equal(Rect2(84, 46, 152, 74))
-	assert_that(_rect(page.get_node("%Box/Panel/Clip") as Control)).is_equal(Rect2(0, 10, 152, 54))
-	assert_that(_rect(page.get_node("%Box/Panel/Clip/Content") as Control)).is_equal(Rect2(0, -8, 152, 124))
+	assert_bool(page._box_frame.scrolls).is_true()
+	var rest := page._box_layout.panel
+	var b := ScrollWindow.band((page.get_node("%Box") as Control).get_global_transform_with_canvas(), page.strip.screen_top())
+	var band_h := b.y - b.x
+	assert_that(_rect(page.get_node("%Box/Panel") as Control)).is_equal(Rect2(rest.position.x, b.x, rest.size.x, band_h))
+	assert_that(_rect(page.get_node("%Box/Panel/Clip") as Control)).is_equal(
+			Rect2(0, ScrollWindow.MARK_ROW, rest.size.x, band_h - 2.0 * ScrollWindow.MARK_ROW))
+	assert_that(_rect(page.get_node("%Box/Panel/Clip/Content") as Control)).is_equal(
+			Rect2(0, -page._box_layout.content_top(), rest.size.x, rest.size.y))
 	await _press(KEY_RIGHT)   # the bottom button, so the greatest offset this band allows
-	assert_int(page._box_offset).is_equal(52)
+	var f := page._box_frame
+	assert_int(page._box_offset).is_equal(ceili(f.content_height() - f.clip.size.y))
+	assert_int(page._box_offset).is_greater(0)

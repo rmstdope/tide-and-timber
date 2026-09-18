@@ -81,7 +81,7 @@ func test_readout_on_shows_at_once_while_paused() -> void:
 	assert_str(ls[3]).is_equal("X %d Y %d" % [roundi(waking.player.global_position.x), roundi(waking.player.global_position.y)])
 
 func test_readout_box_is_top_right_and_fits() -> void:
-	assert_object(DebugReadout.box_rect(4)).is_equal(Rect2(236, 4, 80, 34))
+	assert_object(DebugReadout.box_rect(4)).is_equal(Rect2(Screen.WIDTH - 84, 4, 80, 34))   # 4 from the right edge
 	assert_int(Glyphs.width("X 9999 Y 999")).is_less_equal(80 - 8)
 
 func test_collision_areas_outline_his_feet_and_the_shapes() -> void:

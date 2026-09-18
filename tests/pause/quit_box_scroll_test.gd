@@ -1,6 +1,9 @@
 extends GdUnitTestSuite
 ## The pause Quit box, too tall for the room above the Select / Back strip, scrolls its words and
 ## buttons a line per push, with ▲ / ▼.
+## Reached the player's way: the default 1280x720 window (k = 2) at UI Largest and Text Largest, the
+## largest combination there is. Since tr-1o0.1 (640x360) even that lays the box out side by side
+## and unscrolled, so every scrolling test fails its precondition: a navigator decision.
 
 var runner: GdUnitSceneRunner
 var waking: Waking
@@ -13,7 +16,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 	Pause.debug_tools = false
 	InputDevice.reset()
@@ -40,6 +43,19 @@ func _size_up(steps: int) -> void:
 	for i in steps:
 		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 
+## UI Largest and Text Largest: the largest combination a player can set. Set before opening the box.
+func _route() -> void:
+	_size_up(2)
+	for i in 2:
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
+
+func _assert_precondition() -> void:
+	assert_bool(pause._quit_frame.scrolls).override_failure_message("precondition: the box is not scrolls").is_true()
+
+## A panel of that size centred on the picture, as the box lays it out.
+func _centred(size: Vector2) -> Rect2:
+	return Rect2(((Screen.SIZE - size) / 2.0).floor(), size)
+
 func _node(unique: String) -> Control:
 	return pause.get_node("%" + unique)
 
@@ -57,6 +73,10 @@ func _frame() -> BoxLayout:
 
 func _rect(node: Control) -> Rect2:
 	return Rect2(node.position, node.size)
+
+# gdUnit's simulate_mouse_* take window coordinates; get_global_rect() is the picture's canvas.
+func _to_window(canvas_point: Vector2) -> Vector2:
+	return get_tree().root.get_final_transform() * canvas_point
 
 func _tap(key: Key) -> void:
 	await runner.simulate_key_pressed(key)
@@ -79,8 +99,9 @@ func _highlighted(unique: String) -> void:
 		.override_failure_message(unique + " is not highlighted").is_true()
 
 func test_largest_opens_framed_at_the_top() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	assert_float(pause.strip.screen_top()).is_equal(108.0)
 	assert_that(_rect(_panel())).is_equal(Rect2(84, 46, 152, 52))
 	assert_that(_rect(_clip())).is_equal(Rect2(0, 10, 152, 32))
@@ -90,8 +111,9 @@ func test_largest_opens_framed_at_the_top() -> void:
 	assert_bool(_frame().shows_mark_above()).is_false()
 
 func test_down_scrolls_to_stay_then_moves_to_quit() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	for i in 5:
 		await _tap(KEY_DOWN)
 	assert_float(_content().position.y).is_equal(-54.0)
@@ -103,8 +125,9 @@ func test_down_scrolls_to_stay_then_moves_to_quit() -> void:
 	assert_bool(_frame().shows_mark_below()).is_false()
 
 func test_up_from_quit_to_stay_then_back_to_the_words() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _tap(KEY_RIGHT)
 	assert_int(pause._quit_offset).is_equal(74)
 	await _tap(KEY_UP)
@@ -117,8 +140,9 @@ func test_up_from_quit_to_stay_then_back_to_the_words() -> void:
 	assert_bool(_node("QuitBox").visible).is_true()
 
 func test_select_presses_a_hidden_highlight() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _tap(KEY_RIGHT)
 	await _tap(KEY_LEFT)
 	assert_int(pause._quit_offset).is_equal(58)
@@ -130,63 +154,68 @@ func test_select_presses_a_hidden_highlight() -> void:
 	_highlighted("QuitToTitle")
 
 func test_right_then_enter_quits() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _tap(KEY_RIGHT)
 	await _tap(KEY_ENTER)
 	assert_bool(pause.rules.quitting).is_true()
 
 func test_wheel_scrolls_and_keeps_the_highlight() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _wheel(true, 1)
 	assert_int(pause._quit_offset).is_equal(11)
 	assert_float(_content().position.y).is_equal(-19.0)
 	_highlighted("Stay")
 
 func test_hover_lands_only_on_the_drawn_part() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _tap(KEY_RIGHT)
 	await _wheel(false, 7)
 	assert_int(pause._quit_offset).is_equal(0)
 	var stay_centre := _node("Stay").get_global_rect().get_center()
-	runner.simulate_mouse_move(stay_centre)
+	runner.simulate_mouse_move(_to_window(stay_centre))
 	await runner.await_input_processed()
 	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.QUIT)
 	assert_int(pause._quit_offset).is_equal(0)
 	await _wheel(true, 6)
 	assert_int(pause._quit_offset).is_equal(66)
-	runner.simulate_mouse_move(Vector2(_node("Stay").get_global_rect().get_center().x,
-			_clip().get_global_rect().position.y + 2))
+	runner.simulate_mouse_move(_to_window(Vector2(_node("Stay").get_global_rect().get_center().x,
+			_clip().get_global_rect().position.y + 2)))
 	await runner.await_input_processed()
 	assert_int(pause.rules.box_selected).is_equal(PauseMenu.Choice.STAY)
 	assert_int(pause._quit_offset).is_equal(66)
 
 func test_normal_fits_unchanged() -> void:
 	await _open_box()
-	assert_that(_rect(_panel())).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_rect(_panel())).is_equal(_centred(Vector2(296, 96)))
 	assert_that(_content().position).is_equal(Vector2.ZERO)
 	assert_bool(_frame().shows_mark_above()).is_false()
 	assert_bool(_frame().shows_mark_below()).is_false()
 
 func test_size_change_while_up_refits() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	for i in 3:
 		await _tap(KEY_DOWN)
 	assert_int(pause._quit_offset).is_equal(33)
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
-	assert_that(_rect(_panel())).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_rect(_panel())).is_equal(_centred(Vector2(296, 96)))
 	assert_bool(_frame().shows_mark_above()).is_false()
 	assert_bool(_frame().shows_mark_below()).is_false()
 	_highlighted("Stay")
 	assert_that(_content().position).is_equal(Vector2.ZERO)
 
 func test_reopening_starts_at_the_top() -> void:
-	_size_up(2)
+	_route()
 	await _open_box()
+	_assert_precondition()
 	await _tap(KEY_RIGHT)
 	assert_int(pause._quit_offset).is_equal(74)
 	await _tap(KEY_ESCAPE)

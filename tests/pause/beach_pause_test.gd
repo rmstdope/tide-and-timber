@@ -99,7 +99,7 @@ func test_board_is_centred_and_fits() -> void:
 	_control()
 	await _tap(KEY_ESCAPE)
 	var panel := _node("Panel") as Control
-	assert_that(panel.get_rect()).is_equal(Rect2(88, 42, 144, 96))
+	assert_that(panel.get_rect()).is_equal(Rect2(((Screen.SIZE - Vector2(144, 96)) / 2.0).floor(), Vector2(144, 96)))
 	for unique: String in ["Resume", "Settings", "QuitToTitle"]:
 		var plank := _node(unique) as Control
 		var needs := plank.get_combined_minimum_size()

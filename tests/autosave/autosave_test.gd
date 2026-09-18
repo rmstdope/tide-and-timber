@@ -156,7 +156,7 @@ func test_words_fit() -> void:
 		assert_bool(label.get_minimum_size().x <= label.size.x) \
 			.override_failure_message("%s does not fit" % label.text).is_true()
 	assert_int((_n("SecondLine") as Label).get_line_count()).is_less_equal(2)
-	var screen := Rect2(0, 0, 320, 180)
+	var screen := Rect2(Vector2.ZERO, Screen.SIZE)
 	assert_bool(screen.encloses((_n("Dawn") as Control).get_global_rect())).is_true()
 	assert_bool(screen.encloses((autosave.get_node("BoxLayer/Box/Panel") as Control).get_global_rect())).is_true()
 

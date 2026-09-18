@@ -1,5 +1,6 @@
 extends GdUnitTestSuite
 ## At larger Text size the pause Quit box's words grow; the box widens, then its lines wrap.
+## At the default 1280x720 window (k = 2) the box reaches its widest only at UI Largest and Text Largest.
 
 var runner: GdUnitSceneRunner
 var waking: Waking
@@ -53,6 +54,10 @@ func _rect(unique: String) -> Rect2:
 func _panel_rect() -> Rect2:
 	return pause._quit_box.panel
 
+## A panel of that size centred on the picture, as the box lays it out.
+func _centred(size: Vector2) -> Rect2:
+	return Rect2(((Screen.SIZE - size) / 2.0).floor(), size)
+
 func _tap(key: Key) -> void:
 	await runner.simulate_key_pressed(key)
 	await runner.await_input_processed()
@@ -73,20 +78,21 @@ func _line_count_at_normal() -> int:
 	return (_node("SecondLine") as Label).get_line_count()
 
 func test_largest_text_widens_the_box_and_wraps_the_second_line() -> void:
+	_size_up(2)
 	await _open_box()
 	var normal_lines := _line_count_at_normal()
 	await _text_up(2)
 	var p := _panel_rect()
-	assert_float(p.size.x).is_equal(312.0)
-	assert_float(p.position.x).is_equal(4.0)
-	assert_float(p.get_center().x).is_equal(160.0)
+	assert_float(p.size.x).is_equal(BoxLayout.widest(2.0))
+	assert_float(p.position.x).is_equal(Screen.CENTRE.x - BoxLayout.widest(2.0) / 2.0)
+	assert_float(p.get_center().x).is_equal(Screen.CENTRE.x)
 	assert_float(p.size.y).is_greater(96.0)
 	assert_that(_node("FirstLine").scale).is_equal(Vector2(2, 2))
 	assert_int((_node("SecondLine") as Label).get_line_count()).is_greater(normal_lines)
 
 func test_text_normal_is_todays_layout() -> void:
 	await _open_box()
-	assert_that(_panel_rect()).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_panel_rect()).is_equal(_centred(Vector2(296, 96)))
 	assert_that(_rect("Stay")).is_equal(Rect2(40, 66, 104, 20))
 	assert_that(_node("FirstLine").scale).is_equal(Vector2.ONE)
 	assert_that(_node("SecondLine").scale).is_equal(Vector2.ONE)
@@ -97,9 +103,9 @@ func test_largest_text_keeps_the_box_on_screen() -> void:
 	await _text_up(2)
 	var panel := _panel()
 	var screen := panel.get_global_transform_with_canvas() * Rect2(Vector2.ZERO, panel.size)
-	# in 320x180 units: the canvas is k = 2 screen pixels to the unit
+	# in the picture's units: the canvas is k = 2 screen pixels to the unit
 	assert_float(screen.position.x / 2.0).is_greater_equal(0.0)
-	assert_float(screen.end.x / 2.0).is_less_equal(320.0)
+	assert_float(screen.end.x / 2.0).is_less_equal(Screen.WIDTH)
 
 func test_left_and_right_still_choose_while_side_by_side() -> void:
 	await _open_box()
@@ -121,6 +127,6 @@ func test_going_back_to_normal_restores_the_box() -> void:
 	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, -1)
 	await await_idle_frame()
 	await await_idle_frame()
-	assert_that(_panel_rect()).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_panel_rect()).is_equal(_centred(Vector2(296, 96)))
 	assert_that(_node("FirstLine").scale).is_equal(Vector2.ONE)
 	assert_that(_node("SecondLine").scale).is_equal(Vector2.ONE)

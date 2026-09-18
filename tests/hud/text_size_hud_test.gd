@@ -35,13 +35,13 @@ func test_menu_strip_band_grows_in_the_corner() -> void:
 	await get_tree().process_frame
 	assert_vector(strip.size).is_equal_approx(Vector2(228, 21), Vector2(0.01, 0.01))
 	assert_vector(strip.get_global_transform_with_canvas().origin) \
-		.is_equal_approx(Vector2(4, 155), Vector2(0.01, 0.01))
+		.is_equal_approx(Vector2(MenuStrip.LEFT, MenuStrip.BOTTOM - 21), Vector2(0.01, 0.01))
 	assert_int(strip.view.line_height()).is_equal(18)
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
 	assert_vector(strip.size).is_equal_approx(Vector2(148, 12), Vector2(0.01, 0.01))
 	assert_vector(strip.get_global_transform_with_canvas().origin) \
-		.is_equal_approx(Vector2(4, 164), Vector2(0.01, 0.01))
+		.is_equal_approx(Vector2(MenuStrip.LEFT, MenuStrip.BOTTOM - KeyHint.HEIGHT), Vector2(0.01, 0.01))
 
 func test_menu_strip_grown_by_text_lifts_above_the_bar() -> void:
 	var bar_layer := auto_free(CanvasLayer.new()) as CanvasLayer
@@ -53,11 +53,16 @@ func test_menu_strip_grown_by_text_lifts_above_the_bar() -> void:
 	var strip := auto_free(MenuStrip.new()) as MenuStrip
 	add_child(strip)
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK)
+	# At UI Normal the Text Largest strip (228 wide) stays clear of the bar, which starts at x 250;
+	# at UI Large it reaches across it.
+	Display.prefs.step(Setting.UI_SIZE, 1)
 	Display.prefs.step(Setting.TEXT_SIZE, 2)
 	await get_tree().process_frame
+	# the bar's top at 1.5x is Screen.HEIGHT - 1.5 * 23; the 21-tall strip, drawn 1.5x, sits GAP above it
+	var top := Screen.HEIGHT - 1.5 * 23 - HintLift.GAP - 1.5 * 21
 	assert_vector(strip.get_global_transform_with_canvas().origin) \
-		.is_equal_approx(Vector2(4, 134), Vector2(0.01, 0.01))
-	assert_float(strip.screen_top()).is_equal_approx(134.0, 0.01)
+		.is_equal_approx(Vector2(MenuStrip.LEFT, top), Vector2(0.01, 0.01))
+	assert_float(strip.screen_top()).is_equal_approx(top, 0.01)
 
 func test_build_hint_band_grows_and_keeps_its_bottom() -> void:
 	var beach := _scene("res://src/beach/beach.tscn")
@@ -67,26 +72,26 @@ func test_build_hint_band_grows_and_keeps_its_bottom() -> void:
 	await get_tree().process_frame
 	assert_float(hint.size.y).is_equal_approx(21.0, 0.01)
 	assert_float(hint.size.x).is_equal_approx(hint.view.line_width() + 8.0, 0.01)
-	assert_float(hint.position.y).is_equal_approx(127.0, 0.01)
-	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(148.0, 0.01)
-	assert_float(hint.position.x).is_equal_approx(roundi((320 - hint.size.x) / 2.0), 0.01)
+	assert_float(hint.position.y).is_equal_approx(KeyHint.TOP + KeyHint.HEIGHT - 21, 0.01)
+	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(KeyHint.TOP + KeyHint.HEIGHT, 0.01)
+	assert_float(hint.position.x).is_equal_approx(roundi((Screen.WIDTH - hint.size.x) / 2.0), 0.01)
 
 func test_move_hint_band_grows_and_lifts_above_the_bar() -> void:
 	var waking := _scene("res://src/waking/waking.tscn")
 	var move_hint := waking.get_node("%MoveHint") as Control
 	Display.prefs.step(Setting.TEXT_SIZE, 2)
 	await get_tree().process_frame
-	assert_vector(move_hint.size).is_equal_approx(Vector2(320, 23), Vector2(0.01, 0.01))
+	assert_vector(move_hint.size).is_equal_approx(Vector2(Screen.WIDTH, 23), Vector2(0.01, 0.01))
 	assert_vector((move_hint.get_node("Band") as Control).size) \
-		.is_equal_approx(Vector2(320, 23), Vector2(0.01, 0.01))
+		.is_equal_approx(Vector2(Screen.WIDTH, 23), Vector2(0.01, 0.01))
 	assert_vector((move_hint.get_node("Line") as Control).size) \
-		.is_equal_approx(Vector2(320, 23), Vector2(0.01, 0.01))
-	assert_float(move_hint.position.y).is_equal_approx(132.0, 0.01)
-	assert_float(HintLift.screen_rect(move_hint).end.y).is_equal_approx(155.0, 0.01)
+		.is_equal_approx(Vector2(Screen.WIDTH, 23), Vector2(0.01, 0.01))
+	assert_float(move_hint.position.y).is_equal_approx(ItemBar.TOP - HintLift.GAP - 23, 0.01)
+	assert_float(HintLift.screen_rect(move_hint).end.y).is_equal_approx(ItemBar.TOP - HintLift.GAP, 0.01)
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
-	assert_vector(move_hint.size).is_equal_approx(Vector2(320, 14), Vector2(0.01, 0.01))
-	assert_float(move_hint.position.y).is_equal_approx(166.0, 0.01)
+	assert_vector(move_hint.size).is_equal_approx(Vector2(Screen.WIDTH, 14), Vector2(0.01, 0.01))
+	assert_float(move_hint.position.y).is_equal_approx(Screen.HEIGHT - 14, 0.01)
 
 # --- the clock ---
 

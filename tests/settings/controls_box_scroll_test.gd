@@ -1,7 +1,11 @@
 extends GdUnitTestSuite
 ## The Controls page's box, too tall for the room above the Select / Back strip, scrolls its words and
 ## buttons a line per push, with ▲ / ▼. Wherever it fits, it is exactly as before.
-
+## Reached the player's way: the default 1280x720 window (k = 2) at UI Largest and Text Largest, the only
+## combination at which the box stacks and outgrows its band (tr-1o0.1, 640x360). There the Reset and Leaving
+## boxes rest 312x136, their band is 133 deep and the view 113, over 118 units of content: they scroll 5 units,
+## and both buttons are wholly in view at every offset. OK alone never scrolls at any combination.
+## Tests that need a button hidden, or OK alone framed, assert that precondition first and stay red.
 var runner: GdUnitSceneRunner
 var waking: Waking
 var pause: Pause
@@ -14,7 +18,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Pause.debug_tools = false
 	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
@@ -41,6 +45,15 @@ func after_test() -> void:
 func _size_up(steps: int) -> void:
 	for i in steps:
 		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+
+func _text_up(steps: int) -> void:
+	for i in steps:
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
+
+# UI Largest and Text Largest: the smallest combination at which the box scrolls.
+func _largest() -> void:
+	_size_up(2)
+	_text_up(2)
 
 func _control() -> void:
 	waking.tick(5.0)
@@ -89,8 +102,9 @@ func _wheel(up: bool, times: int) -> void:
 		runner.simulate_mouse_button_pressed(MOUSE_BUTTON_WHEEL_UP if up else MOUSE_BUTTON_WHEEL_DOWN)
 		await runner.await_input_processed()
 
+# simulate_mouse_move takes window coordinates; `to` is a point on the picture's canvas.
 func _move_mouse(to: Vector2) -> void:
-	runner.simulate_mouse_move(to)
+	runner.simulate_mouse_move(get_tree().root.get_final_transform() * to)
 	await runner.await_input_processed()
 
 func _node(unique: String) -> Control:
@@ -117,109 +131,146 @@ func _offset() -> int:
 func _rect(node: Control) -> Rect2:
 	return Rect2(node.position, node.size)
 
+# The rest panel framed to its band: at the band's top, as tall as the band.
+func _band() -> Vector2:
+	return ScrollWindow.band(_node("Box").get_global_transform_with_canvas(), page.strip.screen_top())
+
+func _max_offset() -> int:
+	return ceili(_frame().content_height() - _frame().clip.size.y)
+
+# A button's (top, bottom) in content units, and whether it is wholly inside the view at `offset`.
+func _in_view(button: Control, offset: int) -> bool:
+	var top := button.position.y - _frame().content_top()
+	return top >= offset and top + button.size.y <= offset + _frame().clip.size.y
+
+func _assert_scrolls() -> void:
+	assert_bool(_frame().scrolls).is_true()
+
 func _is_highlighted(control: Control) -> bool:
 	return is_same(control.get_theme_stylebox("panel"), ControlsPage.PLANK_HIGHLIGHT_STYLE)
 
 func test_largest_opens_framed_at_the_top() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
-	assert_float(page.strip.screen_top()).is_equal(108.0)
-	assert_that(_rect(_panel())).is_equal(Rect2(84, 46, 152, 52))
-	assert_that(_rect(_clip())).is_equal(Rect2(0, 10, 152, 32))
-	assert_that(_rect(_content())).is_equal(Rect2(0, -8, 152, 124))
+	_assert_scrolls()
+	var rest := page._box_layout.panel
+	var b := _band()
+	assert_that(_rect(_panel())).is_equal(Rect2(rest.position.x, b.x, rest.size.x, b.y - b.x))
+	assert_that(_rect(_clip())).is_equal(Rect2(0, ScrollWindow.MARK_ROW, rest.size.x, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW))
+	assert_that(_rect(_content())).is_equal(Rect2(0, -_frame().content_top(), rest.size.x, rest.size.y))
 	assert_int(_offset()).is_equal(0)
 	assert_bool(_is_highlighted(_node("Safe"))).is_true()
 	assert_bool(_frame().shows_mark_below()).is_true()
 	assert_bool(_frame().shows_mark_above()).is_false()
 
+# The next combination down, UI Large and Text Largest, no longer scrolls: red until the navigator decides.
 func test_large_is_framed_too() -> void:
 	_size_up(1)
+	_text_up(2)
 	await _open_reset()
-	assert_that(_rect(_panel())).is_equal(Rect2(58, 32, 204, 80))
-	assert_that(_rect(_clip())).is_equal(Rect2(0, 10, 204, 60))
-	assert_that(_rect(_content())).is_equal(Rect2(0, -8, 204, 124))
+	_assert_scrolls()
+	var rest := page._box_layout.panel
+	var b := _band()
+	assert_that(_rect(_panel())).is_equal(Rect2(rest.position.x, b.x, rest.size.x, b.y - b.x))
+	assert_that(_rect(_content())).is_equal(Rect2(0, -_frame().content_top(), rest.size.x, rest.size.y))
 
 func test_normal_fits_unchanged() -> void:
 	await _open_reset()
-	assert_that(_rect(_panel())).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_rect(_panel())).is_equal(Rect2(Screen.CENTRE - Vector2(148, 48), Vector2(296, 96)))   # the 296x96 box, centred
 	assert_that(_clip().position).is_equal(Vector2.ZERO)
 	assert_that(_content().position).is_equal(Vector2.ZERO)
 	assert_bool(_frame().scrolls).is_false()
 	assert_bool(_frame().shows_mark_above()).is_false()
 	assert_bool(_frame().shows_mark_below()).is_false()
 
+# OK alone does not scroll at any combination at 640x360: red until the navigator decides.
 func test_ok_alone_is_framed() -> void:
-	_size_up(2)
+	_largest()
 	await _open_no_pad()
-	assert_that(_rect(_panel())).is_equal(Rect2(84, 46, 152, 52))
-	assert_that(_rect(_content())).is_equal(Rect2(0, -8, 152, 96))
+	_assert_scrolls()
+	var rest := page._box_layout.panel
+	var b := _band()
+	assert_that(_rect(_panel())).is_equal(Rect2(rest.position.x, b.x, rest.size.x, b.y - b.x))
+	assert_that(_rect(_content())).is_equal(Rect2(0, -_frame().content_top(), rest.size.x, rest.size.y))
 	assert_bool(_frame().shows_mark_below()).is_true()
 	assert_bool(_frame().shows_mark_above()).is_false()
 
 func test_the_buttons_stay_inside_the_content() -> void:
-	_size_up(2)
+	_largest()
 	await _open_leaving()
-	assert_that(_rect(_node("Safe"))).is_equal(Rect2(24, 66, 104, 20))
-	assert_that(_rect(_node("Other"))).is_equal(Rect2(24, 94, 104, 20))
-	assert_that(_rect(_node("Lines"))).is_equal(Rect2(8, 8, 136, 48))
+	_assert_scrolls()
+	assert_bool(_frame().stacked).is_true()
+	var w := _rect(_content()).size.x
+	var safe := _rect(_node("Safe"))
+	var other := _rect(_node("Other"))
+	assert_float(safe.position.x).is_equal(roundf((w - safe.size.x) / 2.0))   # each button centred across the box
+	assert_float(other.position.x).is_equal(roundf((w - other.size.x) / 2.0))
+	assert_bool(safe.end.y < other.position.y).is_true()   # Set a key above Leave
+	assert_bool(Rect2(Vector2.ZERO, _rect(_content()).size).encloses(other)).is_true()
+	assert_that(_rect(_node("Lines")).position).is_equal(_frame().lines[0].position)
 	assert_bool(is_same(_node("Safe").get_parent(), _content())).is_true()
 
 func test_size_change_while_up_refits() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
-	assert_that(_rect(_panel())).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_rect(_panel())).is_equal(Rect2(Screen.CENTRE - Vector2(148, 48), Vector2(296, 96)))
 	assert_that(_content().position).is_equal(Vector2.ZERO)
 	assert_bool(_frame().shows_mark_above()).is_false()
 	assert_bool(_frame().shows_mark_below()).is_false()
 	assert_bool(_is_highlighted(_node("Safe"))).is_true()
 
 func test_reopening_starts_at_the_top() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	await _wheel(false, 3)
 	assert_int(_offset()).is_greater(0)
 	await _tap(KEY_ESCAPE)
 	await _tap(KEY_ENTER)
 	await get_tree().process_frame
 	assert_int(_offset()).is_equal(0)
-	assert_float(_content().position.y).is_equal(-8.0)
+	assert_float(_content().position.y).is_equal(-_frame().content_top())
 
-# The box at Largest in the waking scene: a 52-unit band, a 32-unit view and 106 units of content,
-# so the greatest offset is 74. Safe spans content 58..78 and Other 86..106.
+# Needs Keep mine below the view when the box opens; at 640x360 it never is: red until the navigator decides.
 func test_down_scrolls_to_the_top_button_then_moves_on() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
-	for i in 5:
+	_assert_scrolls()
+	assert_bool(_in_view(_node("Safe"), 0)).is_false()
+	var step := 0
+	while not _in_view(_node("Safe"), _offset()) and step < 20:
 		await _tap(KEY_DOWN)
-	assert_int(_offset()).is_equal(46)
-	assert_float(_content().position.y).is_equal(-54.0)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
+		step += 1
+		assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
 	await _tap(KEY_DOWN)
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	assert_int(_offset()).is_equal(74)
-	assert_float(_content().position.y).is_equal(-82.0)
+	assert_int(_offset()).is_equal(_max_offset())
 	assert_bool(_frame().shows_mark_above()).is_true()
 	assert_bool(_frame().shows_mark_below()).is_false()
 
 func test_down_on_the_bottom_button_does_nothing() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	for i in 6:
 		await _tap(KEY_DOWN)
 	await _tap(KEY_DOWN)
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	assert_int(_offset()).is_equal(74)
+	assert_int(_offset()).is_equal(_max_offset())
 
 func test_up_from_the_bottom_button_then_back_to_the_words() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	for i in 6:
 		await _tap(KEY_DOWN)
+	assert_int(_offset()).is_equal(_max_offset())
 	await _tap(KEY_UP)
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_int(_offset()).is_equal(58)
+	assert_bool(_in_view(_node("Safe"), _offset())).is_true()
 	for i in 6:
 		await _tap(KEY_UP)
 	assert_int(_offset()).is_equal(0)
@@ -229,76 +280,88 @@ func test_up_from_the_bottom_button_then_back_to_the_words() -> void:
 	assert_bool(_frame().shows_mark_above()).is_false()
 
 func test_left_and_right_move_and_show_the_button() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	await _tap(KEY_RIGHT)
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
-	assert_int(_offset()).is_equal(74)
+	assert_int(_offset()).is_equal(_max_offset())   # Leave's bottom is the content's bottom
 	await _tap(KEY_LEFT)
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_int(_offset()).is_equal(58)
+	assert_bool(_in_view(_node("Safe"), _offset())).is_true()
 
 func test_the_wheel_scrolls_and_keeps_the_highlight() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	await _wheel(false, 1)
-	assert_int(_offset()).is_equal(11)
-	assert_float(_content().position.y).is_equal(-19.0)
+	var one := mini(int(BoxLayout.LINE_STEP), _max_offset())   # a line, or the rest of the content if less
+	assert_int(_offset()).is_equal(one)
+	assert_float(_content().position.y).is_equal(-(_frame().content_top() + one))
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
 	await _wheel(true, 2)
 	assert_int(_offset()).is_equal(0)
 
+# Needs Keep mine out of sight when the box opens; at 640x360 it never is: red until the navigator decides.
 func test_select_presses_an_out_of_sight_button() -> void:
-	_size_up(2)
+	_largest()
 	await _open_page()
 	await _tap(KEY_DELETE)   # clear the highlighted slot, so Keep mine has something to keep
 	await _down(8)
 	await _tap(KEY_ENTER)
 	await get_tree().process_frame
-	assert_int(_offset()).is_equal(0)   # Keep mine, at content 58..78, is below the 0..32 view
+	_assert_scrolls()
+	assert_int(_offset()).is_equal(0)
+	assert_bool(_in_view(_node("Safe"), 0)).is_false()
 	await _tap(KEY_ENTER)
 	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
 	assert_bool(page.visible).is_true()
 	assert_object(InputDevice.controls.slot(0 as Controls.Action, Controls.Device.KEYBOARD, 0)).is_null()
 
 func test_right_then_select_leaves() -> void:
-	_size_up(2)
+	_largest()
 	await _open_leaving()
+	_assert_scrolls()
 	await _tap(KEY_RIGHT)
-	assert_int(_offset()).is_equal(74)
+	assert_int(_offset()).is_equal(_max_offset())
 	await _tap(KEY_ENTER)
 	assert_bool(page.visible).is_false()
 	assert_bool(board.visible).is_true()
 
+# OK alone does not scroll at any combination at 640x360: red until the navigator decides.
 func test_ok_alone_ignores_right_and_scrolls() -> void:
-	_size_up(2)
+	_largest()
 	await _open_no_pad()
+	_assert_scrolls()
 	await _tap(KEY_RIGHT)
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_int(_offset()).is_equal(46)
+	assert_bool(_in_view(_node("Safe"), _offset())).is_true()
+	assert_int(_offset()).is_greater(0)
 
 func test_back_still_closes_while_scrolled() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	for i in 5:
 		await _tap(KEY_DOWN)
+	assert_int(_offset()).is_greater(0)
 	await _tap(KEY_ESCAPE)
 	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
 	assert_bool(page.visible).is_true()
 
+# Needs Keep mine partly scrolled out of the view; at 640x360 it never is: red until the navigator decides.
 func test_hover_lands_only_on_the_drawn_part() -> void:
-	_size_up(2)
+	_largest()
 	await _open_reset()
+	_assert_scrolls()
 	await _tap(KEY_RIGHT)
 	await _wheel(true, 7)
 	assert_int(_offset()).is_equal(0)
 	var safe := _node("Safe")
-	await _move_mouse(safe.get_global_rect().get_center())
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)
+	assert_bool(_in_view(safe, 0)).is_false()   # precondition: Safe is partly below the view
+	await _move_mouse(Vector2(safe.get_global_rect().get_center().x, _clip().get_global_rect().end.y + 2.0))
+	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.OTHER)   # the hidden part takes no hover
 	assert_int(_offset()).is_equal(0)
-	await _wheel(false, 6)
-	assert_int(_offset()).is_equal(66)
-	await _move_mouse(Vector2(safe.get_global_rect().get_center().x,
-			_clip().get_global_rect().position.y + 2.0))
+	await _move_mouse(Vector2(safe.get_global_rect().get_center().x, _clip().get_global_rect().end.y - 2.0))
 	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_int(_offset()).is_equal(66)
+	assert_int(_offset()).is_equal(0)

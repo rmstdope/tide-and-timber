@@ -1,6 +1,10 @@
 extends GdUnitTestSuite
-## The title's Start over and Replace boxes at large UI sizes: framed to the room above the strip,
+## The title's Start over and Replace boxes at large UI and Text sizes: framed to the room above the strip,
 ## scrolling their words and buttons a line per push or wheel notch, with ▲ / ▼.
+## At 640x360 UI size alone never makes a box scroll, so the scrolling layout is reached the way a player
+## does, in the default 1280x720 window (k = 2), at UI Largest + Text Largest: the only combination at
+## which either box outgrows the room above the strip. Every test about a scrolling box first asserts that
+## it scrolls, so none can pass on the plain layout.
 
 const SCENE := "res://src/title/title_screen.tscn"
 const ROOT := "user://test_saves"
@@ -17,7 +21,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 
 func after_test() -> void:
@@ -100,12 +104,28 @@ func _open_replace_box() -> void:
 	_newer()
 	await _press(KEY_ENTER)
 
-func _large() -> void:
-	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+func _ui(steps: int) -> void:
+	for i in steps:
+		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 
+func _text(steps: int) -> void:
+	for i in steps:
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
+
+## One step short of the scrolling layout: UI Large + Text Largest (Start over stacks, still fits).
+func _large() -> void:
+	_ui(1)
+	_text(2)
+
+## UI Largest + Text Largest: both boxes scroll.
 func _largest() -> void:
-	_large()
-	_large()
+	_ui(2)
+	_text(2)
+
+## The precondition every scrolling test asserts first.
+func _assert_scrolls(box: String) -> void:
+	var frame: BoxLayout = screen._start_over_frame if box == "StartOverBox" else screen._replace_frame
+	assert_bool(frame.scrolls).override_failure_message("%s should scroll" % box).is_true()
 
 func _control(path: String) -> Control:
 	return screen.get_node(path) as Control
@@ -123,6 +143,24 @@ func _content(box: String) -> Control:
 func _marks(box: String) -> Control:
 	return _control("%" + box + "/Marks")
 
+## A panel centred on the picture: the boxes' rest panels grow about Screen.CENTRE.
+static func _centred(w: float, h: float) -> Rect2:
+	return Rect2(Screen.CENTRE - Vector2(w, h) / 2.0, Vector2(w, h))
+
+## The room a box grown to s = 2 about the picture's centre is framed to, in its own units: (top, bottom).
+func _band() -> Vector2:
+	return ScrollWindow.band(Transform2D(0.0, Vector2(2, 2), 0.0, -Screen.CENTRE), screen.strip.screen_top())
+
+## The framed panel at s = 2: the rest panel's x and width, the band's top and height.
+func _framed(w: float) -> Rect2:
+	var b := _band()
+	return Rect2(Screen.CENTRE.x - w / 2.0, b.x, w, b.y - b.x)
+
+## The clip inside a framed panel: a mark row kept above and below.
+func _framed_clip(w: float) -> Rect2:
+	var b := _band()
+	return Rect2(0, ScrollWindow.MARK_ROW, w, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW)
+
 func _hover(c: Control) -> void:
 	runner.simulate_mouse_move(screen.get_viewport().get_final_transform() * c.get_global_rect().get_center())
 	await runner.await_input_processed()
@@ -136,12 +174,16 @@ func test_largest_opens_framed_at_the_top() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
-	assert_float(screen.strip.screen_top()).is_equal(152.0)
-	assert_that(_rect("%StartOverBox")).is_equal(Rect2(84, 46, 152, 74))
-	assert_that(Rect2(_clip("StartOverBox").position, _clip("StartOverBox").size)).is_equal(Rect2(0, 10, 152, 54))
-	assert_that(Rect2(_content("StartOverBox").position, _content("StartOverBox").size)).is_equal(Rect2(0, -8, 152, 133))
-	assert_vector(_marks("StartOverBox").size).is_equal(Vector2(152, 74))
-	assert_that(screen._start_over_box.panel).is_equal(Rect2(84, 24, 152, 133))
+	_assert_scrolls("StartOverBox")
+	# the Select strip, its words at Text Largest, at s = 2: 46 units above the bottom edge
+	assert_float(screen.strip.screen_top()).is_equal(Screen.HEIGHT - 46.0)
+	assert_that(_band()).is_equal(Vector2(91, 246))   # ceil((2 - 180) / 2 + 180), floor((314 - 2 - 180) / 2 + 180)
+	assert_that(_rect("%StartOverBox")).is_equal(_framed(312))
+	assert_that(Rect2(_clip("StartOverBox").position, _clip("StartOverBox").size)).is_equal(_framed_clip(312))
+	# content top 8 above the clip, the rest panel's size
+	assert_that(Rect2(_content("StartOverBox").position, _content("StartOverBox").size)).is_equal(Rect2(0, -8, 312, 182))
+	assert_vector(_marks("StartOverBox").size).is_equal(_framed(312).size)
+	assert_that(screen._start_over_box.panel).is_equal(_centred(312, 182))
 	_box_highlighted("KeepMyIsland")
 	assert_bool(screen._start_over_frame.shows_mark_below()).is_true()
 	assert_bool(screen._start_over_frame.shows_mark_above()).is_false()
@@ -150,15 +192,18 @@ func test_the_box_still_grows_about_the_centre() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	var box := _control("%StartOverBox")
-	assert_vector(box.position + box.pivot_offset).is_equal(Vector2(160, 90))
+	assert_vector(box.position + box.pivot_offset).is_equal(Screen.CENTRE)
 	assert_vector(box.scale).is_equal(Vector2(2, 2))
-	assert_vector(box.get_global_rect().get_center()).is_equal_approx(Vector2(160, 76), EPS)
+	var framed_centre := _framed(312).get_center()
+	assert_vector(box.get_global_rect().get_center()) \
+		.is_equal_approx(Screen.CENTRE + (framed_centre - Screen.CENTRE) * 2.0, EPS)
 
 func test_normal_fits_unchanged() -> void:
 	await _open_start_over_box()
 	await get_tree().process_frame
-	assert_that(_rect("%StartOverBox")).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_rect("%StartOverBox")).is_equal(_centred(296, 96))
 	assert_that(Rect2(_clip("StartOverBox").position, _clip("StartOverBox").size)).is_equal(Rect2(0, 0, 296, 96))
 	assert_vector(_content("StartOverBox").position).is_equal(Vector2.ZERO)
 	assert_vector(_control("%StartOverBox").pivot_offset).is_equal(Vector2(148, 48))
@@ -169,6 +214,7 @@ func test_words_and_buttons_are_clipped() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	for box: String in ["StartOverBox", "ReplaceBox"]:
 		var content := _content(box)
 		assert_bool(_clip(box).clip_contents).is_true()
@@ -188,6 +234,12 @@ func test_large_scrolls_too() -> void:
 	await _open_start_over_box()
 	_large()
 	await get_tree().process_frame
+	# No player reaches this at 640x360: UI Large + Text Largest stacks Start over but it still fits
+	# (418x138 against a 155-tall band), and only UI Largest + Text Largest scrolls it. Left red for
+	# the navigator: whether to retire this layout.
+	_assert_scrolls("StartOverBox")
+	if not screen._start_over_frame.scrolls:
+		return
 	assert_that(_rect("%StartOverBox")).is_equal(Rect2(58, 32, 204, 102))
 	assert_that(Rect2(_clip("StartOverBox").position, _clip("StartOverBox").size)).is_equal(Rect2(0, 10, 204, 82))
 	assert_that(Rect2(_content("StartOverBox").position, _content("StartOverBox").size)).is_equal(Rect2(0, -8, 204, 133))
@@ -200,15 +252,17 @@ func test_replace_box_scrolls_at_largest() -> void:
 	await _open_replace_box()
 	_largest()
 	await get_tree().process_frame
-	assert_that(_rect("%ReplaceBox")).is_equal(Rect2(84, 46, 152, 74))
-	assert_that(Rect2(_clip("ReplaceBox").position, _clip("ReplaceBox").size)).is_equal(Rect2(0, 10, 152, 54))
-	assert_that(Rect2(_content("ReplaceBox").position, _content("ReplaceBox").size)).is_equal(Rect2(0, -6, 152, 145))
+	_assert_scrolls("ReplaceBox")
+	assert_that(_rect("%ReplaceBox")).is_equal(_framed(312))
+	assert_that(Rect2(_clip("ReplaceBox").position, _clip("ReplaceBox").size)).is_equal(_framed_clip(312))
+	assert_that(Rect2(_content("ReplaceBox").position, _content("ReplaceBox").size)).is_equal(Rect2(0, -6, 312, 190))
 	_box_highlighted("Cancel")
 	assert_bool(screen._replace_frame.shows_mark_above()).is_false()
 	assert_bool(screen._replace_frame.shows_mark_below()).is_true()
 	await _press(KEY_RIGHT)
 	_box_highlighted("ReplaceStartOver")
-	assert_float(_content("ReplaceBox").position.y).is_equal(-81.0)
+	# content top 6 plus the most it scrolls: ceil(174 content - 135 clip) = 39
+	assert_float(_content("ReplaceBox").position.y).is_equal(-45.0)
 	assert_bool(screen._replace_frame.shows_mark_above()).is_true()
 	assert_bool(screen._replace_frame.shows_mark_below()).is_false()
 
@@ -216,13 +270,15 @@ func test_down_reads_the_words_then_moves_to_start_over() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
-	for i in 3:
-		await _press(KEY_DOWN)
-	assert_float(_content("StartOverBox").position.y).is_equal(-41.0)
+	_assert_scrolls("StartOverBox")
+	# Keep my island (content 116..136) ends one unit below the 135-tall view: one push reads it in
+	await _press(KEY_DOWN)
+	assert_float(_content("StartOverBox").position.y).is_equal(-9.0)   # content top 8 + offset 1
 	_box_highlighted("KeepMyIsland")
 	await _press(KEY_DOWN)
 	_box_highlighted("StartOver")
-	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	# content top 8 + the most it scrolls: ceil(164 content - 135 clip) = 29
+	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
 	assert_bool(screen._start_over_frame.shows_mark_above()).is_true()
 	assert_bool(screen._start_over_frame.shows_mark_below()).is_false()
 
@@ -230,11 +286,12 @@ func test_up_returns_to_the_words() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	await _press(KEY_RIGHT)
-	assert_int(screen._start_over_offset).is_equal(61)
+	assert_int(screen._start_over_offset).is_equal(29)   # ceil(164 content - 135 clip)
 	await _press(KEY_UP)
 	_box_highlighted("KeepMyIsland")
-	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
 	for i in 6:
 		await _press(KEY_UP)
 	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
@@ -246,17 +303,19 @@ func test_left_and_right_show_the_button_they_pick() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	await _press(KEY_RIGHT)
 	_box_highlighted("StartOver")
-	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
 	await _press(KEY_LEFT)
 	_box_highlighted("KeepMyIsland")
-	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
 
 func test_wheel_scrolls_and_keeps_the_highlight() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN, 1)
 	assert_float(_content("StartOverBox").position.y).is_equal(-19.0)
 	_box_highlighted("KeepMyIsland")
@@ -265,6 +324,7 @@ func test_select_presses_a_hidden_highlight() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	await _press(KEY_ENTER)
 	assert_bool(_control("%StartOverBox").visible).is_false()
 	assert_int(screen.menu.highlighted).is_equal(TitleMenu.Choice.NEW_GAME)
@@ -281,8 +341,9 @@ func test_reopening_starts_at_the_top() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	await _press(KEY_RIGHT)
-	assert_int(screen._start_over_offset).is_equal(61)
+	assert_int(screen._start_over_offset).is_equal(29)   # ceil(164 content - 135 clip)
 	await _press(KEY_ESCAPE)
 	await _press(KEY_ENTER)
 	await get_tree().process_frame
@@ -293,12 +354,12 @@ func test_size_change_while_up_refits_and_keeps_the_highlight() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
-	for i in 3:
-		await _press(KEY_DOWN)
-	assert_int(screen._start_over_offset).is_equal(33)
+	_assert_scrolls("StartOverBox")
+	await _press(KEY_DOWN)
+	assert_int(screen._start_over_offset).is_equal(1)   # Keep my island ends one unit below the view
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
-	assert_that(_rect("%StartOverBox")).is_equal(Rect2(12, 42, 296, 96))
+	assert_that(_rect("%StartOverBox")).is_equal(_centred(296, 96))
 	assert_vector(_content("StartOverBox").position).is_equal(Vector2.ZERO)
 	assert_bool(screen._start_over_frame.shows_mark_above()).is_false()
 	assert_bool(screen._start_over_frame.shows_mark_below()).is_false()
@@ -308,31 +369,31 @@ func test_hover_lands_only_on_the_drawn_part() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
-	await _press(KEY_RIGHT)
-	assert_int(screen._start_over_offset).is_equal(61)
-	await _wheel(MOUSE_BUTTON_WHEEL_UP, 6)
-	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
-	await _hover(_control("%KeepMyIsland"))
-	_box_highlighted("StartOver")
+	_assert_scrolls("StartOverBox")
+	# At the top Start over (content 144..164) is wholly below the 135-tall view: out of the pointer's reach.
+	assert_int(screen._start_over_offset).is_equal(0)
+	await _hover(_control("%StartOver"))
+	_box_highlighted("KeepMyIsland")
 	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN, 6)
-	assert_int(screen._start_over_offset).is_equal(61)
-	await _hover(_control("%KeepMyIsland"))
-	_box_highlighted("KeepMyIsland")
-	assert_float(_content("StartOverBox").position.y).is_equal(-69.0)
+	assert_int(screen._start_over_offset).is_equal(29)   # ceil(164 content - 135 clip)
+	await _hover(_control("%StartOver"))
+	_box_highlighted("StartOver")
+	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
 
 func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
 	await _open_start_over_box()
 	_largest()
 	await get_tree().process_frame
+	_assert_scrolls("StartOverBox")
 	for box: String in ["StartOverBox", "ReplaceBox"]:
 		var marks := _marks(box)
-		assert_that(marks.get_rect()).is_equal(Rect2(0, 0, 152, 74))
+		assert_that(marks.get_rect()).is_equal(Rect2(Vector2.ZERO, _framed(312).size))
 		assert_int(marks.get_signal_connection_list("draw").size()) \
 			.override_failure_message("%s/Marks has no draw handler, so no mark is ever drawn" % box).is_greater(0)
 	# The centres _draw_marks draws on: the box's horizontal centre, in the top and bottom mark rows
-	# of the 74-tall framed panel. Pinned as literals, so moving either mark out of its row fails here.
-	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, true)).is_equal(Vector2(76, 5))
-	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, false)).is_equal(Vector2(76, 69))
-	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, true)).is_equal(Vector2(76, 5))
-	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, false)).is_equal(Vector2(76, 69))
+	# of the 155-tall, 312-wide framed panel. Pinned as literals, so moving either mark out of its row fails here.
+	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, true)).is_equal(Vector2(156, 5))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, false)).is_equal(Vector2(156, 150))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, true)).is_equal(Vector2(156, 5))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, false)).is_equal(Vector2(156, 150))

@@ -1,5 +1,8 @@
 extends GdUnitTestSuite
 ## The Controls page opened from pause when its content is taller than the screen above the lifted strip.
+## Reached the player's way on the default 1280x720 window (k = 2) at 640x360 (tr-1o0.1): "largest" is UI
+## Largest and Text Largest, the only combination at which the Reset row reads on through the lines under the
+## list; "large" is UI Normal and Text Large, the smallest at which the page stacks and scrolls.
 
 var runner: GdUnitSceneRunner
 var waking: Waking
@@ -13,7 +16,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Pause.debug_tools = false
 	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
@@ -61,56 +64,75 @@ func _size(steps: int) -> void:
 	for i in absi(steps):
 		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, signi(steps))
 
+func _text(steps: int) -> void:
+	for i in absi(steps):
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, signi(steps))
+
+# UI Largest and Text Largest.
+func _largest() -> void:
+	_size(2)
+	_text(2)
+
+# The view the page's band gives: the band less a mark row at each end.
+func _band_view() -> Rect2:
+	var b := ScrollWindow.band(page.get_global_transform_with_canvas(), page.strip.screen_top())
+	return Rect2(0, b.x + ScrollWindow.MARK_ROW, Screen.WIDTH, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW)
+
 # Row r's rectangle where it is drawn now.
 func _drawn(r: int) -> Rect2:
-	var rect := ControlsPage.row_rect(r, true)
+	var rect := page.layout.row_rect(r)
 	return Rect2(page.to_page(rect.position), rect.size)
 
 func test_largest_pause_page_stays_above_the_lifted_strip() -> void:
-	_size(2)
+	_largest()
 	await _open_page()
 	assert_bool(page.scrolls).is_true()
-	assert_float(page.strip.screen_top()).is_equal(108.0)
-	assert_that(page.view).is_equal(Rect2(0, 56, 320, 32))
-	assert_int(page.offset).is_equal(15)
-	assert_bool(page.shows_mark_above()).is_true()
+	assert_that(page.view).is_equal(_band_view())
+	assert_int(page.offset).is_equal(0)   # the heading, the tabs and row 0 fit the view from the top
+	assert_bool(page.shows_mark_above()).is_false()
 	assert_bool(page.shows_mark_below()).is_true()
 	var t := page.get_global_transform_with_canvas()
-	assert_float((t * Vector2(0, page.view.position.y - ScrollWindow.MARK_ROW)).y).is_equal(2.0)
-	assert_float((t * Vector2(0, page.view.end.y + ScrollWindow.MARK_ROW)).y).is_equal(106.0)
+	assert_float((t * Vector2(0, page.view.position.y - ScrollWindow.MARK_ROW)).y).is_equal(ScrollWindow.EDGE)
+	assert_float((t * Vector2(0, page.view.end.y + ScrollWindow.MARK_ROW)).y).is_equal(page.strip.screen_top() - ScrollWindow.EDGE)
 	assert_bool(page.view.encloses(_drawn(0))).is_true()
 
 func test_largest_pause_page_scrolls_down_and_back() -> void:
-	_size(2)
+	_largest()
 	await _open_page()
-	for expected: int in [37, 59, 81, 103]:
+	assert_bool(page.scrolls).is_true()
+	# Row 1's bottom is 4 below the 113-unit view; each further row is one stacked row (38) lower.
+	for expected: int in [4, 42, 80, 118]:
 		await _tap(KEY_DOWN)
 		assert_int(page.offset).is_equal(expected)
 		assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 	await _tap(KEY_UP)
-	assert_int(page.offset).is_equal(91)
+	assert_int(page.rules.row).is_equal(3)
+	assert_int(page.offset).is_equal(118)   # row 3 is still wholly in the 113-unit view, so the page does not move
+	assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 
 func test_normal_pause_page_does_not_scroll() -> void:
 	await _open_page()
 	assert_bool(page.scrolls).is_false()
-	assert_that(page.view).is_equal(Rect2(0, 0, 320, 180))
+	assert_that(page.view).is_equal(Rect2(Vector2.ZERO, Screen.SIZE))
 
 func test_a_box_does_not_move_the_scrolled_page() -> void:
-	_size(2)
+	_largest()
 	await _open_page()
+	assert_bool(page.scrolls).is_true()
 	await _tap(KEY_UP)   # the Reset row, at the bottom of the content
 	var scrolled := page.offset
-	assert_int(scrolled).is_equal(201)
+	assert_int(scrolled).is_equal(ControlsPage.reset_span(page.layout, page.view.size.y).x)
+	assert_int(scrolled).is_greater(0)
 	await _tap(KEY_ENTER)
 	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
 	assert_int(page.offset).is_equal(scrolled)   # the box is a child node; the page under it does not move
-	assert_that(page.view).is_equal(Rect2(0, 56, 320, 32))
+	assert_that(page.view).is_equal(_band_view())
 	await _tap(KEY_ESCAPE)
 	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
 	assert_int(page.offset).is_equal(scrolled)
 
 func test_large_pause_page_scrolls_inside_its_band() -> void:
-	_size(1)
+	_text(1)
 	await _open_page()
 	assert_bool(page.stacked).is_true()
 	assert_bool(page.scrolls).is_true()
@@ -126,15 +148,19 @@ func test_large_pause_page_scrolls_inside_its_band() -> void:
 	assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 
 func test_largest_pause_reads_the_bottom_in_more_pushes() -> void:
-	_size(2)
+	_largest()
 	await _open_page()
 	await _tap(KEY_UP)
-	assert_int(page.offset).is_equal(201)
-	for expected: int in [210, 219, 228, 237, 238]:
+	var span := ControlsPage.reset_span(page.layout, page.view.size.y)
+	assert_bool(span.x < span.y).is_true()   # there is more under the Reset row than the view shows
+	assert_int(page.offset).is_equal(span.x)
+	var expected := span.x
+	while expected < span.y:
+		expected = mini(expected + int(page.layout.line_step()), span.y)   # one line a push, stopping at the bottom
 		await _tap(KEY_DOWN)
 		assert_int(page.rules.row).is_equal(8)
 		assert_int(page.offset).is_equal(expected)
 	assert_bool(page.shows_mark_below()).is_false()
 	await _tap(KEY_DOWN)
 	assert_int(page.rules.row).is_equal(0)
-	assert_int(page.offset).is_equal(15)   # row 0's place from pause, as on opening
+	assert_int(page.offset).is_equal(0)   # row 0's place from pause, as on opening

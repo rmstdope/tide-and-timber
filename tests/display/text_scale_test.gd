@@ -57,12 +57,13 @@ func test_relative_divides_out_ui() -> void:
 	assert_float(TextScale.relative(Display.prefs, root)).is_equal(2.0)
 
 func test_fit_width_widens_then_narrows() -> void:
+	var room := Screen.WIDTH - 2.0 * SpokenLine.SCREEN_MARGIN   # the widest a line may be, unscaled
 	assert_float(TextScale.fit_width(296, 0, 1.0)).is_equal(296.0)
-	assert_float(TextScale.fit_width(296, 312, 1.0)).is_equal(312.0)
-	assert_float(TextScale.fit_width(296, 444, 1.0)).is_equal(312.0)
-	assert_float(TextScale.fit_width(296, 208, 2.0)).is_equal(156.0)
-	assert_float(TextScale.fit_width(320, 320, 1.0)).is_equal(320.0)
-	assert_float(TextScale.fit_width(296, 300, 1.5)).is_equal(208.0)
+	assert_float(TextScale.fit_width(296, room, 1.0)).is_equal(room)
+	assert_float(TextScale.fit_width(296, Screen.WIDTH + 124, 1.0)).is_equal(room)
+	assert_float(TextScale.fit_width(296, Screen.WIDTH / 2.0 + 48, 2.0)).is_equal(floorf(room / 2.0))
+	assert_float(TextScale.fit_width(Screen.WIDTH, Screen.WIDTH, 1.0)).is_equal(Screen.WIDTH)
+	assert_float(TextScale.fit_width(296, 440, 1.5)).is_equal(floorf(room / 1.5))   # 440 * 1.5 > WIDTH
 
 func test_fit_width_equals_width_at_when_words_fit() -> void:
 	for s: float in [1.0, 1.5, 2.0, 5.0 / 3.0]:

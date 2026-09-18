@@ -1,5 +1,9 @@
 extends GdUnitTestSuite
 ## On the beach at Largest, the build list opens framed above the lifted build hint and scrolls to the highlight.
+##
+## At 640x360 no UI size and Text size combination makes the list scroll: it stacks only at UI Largest and
+## Text Largest, and there its 202-unit height fits above the lifted hint (top Screen.HEIGHT - 90). The
+## scrolling tests fail on their precondition until the navigator decides what becomes of this layout.
 
 const SCENE := "res://src/beach/beach.tscn"
 
@@ -15,7 +19,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	runner = scene_runner(SCENE)
 	beach = runner.scene() as Beach
 	builder = beach.get_node("%Builder") as Builder
@@ -54,8 +58,8 @@ func _visible(i: int) -> bool:
 func test_largest_list_opens_framed_above_the_lifted_hint() -> void:
 	_driftwood(9)
 	await _press(KEY_B)
-	assert_float(_hint_top()).is_equal(108.0)
 	assert_bool(_list().scrolls).is_true()
+	assert_float(_hint_top()).is_equal(108.0)
 	assert_float(_list().position.y).is_equal(2.0)
 	assert_float(_list().position.y + _list().size.y * 2).is_equal(_hint_top() - 2.0)
 	assert_int(_list().offset).is_equal(0)
@@ -66,6 +70,7 @@ func test_largest_list_opens_framed_above_the_lifted_hint() -> void:
 func test_down_scrolls_to_the_fire_row() -> void:
 	_driftwood(9)
 	await _press(KEY_B)
+	assert_bool(_list().scrolls).is_true()
 	await _press(KEY_DOWN)
 	assert_int(builder.menu.highlighted).is_equal(1)
 	assert_int(_list().offset).is_equal(23)
@@ -78,6 +83,7 @@ func test_down_scrolls_to_the_fire_row() -> void:
 func test_hovering_the_fire_row_scrolls_to_it() -> void:
 	_driftwood(9)
 	await _press(KEY_B)
+	assert_bool(_list().scrolls).is_true()
 	_list().rows[1].mouse_entered.emit()
 	assert_int(builder.menu.highlighted).is_equal(1)
 	assert_int(_list().offset).is_equal(23)
@@ -85,6 +91,7 @@ func test_hovering_the_fire_row_scrolls_to_it() -> void:
 func test_closing_and_reopening_starts_at_the_top() -> void:
 	_driftwood(9)
 	await _press(KEY_B)
+	assert_bool(_list().scrolls).is_true()
 	await _press(KEY_DOWN)
 	assert_int(_list().offset).is_equal(23)
 	await _press(KEY_ESCAPE)

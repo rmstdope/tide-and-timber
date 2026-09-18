@@ -1,6 +1,11 @@
 extends GdUnitTestSuite
 ## The title menu when it no longer fits above the Select strip: it is shown in a clipped band, scrolls
 ## to the highlight, and ▲ / ▼ show where planks are hidden.
+## At 640x360 no player reaches the scrolling menu: in the default 1280x720 window (k = 2) even UI Largest +
+## Text Largest leaves the tallest menu (Continue dimmed, with its reason: 154 units) inside the 155-unit
+## band above the strip. Every scrolling test asserts that precondition first and stops there, so it is
+## red rather than vacuous until the navigator decides whether to retire this layout; its expected
+## numbers below the precondition are still the 320x180 ones.
 
 const SCENE := "res://src/title/title_screen.tscn"
 const ROOT := "user://test_saves"
@@ -17,7 +22,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
 
@@ -75,6 +80,18 @@ func _size(steps: int) -> void:
 	for i in absi(steps):
 		Display.prefs.step(S.UI_SIZE, signi(steps))
 
+## The largest combination a player can pick: UI Largest + Text Largest.
+func _largest() -> void:
+	_size(2)
+	Display.prefs.step(S.TEXT_SIZE, 1)
+	Display.prefs.step(S.TEXT_SIZE, 1)
+
+## The precondition of every scrolling test: false (and the test stops) while the menu fits.
+func _scrolls() -> bool:
+	assert_bool(screen.menu_scrolls).override_failure_message(
+			"the menu should scroll; it fits even at UI Largest + Text Largest").is_true()
+	return screen.menu_scrolls
+
 func _tap(key: Key) -> void:
 	runner.simulate_key_pressed(key)
 	await runner.await_input_processed()
@@ -86,7 +103,7 @@ func _settle() -> void:
 func _node(unique: String) -> Control:
 	return screen.get_node("%" + unique) as Control
 
-# gdUnit's simulate_mouse_move takes window coordinates; the scene's rects are in the 320x180 canvas.
+# gdUnit's simulate_mouse_move takes window coordinates; the scene's rects are in the picture's canvas.
 func _to_window(canvas_point: Vector2) -> Vector2:
 	return get_tree().root.get_final_transform() * canvas_point
 
@@ -102,8 +119,8 @@ func test_normal_menu_does_not_scroll() -> void:
 	_saved()
 	await _settle()
 	assert_bool(screen.menu_scrolls).is_false()
-	assert_that(_node("MenuClip").get_rect()).is_equal(Rect2(0, 0, 320, 180))
-	assert_that(_node("Menu").position).is_equal(Vector2(0, 83))
+	assert_that(_node("MenuClip").get_rect()).is_equal(Rect2(Vector2.ZERO, Screen.SIZE))
+	assert_that(_node("Menu").position).is_equal(Vector2(0, TitleScreen.MENU_TOP_WITH_SAVE))
 	assert_bool(_node("MenuMarks").visible).is_false()
 
 func test_largest_menu_without_a_save_still_fits() -> void:
@@ -111,18 +128,21 @@ func test_largest_menu_without_a_save_still_fits() -> void:
 	_open(NO_SAVE)
 	await _settle()
 	assert_bool(screen.menu_scrolls).is_false()
-	assert_that(_node("Menu").position).is_equal(Vector2(-160, 30))
+	# grown to s = 2 about the picture's centre and about its own Normal centre (60 tall)
+	var x := Screen.CENTRE.x - Screen.CENTRE.x * 2.0
+	assert_that(_node("Menu").position).is_equal(Vector2(x, TitleScreen.MENU_TOP + 60.0 / 2.0 - 60.0 * 2.0 / 2.0))
 
 func test_largest_menu_with_a_save_opens_at_the_top() -> void:
-	_size(2)
+	_largest()
 	_saved()
 	await _settle()
-	assert_bool(screen.menu_scrolls).is_true()
+	if not _scrolls():
+		return
 	assert_int(screen.menu_offset).is_equal(0)
 	assert_that(_node("MenuClip").get_rect()).is_equal(Rect2(0, 22, 320, 108))
-	assert_that(_node("Menu").position).is_equal(Vector2(-160, 0))
+	assert_that(_node("Menu").position).is_equal(Vector2(-Screen.CENTRE.x, 0))
 	assert_bool(_node("MenuMarks").visible).is_true()
-	assert_that(_node("MenuMarks").position).is_equal(Vector2(-160, 2))
+	assert_that(_node("MenuMarks").position).is_equal(Vector2(-Screen.CENTRE.x, 2))
 	assert_that(_node("MenuMarks").size).is_equal(Vector2(320, 74))
 	assert_bool(screen.shows_menu_mark_above()).is_false()
 	assert_bool(screen.shows_menu_mark_below()).is_true()
@@ -131,9 +151,11 @@ func test_largest_menu_with_a_save_opens_at_the_top() -> void:
 			.is_less_equal(screen.strip.screen_top() - 2.0)
 
 func test_moving_down_scrolls_and_wraps() -> void:
-	_size(2)
+	_largest()
 	_saved()
 	await _settle()
+	if not _scrolls():
+		return
 	await _tap(KEY_DOWN)
 	assert_int(screen.menu_offset).is_equal(0)
 	await _tap(KEY_DOWN)
@@ -151,10 +173,11 @@ func test_moving_down_scrolls_and_wraps() -> void:
 	assert_bool(screen.shows_menu_mark_above()).is_false()
 
 func test_dimmed_continue_scrolls_and_shows_on_the_first_choice() -> void:
-	_size(2)
+	_largest()
 	_broken()
 	await _settle()
-	assert_bool(screen.menu_scrolls).is_true()
+	if not _scrolls():
+		return
 	assert_int(screen.menu_offset).is_equal(0)
 	await _tap(KEY_UP)
 	assert_bool(_shown("Quit")).is_true()
@@ -164,27 +187,31 @@ func test_dimmed_continue_scrolls_and_shows_on_the_first_choice() -> void:
 	assert_bool(_shown("Continue")).is_true()
 
 func test_hovering_a_partly_hidden_plank_scrolls_to_it() -> void:
-	_size(2)
+	_largest()
 	_saved()
 	await _settle()
+	if not _scrolls():
+		return
 	_node("Settings").gui_input.emit(_a_move())
 	assert_int(screen.menu.highlighted).is_equal(TitleMenu.Choice.SETTINGS)
 	assert_int(screen.menu_offset).is_equal(9)
 	assert_bool(_shown("Settings")).is_true()
 
 func test_back_to_normal_puts_the_menu_back() -> void:
-	_size(2)
+	_largest()
 	_saved()
 	await _settle()
+	if not _scrolls():
+		return
 	await _tap(KEY_DOWN)
 	await _tap(KEY_DOWN)
 	assert_int(screen.menu_offset).is_equal(9)
 	Display.use_prefs(DisplayPrefs.new())
 	await _settle()
 	assert_bool(screen.menu_scrolls).is_false()
-	assert_that(_node("Menu").position).is_equal(Vector2(0, 83))
+	assert_that(_node("Menu").position).is_equal(Vector2(0, TitleScreen.MENU_TOP_WITH_SAVE))
 	assert_that(_node("Menu").scale).is_equal(Vector2.ONE)
-	assert_that(_node("MenuClip").get_rect()).is_equal(Rect2(0, 0, 320, 180))
+	assert_that(_node("MenuClip").get_rect()).is_equal(Rect2(Vector2.ZERO, Screen.SIZE))
 	assert_bool(_node("MenuMarks").visible).is_false()
 
 func test_large_menu_with_a_save_fits() -> void:
@@ -194,9 +221,11 @@ func test_large_menu_with_a_save_fits() -> void:
 	assert_bool(screen.menu_scrolls).is_false()
 
 func test_marks_go_while_the_settings_board_is_open() -> void:
-	_size(2)
+	_largest()
 	_saved()
 	await _settle()
+	if not _scrolls():
+		return
 	assert_bool(_node("MenuMarks").visible).is_true()
 	await _tap(KEY_DOWN)
 	await _tap(KEY_DOWN)
@@ -210,9 +239,11 @@ func test_marks_go_while_the_settings_board_is_open() -> void:
 	assert_bool(_node("MenuMarks").visible).is_true()
 
 func test_a_plank_scrolled_out_of_the_band_is_out_of_the_pointer_s_reach() -> void:
-	_size(2)
+	_largest()
 	_saved()
 	await _settle()
+	if not _scrolls():
+		return
 	var quit := _node("Quit")
 	assert_bool(_shown("Quit")).is_false()
 	var at := quit.get_global_rect().get_center()
@@ -224,9 +255,11 @@ func test_a_plank_scrolled_out_of_the_band_is_out_of_the_pointer_s_reach() -> vo
 	assert_int(screen.menu_offset).is_equal(0)
 
 func test_a_plank_inside_the_band_still_takes_the_pointer() -> void:
-	_size(2)
+	_largest()
 	_saved()
 	await _settle()
+	if not _scrolls():
+		return
 	assert_bool(_shown("NewGame")).is_true()
 	runner.simulate_mouse_move(_to_window(_node("NewGame").get_global_rect().get_center()))
 	await runner.await_input_processed()

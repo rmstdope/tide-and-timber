@@ -117,7 +117,7 @@ func test_the_line_follows_the_highlight() -> void:
 func test_board_geometry() -> void:
 	await _open()
 	var panel := board.get_node("%Panel") as Control
-	assert_that(panel.get_rect()).is_equal(Rect2(8, 21, 304, 138))
+	assert_that(panel.get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, floorf((Screen.HEIGHT - SettingsBoard.BOARD_H) / 2.0), SettingsBoard.BOARD_W, SettingsBoard.BOARD_H))
 	for r: String in ROWS:
 		assert_that(_row(r).size).is_equal(Vector2(200, 16))
 		assert_float(_row(r).position.x).is_equal(52.0)
@@ -127,7 +127,7 @@ func test_board_geometry() -> void:
 		assert_int(line.get_line_count()).override_failure_message("%s wraps too far" % line.text).is_less_equal(2)
 		await _tap(KEY_DOWN)
 	var rect := panel.get_global_rect()
-	assert_bool(Rect2(0, 0, 320, 180).encloses(rect)).is_true()
+	assert_bool(Rect2(Vector2.ZERO, Screen.SIZE).encloses(rect)).is_true()
 	assert_bool(rect.intersects(board.strip.get_global_rect())).is_false()
 
 func test_right_steps_and_stops_at_the_end() -> void:

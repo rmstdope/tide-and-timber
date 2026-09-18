@@ -1,5 +1,7 @@
 extends GdUnitTestSuite
 ## At larger Text size the dawn-save box's words grow; the box widens, then wraps, and its grown buttons stack.
+## At 640x360 Text size alone never stacks the buttons (UI Normal leaves room), so the stacking test
+## steps UI size to Large first and then Text size: it stacks at UI Large + Text Largest.
 
 const B := DawnSave.Choice
 
@@ -57,11 +59,13 @@ func _text_up(steps: int) -> void:
 func test_largest_text_widens_the_box_and_keeps_the_journal_inset() -> void:
 	_fail_dawn()
 	await _text_up(2)
-	assert_float(_panel_rect().size.x).is_equal(312.0)
+	# as wide as the picture allows at this UI size
+	assert_float(_panel_rect().size.x).is_equal(BoxLayout.widest(UiScale.current(Display.prefs, get_tree().root)))
 	assert_float(_n("FirstLine").position.x).is_equal(Autosave.FIRST_LINE_X)
 	assert_that(_n("FirstLine").scale).is_equal(Vector2(2, 2))
 
 func test_grown_buttons_stack_and_up_down_choose() -> void:
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	_fail_dawn()
 	var steps := 0
 	while not autosave._box.stacked and steps < 2:

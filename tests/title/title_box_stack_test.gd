@@ -1,17 +1,28 @@
 extends GdUnitTestSuite
-## The title's Start over and Replace boxes at large UI sizes: narrowed, centred, buttons stacked left on top.
+## The title's Start over and Replace boxes at large UI and Text sizes: narrowed, centred, buttons stacked left on top.
+## At 640x360 UI size alone never stacks a box, so the stacked layouts are reached the way a player does, in
+## the default 1280x720 window (k = 2): Start over first stacks at UI Large + Text Largest ("large" below) and
+## at UI Largest + Text Largest ("largest"); Replace stacks only at UI Largest + Text Largest.
+## Every test about a stacked box first asserts that it is stacked, so none can pass on the plain layout.
 
 const SCENE := "res://src/title/title_screen.tscn"
 const ROOT := "user://test_saves"
 const DIR := "user://test_saves/title_box_stack"
 const EPS := Vector2(0.01, 0.01)
 
-const START_OVER_NORMAL: Array[Rect2] = [Rect2(12, 42, 296, 96), Rect2(8, 8, 280, 12), Rect2(8, 24, 280, 28), Rect2(24, 66, 120, 20), Rect2(152, 66, 120, 20)]
-const START_OVER_LARGE: Array[Rect2] = [Rect2(58, 24, 204, 133), Rect2(8, 8, 188, 19), Rect2(8, 31, 188, 30), Rect2(42, 75, 120, 20), Rect2(42, 103, 120, 20)]
-const START_OVER_LARGEST: Array[Rect2] = [Rect2(84, 24, 152, 133), Rect2(8, 8, 136, 19), Rect2(8, 31, 136, 30), Rect2(16, 75, 120, 20), Rect2(16, 103, 120, 20)]
-const REPLACE_NORMAL: Array[Rect2] = [Rect2(12, 42, 296, 96), Rect2(8, 6, 280, 12), Rect2(8, 20, 280, 42), Rect2(24, 66, 120, 20), Rect2(152, 66, 120, 20)]
-const REPLACE_LARGE: Array[Rect2] = [Rect2(58, 28, 204, 124), Rect2(8, 6, 188, 12), Rect2(8, 20, 188, 42), Rect2(42, 66, 120, 20), Rect2(42, 94, 120, 20)]
-const REPLACE_LARGEST: Array[Rect2] = [Rect2(84, 18, 152, 145), Rect2(8, 6, 136, 12), Rect2(8, 20, 136, 63), Rect2(16, 87, 120, 20), Rect2(16, 115, 120, 20)]
+## A panel centred on the picture: the boxes' rest panels grow about Screen.CENTRE.
+static func _centred(w: float, h: float) -> Rect2:
+	return Rect2(Screen.CENTRE - Vector2(w, h) / 2.0, Vector2(w, h))
+
+# Normal: today's layout, the 296x96 panel centred on the picture.
+var START_OVER_NORMAL: Array[Rect2] = [_centred(296, 96), Rect2(8, 8, 280, 12), Rect2(8, 24, 280, 28), Rect2(24, 66, 120, 20), Rect2(152, 66, 120, 20)]
+# UI Large + Text Largest at k = 2: s = 1.5, the words twice their size, the panel 418x138.
+var START_OVER_LARGE: Array[Rect2] = [_centred(418, 138), Rect2(8, 8, 201, 8), Rect2(8, 28, 201, 19), Rect2(95, 80, 228, 20), Rect2(127, 108, 164, 20)]
+# UI Largest + Text Largest at k = 2: s = 2, the panel 312x182 at rest.
+var START_OVER_LARGEST: Array[Rect2] = [_centred(312, 182), Rect2(8, 8, 148, 19), Rect2(8, 50, 148, 30), Rect2(42, 124, 228, 20), Rect2(74, 152, 164, 20)]
+var REPLACE_NORMAL: Array[Rect2] = [_centred(296, 96), Rect2(8, 6, 280, 12), Rect2(8, 20, 280, 42), Rect2(24, 66, 120, 20), Rect2(152, 66, 120, 20)]
+# UI Largest + Text Largest at k = 2: the only combination that stacks Replace; the panel 312x190 at rest.
+var REPLACE_LARGEST: Array[Rect2] = [_centred(312, 190), Rect2(8, 6, 148, 8), Rect2(8, 24, 148, 52), Rect2(96, 132, 120, 20), Rect2(74, 160, 164, 20)]
 
 var _saved_size: Vector2i
 var _saved_mode: Window.ContentScaleMode
@@ -23,7 +34,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(2560, 1440)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 
 func after_test() -> void:
@@ -106,12 +117,27 @@ func _open_replace_box() -> void:
 	_newer()
 	await _press(KEY_ENTER)
 
-func _large() -> void:
-	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
+func _ui(steps: int) -> void:
+	for i in steps:
+		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 
+func _text(steps: int) -> void:
+	for i in steps:
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
+
+## UI Large + Text Largest: the smallest combination that stacks Start over.
+func _large() -> void:
+	_ui(1)
+	_text(2)
+
+## UI Largest + Text Largest: the combination that stacks both boxes.
 func _largest() -> void:
-	_large()
-	_large()
+	_ui(2)
+	_text(2)
+
+func _assert_stacked(box: String) -> void:
+	var layout: BoxLayout = screen._start_over_box if box == "StartOver" else screen._replace_box
+	assert_bool(layout.stacked).override_failure_message("%s should be stacked" % box).is_true()
 
 func _control(path: String) -> Control:
 	return screen.get_node(path) as Control
@@ -144,13 +170,14 @@ func _move_over(control: Control, relative := Vector2(1, 0)) -> void:
 func test_normal_is_todays_layout() -> void:
 	await _open_start_over_box()
 	_assert_box("StartOver", START_OVER_NORMAL)
-	assert_vector(_control("%StartOverBox").pivot_offset).is_equal(Vector2(148, 48))
+	assert_vector(_control("%StartOverBox").pivot_offset).is_equal(Vector2(296, 96) / 2.0)
 	await _open_replace_box()
 	_assert_box("Replace", REPLACE_NORMAL)
 
 func test_start_over_stacks_at_largest() -> void:
 	await _open_start_over_box()
 	_largest()
+	_assert_stacked("StartOver")
 	_assert_box("StartOver", START_OVER_LARGEST)
 	assert_bool(_control("%StartOverBox").visible).is_true()
 	assert_int(screen.menu.box_selected).is_equal(TitleMenu.BoxButton.KEEP_MY_ISLAND)
@@ -159,68 +186,87 @@ func test_start_over_stacks_at_largest() -> void:
 func test_start_over_stacks_at_large() -> void:
 	await _open_start_over_box()
 	_large()
+	_assert_stacked("StartOver")
 	_assert_box("StartOver", START_OVER_LARGE)
 
 func test_replace_stacks_at_largest() -> void:
 	await _open_replace_box()
 	_largest()
+	_assert_stacked("Replace")
 	_assert_box("Replace", REPLACE_LARGEST)
 	_box_highlighted("Cancel")
 
+## Replace's words are longer than Start over's buttons need: one step short of Largest on either
+## setting, it stays side by side, centred.
 func test_replace_stacks_at_large() -> void:
 	await _open_replace_box()
 	_large()
-	_assert_box("Replace", REPLACE_LARGE)
+	assert_bool(screen._replace_box.stacked).is_false()
+	assert_that(_panel_rect("Replace")).is_equal(_centred(418, 140))
+	Display.use_prefs(DisplayPrefs.new())
+	_ui(2)
+	_text(1)
+	assert_bool(screen._replace_box.stacked).is_false()
+	assert_that(_panel_rect("Replace")).is_equal(_centred(312, 116))
 
 func test_stacked_box_stays_centred_on_screen() -> void:
 	await _open_start_over_box()
 	_largest()
+	_assert_stacked("StartOver")
+	_assert_stacked("Replace")
 	await get_tree().process_frame   # the boxes are framed once the strip's own deferred layout has run
 	for unique: String in ["%StartOverBox", "%ReplaceBox"]:
 		var c := _control(unique)
-		assert_vector(c.position + c.pivot_offset).is_equal(Vector2(160, 90))
+		assert_vector(c.position + c.pivot_offset).is_equal(Screen.CENTRE)
 		assert_vector(c.scale).is_equal(Vector2(2, 2))
-		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Vector2(160, 76), EPS)
+		# framed to the room above the strip: 155 tall, top at 91, so centred 23 above the picture's centre
+		assert_vector(c.get_global_rect().get_center()).is_equal_approx(Screen.CENTRE - Vector2(0, 23), EPS)
 	Display.use_prefs(DisplayPrefs.new())
 	_large()
+	_assert_stacked("StartOver")
 	await get_tree().process_frame
 	var box := _control("%StartOverBox")
-	assert_vector(box.pivot_offset).is_equal(Vector2(102, 58))
-	assert_vector(box.get_global_rect().get_center()).is_equal_approx(Vector2(160, 79.5), EPS)
+	assert_vector(box.pivot_offset).is_equal(Vector2(209, 69))
+	assert_vector(box.get_global_rect().get_center()).is_equal_approx(Screen.CENTRE, EPS)
 
 func test_stacking_while_up_keeps_the_highlight() -> void:
 	await _open_start_over_box()
 	await _press(KEY_RIGHT)
 	_largest()
+	_assert_stacked("StartOver")
 	assert_int(screen.menu.box_selected).is_equal(TitleMenu.BoxButton.START_OVER)
 	_box_highlighted("StartOver")
-	assert_that(_rect("%StartOver")).is_equal(Rect2(16, 103, 120, 20))
+	assert_that(_rect("%StartOver")).is_equal(START_OVER_LARGEST[4])
 	Display.use_prefs(DisplayPrefs.new())
 	_assert_box("StartOver", START_OVER_NORMAL)
-	assert_vector(_control("%StartOverBox").pivot_offset).is_equal(Vector2(148, 48))
+	assert_vector(_control("%StartOverBox").pivot_offset).is_equal(Vector2(296, 96) / 2.0)
 	assert_vector(_control("%StartOverBox").scale).is_equal(Vector2.ONE)
 	_box_highlighted("StartOver")
 
 func test_window_resize_refits() -> void:
 	await _open_start_over_box()
 	_large()
-	assert_float(_control("%StartOverBox").size.x).is_equal(204.0)
-	get_tree().root.size = Vector2i(1280, 720)
+	_assert_stacked("StartOver")
+	assert_float(_control("%StartOverBox").size.x).is_equal(418.0)
+	get_tree().root.size = Vector2i(640, 360)   # k = 1: Large rounds up to s = 2
 	var box := _control("%StartOverBox")
-	assert_float(box.size.x).is_equal(152.0)
-	assert_vector(box.position + box.pivot_offset).is_equal(Vector2(160, 90))
-	get_tree().root.size = Vector2i(2560, 1440)
+	assert_float(box.size.x).is_equal(312.0)
+	assert_vector(box.position + box.pivot_offset).is_equal(Screen.CENTRE)
+	get_tree().root.size = Vector2i(1280, 720)
 
 func test_a_box_opened_while_stacked_is_already_fitted() -> void:
 	_saved()
 	_largest()
 	await _press(KEY_DOWN)
 	await _press(KEY_ENTER)
+	_assert_stacked("StartOver")
 	_assert_box("StartOver", START_OVER_LARGEST)
 
 func test_stacked_buttons_do_not_overlap() -> void:
 	await _open_start_over_box()
 	_largest()
+	_assert_stacked("StartOver")
+	_assert_stacked("Replace")
 	for pair: Array in [["%StartOverBox", "%KeepMyIsland", "%StartOver"], ["%ReplaceBox", "%Cancel", "%ReplaceStartOver"]]:
 		var box := _control(pair[0] + "/Clip/Content").get_global_rect()
 		var top := _control(pair[1]).get_global_rect()
@@ -242,6 +288,7 @@ func test_up_down_do_nothing_side_by_side() -> void:
 func test_select_and_back_unchanged_when_stacked() -> void:
 	await _open_start_over_box()
 	_largest()
+	_assert_stacked("StartOver")
 	await _press(KEY_RIGHT)
 	await _press(KEY_ENTER)
 	assert_bool(screen.menu.locked).is_true()
@@ -249,6 +296,7 @@ func test_select_and_back_unchanged_when_stacked() -> void:
 	Display.use_prefs(DisplayPrefs.new())
 	await _open_start_over_box()
 	_largest()
+	_assert_stacked("StartOver")
 	await _press(KEY_RIGHT)
 	await _press(KEY_ESCAPE)
 	assert_bool(_control("%StartOverBox").visible).is_false()
@@ -259,6 +307,7 @@ func test_select_and_back_unchanged_when_stacked() -> void:
 func test_hover_still_selects_a_stacked_button() -> void:
 	await _open_start_over_box()
 	_largest()
+	_assert_stacked("StartOver")
 	_move_over(_control("%StartOver"))
 	assert_int(screen.menu.box_selected).is_equal(TitleMenu.BoxButton.START_OVER)
 	_box_highlighted("StartOver")

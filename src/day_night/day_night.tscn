@@ -71,7 +71,7 @@ layer = 10
 
 [node name="UiScale" type="Node" parent="SunsetLayer"]
 script = ExtResource("ui_scale")
-anchor = Vector2(320, 332)
+anchor = Vector2(320, 346)
 
 [node name="Sunset" type="Control" parent="SunsetLayer"]
 unique_name_in_owner = true

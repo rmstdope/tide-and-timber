@@ -141,7 +141,7 @@ func test_waves_move() -> void:
 
 func test_no_save_shows_three_planks() -> void:
 	assert_bool(_plank("Continue").visible).is_false()
-	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(97.0)
+	assert_float((screen.get_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP)
 
 # A mouse movement straight to a control, as Godot delivers one over it.
 func _move_over(control: Control, relative := Vector2(1, 0)) -> void:

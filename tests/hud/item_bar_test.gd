@@ -22,7 +22,7 @@ func after_test() -> void:
 
 func test_eight_slots_centred_at_bottom() -> void:
 	assert_int(bar.slots.size()).is_equal(8)
-	assert_vector(bar.position).is_equal(Vector2(90, 157))
+	assert_vector(bar.position).is_equal(Vector2(roundi((Screen.WIDTH - ItemBar.PLANK_SIZE.x) / 2), ItemBar.TOP))
 	assert_vector(bar.slots[7].position).is_equal(Vector2(122, 3))
 
 func test_slots_follow_inventory() -> void:
@@ -63,7 +63,7 @@ func test_slots_stop_the_mouse() -> void:
 func test_name_plank_stays_on_screen_at_largest() -> void:
 	var root := get_tree().root
 	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	root.size = Vector2i(2560, 1440)
+	root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 	inv.add(K.SHELLFISH)
@@ -105,5 +105,5 @@ func test_too_wide_name_plank_is_centred_on_the_screen() -> void:
 	bar.slots[0].mouse_entered.emit()
 	assert_float(bar.name_plank.size.x).is_equal_approx(184.0, 0.01)
 	assert_float(bar.position.x + bar.name_plank.position.x + bar.name_plank.size.x / 2.0) \
-		.is_equal_approx(160.0, 0.01)
+		.is_equal_approx(Screen.CENTRE.x, 0.01)
 	assert_float(bar.name_plank.position.x).is_equal_approx(-22.0, 0.01)

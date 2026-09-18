@@ -1,6 +1,9 @@
 extends GdUnitTestSuite
 ## On the beach, the build list follows Text size: its words grow, it stacks and widens with them,
 ## and at Largest of both it scrolls the grown list.
+##
+## At 640x360 the list stacks only at UI Largest and Text Largest (Text size alone never widens it past
+## the picture), and there the stacked list, 252 x 101 drawn 2x, fits the room above the hint.
 
 const SCENE := "res://src/beach/beach.tscn"
 
@@ -40,6 +43,7 @@ func _settle() -> void:
 
 func test_the_beach_list_grows_with_text_size() -> void:
 	inventory.add(Item.Kind.DRIFTWOOD, 9)
+	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
 	await _settle()
 	await _press(KEY_B)
@@ -47,7 +51,7 @@ func test_the_beach_list_grows_with_text_size() -> void:
 	assert_bool(_list().stacked).is_true()
 	assert_vector(_list().list_size()).is_equal(Vector2(252, 101))
 	assert_vector(_list().size).is_equal(Vector2(252, 101))
-	assert_vector(_list().scale).is_equal(Vector2.ONE)
+	assert_vector(_list().scale).is_equal(Vector2(2, 2))
 	assert_bool(_list().scrolls).is_false()
 	assert_vector(_list().title_label.scale).is_equal(Vector2(2, 2))
 	assert_str(_list().cost_labels[1].text).is_equal("Needs a lean-to")
