@@ -145,7 +145,7 @@ func test_centred_line_grows_about_its_centre() -> void:
 	var l := _bare_line()
 	(l as Object).call("say", "So cold... just... rest a moment...")
 	(l as Object).call("fit", 2.0)
-	assert_float(l.size.x).is_less(Screen.WIDTH)  # the width it has in its scene
+	assert_float(l.size.x).is_equal(SpokenLine.wanted_width(ceilf(l.get_minimum_size().x), 0.0))  # hugs its words, not its 640-wide scene rect
 	_assert_centred(l, l.size.x)
 	assert_float(l.position.y + l.size.y / 2.0).is_equal_approx(Screen.CENTRE.y, 0.5)
 
@@ -250,7 +250,7 @@ func test_bare_line_grows_about_its_centre() -> void:
 	(l as Object).call("say", "So cold... just... rest a moment...")
 	(l as Object).call("fit", 1.0, 2.0)
 	assert_vector(l.scale).is_equal(Vector2(2, 2))
-	assert_float(l.size.x * 2.0).is_less(Screen.WIDTH)  # the width it has in its scene
+	assert_float(l.size.x * 2.0).is_equal(SpokenLine.wanted_width(ceilf(l.get_minimum_size().x * 2.0), 0.0))  # hugs its words
 	_assert_centred(l, l.size.x * 2.0)
 	assert_float(l.position.y + l.size.y * 2.0 / 2.0).is_equal_approx(Screen.CENTRE.y, 0.5)
 
@@ -282,8 +282,7 @@ func test_a_short_line_hugs_its_words() -> void:
 	line.fit(1.0)
 	var text := line.get_node("Text") as Label
 	assert_float(line.size.x).is_less(296.0)
-	assert_float(text.position.x).is_equal(SpokenLine.BAND_MARGIN)
-	assert_float(line.size.x - text.position.x - text.size.x).is_equal(SpokenLine.BAND_MARGIN)
+	_assert_margins(line, SpokenLine.BAND_MARGIN)
 	assert_int(text.autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
 	assert_vector((line.get_node("Band") as Control).size).is_equal(line.size)
 	assert_float(line.position.x).is_equal(roundf((Screen.WIDTH - line.size.x) / 2.0))
