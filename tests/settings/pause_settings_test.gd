@@ -81,7 +81,7 @@ func test_settings_opens_the_board_over_the_frozen_game() -> void:
 	assert_bool(board.visible).is_true()
 	assert_bool(_pause_node("Board").visible).is_false()
 	assert_str((board.get_node("%Heading") as Label).text).is_equal("Settings")
-	assert_str((_board_node("Controls").get_node("Row/Label") as Label).text).is_equal("Controls")
+	assert_str((_board_node("Controls").get_node("Row/Label/Words") as Label).text).is_equal("Controls")
 	assert_bool(is_same(_board_node("UiSize").get_theme_stylebox("panel"), SettingsBoard.PLANK_HIGHLIGHT_STYLE)).is_true()
 	assert_that(_board_node("Panel").get_rect()).is_equal(Rect2(8, 21, 304, 138))
 	assert_str(board.strip.text()).is_equal("[Enter] Select   [Esc] Back")

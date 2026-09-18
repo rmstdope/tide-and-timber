@@ -73,7 +73,7 @@ func test_debug_plank_sits_above_quit_to_title() -> void:
 	var planks: Array = ["Resume", "Settings", "Debug", "QuitToTitle"].map(func(n: String) -> Control: return _node(n))
 	for i in planks.size() - 1:
 		assert_float(planks[i].position.y).is_less(planks[i + 1].position.y)
-	assert_str((_node("Debug").get_node("Label") as Label).text).is_equal("Debug")
+	assert_str((_node("Debug").get_node("Label/Words") as Label).text).is_equal("Debug")
 	var board := _node("Panel") as Control
 	assert_float(board.size.y).is_equal(Pause.BOARD_H_THREE + Pause.PLANK_STEP)
 	assert_float(board.position.y + board.size.y).is_less_equal(180.0)

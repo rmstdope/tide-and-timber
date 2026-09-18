@@ -12,16 +12,19 @@ signal skip_story_chosen    # after SKIP_STORY unpauses the tree
 const TITLE_SCENE := "res://src/title/title_screen.tscn"
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
-const BOARD_X := 88.0
-const BOARD_W := 144.0
+# The board at Text size Normal. lay_out() measures the words instead of reading these, so they are
+# what tests/debug/pause_debug_test.gd checks Normal still draws, not values the layout uses.
 const BOARD_H_THREE := 96.0          # plus PLANK_STEP per extra plank
 const PLANK_X := 12.0                # inside the board
 const PLANK_TOP := 28.0              # first plank's top inside the board
-const PLANK_STEP := 20.0
+const PLANK_STEP := 20.0             # the Normal step; lay_out() uses plank_h + PLANK_GAP
 const PLANK_SIZE := Vector2(120, 16)
 const BASE_HEIGHT := 180.0
 const HEADING_TOP := 8.0        # panel top to the heading's top; the scrolled content starts here
 const BOTTOM_MARGIN := 12.0     # last plank's bottom to the panel's bottom (96 - 84)
+const WORD_HEIGHT := 8.0        # one line of words at Normal: the heading's height
+const PLANK_GAP := 4.0          # PLANK_STEP - PLANK_SIZE.y, kept at every Text size
+const DEV_TAG_RIGHT := 20.0     # the DEV tag's left edge, from the board's right edge (144 - 124)
 
 @export var with_skip_story := false
 
@@ -70,13 +73,8 @@ func _ready() -> void:
 	get_tree().root.size_changed.connect(_frame_quit_box_later)
 	_quit_panel().get_node("Marks").draw.connect(_draw_quit_marks)
 	%SkipStory.visible = with_skip_story
-	var h := BOARD_H_THREE + PLANK_STEP * (rules.items.size() - 3)
-	rest_panel = Rect2(BOARD_X, (BASE_HEIGHT - h) / 2.0, BOARD_W, h)
-	(%Content as Control).size = rest_panel.size
 	for i in rules.items.size():
 		var plank := _plank(rules.items[i])
-		plank.position = Vector2(PLANK_X, PLANK_TOP + i * PLANK_STEP)
-		plank.size = PLANK_SIZE
 		plank.gui_input.connect(func(event: InputEvent) -> void:
 			if PointerRule.is_move(event):
 				rules.hover(rules.items[i])
@@ -273,15 +271,62 @@ func _item_extent(item: PauseMenu.Plank) -> Vector2:
 	return ScrollWindow.stretch_ends(Vector2(top, top + p.size.y), _content_height(),
 			item == rules.items[0], item == rules.items[rules.items.size() - 1])
 
-func _frame() -> void:
+## Sizes the heading and planks for Text size and sets rest_panel. Every plank takes the widest plank's
+## width and the tallest plank's height. A plank's words wrap only when they are wider than the board
+## may be on screen.
+func lay_out(retry: bool = true) -> void:
+	var ui := UiScale.current(Display.prefs, get_tree().root)
+	var rel := TextScale.relative(Display.prefs, get_tree().root)
+	var room := SettingsBoard.panel_width(ui) - 2.0 * PLANK_X - PLANK_STYLE.get_minimum_size().x
+	var plank_w := PLANK_SIZE.x
+	var plank_h := PLANK_SIZE.y
+	for item: PauseMenu.Plank in rules.items:
+		var plank := _plank(item)
+		(plank.get_node("Label") as GrownWords).max_width = room
+		var m := plank.get_combined_minimum_size()
+		plank_w = maxf(plank_w, m.x)
+		plank_h = maxf(plank_h, m.y)
+	var top := PLANK_TOP + ceilf(WORD_HEIGHT * rel) - WORD_HEIGHT
+	var step := plank_h + PLANK_GAP
+	var settled := true          # false when a plank could not yet shrink to the height we just measured
+	for i in rules.items.size():
+		var plank := _plank(rules.items[i])
+		plank.position = Vector2(PLANK_X, top + i * step)
+		# A shrunken Label reaches its plank only on the next frame, and until then the engine clamps
+		# `size` to the height at the Text size before this one. `settled` catches that frame.
+		plank.update_minimum_size()
+		plank.size = Vector2(plank_w, plank_h)
+		if plank.size.y > plank_h:
+			settled = false
+	var board_w := plank_w + 2.0 * PLANK_X
+	var heading := %Heading as Label
+	heading.scale = Vector2.ONE * rel
+	heading.size = Vector2(board_w / rel, WORD_HEIGHT)
+	# The tag is freed in _ready in a release board, and debug_tools may have changed since; ask the node.
+	var dev_tag := get_node_or_null("%DevTag") as Control
+	if dev_tag != null:
+		dev_tag.position.x = board_w - DEV_TAG_RIGHT
+	var h := top + (rules.items.size() - 1) * step + plank_h + BOTTOM_MARGIN
+	rest_panel = Rect2(floorf((320.0 - board_w) / 2.0), floorf((BASE_HEIGHT - h) / 2.0), board_w, h)
+	(%Content as Control).size = rest_panel.size
+	if not settled and retry:
+		# Once, on the next frame, when the shrink has reached the planks. Never again: a plank whose
+		# words genuinely need the taller rect would otherwise re-queue itself every frame.
+		_frame.call_deferred(false)
+
+func _frame(retry: bool = true) -> void:
+	if is_queued_for_deletion():
+		return   # a deferred retry that arrived as the board was going away
 	if not is_inside_tree() or strip == null:
-		frame(0.0, BASE_HEIGHT)
+		frame(0.0, BASE_HEIGHT)   # lay_out needs the tree; leave the rects as they are
 		return
+	lay_out(retry)
 	var b := ScrollWindow.band((%Board as Control).get_global_transform_with_canvas(), strip.screen_top())
 	frame(b.x, b.y)
 
 func _frame_later() -> void:
-	_frame.call_deferred()
+	if is_inside_tree() and not is_queued_for_deletion():
+		_frame.call_deferred()
 
 ## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
 ## mark row kept at the panel's top or bottom.

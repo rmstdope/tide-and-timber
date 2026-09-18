@@ -139,9 +139,9 @@ func _open_replace_box() -> void:
 func test_save_shows_continue_with_the_day() -> void:
 	_saved()
 	assert_bool(_visible("%Continue")).is_true()
-	assert_str(_text("MenuClip/Menu/Continue/Lines/Label")).is_equal("Continue")
+	assert_str(_text("MenuClip/Menu/Continue/Lines/Label/Words")).is_equal("Continue")
 	assert_bool(_visible("%DayLine")).is_true()
-	assert_str(_text("%DayLine")).is_equal("DAY 4")
+	assert_str(_text("%DayLine/Words")).is_equal("DAY 4")
 	assert_highlighted("Continue")
 	assert_float((_node("%Menu") as Control).position.y).is_equal(83.0)
 
@@ -151,7 +151,7 @@ func test_menu_fits_with_a_save() -> void:
 	var menu := (_node("%Menu") as Control).get_global_rect()
 	assert_bool(Rect2(0, 0, 320, 180).encloses(menu)).override_failure_message("menu at %s" % menu).is_true()
 	assert_bool(menu.intersects((_node("%Version") as Control).get_global_rect())).is_false()
-	for path in ["MenuClip/Menu/Continue/Lines/Label", "%DayLine"]:
+	for path in ["MenuClip/Menu/Continue/Lines/Label/Words", "%DayLine/Words"]:
 		var label := _node(path) as Label
 		assert_float(label.get_minimum_size().x).is_less_equal(label.size.x)
 
@@ -276,7 +276,7 @@ func test_older_save_looks_like_any_save() -> void:
 	_open_older()
 	assert_bool(_visible("%Continue")).is_true()
 	assert_highlighted("Continue")
-	assert_str(_text("%DayLine")).is_equal("DAY 4")
+	assert_str(_text("%DayLine/Words")).is_equal("DAY 4")
 	for box in ["%Dim", "%StartOverBox", "%ReplaceBox", "%Reason"]:
 		assert_bool(_visible(box)).is_false()
 
@@ -298,7 +298,7 @@ func test_older_save_continues_with_nothing_said() -> void:
 func _assert_dimmed() -> void:
 	assert_bool(_visible("%Continue")).is_true()
 	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_DIMMED_STYLE)
-	assert_object((_node("MenuClip/Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_DIMMED_COLOR)
+	assert_object((_node("MenuClip/Menu/Continue/Lines/Label/Words") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_DIMMED_COLOR)
 	assert_bool(_visible("%DayLine")).is_false()
 	for plank: String in ["NewGame", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == "NewGame" else TitleScreen.PLANK_STYLE
@@ -308,14 +308,14 @@ func test_newer_save_dims_continue_with_its_reason() -> void:
 	_newer()
 	_assert_dimmed()
 	assert_bool(_visible("%Reason")).is_true()
-	assert_str(_text("%Reason")).is_equal("Save is from a newer version")
+	assert_str(_text("%Reason/Words")).is_equal("Save is from a newer version")
 	assert_float((_node("%Menu") as Control).position.y).is_equal(75.0)
 
 func test_broken_save_dims_continue_with_its_reason() -> void:
 	_broken()
 	_assert_dimmed()
 	assert_bool(_visible("%Reason")).is_true()
-	assert_str(_text("%Reason")).is_equal("This save couldn't be opened")
+	assert_str(_text("%Reason/Words")).is_equal("This save couldn't be opened")
 
 func test_beach_refused_save_is_broken() -> void:
 	var data := _sample()
@@ -324,13 +324,13 @@ func test_beach_refused_save_is_broken() -> void:
 	SaveStore.save_slot(data, DIR)
 	_open(DIR)
 	_assert_dimmed()
-	assert_str(_text("%Reason")).is_equal("This save couldn't be opened")
+	assert_str(_text("%Reason/Words")).is_equal("This save couldn't be opened")
 
 func test_readable_save_has_no_reason() -> void:
 	_saved()
 	assert_bool(_visible("%Reason")).is_false()
 	assert_highlighted("Continue")
-	assert_object((_node("MenuClip/Menu/Continue/Lines/Label") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
+	assert_object((_node("MenuClip/Menu/Continue/Lines/Label/Words") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
 	assert_float((_node("%Menu") as Control).position.y).is_equal(83.0)
 
 func test_no_save_has_no_reason() -> void:
@@ -350,9 +350,9 @@ func test_dimmed_menu_fits() -> void:
 		assert_float(rect.position.x).override_failure_message("%s x" % plank).is_equal(115.0)
 		assert_bool(view.encloses(rect)).override_failure_message("%s at %s" % [plank, rect]).is_true()
 		assert_bool(rect.intersects(version)).is_false()
-	var reason := _node("%Reason") as Label
+	var reason := _node("%Reason/Words") as Label
 	assert_float(reason.get_minimum_size().x).is_less_equal(reason.size.x)
-	var r := reason.get_global_rect()
+	var r := (_node("%Reason") as Control).get_global_rect()
 	assert_float(_plank("Continue").get_global_rect().end.y).is_less_equal(r.position.y)
 	assert_float(r.end.y).is_less_equal(_plank("NewGame").get_global_rect().position.y)
 	assert_bool(r.intersects(version)).is_false()

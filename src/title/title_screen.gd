@@ -9,6 +9,11 @@ const GAME_SCENE := "res://src/waking/waking.tscn"
 const MENU_TOP := 97.0                  # the menu's place: three planks with no save
 const MENU_TOP_WITH_SAVE := 83.0        # four planks still clear the bottom edge
 const MENU_TOP_DIMMED := 75.0           # Continue, reason line, New Game, Settings, Quit clear the bottom edge
+const PLANK_MIN := Vector2(90, 18)       # a menu plank at Normal (the scene's custom_minimum_size)
+const WORD_HEIGHT := 8.0
+const MENU_HEIGHT := 60.0                # the menu at Normal Text size: three planks with no save
+const MENU_HEIGHT_WITH_SAVE := 84.0      # Continue with its DAY line, New Game, Settings, Quit
+const MENU_HEIGHT_DIMMED := 92.0         # dimmed Continue, reason line, New Game, Settings, Quit
 const REASON_NEWER := "Save is from a newer version"
 const REASON_BROKEN := "This save couldn't be opened"
 const FADE_SECONDS := 1.0
@@ -41,18 +46,26 @@ var _start_over_offset := 0        # whole units the Start over box's content is
 var _replace_offset := 0           # whole units the Replace box's content is scrolled up
 var _box_was: TitleMenu.Box = TitleMenu.Box.NONE   # to start each box at the top when it opens
 var _menu_top := MENU_TOP                # the menu's top at Normal, owned by read_save
+var _menu_normal_height := MENU_HEIGHT   # the menu's height at Normal Text size, owned by read_save
 var menu_offset := 0          # whole menu units scrolled up; 0 while it fits. Owned by _place_menu.
 var menu_scrolls := false     # the menu does not fit the band; derived by _place_menu
 
-## The title menu's top on screen when drawn at scale s. normal_top is its top at Normal, height its unscaled height.
-## s <= 1: normal_top. Otherwise the menu grows about its own centre, then moves up until its bottom is at least
-## MENU_STRIP_GAP above the strip's top (MenuStrip.BOTTOM - KeyHint.HEIGHT * s), but never above y 0.
-static func menu_top_at(normal_top: float, height: float, s: float) -> float:
-	if s <= 1.0:
+## The title menu's top on screen when drawn at scale s. normal_top: its top at Normal. height: its height now,
+## in menu units. normal_height: its height at Normal Text size (default: height). strip_top: the strip's top on
+## screen (default, or any negative: MenuStrip.BOTTOM - KeyHint.HEIGHT * s).
+## Unchanged in size (s <= 1 and height <= normal_height): normal_top. Otherwise it grows about its Normal centre,
+## then moves up until its bottom is at least MENU_STRIP_GAP above strip_top, but never above y 0.
+static func menu_top_at(normal_top: float, height: float, s: float, normal_height: float = -1.0,
+		strip_top: float = -1.0) -> float:
+	if normal_height < 0.0:
+		normal_height = height
+	if strip_top < 0.0:
+		strip_top = MenuStrip.BOTTOM - KeyHint.HEIGHT * s
+	if s <= 1.0 and height <= normal_height:
 		return normal_top
 	var h := height * s
-	var centred := roundf(normal_top + height / 2.0 - h / 2.0)
-	var clear := floorf(MenuStrip.BOTTOM - KeyHint.HEIGHT * s - MENU_STRIP_GAP - h)
+	var centred := roundf(normal_top + normal_height / 2.0 - h / 2.0)
+	var clear := floorf(strip_top - MENU_STRIP_GAP - h)
 	return maxf(0.0, minf(centred, clear))
 
 func _ready() -> void:
@@ -99,6 +112,8 @@ func read_save(dir: String) -> void:
 	saved_day = saved_game.day() if saved_game else 0
 	menu = TitleMenu.new(exists, opens)
 	_menu_top = MENU_TOP_DIMMED if menu.continue_dimmed else (MENU_TOP_WITH_SAVE if exists else MENU_TOP)
+	_menu_normal_height = MENU_HEIGHT_DIMMED if menu.continue_dimmed \
+			else (MENU_HEIGHT_WITH_SAVE if exists else MENU_HEIGHT)
 	%Reason.text = REASON_NEWER if reading.state == SlotReading.State.NEWER else REASON_BROKEN
 	%Reason.visible = menu.continue_dimmed
 	%DayLine.text = "DAY %d" % saved_day
@@ -216,7 +231,7 @@ func _refresh() -> void:
 	%Continue.visible = TitleMenu.Choice.CONTINUE in menu.choices
 	%Continue.add_theme_stylebox_override("panel",
 			PLANK_DIMMED_STYLE if menu.continue_dimmed else _style_for(TitleMenu.Choice.CONTINUE))
-	%Continue.get_node("Lines/Label").add_theme_color_override("font_color",
+	(%Continue.get_node("Lines/Label") as GrownWords).words().add_theme_color_override("font_color",
 			LABEL_DIMMED_COLOR if menu.continue_dimmed else LABEL_COLOR)
 	%NewGame.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.NEW_GAME))
 	%Settings.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.SETTINGS))
@@ -331,6 +346,22 @@ func _place_menu() -> void:
 	var m := %Menu as Control
 	m.pivot_offset = Vector2.ZERO
 	m.scale = Vector2(s, s)
+	var rel := TextScale.relative(Display.prefs, get_tree().root)
+	var room := floorf((320.0 - 2.0 * SpokenLine.SCREEN_MARGIN) / s)
+	(%Reason as GrownWords).max_width = room
+	var inner := room - PLANK_STYLE.get_minimum_size().x
+	for words: GrownWords in [%Continue.get_node("Lines/Label"), %DayLine,
+			%NewGame.get_node("Label"), %Settings.get_node("Label"), %Quit.get_node("Label")]:
+		words.max_width = inner
+	var planks: Array[Control] = [%Continue, %NewGame, %Settings, %Quit]
+	for p: Control in planks:
+		p.custom_minimum_size = PLANK_MIN
+	var widest := PLANK_MIN.x
+	for p: Control in planks:
+		if p.visible:
+			widest = maxf(widest, p.get_combined_minimum_size().x)
+	for p: Control in planks:
+		p.custom_minimum_size = Vector2(widest, PLANK_MIN.y + ceilf(WORD_HEIGHT * rel) - WORD_HEIGHT)
 	var height := m.get_combined_minimum_size().y
 	m.size.y = height   # a Container never shrinks by itself; keep its rect to the planks shown
 	var x := roundf(160.0 - 160.0 * s)
@@ -341,7 +372,7 @@ func _place_menu() -> void:
 		menu_offset = 0
 		(%MenuClip as Control).position = Vector2.ZERO
 		(%MenuClip as Control).size = Vector2(320, 180)
-		m.position = Vector2(x, menu_top_at(_menu_top, height, s))
+		m.position = Vector2(x, menu_top_at(_menu_top, height, s, _menu_normal_height, strip.screen_top()))
 		%MenuMarks.position = Vector2(x, 0)
 		%MenuMarks.scale = Vector2(s, s)
 		(%MenuMarks as Control).size = Vector2(320, band_h)

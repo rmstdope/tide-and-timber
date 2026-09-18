@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/settings/settings_board.gd" id="1_board"]
+[ext_resource type="Script" path="res://src/display/grown_words.gd" id="8_grown"]
 [ext_resource type="StyleBox" path="res://src/pause/board.tres" id="2_board"]
 [ext_resource type="PackedScene" path="res://src/settings/controls_page.tscn" id="3_controls_page"]
 
@@ -80,39 +81,59 @@ custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
-custom_minimum_size = Vector2(0, 12)
+[node name="Label" type="Control" parent="Panel/Clip/Content/UiSize/Row"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/UiSize/Row/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "UI size"
 vertical_alignment = 1
 
-[node name="Prev" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
-custom_minimum_size = Vector2(12, 12)
+[node name="Prev" type="Control" parent="Panel/Clip/Content/UiSize/Row"]
 layout_mode = 2
 mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/UiSize/Row/Prev"]
+layout_mode = 0
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "◀"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Value" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
-custom_minimum_size = Vector2(64, 12)
+[node name="Value" type="Control" parent="Panel/Clip/Content/UiSize/Row"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(64, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/UiSize/Row/Value"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Next" type="Label" parent="Panel/Clip/Content/UiSize/Row"]
-custom_minimum_size = Vector2(12, 12)
+[node name="Next" type="Control" parent="Panel/Clip/Content/UiSize/Row"]
 layout_mode = 2
 mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/UiSize/Row/Next"]
+layout_mode = 0
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "▶"
@@ -142,39 +163,59 @@ custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
-custom_minimum_size = Vector2(0, 12)
+[node name="Label" type="Control" parent="Panel/Clip/Content/TextSize/Row"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/TextSize/Row/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "Text size"
 vertical_alignment = 1
 
-[node name="Prev" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
-custom_minimum_size = Vector2(12, 12)
+[node name="Prev" type="Control" parent="Panel/Clip/Content/TextSize/Row"]
 layout_mode = 2
 mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/TextSize/Row/Prev"]
+layout_mode = 0
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "◀"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Value" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
-custom_minimum_size = Vector2(64, 12)
+[node name="Value" type="Control" parent="Panel/Clip/Content/TextSize/Row"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(64, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/TextSize/Row/Value"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Next" type="Label" parent="Panel/Clip/Content/TextSize/Row"]
-custom_minimum_size = Vector2(12, 12)
+[node name="Next" type="Control" parent="Panel/Clip/Content/TextSize/Row"]
 layout_mode = 2
 mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/TextSize/Row/Next"]
+layout_mode = 0
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "▶"
@@ -204,39 +245,59 @@ custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
-custom_minimum_size = Vector2(0, 12)
+[node name="Label" type="Control" parent="Panel/Clip/Content/ColourCues/Row"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/ColourCues/Row/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "Colour cues"
 vertical_alignment = 1
 
-[node name="Prev" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
-custom_minimum_size = Vector2(12, 12)
+[node name="Prev" type="Control" parent="Panel/Clip/Content/ColourCues/Row"]
 layout_mode = 2
 mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/ColourCues/Row/Prev"]
+layout_mode = 0
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "◀"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Value" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
-custom_minimum_size = Vector2(64, 12)
+[node name="Value" type="Control" parent="Panel/Clip/Content/ColourCues/Row"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(64, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/ColourCues/Row/Value"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Next" type="Label" parent="Panel/Clip/Content/ColourCues/Row"]
-custom_minimum_size = Vector2(12, 12)
+[node name="Next" type="Control" parent="Panel/Clip/Content/ColourCues/Row"]
 layout_mode = 2
 mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/ColourCues/Row/Next"]
+layout_mode = 0
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "▶"
@@ -266,19 +327,29 @@ custom_minimum_size = Vector2(4, 12)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="Panel/Clip/Content/Controls/Row"]
-custom_minimum_size = Vector2(0, 12)
+[node name="Label" type="Control" parent="Panel/Clip/Content/Controls/Row"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/Controls/Row/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
 text = "Controls"
 vertical_alignment = 1
 
-[node name="Arrow" type="Label" parent="Panel/Clip/Content/Controls/Row"]
-custom_minimum_size = Vector2(12, 12)
+[node name="Arrow" type="Control" parent="Panel/Clip/Content/Controls/Row"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/Controls/Row/Arrow"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8

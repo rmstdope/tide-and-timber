@@ -28,8 +28,7 @@ const PANEL_SIDE := 4.0            # panel edge to a stacked plank
 const LINE_SIDE := 12.0            # panel edge to the line under the list
 const LINE_GAP := 8.0              # last plank's bottom to the line's top
 const BOTTOM_MARGIN := 8.0         # the line's bottom to the panel's bottom
-const STACKED_PLANK_H := 28.0      # two 12-unit lines inside the plank's 2-unit border
-const STACKED_STEP := 32.0
+const PLANK_GAP := 4.0             # the gap below each plank (PLANK_STEP - PLANK_SIZE.y)
 const HEADING_TOP := 8.0           # panel top to the heading's top; the scrolled content starts here
 const VALUE_WORDS := {
 	DisplayPrefs.Setting.UI_SIZE: ["Normal", "Large", "Largest"],
@@ -61,14 +60,11 @@ static func stacks(widest_row: float, s: float) -> bool:
 
 ## How many lines text takes wrapped at width, as an autowrap-smart Label draws it.
 static func line_count(text: String, width: float, font: Font, font_size: int) -> int:
-	var p := TextParagraph.new()
-	p.add_string(text, font, font_size)
-	p.break_flags = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
-	p.width = width
-	return p.get_line_count()
+	return GrownWords.line_count(text, width, font, font_size)
 
 ## The widest plank's width with its row on one line: PLANK_SIZE.x, or more if its words need it.
-## Reads each Row child's combined minimum width, so call it only with every Row/Label's custom_minimum_size.x at 0.
+## Reads each Row child's combined minimum width, so call it only with every Row/Label holder's
+## custom_minimum_size.x at 0 and max_width at INF.
 func side_by_side_width() -> float:
 	var widest := PLANK_SIZE.x
 	for item: SettingsMenu.Plank in rules.items:
@@ -81,42 +77,89 @@ func side_by_side_width() -> float:
 	return widest
 
 ## Places the panel, the planks, the heading and the line for on-screen scale s, and sets `stacked`.
-func lay_out(s: float) -> void:
+## The height of cells of these sizes flowed left to right into rows `width` wide, as an HFlowContainer with
+## no separation lays them: a cell starts a new row when it is not first on its row and would pass width.
+static func flow_height(sizes: Array[Vector2], width: float) -> float:
+	var x := 0.0
+	var y := 0.0
+	var row_h := 0.0
+	for c: Vector2 in sizes:
+		if x > 0.0 and x + c.x > width:
+			y += row_h
+			x = 0.0
+			row_h = 0.0
+		x += c.x
+		row_h = maxf(row_h, c.y)
+	return y + row_h
+
+func lay_out(s: float, retry: bool = true) -> void:
+	var rel := TextScale.relative(Display.prefs, get_tree().root)
 	for item: SettingsMenu.Plank in rules.items:
-		(_plank(item).get_node("Row/Label") as Control).custom_minimum_size.x = 0
+		var label := _plank(item).get_node("Row/Label") as GrownWords
+		label.custom_minimum_size.x = 0
+		label.max_width = INF
 	var widest := side_by_side_width()
 	stacked = stacks(widest, s)
 	var panel_w := panel_width(s)
 	var plank_w := panel_w - 2.0 * PANEL_SIDE if stacked else widest
-	var plank_h := STACKED_PLANK_H if stacked else PLANK_SIZE.y
-	var step := STACKED_STEP if stacked else PLANK_STEP
+	var inner := plank_w - PLANK_STYLE.get_minimum_size().x
+	if stacked:
+		for item: SettingsMenu.Plank in rules.items:
+			var plank := _plank(item)
+			var label := plank.get_node("Row/Label") as GrownWords
+			var pad := (plank.get_node("Row/Pad") as Control).custom_minimum_size.x
+			label.max_width = inner - pad
+			if plank.has_node("Row/Arrow"):
+				label.custom_minimum_size.x = inner - pad \
+						- (plank.get_node("Row/Arrow") as Control).get_combined_minimum_size().x
+			else:
+				label.custom_minimum_size.x = inner - pad
+	var plank_h := 0.0
+	for item: SettingsMenu.Plank in rules.items:
+		var sizes: Array[Vector2] = []
+		for child: Node in _plank(item).get_node("Row").get_children():
+			var c := child as Control
+			if c != null and c.visible:
+				sizes.append(c.get_combined_minimum_size())
+		plank_h = maxf(plank_h, PLANK_STYLE.get_minimum_size().y + flow_height(sizes, inner))
+	var step := plank_h + PLANK_GAP
 	var plank_x := floorf((panel_w - plank_w) / 2.0)
+	var settled := true          # false when a plank could not yet shrink to the height we just measured
+	var top := PLANK_TOP + ceilf(FONT_SIZE * rel) - FONT_SIZE
 	for i in rules.items.size():
 		var plank := _plank(rules.items[i])
 		plank.custom_minimum_size = Vector2(plank_w, plank_h)
-		plank.position = Vector2(plank_x, PLANK_TOP + i * step)
+		# A cell that shrank reaches its Row and plank only on the next frame, and until then the
+		# engine clamps `size` to the height at the Text size before this one. Invalidate them, and
+		# `settled` below catches the frame where the clamp still bit.
+		(plank.get_node("Row") as Control).update_minimum_size()
+		plank.update_minimum_size()
+		plank.position = Vector2(plank_x, top + i * step)
 		plank.size = Vector2(plank_w, plank_h)
-		if stacked:
-			var label_w := plank_w - PLANK_STYLE.get_minimum_size().x \
-					- (plank.get_node("Row/Pad") as Control).custom_minimum_size.x
-			if plank.has_node("Row/Arrow"):
-				label_w -= (plank.get_node("Row/Arrow") as Control).custom_minimum_size.x
-			(plank.get_node("Row/Label") as Control).custom_minimum_size.x = label_w
-	var line_top := PLANK_TOP + (rules.items.size() - 1) * step + plank_h + LINE_GAP
+		if plank.size.y > plank_h:
+			settled = false
+	var line_top := top + (rules.items.size() - 1) * step + plank_h + LINE_GAP
 	var line_w := panel_w - 2.0 * LINE_SIDE
 	var line := %Line as Label
 	var lines := 1
 	for text: String in LINES.values():
-		lines = maxi(lines, line_count(text, line_w, line.get_theme_font("font"), FONT_SIZE))
-	var line_h := lines * FONT_SIZE + (lines - 1) * LINE_SPACING
+		lines = maxi(lines, line_count(text, line_w / rel, line.get_theme_font("font"), FONT_SIZE))
+	var words_h := lines * FONT_SIZE + (lines - 1) * LINE_SPACING
+	line.scale = Vector2.ONE * rel
 	line.position = Vector2(LINE_SIDE, line_top)
-	line.size.x = line_w
-	line.size.y = line_h
-	(%Heading as Control).size.x = panel_w
+	line.size = Vector2(line_w / rel, words_h)
+	var line_h := ceilf(words_h * rel)
+	var heading := %Heading as Label
+	heading.scale = Vector2.ONE * rel
+	heading.size = Vector2(panel_w / rel, FONT_SIZE)
 	var panel_h := line_top + line_h + BOTTOM_MARGIN
 	rest_panel = Rect2(floorf((320.0 - panel_w) / 2.0), floorf((BASE_HEIGHT - panel_h) / 2.0), panel_w, panel_h)
 	(%Content as Control).size = rest_panel.size
 	_frame()
+	if not settled and retry:
+		# Once, on the next frame, when the shrink has reached the planks. Never again: a plank whose
+		# words genuinely need the taller rect would otherwise re-queue itself every frame.
+		_lay_out.call_deferred(false)
 
 ## Frames the panel to the band [band_top, band_bottom] (board units) and scrolls the content so the
 ## highlighted plank is wholly visible. Reads rest_panel and the planks' positions; sets offset and scrolls.
@@ -225,8 +268,10 @@ func _ready() -> void:
 	_lay_out()
 	_refresh()
 
-func _lay_out() -> void:
-	lay_out(get_global_transform_with_canvas().get_scale().x if is_inside_tree() else 1.0)
+func _lay_out(retry: bool = true) -> void:
+	if not is_inside_tree() or is_queued_for_deletion():
+		return   # a deferred pass that arrived as the board was going away
+	lay_out(get_global_transform_with_canvas().get_scale().x, retry)
 
 # Deferred: the pause layer's and the title's scale handlers listen to the same signals; by frame end the scale is final.
 func _lay_out_later() -> void:
@@ -301,10 +346,11 @@ func _refresh() -> void:
 		var s: DisplayPrefs.Setting = SettingsMenu.SETTING_OF[item]
 		var v := Display.prefs.value(s)
 		var row := _plank(item)
-		(row.get_node("Row/Value") as Label).text = VALUE_WORDS[s][v]
-		row.get_node("Row/Prev").add_theme_color_override("font_color", ARROW_DIM if v == 0 else TEXT)
-		row.get_node("Row/Next").add_theme_color_override("font_color",
-				ARROW_DIM if v == DisplayPrefs.count(s) - 1 else TEXT)
+		(row.get_node("Row/Value") as GrownWords).text = VALUE_WORDS[s][v]
+		(row.get_node("Row/Prev") as GrownWords).words().add_theme_color_override(
+				"font_color", ARROW_DIM if v == 0 else TEXT)
+		(row.get_node("Row/Next") as GrownWords).words().add_theme_color_override(
+				"font_color", ARROW_DIM if v == DisplayPrefs.count(s) - 1 else TEXT)
 	%Line.text = LINES[rules.highlighted]
 	if rules.is_open:
 		_frame()

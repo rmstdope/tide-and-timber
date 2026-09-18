@@ -68,7 +68,7 @@ func test_paused_board_strip_lifts_above_the_bar() -> void:
 
 func test_settings_board_grows_while_ui_size_changes_and_keeps_the_highlight() -> void:
 	var board := await _open_settings()
-	var value := board.get_node("%UiSize/Row/Value") as Label
+	var value := board.get_node("%UiSize/Row/Value/Words") as Label
 	await _tap(KEY_RIGHT)
 	assert_int(Display.prefs.ui_size).is_equal(DisplayPrefs.Size.LARGE)
 	assert_float(pause.transform.get_scale().x).is_equal_approx(1.5, 0.0001)
