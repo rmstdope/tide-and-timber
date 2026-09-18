@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Structural check of .github/workflows/gate.yml: triggers, the brewed Godot install, the shell
-# suites before gate-full, the export-templates cache and both uploads. No network, no YAML parser.
+# Structural check of .github/workflows/gate.yml: triggers, the Linux runner, the pinned Godot setup action, the shell suites before gate-fast, and no exports. No network, no YAML parser.
 set -u
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 wf="$root/.github/workflows/gate.yml"
@@ -46,82 +45,69 @@ test_triggers_on_push_and_pull_request_to_main() {
   else fail "${FUNCNAME[0]}" "branches: [main] appears '$n' times, want 2"; fi
 }
 
-test_installs_godot_with_the_declared_brew_cask() {
-  local declared
-  declared="$(awk '$1=="install"{sub(/#.*/,""); $1=""; sub(/^[ \t]+/,""); sub(/[ \t]+$/,""); print; exit}' \
-    "$root/.cerebro/project.conf")"
-  if ! has_line 'runs-on: macos-26'; then fail "${FUNCNAME[0]}" "not on macos-26"
-  elif ! has_line "run: $declared"; then fail "${FUNCNAME[0]}" "no 'run: $declared' step"
-  elif [ "$declared" != "brew install --cask godot" ]; then fail "${FUNCNAME[0]}" "declared install is '$declared'"
+SETUP='uses: chickensoft-games/setup-godot@c233594225991af5aec714e52457cc76d6df8fa2 # v2.4.2'
+
+test_runs_on_a_pinned_ubuntu_runner() {
+  if ! has_line 'runs-on: ubuntu-24.04'; then fail "${FUNCNAME[0]}" "not on ubuntu-24.04"
+  elif ! has_line 'timeout-minutes: 20'; then fail "${FUNCNAME[0]}" "no 20-minute timeout"
+  elif grep -qi 'macos' "$wf"; then fail "${FUNCNAME[0]}" "still mentions macos"
   else ok "${FUNCNAME[0]}"; fi
 }
 
-test_runs_shell_suites_then_gate_full_after_install() {
+test_installs_godot_with_the_pinned_setup_action() {
+  local l
+  for l in "$SETUP" 'version: 4.7.2' 'use-dotnet: false' 'include-templates: false' 'cache: false'; do
+    has_line "$l" || { fail "${FUNCNAME[0]}" "missing '$l'"; return; }
+  done
+  if grep -q 'brew' "$wf"; then fail "${FUNCNAME[0]}" "still mentions brew"
+  else ok "${FUNCNAME[0]}"; fi
+}
+
+test_pins_the_godot_version_claude_md_names() {
+  local v mm
+  v="$(awk '{s=$0; sub(/^[ \t]+/,"",s)} s ~ /^version: / {sub(/^version: /,"",s); print s; exit}' "$wf")"
+  if ! [[ $v =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    fail "${FUNCNAME[0]}" "version '$v' is not major.minor.patch"; return
+  fi
+  mm="${v%.*}"
+  if grep -q "Built with Godot $mm" "$root/CLAUDE.md"; then ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "CLAUDE.md does not say 'Built with Godot $mm'"; fi
+}
+
+test_runs_shell_suites_then_gate_fast_after_install() {
   local n
   n="$(grep -c 'set -euo pipefail' "$wf" 2>/dev/null)"
-  if ! increasing "$(step_line 'run: brew install --cask godot')" \
+  if ! increasing "$(step_line "$SETUP")" "$(step_line '- name: Shell suites')" \
+       "$(step_line 'set -euo pipefail')" \
        "$(step_line 'for suite in scripts/tests/*-test.sh; do')" \
-       "$(step_line 'bash "$suite"')" "$(step_line 'run: scripts/gate-full')"; then
-    fail "${FUNCNAME[0]}" "install, suites, gate-full are missing or out of order"
+       "$(step_line 'bash "$suite"')" "$(step_line 'run: scripts/gate-fast')"; then
+    fail "${FUNCNAME[0]}" "install, suites, gate-fast are missing or out of order"
   elif ! has_line 'submodules: false'; then fail "${FUNCNAME[0]}" "submodules not off"
-  elif [ "${n:-0}" -lt 1 ]; then fail "${FUNCNAME[0]}" "no set -euo pipefail"
+  elif [ "${n:-0}" != 1 ]; then fail "${FUNCNAME[0]}" "set -euo pipefail appears '${n:-0}' times, want 1"
   else ok "${FUNCNAME[0]}"; fi
 }
 
 test_every_script_the_workflow_runs_exists_and_is_executable() {
   local suites=("$root"/scripts/tests/*-test.sh)
-  if [ ! -x "$root/scripts/gate-full" ] || [ ! -x "$root/scripts/install-export-templates" ]; then
-    fail "${FUNCNAME[0]}" "gate-full or install-export-templates missing or not executable"
+  if [ ! -x "$root/scripts/gate-fast" ]; then fail "${FUNCNAME[0]}" "gate-fast missing or not executable"
   elif [ ! -e "${suites[0]}" ]; then fail "${FUNCNAME[0]}" "no shell suites"
   else ok "${FUNCNAME[0]}"; fi
 }
 
-test_caches_export_templates_keyed_on_godot_version() {
-  local l
-  for l in 'id: godot' 'uses: actions/cache@v6' \
-           'path: ~/Library/Application Support/Godot/export_templates/${{ steps.godot.outputs.templates }}' \
-           'key: godot-export-templates-${{ steps.godot.outputs.templates }}-${{ runner.os }}' \
-           'echo "templates=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"'; do
-    has_line "$l" || { fail "${FUNCNAME[0]}" "missing '$l'"; return; }
-  done
-  increasing "$(step_line 'run: brew install --cask godot')" "$(step_line 'id: godot')" \
-    "$(step_line 'uses: actions/cache@v6')" "$(step_line 'run: scripts/gate-full')" \
-    || { fail "${FUNCNAME[0]}" "version, cache and gate-full out of order"; return; }
-  local re tre raw want got tgot
-  re="$(grep -o '\^(\[0-9\].*stable)' "$wf" | head -n 1)"
-  tre="$(grep -o '\^(\[0-9\].*\$)' "$root/scripts/install-export-templates" | head -n 1)"
-  [ -n "$re" ] && [ -n "$tre" ] || { fail "${FUNCNAME[0]}" "cannot find the version regexes"; return; }
-  for raw in '4.7.2.stable.official.ed1daf0bf:4.7.2.stable' '4.8.stable.official.abc:4.8.stable'; do
-    want="${raw##*:}"; raw="${raw%:*}"
-    got=""; tgot=""
-    [[ $raw =~ $re ]] && got="${BASH_REMATCH[1]}"
-    [[ $raw =~ $tre ]] && tgot="${BASH_REMATCH[1]}.stable"
-    if [ "$got" != "$want" ] || [ "$tgot" != "$want" ]; then
-      fail "${FUNCNAME[0]}" "'$raw' gives '$got' (workflow), '$tgot' (install-export-templates), want '$want'"
-      return
-    fi
+test_builds_no_exports() {
+  local pat
+  for pat in gate-full upload-artifact export_templates export-release build/ tags:; do
+    if grep -qF -- "$pat" "$wf"; then fail "${FUNCNAME[0]}" "'$pat' found in gate.yml"; return; fi
   done
   ok "${FUNCNAME[0]}"
 }
 
-test_uploads_both_exports_and_fails_when_missing() {
-  local g; g="$(step_line 'run: scripts/gate-full')"
-  if ! increasing "$g" "$(step_line 'path: build/macos/tide-and-timber.zip')" \
-     || ! increasing "$g" "$(step_line 'path: build/windows/')"; then
-    fail "${FUNCNAME[0]}" "uploads missing or before gate-full"
-  elif ! has_line 'name: tide-and-timber-macos' || ! has_line 'name: tide-and-timber-windows'; then
-    fail "${FUNCNAME[0]}" "artifact names missing"
-  elif [ "$(grep -c 'if-no-files-found: error' "$wf")" != 2 ] \
-       || [ "$(grep -c 'uses: actions/upload-artifact@v7' "$wf")" != 2 ]; then
-    fail "${FUNCNAME[0]}" "want two uploads, each failing when missing"
-  else ok "${FUNCNAME[0]}"; fi
-}
-
 test_harness_catches_a_missing_line
 test_triggers_on_push_and_pull_request_to_main
-test_installs_godot_with_the_declared_brew_cask
-test_runs_shell_suites_then_gate_full_after_install
+test_runs_on_a_pinned_ubuntu_runner
+test_installs_godot_with_the_pinned_setup_action
+test_pins_the_godot_version_claude_md_names
+test_runs_shell_suites_then_gate_fast_after_install
 test_every_script_the_workflow_runs_exists_and_is_executable
-test_caches_export_templates_keyed_on_godot_version
-test_uploads_both_exports_and_fails_when_missing
+test_builds_no_exports
 exit "$failed"
