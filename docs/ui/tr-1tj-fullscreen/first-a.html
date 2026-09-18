@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — first launch A</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+page('First launch A — opens in a window','The very first time the game is started it opens in a window, exactly as it does today. The Fullscreen row says Off.',[
+ fig('1. First launch ever','Title screen in a window.',desk(0,titleScr())),
+ fig('2. Settings','Fullscreen: Off.',fsScreen([R.ui,R.tx,R.cc,{label:'Fullscreen',val:'Off',first:1,last:0},R.ct],3,'Fills the whole screen. Cmd+Enter also switches.'))],
+ 'Recommended: nothing changes for anyone who never touches it, and the player sees straight away that it is a window they can make bigger. On screens whose size isn\'t an even multiple of the picture, fullscreen shows black bars, so it is better chosen than imposed.');
+</script></body></html>

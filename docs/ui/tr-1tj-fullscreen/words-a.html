@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — words A</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+const rows=v=>[R.ui,R.tx,R.cc,{label:'Fullscreen',val:v,first:v=='Off',last:v=='On'},R.ct];
+page('Words A — Fullscreen: Off · On','The row is called <b>Fullscreen</b> and its two values are <b>Off</b> and <b>On</b>, like a switch. Left/right flip it at once, the same as every other value row.',[
+ fig('1. Playing in a window','Row shows Off; ◀ is dim at the first value.',fsScreen(rows('Off'),3,'Fills the whole screen.')),
+ fig('2. Pushed right','Row shows On; the window has gone fullscreen.',fsScreen(rows('On'),3,'Fills the whole screen.'))],
+ 'Recommended: <b>Fullscreen On/Off</b> is the most common wording in game settings, and it is shortest, so it fits at Largest text without stacking.');
+</script></body></html>

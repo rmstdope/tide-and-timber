@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — window button A</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+page('Window button A — the window\'s own fullscreen button counts too','If a player uses the computer\'s own way to go fullscreen (the green button on a Mac, for example), the game treats it exactly like the shortcut: the row shows On, and it is remembered for next launch.',[
+ fig('1. Green button pressed','The game fills the screen.',desk(1,titleScr())),
+ fig('2. Settings','Fullscreen: On, the same as if the shortcut had been used.',fsScreen([R.ui,R.tx,R.cc,{label:'Fullscreen',val:'On',first:0,last:1},R.ct],3,'Fills the whole screen. Cmd+Enter also switches.'))],
+ 'Recommended: the row always tells the truth about the screen, whichever way the player got there.');
+</script></body></html>

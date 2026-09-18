@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — words B</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+const rows=v=>[R.ui,R.tx,R.cc,{label:'Window',val:v,first:v=='Windowed',last:v=='Fullscreen'},R.ct];
+page('Words B — Window: Windowed · Fullscreen','The row is called <b>Window</b> and names the mode itself: <b>Windowed</b> or <b>Fullscreen</b>.',[
+ fig('1. Playing in a window','Row shows Windowed.',fsScreen(rows('Windowed'),3,'Plays in a window or fills the whole screen.')),
+ fig('2. Pushed right','Row shows Fullscreen.',fsScreen(rows('Fullscreen'),3,'Plays in a window or fills the whole screen.'))],
+ 'Cost: says both modes out loud, so nobody wonders what Off means — but the value is long, so at Largest the row stacks sooner.');
+</script></body></html>

@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — window button B</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+page('Window button B — only the shortcut and the row count','If a player uses the computer\'s own fullscreen button, the game fills the screen but the row still says Off, and next launch opens in a window.',[
+ fig('1. Green button pressed','The game fills the screen.',desk(1,titleScr())),
+ fig('2. Settings','Fullscreen: Off — even though the screen is full.',fsScreen([R.ui,R.tx,R.cc,{label:'Fullscreen',val:'Off',first:1,last:0},R.ct],3,'Fills the whole screen. Cmd+Enter also switches.'))],
+ 'Cost: simpler, but the row can say the opposite of what the player is looking at, and pushing it to On then does nothing visible.');
+</script></body></html>

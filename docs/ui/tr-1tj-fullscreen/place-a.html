@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — placement A</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+const F={label:'Fullscreen',val:'Off',first:1,last:0};
+page('Placement A — last value row, just above Controls','Everything already on the Settings screen stays where it is: it still opens with the highlight on UI size. Fullscreen joins as the last value row, and Controls stays the last row of all.',[
+ fig('1. Opened','Highlight on UI size, as today.',fsScreen([R.ui,R.tx,R.cc,F,R.ct],0,'Makes the clock, item bar, hints and menus bigger.')),
+ fig('2. Down three times','Fullscreen highlighted.',fsScreen([R.ui,R.tx,R.cc,F,R.ct],3,'Fills the whole screen.'))],
+ 'Recommended: nothing a player has already learned on this screen moves, and Controls keeps its place at the bottom as the one row that opens a page.');
+</script></body></html>

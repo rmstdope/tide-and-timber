@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — shortcut A</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+const game=beach()+dial(.55,'16:30','DAY 2')+bar()+hint([['E','Use']]);
+page('Shortcut A — the screen just changes','Pressing Cmd+Enter (Mac) or Alt+Enter (Windows, Linux) switches the mode and nothing else appears. Play, menus and boxes carry on exactly where they were.',[
+ fig('1. In a window','',desk(0,game)),
+ fig('2. After the shortcut','The same moment, now filling the screen. No message.',desk(1,game))],
+ 'Recommended: this is how nearly every game and app treats this shortcut — the change is its own feedback.');
+</script></body></html>

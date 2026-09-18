@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — placement B</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+const F={label:'Fullscreen',val:'Off',first:1,last:0};
+page('Placement B — first row, at the top','Fullscreen goes first, the way many PC games put screen options at the top. The screen now opens with the highlight on Fullscreen.',[
+ fig('1. Opened','Highlight on Fullscreen, not UI size.',fsScreen([F,R.ui,R.tx,R.cc,R.ct],0,'Fills the whole screen.')),
+ fig('2. Down once','UI size, one push further than before.',fsScreen([F,R.ui,R.tx,R.cc,R.ct],1,'Makes the clock, item bar, hints and menus bigger.'))],
+ 'Cost: easiest to find — but it moves a settled thing (the screen opens on Fullscreen), and one stray left/right on opening flips the whole screen.');
+</script></body></html>

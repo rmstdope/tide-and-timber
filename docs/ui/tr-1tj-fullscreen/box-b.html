@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — while choosing a key B</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+page('While choosing a new key B — the box takes the key instead','While the box is waiting for a new key, Cmd+Enter (Alt+Enter) does not switch the screen: the box takes Enter as the new key and closes.',[
+ fig('1. Waiting for a key','',desk(0,waitBox())),
+ fig('2. After Cmd+Enter','Still a window; Use is now Enter.',desk(0,waitBox('ENTER')))],
+ 'Cost: one place where the shortcut quietly does something else — the only exception to working on every screen.');
+</script></body></html>
