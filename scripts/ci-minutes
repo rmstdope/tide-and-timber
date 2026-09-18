@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# Where the gate's Actions minutes went over a window (tr-ot1).
+#
+#     scripts/ci-minutes <since> <until>        both YYYY-MM-DD
+#
+# Five lines on stdout: the window, the runs by event, the job-minutes by event, the merges to
+# main (push runs on main) and the job-minutes per merge. A job's minutes are its seconds rounded
+# up to the minute, as GitHub rounds each job; a skipped or unfinished job counts 0.
+# The gh binary is ${CI_MINUTES_GH:-gh}, so the suite can swap in a fake.
+
+set -euo pipefail
+
+if [[ $# -ne 2 ]]; then
+  echo "ci-minutes: usage: scripts/ci-minutes <since> <until>" >&2
+  exit 2
+fi
+since="$1" until="$2"
+gh="${CI_MINUTES_GH:-gh}"
+
+runs="$("$gh" run list --workflow gate.yml --created "$since..$until" --limit 1000 \
+          --json databaseId,event,headBranch,conclusion)" \
+  || { echo "ci-minutes: gh run list failed" >&2; exit 1; }
+
+# One line per run: <event> <headBranch> <conclusion> <job-minutes>
+table=""
+for id in $(jq -r '.[].databaseId' <<<"$runs"); do
+  jobs="$("$gh" api --paginate "repos/{owner}/{repo}/actions/runs/$id/jobs")" \
+    || { echo "ci-minutes: gh api jobs failed for run $id" >&2; exit 1; }
+  mins="$(jq -s '[.[].jobs[]
+                   | if .conclusion == "skipped" or .completed_at == null then 0
+                     else (((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601) + 59) / 60 | floor)
+                     end] | add // 0' <<<"$jobs")"
+  line="$(jq -r --argjson id "$id" '.[] | select(.databaseId == $id) | "\(.event) \(.headBranch) \(.conclusion)"' <<<"$runs")"
+  table+="$line $mins"$'\n'
+done
+
+awk -v since="$since" -v until="$until" '
+  NF == 4 {
+    n++; ev[$1]++; m[$1] += $4; total += $4
+    if ($3 == "cancelled") c++
+    if ($1 == "push" && $2 == "main") k++
+  }
+  END {
+    printf "window %s..%s\n", since, until
+    printf "runs %d (pull_request %d, push %d, cancelled %d)\n", n, ev["pull_request"], ev["push"], c
+    printf "job-minutes %d (pull_request %d, push %d)\n", total, m["pull_request"], m["push"]
+    printf "merges-to-main %d\n", k
+    if (k > 0) printf "job-minutes-per-merge %.1f\n", total / k
+    else print "job-minutes-per-merge n/a"
+  }' <<<"$table"
