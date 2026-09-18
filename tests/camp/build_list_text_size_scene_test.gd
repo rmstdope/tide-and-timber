@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
-## On the beach, the build list follows Text size: its words grow, it stacks and widens with them,
-## and at Largest of both it scrolls the grown list.
+## On the beach, the build list follows Text size: its words grow, and it stacks and widens with them.
 ##
 ## At 640x360 the list stacks only at UI Largest and Text Largest (Text size alone never widens it past
 ## the picture), and there the stacked list, 252 x 101 drawn 2x, fits the room above the hint.
@@ -52,20 +51,29 @@ func test_the_beach_list_grows_with_text_size() -> void:
 	assert_vector(_list().list_size()).is_equal(Vector2(252, 101))
 	assert_vector(_list().size).is_equal(Vector2(252, 101))
 	assert_vector(_list().scale).is_equal(Vector2(2, 2))
-	assert_bool(_list().scrolls).is_false()
 	assert_vector(_list().title_label.scale).is_equal(Vector2(2, 2))
 	assert_str(_list().cost_labels[1].text).is_equal("Needs a lean-to")
 
-func test_largest_of_both_scrolls_the_grown_list() -> void:
+# Retired in tr-1o0.1: the build list wrapping its words and scrolling. At 640x360 no UI size, Text size and
+# window reaches either, so the list has neither. This is what fails if a later change grows the list past
+# the room above the lifted build hint, or its words past the list.
+func test_at_the_largest_sizes_the_list_fits_above_the_hint_unwrapped(
+		window: Vector2i, test_parameters := [[Vector2i(1280, 720)], [Vector2i(640, 360)]]) -> void:
+	get_tree().root.size = window
 	inventory.add(Item.Kind.DRIFTWOOD, 9)
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
 	await _settle()
 	await _press(KEY_B)
 	await _settle()
-	assert_bool(_list().stacked).is_true()
-	assert_float(_list().size.x).is_equal(156.0)
-	assert_vector(_list().scale).is_equal(Vector2(2, 2))
-	assert_bool(_list().scrolls).is_true()
-	assert_bool(_list().shows_mark_below()).is_true()
-	assert_float(_list().position.x + _list().size.x * 2.0).is_less_equal(316.0)
+	var list := _list()
+	var hint_top := HintLift.screen_rect(beach.get_node("%KeyHint") as Control).position.y
+	var s := list.scale.y
+	assert_float(list.position.y + list.list_size().y * s).override_failure_message(
+			"the list's bottom runs past the room above the hint at %s" % hint_top) \
+		.is_less_equal(hint_top - ScrollWindow.EDGE)
+	assert_float(list.position.y).is_greater_equal(ScrollWindow.EDGE)
+	var room := list._text_width_available()
+	for label: Label in list.name_labels + list.cost_labels:
+		assert_float(BuildList._text_width(label)).override_failure_message(
+				"'%s' is wider than the %s its row gives it" % [label.text, room]).is_less_equal(room)

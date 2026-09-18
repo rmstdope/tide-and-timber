@@ -97,13 +97,21 @@ func test_name_plank_refits_when_text_size_changes() -> void:
 	assert_vector(bar.name_plank.size).is_equal_approx(Vector2(72, 13), Vector2(0.01, 0.01))
 	assert_vector(bar.name_label.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
 
-func test_too_wide_name_plank_is_centred_on_the_screen() -> void:
-	_big_root()
+# Retired in tr-1o0.1: a name plank wider than the picture, centred on it. At 640x360 no UI size, Text size
+# and window grows the longest name that far (it is at most 368 of 640 on screen), so the plank is only
+# ever clamped inside the picture. This is what fails if a later change grows it past the picture.
+func test_at_the_largest_sizes_every_name_plank_fits_the_picture(
+		window: Vector2i, test_parameters := [[Vector2i(1280, 720)], [Vector2i(640, 360)]]) -> void:
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	get_tree().root.size = window
+	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 2)
-	inv.add(K.FRESH_WATER)
-	bar.slots[0].mouse_entered.emit()
-	assert_float(bar.name_plank.size.x).is_equal_approx(184.0, 0.01)
-	assert_float(bar.position.x + bar.name_plank.position.x + bar.name_plank.size.x / 2.0) \
-		.is_equal_approx(Screen.CENTRE.x, 0.01)
-	assert_float(bar.name_plank.position.x).is_equal_approx(-22.0, 0.01)
+	var s := UiScale.current(Display.prefs, get_tree().root)
+	for kind: int in K.values():
+		inv.clear()
+		inv.add(kind)
+		bar.slots[0].mouse_entered.emit()
+		assert_float(bar.name_plank.size.x * s).override_failure_message(
+				"%s's plank, %s wide on screen, does not fit the picture" % [Item.name_of(kind), bar.name_plank.size.x * s]) \
+			.is_less_equal(Screen.WIDTH - 4.0)

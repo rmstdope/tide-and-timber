@@ -1,8 +1,7 @@
 class_name TitleScreen
 extends Control
 ## The title screen: draws the menu from a TitleMenu and turns input into its moves.
-## When the menu is taller than the screen above its strip, it scrolls to the highlight, with ▲ / ▼
-## where planks are hidden.
+## The menu always fits above its strip at 640x360; it has no scroll.
 
 const INTRO_SCENE := "res://src/intro/intro.tscn"
 const GAME_SCENE := "res://src/waking/waking.tscn"
@@ -49,8 +48,6 @@ var _replace_offset := 0           # whole units the Replace box's content is sc
 var _box_was: TitleMenu.Box = TitleMenu.Box.NONE   # to start each box at the top when it opens
 var _menu_top := MENU_TOP                # the menu's top at Normal, owned by read_save
 var _menu_normal_height := MENU_HEIGHT   # the menu's height at Normal Text size, owned by read_save
-var menu_offset := 0          # whole menu units scrolled up; 0 while it fits. Owned by _place_menu.
-var menu_scrolls := false     # the menu does not fit the band; derived by _place_menu
 
 ## The title menu's top on screen when drawn at scale s. normal_top: its top at Normal. height: its height now,
 ## in menu units. normal_height: its height at Normal Text size (default: height). strip_top: the strip's top on
@@ -90,7 +87,6 @@ func _ready() -> void:
 	strip = MenuStrip.new()
 	add_child(strip)
 	move_child(strip, %Fade.get_index())   # above the dim and both boxes, under the fade
-	%MenuMarks.draw.connect(_draw_menu_marks)
 	read_save(SaveStore.SLOT_DIR)
 	Display.changed.connect(_apply_ui_size)
 	get_tree().root.size_changed.connect(_apply_ui_size)
@@ -120,7 +116,6 @@ func read_save(dir: String) -> void:
 	%Reason.visible = menu.continue_dimmed
 	%DayLine.text = "DAY %d" % saved_day
 	%DayLine.visible = saved_day > 0
-	menu_offset = 0   # a newly read menu opens at the top
 	_refresh()
 
 func make_continued_game() -> Waking:
@@ -369,85 +364,11 @@ func _place_menu() -> void:
 	var height := m.get_combined_minimum_size().y
 	m.size.y = height   # a Container never shrinks by itself; keep its rect to the planks shown
 	var x := roundf(Screen.CENTRE.x - Screen.CENTRE.x * s)
-	var b := ScrollWindow.band(Transform2D(0.0, Vector2(s, s), 0.0, Vector2.ZERO), strip.screen_top())
-	var band_h := b.y - b.x
-	if height <= band_h:
-		menu_scrolls = false
-		menu_offset = 0
-		(%MenuClip as Control).position = Vector2.ZERO
-		(%MenuClip as Control).size = Screen.SIZE
-		m.position = Vector2(x, menu_top_at(_menu_top, height, s, _menu_normal_height, strip.screen_top()))
-		%MenuMarks.position = Vector2(x, 0)
-		%MenuMarks.scale = Vector2(s, s)
-		(%MenuMarks as Control).size = Vector2(Screen.WIDTH, band_h)
-		%MenuMarks.visible = false
-	else:
-		menu_scrolls = true
-		var view_h := band_h - 2.0 * ScrollWindow.MARK_ROW
-		var e := _choice_extent(menu.highlighted)
-		menu_offset = ScrollWindow.follow(height, view_h, e.x, e.y, menu_offset)
-		(%MenuClip as Control).position = Vector2(0, (b.x + ScrollWindow.MARK_ROW) * s)
-		(%MenuClip as Control).size = Vector2(Screen.WIDTH, view_h * s)
-		m.position = Vector2(x, -menu_offset * s)   # relative to the clip
-		%MenuMarks.position = Vector2(x, b.x * s)
-		%MenuMarks.scale = Vector2(s, s)
-		(%MenuMarks as Control).size = Vector2(Screen.WIDTH, band_h)
-		# the marks belong to the menu the player is in: the Settings board is over it, with its own strip
-		%MenuMarks.visible = not menu.settings_open
-		%MenuMarks.queue_redraw()
-
-## True while ▲ is drawn over the title menu.
-func shows_menu_mark_above() -> bool:
-	return menu_scrolls and ScrollWindow.hidden_above(menu_offset)
-
-## True while ▼ is drawn under the title menu.
-func shows_menu_mark_below() -> bool:
-	return menu_scrolls and ScrollWindow.hidden_below(menu_offset, (%Menu as Control).size.y,
-			(%MenuClip as Control).size.y / (%Menu as Control).scale.y)
-
-# The choice's extent in menu units, added up from the shown children's minimum sizes: a VBoxContainer
-# sorts later in the frame, so their positions are not readable yet. The first selectable choice reaches
-# the menu's top, so a dimmed Continue and its reason line come into view; the last reaches its bottom.
-func _choice_extent(choice: TitleMenu.Choice) -> Vector2:
-	var m := %Menu as Control
-	var wanted := _plank_for(choice)
-	var separation := float(m.get_theme_constant("separation"))
-	var y := 0.0
-	var top := 0.0
-	var bottom := m.size.y
-	var first := true
-	for child: Control in m.get_children():
-		if not child.visible:
-			continue
-		if not first:
-			y += separation
-		first = false
-		var h := child.get_combined_minimum_size().y
-		if child == wanted:
-			top = y
-			bottom = y + h
-			break
-		y += h
-	var selectable := menu.selectable()
-	return ScrollWindow.stretch_ends(Vector2(top, bottom), m.size.y,
-			choice == selectable[0], choice == selectable[selectable.size() - 1])
-
-func _plank_for(choice: TitleMenu.Choice) -> Control:
-	match choice:
-		TitleMenu.Choice.CONTINUE:
-			return %Continue
-		TitleMenu.Choice.NEW_GAME:
-			return %NewGame
-		TitleMenu.Choice.SETTINGS:
-			return %Settings
-	return %Quit
-
-func _draw_menu_marks() -> void:
-	var marks := %MenuMarks as Control
-	if shows_menu_mark_above():
-		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), true), true)
-	if shows_menu_mark_below():
-		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
+	# It always fits above the strip: at 640x360 no UI size and Text size outgrows the band (the
+	# scrolling menu was retired in tr-1o0.1; title_text_size_test.gd holds the fit).
+	(%MenuClip as Control).position = Vector2.ZERO
+	(%MenuClip as Control).size = Screen.SIZE
+	m.position = Vector2(x, menu_top_at(_menu_top, height, s, _menu_normal_height, strip.screen_top()))
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
 	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE

@@ -2,8 +2,8 @@ extends GdUnitTestSuite
 ## The Controls page box stacks its buttons, left on top, when side by side is wider than the screen; OK alone follows.
 ## Reached the player's way: the default 1280x720 window (k = 2) at UI Largest and Text Largest, the only
 ## combination at which the Reset and Leaving boxes stack (tr-1o0.1, 640x360); there they rest 312x136.
-## OK alone never stacks at any combination, and nothing stacks at UI Large: those tests assert that
-## precondition first and stay red.
+## OK alone never stacks at any UI size, Text size and window, and nothing stacks at UI Large, so those
+## layouts were retired in tr-1o0.1.
 
 var runner: GdUnitSceneRunner
 var waking: Waking
@@ -149,6 +149,19 @@ func test_normal_is_todays_layout() -> void:
 	assert_bool(_box_node("Box").visible).is_true()
 	_assert_normal_box()
 
+# The first layout of a freshly opened box measures the buttons' grown words before the buttons' own
+# minimum has caught up with them; the stacked Safe button must be centred from the start, not after a push.
+func test_the_stacked_safe_button_is_centred_on_first_open() -> void:
+	_size_up(2)
+	for i in 2:
+		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
+	await _open_reset()
+	_assert_stacked()
+	var w := _panel_rect().size.x
+	var safe := _rect("Safe")
+	assert_float(safe.size.x).is_equal(_box_node("Safe").get_combined_minimum_size().x)
+	assert_float(safe.position.x).is_equal(roundf((w - safe.size.x) / 2.0))
+
 func test_reset_box_stacks_at_largest() -> void:
 	_largest()
 	await _open_reset()
@@ -160,16 +173,6 @@ func test_reset_box_stacks_at_largest() -> void:
 	assert_bool(_is_highlighted(_box_node("Safe"))).is_true()
 	assert_str(_box_label("Safe")).is_equal("Keep mine")
 	assert_str(_box_label("Other")).is_equal("Reset")
-
-# Nothing stacks at UI Large, whatever Text size: red until the navigator decides.
-func test_leaving_box_stacks_at_large() -> void:
-	_size_up(1)
-	_text_up(2)
-	await _open_leaving()
-	_assert_stacked()
-	assert_that(_panel_rect()).is_equal(_centred(Vector2(BoxLayout.widest(_ui()), 136)))
-	assert_str(_box_label("Safe")).is_equal("Set a key")
-	assert_str(_box_label("Other")).is_equal("Leave")
 
 func test_leaving_box_stacks_at_largest() -> void:
 	_largest()
@@ -256,36 +259,6 @@ func test_ok_alone_side_by_side_is_todays_layout() -> void:
 	assert_that(_rect("Lines")).is_equal(Rect2(8, 8, 280, 48))
 	assert_that(_rect("Safe")).is_equal(Rect2(96, 66, 104, 20))
 
-# OK alone never stacks at 640x360, at any combination: red until the navigator decides.
-func test_ok_alone_stacked_at_largest() -> void:
-	_largest()
-	await _open_no_pad()
-	_assert_stacked()
-	assert_bool(_box_node("Other").visible).is_false()
-	assert_float(_rect("Safe").position.x).is_equal(roundf((_panel_rect().size.x - _rect("Safe").size.x) / 2.0))
-	assert_bool(_is_highlighted(_box_node("Safe"))).is_true()
-
-# OK alone never stacks at 640x360, at any combination: red until the navigator decides.
-func test_ok_alone_stacked_at_large() -> void:
-	_size_up(1)
-	_text_up(2)
-	await _open_no_pad()
-	_assert_stacked()
-	assert_bool(_box_node("Other").visible).is_false()
-	assert_float(_rect("Safe").position.x).is_equal(roundf((_panel_rect().size.x - _rect("Safe").size.x) / 2.0))
-
-# OK alone never stacks at 640x360, at any combination: red until the navigator decides.
-func test_ok_alone_up_down_keep_ok() -> void:
-	_largest()
-	await _open_no_pad()
-	_assert_stacked()
-	await _tap(KEY_DOWN)
-	await _tap(KEY_UP)
-	assert_int(page.rules.box_selected).is_equal(ControlsMenu.BoxButton.SAFE)
-	assert_bool(_box_node("Box").visible).is_true()
-	await _tap(KEY_ENTER)
-	assert_bool(_box_node("Box").visible).is_false()
-
 func test_ok_then_two_button_box_refits() -> void:
 	_largest()
 	await _open_no_pad()
@@ -297,11 +270,3 @@ func test_ok_then_two_button_box_refits() -> void:
 	assert_that(_panel_rect()).is_equal(_centred(Vector2(BoxLayout.widest(_ui()), 136)))
 	assert_bool(_box_node("Other").visible).is_true()
 	assert_that(_rect("Other").position).is_equal(Vector2(roundf((_panel_rect().size.x - 104.0) / 2.0), 106))
-
-# OK alone never stacks at 640x360, at any combination: red until the navigator decides.
-func test_size_change_while_ok_alone_is_up_keeps_one_button() -> void:
-	await _open_no_pad()
-	_largest()
-	_assert_stacked()
-	assert_float(_rect("Safe").position.x).is_equal(roundf((_panel_rect().size.x - _rect("Safe").size.x) / 2.0))
-	assert_bool(_box_node("Other").visible).is_false()

@@ -4,12 +4,13 @@ extends Control
 ## with a ring that fills while the cancel key is held. It has no rules; ControlsPage feeds it.
 
 const DIM := Color(0, 0, 0, 0.35)       # pause.tscn QuitBox/Dim
-# PANEL and the three baselines are the Normal-size anchors the measured layout must reproduce;
-# the tests pin layout_at against them, so they stay even though _draw reads `layout` instead.
-const PANEL := Rect2(60, 52, 200, 76)
-const NAME_BASELINE := 70.0
-const PRESS_BASELINE := 86.0
-const HOLD_TOP := 96.0                  # the picture's top; the words' baseline is HOLD_TOP + 8
+# PANEL and the three baselines are the Normal-size anchors on the picture's centre that the
+# measured layout must reproduce; the tests pin layout_at against them, so they stay even though
+# _draw reads `layout` instead.
+const PANEL := Rect2(Screen.CENTRE - Vector2(100, 38), Vector2(200, 76))
+const NAME_BASELINE := PANEL.position.y + 18.0
+const PRESS_BASELINE := PANEL.position.y + 34.0
+const HOLD_TOP := PANEL.position.y + 44.0                 # the picture's top; the words' baseline is HOLD_TOP + 8
 const GAP := 3                          # word to picture and picture to word
 const RING_GAP := 4                     # the line's end to the ring
 const HOLD := "Hold"

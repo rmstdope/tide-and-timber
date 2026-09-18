@@ -110,7 +110,5 @@ func test_a_window_resize_refits_the_box() -> void:
 
 func test_normal_text_draws_as_before() -> void:
 	await _open_box()
-	# WaitingBox.PANEL and HOLD_TOP are the 320x180 anchors; the box is centred on the picture's centre.
-	var panel := Rect2((Screen.CENTRE - WaitingBox.PANEL.size / 2.0).round(), WaitingBox.PANEL.size)
-	assert_that(_box().layout.panel).is_equal(panel)
-	assert_float(_box().ring.position.y).is_equal(WaitingBox.HOLD_TOP + panel.position.y - WaitingBox.PANEL.position.y)
+	assert_that(_box().layout.panel).is_equal(WaitingBox.PANEL)
+	assert_float(_box().ring.position.y).is_equal(WaitingBox.HOLD_TOP)

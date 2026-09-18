@@ -77,29 +77,29 @@ func test_large_text_widens_the_planks_and_the_board() -> void:
 	assert_bool(_words("QuitToTitle").wrapped).is_false()
 	assert_bool(pause.scrolls).is_false()
 
-func test_largest_ui_and_text_wrap_only_the_long_plank() -> void:
+## The band above the strip the board is framed to, in board units.
+func _band() -> Vector2:
+	return ScrollWindow.band((_node("Board")).get_global_transform_with_canvas(), pause.strip.screen_top())
+
+# Retired in tr-1o0.1: the three-plank Paused board scrolling, and the quit box stacking and scrolling. At
+# 640x360 no UI size, Text size and window reaches either; only the four-plank debug board still scrolls
+# (pause_scroll_test.gd). This is what fails if a later change grows either past the room above the strip.
+func test_at_the_largest_sizes_the_board_and_the_quit_box_fit_above_the_strip(
+		window: Vector2i, test_parameters := [[Vector2i(1280, 720)], [Vector2i(640, 360)]]) -> void:
+	get_tree().root.size = window
 	Display.prefs.step(S.UI_SIZE, 2)
 	Display.prefs.step(S.TEXT_SIZE, 2)
 	await _open()
-	# Precondition: the layout under test. At 640x360 no UI/Text combination reaches it (tr-1o0.1:
-	# UI Largest + Text Largest rests a 236x128 board that neither wraps nor scrolls); navigator decision.
-	assert_bool(_words("QuitToTitle").wrapped).override_failure_message("the long plank does not wrap").is_true()
-	assert_bool(pause.scrolls).override_failure_message("the board does not scroll").is_true()
-	assert_that(pause.rest_panel).is_equal(Rect2(82, -7, 156, 194))
-	assert_bool(_words("QuitToTitle").wrapped).is_true()
-	assert_bool(_words("Settings").wrapped).is_false()
-	assert_vector(_node("Resume").size).is_equal(Vector2(132, 46))
-	assert_vector(_node("Settings").size).is_equal(Vector2(132, 46))
-	assert_vector(_node("QuitToTitle").size).is_equal(Vector2(132, 46))
-	assert_bool(pause.scrolls).is_true()
-	for name: String in ["Resume", "Settings", "QuitToTitle"]:
-		var r := _screen(_node(name))
-		assert_float(r.position.x).is_greater_equal(0.0)
-		assert_float(r.end.x).is_less_equal(Screen.WIDTH)
-	# The highlighted plank is now taller than the band above the strip, so the scroll brings its top
-	# to the view's top and nothing of it is hidden above.
-	assert_float(_screen(_node("Resume")).position.y).is_equal(_screen(_node("Clip")).position.y)
-	assert_int(pause.scroll_offset).is_equal(28)
+	var b := _band()
+	assert_float(pause.rest_panel.size.y).override_failure_message(
+			"the board, %s tall, outgrows the %s-tall band" % [pause.rest_panel.size.y, b.y - b.x]).is_less_equal(b.y - b.x)
+	assert_that(_node("Panel").get_rect()).is_equal(Rect2(pause.rest_panel.position.x,
+			clampf(pause.rest_panel.position.y, b.x, b.y - pause.rest_panel.size.y), pause.rest_panel.size.x, pause.rest_panel.size.y))
+	await _tap(KEY_UP)
+	await _tap(KEY_ENTER)
+	await _settle()
+	assert_bool(pause._quit_box.stacked).override_failure_message("the quit box stacks").is_false()
+	assert_bool(pause._quit_frame.scrolls).override_failure_message("the quit box scrolls").is_false()
 
 func test_text_size_change_keeps_the_highlight() -> void:
 	await _open()

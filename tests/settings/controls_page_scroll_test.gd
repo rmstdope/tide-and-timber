@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 ## never stacks the page: "largest" is UI Largest and Text Largest; "large" is UI Largest and Text Large, the
 ## smallest combination at which three pushes Down scroll the title's page.
 ## On the title, at every combination, the Reset row and the lines under the list fit the view together, so
-## nothing reads on: the tests of reading on (controls-bottom c) assert that precondition first and stay red.
+## nothing reads on at any UI size, Text size and window; reading on here was retired in tr-1o0.1.
 ## The pause board's page does read on at UI Largest and Text Largest (pause_controls_scroll_test.gd).
 
 const SCENE := "res://src/title/title_screen.tscn"
@@ -106,11 +106,6 @@ func _down_to_next_row() -> void:
 		if page.rules.row != from:
 			return
 	fail("Down never left row %d" % from)
-
-func _wheel(up: bool, times: int) -> void:
-	for i in times:
-		runner.simulate_mouse_button_pressed(MOUSE_BUTTON_WHEEL_UP if up else MOUSE_BUTTON_WHEEL_DOWN)
-		await runner.await_input_processed()
 
 # --- pure ---
 
@@ -333,99 +328,3 @@ func test_reset_span_and_read_on() -> void:
 	assert_int(ControlsPage.read_on(216, -1, 9, s)).is_equal(207)
 	assert_int(ControlsPage.read_on(207, -1, 9, s)).is_equal(201)
 	assert_int(ControlsPage.read_on(201, -1, 9, s)).is_equal(201)
-
-# Opens the page at UI Largest and Text Largest and lands on the Reset row; asserts there is more to read.
-func _land_on_reset() -> void:
-	_largest()
-	await _open_page()
-	await _settle()
-	await _press(KEY_UP)
-	assert_int(page.rules.row).is_equal(8)
-	assert_bool(_span().x < _span().y).is_true()   # precondition: the lines under the list do not fit with the row
-	assert_int(page.offset).is_equal(_span().x)
-
-func _step() -> int:
-	return int(page.layout.line_step())
-
-func test_down_on_reset_reads_to_the_bottom_then_wraps() -> void:
-	await _land_on_reset()
-	assert_bool(page.shows_mark_below()).is_true()
-	var expected := _span().x
-	while expected < _span().y:
-		expected = mini(expected + _step(), _span().y)
-		await _press(KEY_DOWN)
-		assert_int(page.rules.row).is_equal(8)
-		assert_int(page.offset).is_equal(expected)
-		assert_bool(page.shows_mark_above()).is_true()
-	assert_bool(page.shows_mark_below()).is_false()
-	assert_bool(page.view.has_point(page.to_page(Vector2(Screen.CENTRE.x, page.layout.content_bottom() - 1)))).is_true()
-	await _press(KEY_DOWN)
-	assert_int(page.rules.row).is_equal(0)
-	assert_int(page.offset).is_equal(0)
-
-func test_up_on_reset_reads_back_then_moves_to_pause() -> void:
-	await _land_on_reset()
-	while page.offset < _span().y:
-		await _press(KEY_DOWN)
-	var expected := _span().y
-	while expected > _span().x:
-		expected = maxi(expected - _step(), _span().x)
-		await _press(KEY_UP)
-		assert_int(page.rules.row).is_equal(8)
-		assert_int(page.offset).is_equal(expected)
-	assert_bool(page.view.encloses(_drawn(8))).is_true()
-	await _press(KEY_UP)
-	assert_int(page.rules.row).is_equal(7)
-	assert_bool(page.view.encloses(_drawn(7))).is_true()
-
-func test_wheel_reads_the_bottom_without_moving_the_highlight() -> void:
-	_largest()
-	await _open_page()
-	await _settle()
-	await _wheel(false, 1)
-	assert_int(page.rules.row).is_equal(0)
-	assert_int(page.offset).is_equal(0)
-	await _press(KEY_UP)
-	assert_bool(_span().x < _span().y).is_true()   # precondition: there is more to read under the Reset row
-	await _wheel(false, 30)
-	assert_int(page.rules.row).is_equal(8)
-	assert_int(page.offset).is_equal(_span().y)
-	await _wheel(true, 30)
-	assert_int(page.rules.row).is_equal(8)
-	assert_int(page.offset).is_equal(_span().x)
-
-func test_a_read_down_reset_row_is_pointed_at_where_drawn() -> void:
-	await _land_on_reset()
-	while page.offset < _span().y:
-		await _press(KEY_DOWN)
-	var bottom := page.offset
-	var row := page.layout.row_rect(8)
-	var above := Vector2(Screen.CENTRE.x, page.view.position.y - 1.0 - page.shift())   # scrolled above the view
-	_left_click(page, page.to_page(above))
-	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
-	var shown := Vector2(Screen.CENTRE.x, maxf(row.position.y, above.y + 2.0))   # the row's part still drawn
-	assert_bool(row.has_point(shown)).is_true()
-	_motion(page, page.to_page(shown))
-	assert_int(page.rules.row).is_equal(8)
-	assert_int(page.offset).is_equal(bottom)
-	_left_click(page, page.to_page(shown))
-	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
-	assert_int(page.offset).is_equal(bottom)
-
-func test_tab_and_size_changes_keep_a_read_down_page_in_range() -> void:
-	await _land_on_reset()
-	while page.offset < _span().y:
-		await _press(KEY_DOWN)
-	page.rules.switch_tab()
-	page._refresh()
-	assert_int(page.rules.row).is_equal(8)
-	assert_int(page.offset).is_equal(_span().y)
-	Display.use_prefs(DisplayPrefs.new())
-	await _settle()
-	assert_bool(page.scrolls).is_false()
-	assert_int(page.offset).is_equal(0)
-	assert_int(page.rules.row).is_equal(8)
-	_largest()
-	await _settle()
-	assert_int(page.rules.row).is_equal(8)
-	assert_int(page.offset).is_equal(_span().x)

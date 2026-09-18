@@ -80,9 +80,8 @@ func _show_name(i: int) -> void:
 	var half := Screen.WIDTH / 2.0 / _scale()
 	var left := Screen.WIDTH / 2.0 - half + 2 - position.x
 	var right := Screen.WIDTH / 2.0 + half - 2 - position.x - w
-	# A plank wider than the visible span cannot be clamped inside it; centre it on the screen.
-	var x := clampf(floorf(centre - w / 2.0), left, right) if left <= right \
-			else roundf(Screen.WIDTH / 2.0 - position.x - w / 2.0)
+	# At 640x360 every plank fits the visible span (item_bar_test.gd holds that), so it is only clamped.
+	var x := clampf(floorf(centre - w / 2.0), left, right)
 	name_plank.position = Vector2(x, NAME_BOTTOM - h)
 	name_plank.show()
 	name_plank.queue_redraw()

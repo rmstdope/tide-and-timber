@@ -1,11 +1,10 @@
 extends GdUnitTestSuite
-## The build list's words grow with Text size: the list grows with them, stacks from the grown row,
-## and a stacked line too wide for the list wraps between words.
+## The build list's words grow with Text size: the list grows with them and stacks from the grown row.
 ##
 ## At 640x360 the list stacks only at UI Largest and Text Largest (its grown side-by-side width, 340,
 ## drawn 2x, is wider than Screen.WIDTH); UI size alone never stacks it (196 * 2 fits). The stacked list
-## there is 252 wide, well inside the picture, so no combination wraps a line: the wrapping tests below
-## assert layouts no player reaches at this picture size.
+## there is 252 wide, well inside the picture, so no combination wraps a line: wrapping was retired in
+## tr-1o0.1.
 
 const HIM := Vector2(100, 150)
 
@@ -88,19 +87,6 @@ func test_text_largest_stacks_and_widens() -> void:
 	assert_str(list.cost_labels[1].text).is_equal("Needs a lean-to")
 	assert_vector(list.title_label.scale).is_equal(Vector2(2, 2))
 
-func test_large_ui_and_large_text_stacks_without_wrapping() -> void:
-	var list := _open(1, 1)
-	assert_bool(list.stacked).is_true()
-	assert_vector(list.size).is_equal(Vector2(212, 91))
-	for i in BuildMenu.LINE_COUNT:
-		assert_vector(list.rows[i].size).is_equal(Vector2(206, 33))
-		assert_vector(list.cost_labels[i].position).is_equal(Vector2(3, 17))
-		assert_int(list.cost_labels[i].autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
-		assert_int(list.name_labels[i].autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
-	assert_float(list.rows[0].position.y).is_equal(20.0)
-	assert_float(list.rows[1].position.y).is_equal(55.0)
-	assert_vector(list.scale).is_equal(Vector2(1.5, 1.5))
-
 func test_no_word_runs_past_the_list() -> void:
 	for ui_size in 3:
 		for text_size in 3:
@@ -147,96 +133,3 @@ func test_a_small_window_still_fits() -> void:
 	assert_vector(list.size).is_equal(Vector2(252, 101))
 	assert_float(list.position.x).is_greater_equal(0.0)
 	assert_float(list.position.x + list.size.x * list.scale.x).is_less_equal(Screen.WIDTH)
-
-func test_largest_ui_and_text_wraps_the_cost() -> void:
-	var list := _open(2, 2)
-	assert_bool(list.stacked).is_true()
-	# The grown list is taller than the screen at UI Largest, so frame() scrolls it and `size` is the
-	# framed window; list_size() is the whole list.
-	assert_vector(list.list_size()).is_equal(Vector2(156, 145))
-	assert_bool(list.scrolls).is_true()
-	assert_float(list.size.x).is_equal(156.0)
-	for i in BuildMenu.LINE_COUNT:
-		assert_vector(list.rows[i].size).is_equal(Vector2(150, 59))
-		assert_vector(list.cost_labels[i].position).is_equal(Vector2(3, 19))
-		assert_int(list.cost_labels[i].autowrap_mode).is_equal(TextServer.AUTOWRAP_WORD_SMART)
-		assert_int(list.name_labels[i].autowrap_mode).is_equal(TextServer.AUTOWRAP_OFF)
-		assert_float(list.cost_labels[i].size.x).is_equal(72.0)
-	assert_float(list.rows[0].position.y).is_equal(22.0)
-	assert_float(list.rows[1].position.y).is_equal(83.0)
-	assert_float(list.position.x + list.size.x * 2.0).is_less_equal(316.0)
-
-func test_largest_ui_and_large_text_wraps_the_cost() -> void:
-	var list := _open(2, 1)
-	assert_vector(list.list_size()).is_equal(Vector2(156, 115))
-	for i in BuildMenu.LINE_COUNT:
-		assert_vector(list.rows[i].size).is_equal(Vector2(150, 46))
-		assert_vector(list.cost_labels[i].position).is_equal(Vector2(3, 15))
-		assert_float(list.cost_labels[i].size.x).is_equal(96.0)
-	assert_float(list.rows[0].position.y).is_equal(18.0)
-	assert_float(list.rows[1].position.y).is_equal(66.0)
-
-func test_large_ui_and_largest_text_wraps_the_cost() -> void:
-	var list := _open(1, 2)
-	assert_vector(list.list_size()).is_equal(Vector2(208, 145))
-	for i in BuildMenu.LINE_COUNT:
-		assert_float(list.cost_labels[i].size.x).is_equal(98.0)
-	assert_float(list.position.x + list.size.x * 1.5).is_less_equal(316.0)
-
-func test_wrapped_lines_never_breaks_a_word() -> void:
-	var list := _open(0, 0)
-	var label := list.cost_labels[0]
-	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 120.0)).is_equal(1)
-	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 72.0)).is_equal(2)
-	# "Needs a" is exactly 56 wide, so it still fits; 48 is the width that forces a third line.
-	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 56.0)).is_equal(2)
-	assert_int(BuildList.wrapped_lines(label, "Needs a lean-to", 48.0)).is_equal(3)
-	assert_int(BuildList.wrapped_lines(label, "0/8 driftwood", 72.0)).is_equal(2)
-	assert_int(BuildList.wrapped_lines(label, "driftwood", 72.0)).is_equal(1)
-	assert_int(BuildList.wrapped_lines(label, "driftwood", 40.0)).is_equal(1)
-
-func test_godot_wraps_where_we_counted() -> void:
-	var list := _open(2, 2)
-	await await_idle_frame()
-	await await_idle_frame()
-	for i in BuildMenu.LINE_COUNT:
-		assert_int(list.cost_labels[i].get_line_count()).is_equal(
-				BuildList.wrapped_lines(list.cost_labels[i], list.cost_labels[i].text, 72.0))
-		assert_int(list.cost_labels[i].get_line_count()).is_equal(2)
-		assert_int(list.name_labels[i].get_line_count()).is_equal(1)
-
-func test_a_name_too_wide_for_the_list_wraps_and_pushes_the_cost_down() -> void:
-	var list := _open(2, 2)
-	list.name_labels[0].text = "Lean-to shelter"      # 120 units, wider than the 72 it has
-	list.place_beside(HIM)
-	assert_bool(list.stacked).is_true()
-	assert_int(list.name_labels[0].autowrap_mode).is_equal(TextServer.AUTOWRAP_WORD_SMART)
-	assert_float(list.name_labels[0].size.x).is_equal(72.0)
-	for i in BuildMenu.LINE_COUNT:
-		# Every row grows together: two name lines (2*8 + 3, doubled = 38) above the cost.
-		assert_vector(list.cost_labels[i].position).is_equal(Vector2(3, 2 + 38 + 1))
-		assert_vector(list.rows[i].size).is_equal(Vector2(150, 2 + 38 + 1 + 38 + 2))
-	await await_idle_frame()
-	await await_idle_frame()
-	assert_int(list.name_labels[0].get_line_count()).is_equal(2)
-
-func test_godot_wraps_where_we_counted_at_every_size() -> void:
-	# _text_width_available() is not rounded, so this is the pin that our line count and the engine's
-	# wrap are given the identical width and cannot disagree at any size the game can reach.
-	var checked := 0
-	for ui_size in 3:
-		for text_size in 3:
-			var list := _open(ui_size, text_size)
-			var text_w: float = list._text_width_available()
-			await await_idle_frame()
-			await await_idle_frame()
-			for i in BuildMenu.LINE_COUNT:
-				for label: Label in [list.name_labels[i], list.cost_labels[i]]:
-					if label.autowrap_mode == TextServer.AUTOWRAP_OFF:
-						continue
-					assert_int(label.get_line_count()).is_equal(
-							BuildList.wrapped_lines(label, label.text, text_w))
-					checked += 1
-			remove_child(list)
-	# Six of the nine pairs wrap nothing, so say out loud that the pin is not vacuous.
-	assert_int(checked).is_greater(0)

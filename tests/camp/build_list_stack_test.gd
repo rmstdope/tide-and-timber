@@ -70,13 +70,6 @@ func test_large_in_a_big_window_stays_side_by_side() -> void:
 	assert_vector(list.cost_labels[0].position).is_equal(Vector2(0, 2))
 	assert_int(list.cost_labels[0].horizontal_alignment).is_equal(HORIZONTAL_ALIGNMENT_RIGHT)
 
-## At one times the picture Large rounds up to 2, but with Normal words the list still fits side by side
-## (196 * 2 < Screen.WIDTH): no player reaches a stacked list this way at 640x360.
-func test_large_stacks_where_the_window_rounds_it_to_twice() -> void:
-	var list := _open(1, Screen.MIN_WINDOW)
-	assert_vector(list.scale).is_equal(Vector2(2, 2))
-	assert_bool(list.stacked).is_true()
-
 func test_a_size_change_restacks_at_once_highlight_unmoved() -> void:
 	var list := _open(2, Vector2i(1280, 720), 2)
 	assert_bool(list.stacked).is_true()
@@ -91,15 +84,6 @@ func test_a_size_change_restacks_at_once_highlight_unmoved() -> void:
 	assert_bool(list.stacked).is_true()
 	assert_vector(list.position).is_equal(Vector2(112, 2))
 	assert_int(_menu.highlighted).is_equal(1)
-
-## No window size changes whether the list stacks at 640x360: UI Largest is 2 at every k, and only
-## UI Largest with Text Largest stacks it. No player reaches this.
-func test_a_window_resize_restacks() -> void:
-	var list := _open(1, Vector2i(1280, 720))
-	get_tree().root.size = Screen.MIN_WINDOW
-	assert_bool(list.stacked).is_true()
-	get_tree().root.size = Vector2i(1280, 720)
-	assert_bool(list.stacked).is_false()
 
 func test_side_by_side_width_is_the_list_width_for_todays_words() -> void:
 	var list := _open(0, Vector2i(1280, 720))

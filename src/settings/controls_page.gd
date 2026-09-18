@@ -467,10 +467,12 @@ func _refresh() -> void:
 		(%Safe.get_node("Label") as GrownWords).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
 		(%Other.get_node("Label") as GrownWords).text = "Reset" if reset else "Leave"
 		%Other.visible = not no_pad
-		_fit_box()
+		# Styled before fitting: a button's minimum size includes its plank's margins, so a box first
+		# fitted unstyled would centre a button narrower than the one it draws.
 		for b: ControlsMenu.BoxButton in [ControlsMenu.BoxButton.SAFE, ControlsMenu.BoxButton.OTHER]:
 			_box_button(b).add_theme_stylebox_override("panel",
 					PLANK_HIGHLIGHT_STYLE if rules.box_selected == b else PLANK_STYLE)
+		_fit_box()
 	strip.visible = not waiting
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if box_up else DeviceHints.Hint.CONTROLS_PAGE)
 	if rules.is_open:   # after show_hint, so the strip's on-screen top is current

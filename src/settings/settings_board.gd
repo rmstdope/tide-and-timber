@@ -2,7 +2,7 @@ class_name SettingsBoard
 extends Control
 ## The Settings board over a dim: draws a SettingsMenu and turns input into its moves.
 ## Instanced by the title screen and by pause.tscn.
-## At a scale where its rows no longer fit across the screen, every row goes onto two lines and the panel narrows to fit.
+## At a scale where its rows no longer fit the board, every row goes onto two lines and the panel narrows to fit.
 ## When its content is taller than the screen above its strip, the panel is framed to fit and the content scrolls
 ## to the highlight, with ▲ / ▼ where rows are hidden.
 
@@ -53,9 +53,10 @@ var rest_panel := Rect2(BOARD_X, floorf((Screen.HEIGHT - BOARD_H) / 2.0), BOARD_
 static func panel_width(s: float) -> float:
 	return minf(BOARD_W, floorf(Screen.WIDTH / s - 2.0 * SCREEN_MARGIN))
 
-## True when a plank widest_row wide, with the panel's sides and the screen margins, is wider than the screen at s.
+## True when a plank widest_row wide, with the panel's sides, does not fit the panel at s.
+## panel_width(s) is already the smaller of the board and the screen, so this covers both.
 static func stacks(widest_row: float, s: float) -> bool:
-	return (widest_row + 2.0 * PANEL_SIDE + 2.0 * SCREEN_MARGIN) * s > Screen.WIDTH
+	return widest_row + 2.0 * PANEL_SIDE > panel_width(s)
 
 ## How many lines text takes wrapped at width, as an autowrap-smart Label draws it.
 static func line_count(text: String, width: float, font: Font, font_size: int) -> int:

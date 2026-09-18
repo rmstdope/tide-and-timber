@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
-## The Settings board at a scale where its rows no longer fit across the screen: every row goes onto two lines
+## The Settings board at a scale where its rows no longer fit the board: every row goes onto two lines
 ## inside the panel (which narrows to fit when the screen is narrower than it); at a scale where they fit,
 ## they stay side by side.
-## At the default 1280x720 window a player stacks the rows at UI Largest and Text Largest, the one
-## combination that does; UI Largest and Text Large is the step below, where they stay side by side.
+## The rows stack when one of them no longer fits the board. At the default 1280x720 window that is Text
+## Largest at any UI size, and UI Large with Text Large; UI Largest with Text Large stays side by side.
 
 const TITLE := "res://src/title/title_screen.tscn"
 const NO_SAVE := "user://test_saves/stacking_none"   # never created
@@ -79,11 +79,29 @@ func test_panel_width_follows_the_scale() -> void:
 	assert_float(SettingsBoard.panel_width(4.0)).is_equal(156.0)   # 640 / 4 - 4
 
 func test_stacks_only_when_too_wide() -> void:
-	# (widest + 12) * s against the 640-wide picture
+	# widest + 8 against the panel, which is the smaller of the 304 board and the 640-wide picture at s
 	assert_bool(SettingsBoard.stacks(200, 2.0)).is_false()
 	assert_bool(SettingsBoard.stacks(200, 3.0)).is_false()
 	assert_bool(SettingsBoard.stacks(200, 4.0)).is_true()
 	assert_bool(SettingsBoard.stacks(220, 3.0)).is_true()
+
+func test_a_row_one_unit_wider_than_the_board_fits_stacks() -> void:
+	# The board is 304 with 4 each side: a 296 row fits it, a 297 row does not, even at s 1 where the
+	# picture has room to spare.
+	assert_bool(SettingsBoard.stacks(297.0, 1.0)).is_true()
+	assert_bool(SettingsBoard.stacks(296.0, 1.0)).is_false()
+
+func test_at_text_largest_every_row_lies_inside_the_board(ui: int, test_parameters := [[0], [1]]) -> void:
+	# UI Normal and UI Large with Text Largest: rows about 360 wide against the 304 board. Across only:
+	# at UI Large the stacked board scrolls, so a plank below the band is out of view, not spilling.
+	_grow(ui, 2)
+	_title()
+	await _open()
+	var panel := _node("Panel").get_global_rect()
+	for name: String in PLANKS:
+		var r := _node(name).get_global_rect()
+		assert_bool(r.position.x >= panel.position.x and r.end.x <= panel.end.x).override_failure_message(
+			"UI step %d: %s %s outside the panel %s" % [ui, name, r, panel]).is_true()
 
 func test_line_count_matches_the_label() -> void:
 	var font: Font = load("res://assets/fonts/PressStart2P-Regular.ttf")
@@ -154,17 +172,16 @@ func test_large_in_a_big_window_stays_side_by_side() -> void:
 	assert_float(r.end.x).is_less_equal(Screen.WIDTH)
 
 func test_changing_size_on_the_board_stacks_and_unstacks_with_the_highlight_unmoved() -> void:
-	_grow(0, 2)
+	# At Text Large in the 1280x720 window the rows fit the board at UI Normal and stack at UI Large.
+	_grow(0, 1)
 	_title()
 	await _open()
 	assert_bool(board.stacked).is_false()
 	var before := _plank_rects()
 	await _tap(KEY_RIGHT)
-	await _tap(KEY_RIGHT)
 	await _settle()
 	assert_bool(board.stacked).is_true()
 	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.UI_SIZE)
-	await _tap(KEY_LEFT)
 	await _tap(KEY_LEFT)
 	await _settle()
 	assert_bool(board.stacked).is_false()
@@ -172,16 +189,16 @@ func test_changing_size_on_the_board_stacks_and_unstacks_with_the_highlight_unmo
 	assert_array(_plank_rects()).is_equal(before)
 
 func test_a_window_resize_restacks() -> void:
-	# UNREACHED at 640x360 (navigator decision, tr-1o0.1): UI Large draws at 1.5 in the 1280x720 window (k 2)
-	# and rounds up to 2 at 640x360 (k 1), the only window resize that changes the drawn scale, yet with
-	# Text Largest the rows still fit there. No UI / Text combination stacks in one window and not another.
-	_grow(1, 2)
+	# UI Normal and Text Large: the words grow by TextScale.relative, which follows the window, so the
+	# rows fit the board in the 1280x720 window and stack in the 640x360 one.
+	_grow(0, 1)
 	_title()
 	await _open()
 	assert_bool(board.stacked).is_false()
 	get_tree().root.size = Vector2i(640, 360)
 	await _settle()
 	assert_bool(board.stacked).is_true()
+	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.UI_SIZE)
 	get_tree().root.size = Vector2i(1280, 720)
 	await _settle()
 	assert_bool(board.stacked).is_false()

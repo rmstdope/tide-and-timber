@@ -94,7 +94,8 @@ func test_largest_ui_and_text_stack_and_nothing_leaves_the_panel() -> void:
 	await _open()
 	assert_bool(board.stacked).is_true()
 	assert_float(board.rest_panel.size.x).is_equal(SettingsBoard.panel_width(2.0))
-	assert_bool((_node("ColourCues").get_node("Row/Label") as GrownWords).wrapped).is_true()
+	# Retired in tr-1o0.1: the Colour cues line wrapping. No UI size, Text size and window wraps it at 640x360.
+	assert_bool((_node("ColourCues").get_node("Row/Label") as GrownWords).wrapped).is_false()
 	assert_bool((_node("UiSize").get_node("Row/Label") as GrownWords).wrapped).is_false()
 	var h := _node(PLANKS[0]).size.y
 	for name: String in PLANKS:

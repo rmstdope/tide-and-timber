@@ -1,8 +1,8 @@
 class_name BuildList
 extends Control
 ## The wooden Build list: a title and two rows, drawn from a BuildMenu.
-## When it is taller than the room above its hint, it is framed to fit and scrolls to the highlight,
-## with ▲ / ▼ where rows are hidden.
+## At 640x360 it always fits above the build hint and its words never wrap: its scrolling and wrapping
+## were retired in tr-1o0.1 (build_list_text_size_scene_test.gd holds the fit).
 
 signal row_hovered(thing: int)
 signal row_clicked(thing: int)
@@ -20,8 +20,6 @@ const GREYED := HudColours.DIM
 const BORDER := HudColours.WOOD_DARK
 const FILL := HudColours.WOOD
 const HIGHLIGHT := HudColours.WOOD_LIGHT
-const CONTENT_TOP := 3.0                # the title's top: the scrolled content starts here
-const CONTENT_BOTTOM_MARGIN := 3.0      # the last row's bottom to the list's bottom
 
 # The Normal geometry, named. Only words grow; every one of these keeps its UI-size scale.
 const TEXT_LINE := 8.0                  # one line of words, in list units, at Text size Normal
@@ -45,16 +43,6 @@ var cost_labels: Array[Label] = []
 var _menu: BuildMenu
 ## True while every row shows its cost under its name. Set only by _place; read it, never write it.
 var stacked := false
-## Whole units the content is scrolled up; 0 while the list fits. Owned by frame(); reset only by place_beside.
-var offset := 0
-## True while the content does not fit the room above the hint. Set only by frame(); read it, never write it.
-var scrolls := false
-## The hint whose on-screen top bounds the list from below; null when none.
-var hint: Control
-## Lines the tallest name and the tallest cost take at the current width; 1 while nothing wraps.
-## Set only by _layout; read them, never write them.
-var _name_lines := 1
-var _cost_lines := 1
 ## The words' scale inside the list, on top of UI size; 1.0 at Text size Normal.
 ## Set only by _place; read it, never write it.
 var _rel := 1.0
@@ -82,15 +70,6 @@ static func top_left_for(man_on_screen: Vector2, s: float = 1.0, box: Vector2 = 
 func place_beside(man_on_screen: Vector2) -> void:
 	_man = man_on_screen
 	_placed = true
-	offset = 0
-	_place()
-
-## Bounds the list from below by h's on-screen top while h is visible, re-framing whenever h moves, resizes,
-## shows or hides.
-func use_hint(h: Control) -> void:
-	hint = h
-	h.item_rect_changed.connect(_place)
-	h.visibility_changed.connect(_place)
 	_place()
 
 func _place() -> void:
@@ -102,64 +81,7 @@ func _place() -> void:
 	_layout()
 	scale = Vector2(_ui, _ui)
 	position = top_left_for(_man, _ui, list_size())
-	_frame(_ui)
-
-## Frames the list, already scaled by s and placed, to the band read from the hint.
-func _frame(s: float) -> void:
-	# The list's own transform is not used because frame() changes it; its parent may be a CanvasLayer,
-	# which is not a CanvasItem.
-	var parent_t := get_global_transform_with_canvas() * get_transform().affine_inverse()
-	var b := ScrollWindow.band(parent_t, _hint_top())
-	frame(b.x, b.y, s)
-
-## The hint's on-screen top while it is visible, else the screen's bottom edge.
-func _hint_top() -> float:
-	if hint != null and hint.is_visible_in_tree():
-		return HintLift.screen_rect(hint).position.y
-	return Screen.HEIGHT
-
-## Frames the list, already scaled by s and placed, to the band [band_top, band_bottom] in its parent's units,
-## and scrolls the content so the highlighted row is wholly visible.
-func frame(band_top: float, band_bottom: float, s: float) -> void:
-	var box := list_size()
-	var room := floorf((band_bottom - band_top) / s)
-	if box.y <= room:
-		scrolls = false
-		offset = 0
-		size = box
-		clip.position = Vector2.ZERO
-		clip.size = box
-		content.position = Vector2.ZERO
-	else:
-		scrolls = true
-		var view_h := room - 2.0 * ScrollWindow.MARK_ROW
-		if _menu != null and _menu.highlighted >= 0:
-			var e := _item_extent(_menu.highlighted)
-			offset = ScrollWindow.follow(_content_height(), view_h, e.x, e.y, offset)
-		position.y = band_top
-		size = Vector2(box.x, room)
-		clip.position = Vector2(0, ScrollWindow.MARK_ROW)
-		clip.size = Vector2(box.x, view_h)
-		content.position = Vector2(0, -(CONTENT_TOP + offset))
 	queue_redraw()
-
-## True while ▲ is drawn: scrolling, with content hidden above.
-func shows_mark_above() -> bool:
-	return scrolls and ScrollWindow.hidden_above(offset)
-
-## True while ▼ is drawn: scrolling, with content hidden below.
-func shows_mark_below() -> bool:
-	return scrolls and ScrollWindow.hidden_below(offset, _content_height(), clip.size.y)
-
-## The scrolled content's height: the title's top to the last row's bottom.
-func _content_height() -> float:
-	return list_size().y - CONTENT_TOP - CONTENT_BOTTOM_MARGIN
-
-## Row i's top and bottom in the content's own units. The first row reaches the title, the last the bottom.
-func _item_extent(i: int) -> Vector2:
-	var top := _row_tops()[i] - CONTENT_TOP
-	return ScrollWindow.stretch_ends(Vector2(top, top + _row_size().y), _content_height(),
-			i == 0, i == BuildMenu.LINE_COUNT - 1)
 
 ## True when a list side_by_side_width wide, drawn at scale s, is wider than the screen.
 static func stacks(side_by_side_width: float, s: float) -> bool:
@@ -176,7 +98,8 @@ func side_by_side_width(rel := 1.0) -> float:
 	return maxf(SIZE.x, widest + COST_GAP + WORDS_INSET)
 
 ## The list's unscaled width for the words it shows now: side by side, the widest grown row; stacked,
-## the widest grown word block, capped by TextScale.fit_width so the list stays on the screen.
+## the widest grown word block, capped by TextScale.fit_width so the list stays on the screen (at 640x360
+## the cap never bites).
 ## At Text size Normal it is exactly today's: the list grows only because its words did.
 func list_width() -> float:
 	if is_equal_approx(_rel, 1.0):
@@ -192,16 +115,13 @@ func _widest_word_block() -> float:
 		widest = maxf(widest, maxf(_text_width(name_labels[i]), _text_width(cost_labels[i])))
 	return widest
 
-## The width, in the labels' own units, that a name or cost is wrapped and drawn in.
+## The width, in the labels' own units, that a name or cost is drawn in.
 func _text_width_available() -> float:
 	return (list_width() - WORDS_INSET) / _rel
 
-## The drawn height, in list units, of a grown label of `lines` lines.
-func _text_height(lines: int) -> float:
-	return ceilf((lines * TEXT_LINE + (lines - 1) * _line_spacing()) * _rel)
-
-func _line_spacing() -> float:
-	return title_label.get_theme_constant(&"line_spacing")
+## The drawn height, in list units, of one grown line of words.
+func _text_height() -> float:
+	return ceilf(TEXT_LINE * _rel)
 
 static func _width_of(label: Label, text: String) -> float:
 	return label.get_theme_font(&"font").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1,
@@ -210,36 +130,19 @@ static func _width_of(label: Label, text: String) -> float:
 static func _text_width(label: Label) -> float:
 	return _width_of(label, label.text)
 
-## Lines `text` takes in `label` when the label is `width` of its own units wide, breaking only
-## between words: a word wider than the line keeps its own line and is never broken inside.
-static func wrapped_lines(label: Label, text: String, width: float) -> int:
-	var lines := 1
-	var line := ""
-	for word in text.split(" ", false):
-		var candidate := word if line.is_empty() else line + " " + word
-		if line.is_empty() or _width_of(label, candidate) <= width:
-			line = candidate
-		else:
-			lines += 1
-			line = word
-	return lines
-
-static func _wrap(lines: int) -> TextServer.AutowrapMode:
-	return TextServer.AUTOWRAP_WORD_SMART if lines > 1 else TextServer.AUTOWRAP_OFF
-
 ## The list's unscaled size for the words it shows now.
 func list_size() -> Vector2:
 	return Vector2(list_width(),
 			_row_tops()[BuildMenu.LINE_COUNT - 1] + _row_size().y + BOTTOM_MARGIN)
 
 func _row_size() -> Vector2:
-	var h := ROW_TOP_PAD + _text_height(_name_lines)
-	h += (NAME_GAP + _text_height(_cost_lines) + STACKED_BOTTOM_PAD) if stacked else ROW_BOTTOM_PAD
+	var h := ROW_TOP_PAD + _text_height()
+	h += (NAME_GAP + _text_height() + STACKED_BOTTOM_PAD) if stacked else ROW_BOTTOM_PAD
 	return Vector2(list_width() - 2.0 * INSET, h)
 
 func _row_tops() -> Array[float]:
 	var tops: Array[float] = []
-	var top := TITLE_TOP + _text_height(1) + TITLE_GAP
+	var top := TITLE_TOP + _text_height() + TITLE_GAP
 	for i in BuildMenu.LINE_COUNT:
 		tops.append(top)
 		top += _row_size().y + ROW_GAP
@@ -247,14 +150,6 @@ func _row_tops() -> Array[float]:
 
 func _layout() -> void:
 	var text_w := _text_width_available()
-	_name_lines = 1
-	_cost_lines = 1
-	if stacked:
-		for i in BuildMenu.LINE_COUNT:
-			_name_lines = maxi(_name_lines,
-					wrapped_lines(name_labels[i], name_labels[i].text, text_w))
-			_cost_lines = maxi(_cost_lines,
-					wrapped_lines(cost_labels[i], cost_labels[i].text, text_w))
 	var box := list_size()
 	var row_size := _row_size()
 	var tops := _row_tops()
@@ -267,25 +162,18 @@ func _layout() -> void:
 		rows[i].size = row_size
 		name_labels[i].position = Vector2(INSET, ROW_TOP_PAD)
 		name_labels[i].scale = Vector2.ONE * _rel
-		name_labels[i].autowrap_mode = _wrap(_name_lines)
-		# else the unwrapped minimum width still clamps the narrower size (as SpokenLine does)
-		name_labels[i].update_minimum_size()
-		# The box is the lines alone; Godot clamps it up to the line_spacing between them, which
-		# _text_height() reserves in the row.
-		name_labels[i].size = Vector2(text_w, _name_lines * TEXT_LINE)
+		name_labels[i].size = Vector2(text_w, TEXT_LINE)
 		name_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		cost_labels[i].scale = Vector2.ONE * _rel
-		cost_labels[i].autowrap_mode = _wrap(_cost_lines) if stacked else TextServer.AUTOWRAP_OFF
-		cost_labels[i].update_minimum_size()
-		cost_labels[i].size = Vector2(text_w, (_cost_lines if stacked else 1) * TEXT_LINE)
+		cost_labels[i].size = Vector2(text_w, TEXT_LINE)
 		if stacked:
-			cost_labels[i].position = Vector2(INSET,
-					ROW_TOP_PAD + _text_height(_name_lines) + NAME_GAP)
+			cost_labels[i].position = Vector2(INSET, ROW_TOP_PAD + _text_height() + NAME_GAP)
 			cost_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		else:
 			cost_labels[i].position = Vector2(0, ROW_TOP_PAD)
 			cost_labels[i].horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	size = box
+	clip.size = box
 	content.size = box
 	content.queue_redraw()
 	queue_redraw()
@@ -341,12 +229,8 @@ func _draw() -> void:
 	var box := size
 	draw_rect(Rect2(Vector2.ZERO, box), BORDER)
 	draw_rect(Rect2(1, 1, box.x - 2, box.y - 2), FILL)
-	if shows_mark_above():
-		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, box), true), true)
-	if shows_mark_below():
-		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, box), false), false)
 
-## The highlight line, drawn on content so it scrolls and clips with the rows.
+## The highlight line, drawn on content under the rows.
 func _draw_highlight() -> void:
 	if _menu and _menu.highlighted >= 0:
 		content.draw_rect(Rect2(Vector2(INSET, _row_tops()[_menu.highlighted]), _row_size()), HIGHLIGHT)

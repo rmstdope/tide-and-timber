@@ -112,11 +112,6 @@ func _text(steps: int) -> void:
 	for i in steps:
 		Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)
 
-## One step short of the scrolling layout: UI Large + Text Largest (Start over stacks, still fits).
-func _large() -> void:
-	_ui(1)
-	_text(2)
-
 ## UI Largest + Text Largest: both boxes scroll.
 func _largest() -> void:
 	_ui(2)
@@ -229,24 +224,6 @@ func test_words_and_buttons_are_clipped() -> void:
 		assert_int(_clip(box).mouse_filter).is_equal(Control.MOUSE_FILTER_IGNORE)
 		assert_int(content.mouse_filter).is_equal(Control.MOUSE_FILTER_IGNORE)
 		assert_int(_marks(box).mouse_filter).is_equal(Control.MOUSE_FILTER_IGNORE)
-
-func test_large_scrolls_too() -> void:
-	await _open_start_over_box()
-	_large()
-	await get_tree().process_frame
-	# No player reaches this at 640x360: UI Large + Text Largest stacks Start over but it still fits
-	# (418x138 against a 155-tall band), and only UI Largest + Text Largest scrolls it. Left red for
-	# the navigator: whether to retire this layout.
-	_assert_scrolls("StartOverBox")
-	if not screen._start_over_frame.scrolls:
-		return
-	assert_that(_rect("%StartOverBox")).is_equal(Rect2(58, 32, 204, 102))
-	assert_that(Rect2(_clip("StartOverBox").position, _clip("StartOverBox").size)).is_equal(Rect2(0, 10, 204, 82))
-	assert_that(Rect2(_content("StartOverBox").position, _content("StartOverBox").size)).is_equal(Rect2(0, -8, 204, 133))
-	for i in 2:
-		await _press(KEY_DOWN)
-	_box_highlighted("StartOver")
-	assert_float(_content("StartOverBox").position.y).is_equal(-41.0)
 
 func test_replace_box_scrolls_at_largest() -> void:
 	await _open_replace_box()
