@@ -65,10 +65,6 @@ func test_fit_width_widens_then_narrows() -> void:
 	assert_float(TextScale.fit_width(Screen.WIDTH, Screen.WIDTH, 1.0)).is_equal(Screen.WIDTH)
 	assert_float(TextScale.fit_width(296, 440, 1.5)).is_equal(floorf(room / 1.5))   # 440 * 1.5 > WIDTH
 
-func test_fit_width_equals_width_at_when_words_fit() -> void:
-	for s: float in [1.0, 1.5, 2.0, 5.0 / 3.0]:
-		assert_float(TextScale.fit_width(296, 100, s)).is_equal(SpokenLine.width_at(296, s))
-
 func test_extra_is_whole_units() -> void:
 	assert_float(TextScale.extra(9, 1.0)).is_equal_approx(0.0, 0.01)
 	assert_float(TextScale.extra(9, 1.5)).is_equal_approx(5.0, 0.01)

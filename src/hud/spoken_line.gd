@@ -1,15 +1,16 @@
 class_name SpokenLine
 extends Control
-## One of his lines. It keeps its Normal width while that fits on the screen at the current UI size.
-## Otherwise it narrows to nearly the screen's width, wraps, and grows taller.
+## One of his lines. The dark band is as wide as the words plus a margin each side, centred on the
+## picture. Once that no longer fits at the current UI size it narrows to nearly the screen's width,
+## wraps, and grows taller.
 ## Children, all optional: "Band" (ColorRect, resized to the whole control), "Text" (Label; when
 ## absent, this node itself must be the Label). Any other child (the dawn line's journal) keeps its offsets.
 
 const SCREEN_MARGIN := 4.0          # on-screen art px kept clear at each side once a line narrows
+const BAND_MARGIN := 8.0            # art px of band kept each side of the words
 
 @export var grows_up := true        # true: the bottom edge stays put; false: the vertical centre stays put
 
-var _full_width := 0.0
 var _full_height := 0.0
 var _bottom := 0.0
 var _centre_y := 0.0
@@ -18,7 +19,6 @@ var _band: Control
 var _text_left := 0.0
 
 func _ready() -> void:
-	_full_width = size.x
 	_full_height = size.y
 	_bottom = position.y + size.y
 	_centre_y = position.y + size.y / 2.0
@@ -35,9 +35,11 @@ func say(text: String) -> void:
 	if is_node_ready():
 		_refit()
 
-## The width at scale s: full_width while full_width * s fits the screen, else the screen less its margins.
-static func width_at(full_width: float, s: float) -> float:
-	return TextScale.fit_width(full_width, full_width, s)
+## The band a line wants, unclamped: the words plus BAND_MARGIN each side, and never less than
+## `text_left` each side, so a leading child (the dawn line's journal) keeps its room and the
+## words stay centred in the band.
+static func wanted_width(words_width: float, text_left: float) -> float:
+	return words_width + 2.0 * maxf(text_left, BAND_MARGIN)
 
 ## Lays the line out for UI scale s, with the words at `rel` times that (1.0: Text size Normal).
 func fit(s: float, rel: float = 1.0) -> void:
@@ -45,12 +47,13 @@ func fit(s: float, rel: float = 1.0) -> void:
 	_text.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_text.scale = Vector2.ONE
 	_text.update_minimum_size()     # else the unwrapped minimum width still clamps the narrower size
-	var words := _text_left + ceilf(_text.get_minimum_size().x * rel)
-	var want := maxf(_full_width, words)
-	var w := TextScale.fit_width(_full_width, words, s)
+	var words := ceilf(_text.get_minimum_size().x * rel)
+	var inset := 0.0 if own else maxf(_text_left, BAND_MARGIN)
+	var want := wanted_width(words, _text_left)
+	var w := TextScale.fit_width(want, want, s)
 	_text.autowrap_mode = TextServer.AUTOWRAP_OFF if w == want else TextServer.AUTOWRAP_WORD_SMART
 	_text.scale = Vector2.ONE * rel
-	_text.size.x = (w if own else w - _text_left) / rel
+	_text.size.x = (w - 2.0 * inset) / rel
 	_text.update_minimum_size()
 	var lines := maxi(1, _text.get_line_count())
 	var step := _text.get_line_height() + _text.get_theme_constant(&"line_spacing")
@@ -62,7 +65,8 @@ func fit(s: float, rel: float = 1.0) -> void:
 		size = Vector2(w, h)
 		if _band:
 			_band.size = size
-		_text.size = Vector2((w - _text_left) / rel, h / rel)
+		_text.position.x = inset
+		_text.size = Vector2((w - 2.0 * inset) / rel, h / rel)
 
 func _refit() -> void:
 	fit(UiScale.current(Display.prefs, get_tree().root), TextScale.relative(Display.prefs, get_tree().root))
