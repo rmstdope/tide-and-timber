@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Controls bottom — C</title><script src="common.js"></script><script src="bottom.js"></script></head><body><script>
+page('C — Down on the Reset row reads on through the lines, then wraps',
+'Highlighting Reset keyboard to defaults shows the whole row. While lines are hidden below, each Down scrolls the page one line (the highlight stays on Reset); once the bottom shows, the next Down wraps to the top as today. Up scrolls back one line per push until the whole Reset row shows, then moves to Pause. The mouse wheel scrolls the page the same way. This is the rule already agreed for a box too tall for the screen. Drawn at Largest UI, keyboard tab, from the title screen.',[
+ fig('1. Reset highlighted','Whole row in view. ▼: lines hidden below.',controls(8,RESET_TOP)),
+ fig('2. Down','One line down. Reset still highlighted. ▲ ▼.',controls(8,RESET_TOP+14)),
+ fig('3. Down','Bottom of the page: every line shows. No ▼.',controls(8,BOTTOM)),
+ fig('4. Down','Wraps to Walk up at the top, as today.',controls(0,0)),
+ fig('From 3, Up','Back one line, then Up again shows the whole Reset row; one more Up goes to Pause.',controls(8,RESET_TOP+14))],
+'Recommended: it matches how the tall box already reads (you read down, then move on), keeps the highlighted row whole when you land on it, and leaves nothing unreachable. From pause, with less room, it just takes a few more pushes.');
+</script></body></html>
