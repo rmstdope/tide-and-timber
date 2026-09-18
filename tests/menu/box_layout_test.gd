@@ -290,6 +290,10 @@ func test_label_widths_measures_unwrapped_and_restores_autowrap() -> void:
 	assert_int(label.autowrap_mode).is_equal(TextServer.AUTOWRAP_WORD_SMART)
 	label.free()
 
+func test_label_widths_at_normal_keeps_the_scene_widths() -> void:
+	var labels: Array[Label] = []
+	assert_bool(BoxLayout.label_widths(labels, 1.0).is_valid()).is_false()
+
 func test_label_heights_scales_by_rel() -> void:
 	var label := _label()
 	var labels: Array[Label] = [label]

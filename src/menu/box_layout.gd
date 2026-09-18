@@ -58,8 +58,11 @@ static func stacked_width(normal_width: float, s: float) -> float:
 
 ## Each label's unwrapped words width in box units at relative text scale rel: (index: int) -> float.
 ## Measures with autowrap off, since a wrapped Label's minimum width is one word, then puts its
-## autowrap back. For at()'s line_width.
+## autowrap back. For at()'s line_width. At Text size Normal (rel 1) an invalid Callable: the lines keep
+## the scene's widths, since a line the scene already wraps would otherwise widen the Normal box.
 static func label_widths(labels: Array[Label], rel: float) -> Callable:
+	if rel <= 1.0:
+		return Callable()
 	return func(index: int) -> float:
 		var label := labels[index]
 		var wrap := label.autowrap_mode
@@ -113,8 +116,6 @@ func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callab
 		# side by side the pair keeps only the screen margins: stacks_at already ensures it fits the screen
 		need = maxf(need, left_size.x + gap + right_size.x + 2.0 * SCREEN_MARGIN)
 	var w := minf(maxf(panel.size.x, 2.0 * ceilf(need / 2.0)), widest(s))
-	if stacking:
-		w = minf(w, stacked_width(panel.size.x, s))
 	for i in lines.size():
 		var line := Rect2()
 		line.position.x = lines[i].position.x
