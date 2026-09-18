@@ -24,27 +24,27 @@ var picture := 0:                       # 0..3; setting it calls queue_redraw()
 
 static func shapes(index: int) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var full := Rect2(0, 0, 320, 180)
+	var full := Rect2(Vector2.ZERO, Screen.SIZE)
 	match index:
 		0:
 			out.append(_shape(full, SKY))
 			out.append_array(_clouds(false))
-			out.append_array(_waves(120, false))
-			out.append_array(_ship(120, 86, 0.0, false))
-			out.append_array(_rain(40))
+			out.append_array(_waves(240, false))
+			out.append_array(_ship(240, 206, 0.0, false))
+			out.append_array(_rain(160))
 		1:
 			out.append(_shape(full, SKY))
 			out.append_array(_clouds(false))
-			out.append_array(_waves(110, true))
-			out.append_array(_ship(120, 74, -14.0, false))
-			out.append_array(_rain(120))
-			out.append_array(_bolt(230))
+			out.append_array(_waves(220, true))
+			out.append_array(_ship(240, 184, -14.0, false))
+			out.append_array(_rain(480))
+			out.append_array(_bolt(460))
 		2:
 			out.append(_shape(full, SKY))
 			out.append_array(_clouds(true))
-			out.append_array(_waves(100, true))
-			out.append_array(_ship(130, 70, 35.0, true))
-			out.append_array(_rain(140))
+			out.append_array(_waves(200, true))
+			out.append_array(_ship(260, 170, 35.0, true))
+			out.append_array(_rain(560))
 			out.append(_shape(full, FLASH))
 		_:
 			out.append(_shape(full, BLACK))
@@ -63,20 +63,22 @@ static func _shape(rect: Rect2, color: Color, rotation := 0.0, pivot := Vector2.
 
 static func _clouds(light: bool) -> Array[Dictionary]:
 	return [
-		_shape(Rect2(0, 0, 320, 40), CLOUD_HI if light else CLOUD),
-		_shape(Rect2(20, 36, 90, 10), CLOUD),
-		_shape(Rect2(160, 34, 120, 12), CLOUD),
-		_shape(Rect2(60, 44, 40, 6), CLOUD),
+		_shape(Rect2(0, 0, Screen.WIDTH, 80), CLOUD_HI if light else CLOUD),
+		_shape(Rect2(40, 76, 90, 10), CLOUD),
+		_shape(Rect2(320, 74, 120, 12), CLOUD),
+		_shape(Rect2(120, 84, 40, 6), CLOUD),
+		_shape(Rect2(430, 78, 110, 10), CLOUD),
+		_shape(Rect2(250, 86, 50, 6), CLOUD),
 	]
 
 static func _waves(top: int, big: bool) -> Array[Dictionary]:
 	var out: Array[Dictionary] = [
-		_shape(Rect2(0, top, 320, 180 - top), SEA),
-		_shape(Rect2(0, top + 30, 320, 180), SEA_DEEP),
+		_shape(Rect2(0, top, Screen.WIDTH, Screen.HEIGHT - top), SEA),
+		_shape(Rect2(0, top + 60, Screen.WIDTH, Screen.HEIGHT), SEA_DEEP),
 	]
 	var h := 10 if big else 5
 	var x := 0
-	while x < 320:
+	while x < Screen.WIDTH:
 		out.append(_shape(Rect2(x, top - h, 26 if big else 14, h), SEA))
 		out.append(_shape(Rect2(x + 4, top - h, 14 if big else 8, 2), FOAM))
 		x += 40 if big else 24
@@ -98,15 +100,15 @@ static func _rain(n: int) -> Array[Dictionary]:
 	var v := 3
 	for i in n:
 		v = (v * 9301 + 49297) % 233280
-		var x := floori(v / 233280.0 * 330)
+		var x := floori(v / 233280.0 * (Screen.WIDTH + 10.0))
 		v = (v * 9301 + 49297) % 233280
-		var y := floori(v / 233280.0 * 180)
+		var y := floori(v / 233280.0 * Screen.HEIGHT)
 		out.append(_shape(Rect2(x, y, 1, 5), RAIN))
 	return out
 
 static func _bolt(x: int) -> Array[Dictionary]:
 	return [
-		_shape(Rect2(x, 40, 3, 20), LIGHTNING),
-		_shape(Rect2(x - 4, 58, 4, 3), LIGHTNING),
-		_shape(Rect2(x - 6, 60, 3, 24), LIGHTNING),
+		_shape(Rect2(x, 80, 3, 20), LIGHTNING),
+		_shape(Rect2(x - 4, 98, 4, 3), LIGHTNING),
+		_shape(Rect2(x - 6, 100, 3, 24), LIGHTNING),
 	]

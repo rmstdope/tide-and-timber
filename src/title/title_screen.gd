@@ -6,7 +6,7 @@ extends Control
 const INTRO_SCENE := "res://src/intro/intro.tscn"
 const GAME_SCENE := "res://src/waking/waking.tscn"
 # The title screen's whole composition is proportional to the picture, not measured from an edge,
-# so these three doubled with it in tr-1o0.1; tr-1o0.2 repaints the scene at 640x360.
+# so these three doubled with it in tr-1o0.1.
 const MENU_TOP := 194.0                 # the menu's place: three planks with no save
 const MENU_TOP_WITH_SAVE := 166.0       # four planks still clear the bottom edge
 const MENU_TOP_DIMMED := 150.0          # Continue, reason line, New Game, Settings, Quit clear the bottom edge
