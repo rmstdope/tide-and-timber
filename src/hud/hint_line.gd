@@ -8,8 +8,8 @@ const FONT_SIZE := 8
 const GAP_PICTURE_PICTURE := 1
 const GAP_PICTURE_WORD := 3
 const GAP_WORD_PICTURE := 12
-const RING := Color("#d8d0c0")
-const CAP_SHADOW := Color("#a8977a")
+const RING := HudColours.RING
+const CAP_SHADOW := HudColours.CAP_SHADOW
 const DISC: Array[Rect2] = [Rect2(2, 0, 5, 1), Rect2(1, 1, 7, 1), Rect2(0, 2, 9, 5), Rect2(1, 7, 7, 1),
 	Rect2(2, 8, 5, 1)]
 const INNER_DISC: Array[Rect2] = [Rect2(2, 1, 5, 1), Rect2(1, 2, 7, 5), Rect2(2, 7, 5, 1)]
