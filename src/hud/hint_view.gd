@@ -3,7 +3,7 @@ extends Control
 ## One hint line, centred in this control, redrawn in place when the device changes.
 
 @export var hint: DeviceHints.Hint = DeviceHints.Hint.MOVE
-@export var word_colour := Color("#fff6e0")
+@export var word_colour := HudColours.PALE
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE

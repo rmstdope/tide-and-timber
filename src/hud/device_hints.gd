@@ -6,8 +6,8 @@ enum Hint { MOVE, USE, BUILD_LIST, PLACING, SELECT, SELECT_BACK, CONTROLS_PAGE, 
 enum Slot { MOVE, BOTTOM, RIGHT, SELECT, BACK }   # SELECT, BACK: the menu's fixed buttons
 enum Shape { KEY, ROUND, STICK, SHOULDER }   # SHOULDER: also every pad picture of more than one glyph
 
-const CAP_FACE := Color("#f4e3c1")
-const CAP_INK := Color("#3a2414")
+const CAP_FACE := HudColours.CREAM
+const CAP_INK := HudColours.INK
 const PAD_FACE := Color("#3a3a44")
 const WHITE := Color("#ffffff")
 

@@ -12,7 +12,7 @@ func _ready() -> void:
 	z_index = 20
 	verb_label = Label.new()
 	verb_label.add_theme_font_size_override(&"font_size", 8)
-	verb_label.add_theme_color_override(&"font_color", Color("#f4e3c1"))
+	verb_label.add_theme_color_override(&"font_color", HudColours.CREAM)
 	add_child(verb_label)
 	InputDevice.changed.connect(_on_device_changed)
 	Display.changed.connect(_rescale)
@@ -72,9 +72,9 @@ func _draw() -> void:
 	var h := height()
 	var x0 := -w / 2
 	var y0 := -h
-	draw_rect(Rect2(x0, y0, w, h), Color("#7a5030"))
-	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, h - 2), Color("#b07a45"))
-	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 1), Color("#d9a56b"))
+	draw_rect(Rect2(x0, y0, w, h), HudColours.WOOD_DARK)
+	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, h - 2), HudColours.WOOD)
+	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 1), HudColours.WOOD_LIGHT)
 	var p := picture()
 	if p != null:
 		HintLine.draw_picture(self, p, Vector2(x0 + 3, y0 + 2 + floori((h - HEIGHT) / 2.0)))

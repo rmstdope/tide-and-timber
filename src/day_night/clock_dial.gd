@@ -5,9 +5,9 @@ extends Control
 const ARC_CENTER := Vector2(32, 24)
 const ARC_RADIUS := 14.0
 const ARC_SAMPLES := 64
-const ARC_COLOR := Color8(246, 227, 176)    # #f6e3b0
-const SUN_COLOR := Color8(255, 210, 74)     # #ffd24a
-const MOON_COLOR := Color8(232, 236, 255)   # #e8ecff
+const ARC_COLOR := HudColours.ARC
+const SUN_COLOR := HudColours.SUN
+const MOON_COLOR := HudColours.MOON
 const SUN_PIXELS := [
 	"...#...",
 	".#####.",

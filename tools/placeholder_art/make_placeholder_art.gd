@@ -1,16 +1,8 @@
 extends SceneTree
-## Draws the placeholder art still waiting for the pack: the item icons and the glyphs.
+## Draws the placeholder art still waiting for the pack: the glyphs.
 ## Run: godot --headless --path . --script res://tools/placeholder_art/make_placeholder_art.gd
 
 func _init() -> void:
-	_save(_drawn(10, 10, [[0, 5, 10, 3, "#9c7048"], [1, 7, 8, 1, "#6e4a2c"], [6, 2, 2, 4, "#9c7048"]]),
-		"res://assets/items/driftwood.png")
-	_save(_drawn(10, 10, [[1, 3, 8, 5, "#f1d6c8"], [2, 7, 6, 1, "#c98f86"], [3, 4, 1, 3, "#c98f86"],
-		[6, 4, 1, 3, "#c98f86"]]), "res://assets/items/shellfish.png")
-	_save(_drawn(10, 10, [[2, 2, 7, 7, "#6b4226"], [3, 3, 2, 1, "#8b5a36"]]), "res://assets/items/coconut.png")
-	_save(_drawn(10, 10, [[2, 3, 7, 6, "#6b4226"], [3, 3, 5, 2, "#3a2414"]]), "res://assets/items/empty_shell.png")
-	_save(_drawn(10, 10, [[2, 3, 7, 6, "#6b4226"], [3, 3, 5, 2, "#7fd3e6"]]), "res://assets/items/fresh_water.png")
-
 	var glyphs := _blank(4 * Glyphs.ORDER.length(), 5)
 	var patterns := [
 		["###", "#.#", "#.#", "#.#", "###"], [".#.", "##.", ".#.", ".#.", "###"],
@@ -68,15 +60,6 @@ func _init() -> void:
 
 func _blank(w: int, h: int) -> Image:
 	return Image.create(w, h, false, Image.FORMAT_RGBA8)
-
-func _drawn(w: int, h: int, rects: Array) -> Image:
-	var image := _blank(w, h)
-	_rects(image, Vector2i.ZERO, rects)
-	return image
-
-func _rects(image: Image, origin: Vector2i, rects: Array) -> void:
-	for r: Array in rects:
-		image.fill_rect(Rect2i(origin.x + r[0], origin.y + r[1], r[2], r[3]), Color(r[4]))
 
 func _pattern(image: Image, origin: Vector2i, rows: Array, colour: Color) -> void:
 	for y in rows.size():

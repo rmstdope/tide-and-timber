@@ -6,7 +6,7 @@ extends Control
 const TOP := 136.0
 const HEIGHT := 12.0
 const BAND := Color(0, 0, 0, 0.55)
-const TEXT := Color("#fff6e0")
+const TEXT := HudColours.PALE
 
 var view: HintView
 

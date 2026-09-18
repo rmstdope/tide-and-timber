@@ -2,15 +2,15 @@ class_name CampArt
 extends RefCounted
 ## Placeholder drawings of the lean-to and fire, relative to their origin (bottom-centre of the base).
 
-const WOOD_DARK := Color("#5c3a22")
-const WOOD := Color("#8a5a34")
-const WOOD_LIGHT := Color("#b98452")
+const WOOD_DARK := HudColours.WOOD_DARK
+const WOOD := HudColours.WOOD
+const WOOD_LIGHT := HudColours.WOOD_LIGHT
 const FLAME := Color("#ff9a2a")
 const FLAME_CORE := Color("#ffe06a")
-const RED := Color("#e0503a")
+const RED := HudColours.BAD
 const ASH_DARK := Color("#6a625c")
 const ASH := Color("#8a827a")
-const PALE := Color("#f4ead2")
+const PALE := HudColours.CROSS
 
 ## The square box of the ✕ on each drawing, relative to its origin. Odd sides, so the ✕ has one middle pixel.
 const LEAN_TO_CROSS := Rect2i(-5, -25, 11, 11)   # middle (0, -20): the middle of the lean-to

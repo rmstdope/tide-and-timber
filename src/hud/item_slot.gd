@@ -34,14 +34,14 @@ func count_text() -> String:
 	return "" if kind == Inventory.EMPTY else str(count)
 
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 16, 16), Color("#7a5030"))
-	draw_rect(Rect2(1, 1, 14, 14), Color("#e8cf9c"))
-	draw_rect(Rect2(1, 1, 14, 1), Color("#f6e4bb"))
+	draw_rect(Rect2(0, 0, 16, 16), HudColours.WOOD_DARK)
+	draw_rect(Rect2(1, 1, 14, 14), HudColours.SLOT_FACE)
+	draw_rect(Rect2(1, 1, 14, 1), HudColours.SLOT_EDGE)
 	if kind == Inventory.EMPTY:
 		return
 	draw_texture(Item.icon_of(kind as Item.Kind), Vector2(3, 2))
 	var text := count_text()
 	var rel := text_scale()
 	draw_set_transform(count_rect(text, rel).position, 0.0, Vector2.ONE * rel)
-	Glyphs.draw(self, text, Vector2.ZERO, Color("#3a2414"))
+	Glyphs.draw(self, text, Vector2.ZERO, HudColours.INK)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

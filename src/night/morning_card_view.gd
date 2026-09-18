@@ -6,10 +6,10 @@ const WIDTH := 160
 const LINE_HEIGHT := 12
 const PAD_TOP := 6
 const PAD_BOTTOM := 6
-const BORDER := Color("#5c3a22")
-const FILL := Color("#8a5a34")
-const TEXT := Color("#fff6e0")
-const HEADING := Color("#e8d7c0")
+const BORDER := HudColours.WOOD_DARK
+const FILL := HudColours.WOOD
+const TEXT := HudColours.PALE
+const HEADING := HudColours.CREAM
 
 var labels: Array[Label] = []
 

@@ -70,7 +70,7 @@ layout_mode = 0
 offset_right = 296.0
 offset_bottom = 16.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.894118, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -100,7 +100,7 @@ offset_top = 82.0
 offset_right = 320.0
 offset_bottom = 98.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.894118, 1)
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -151,7 +151,7 @@ offset_bottom = 14.0
 mouse_filter = 2
 script = ExtResource("8_hint")
 hint = 0
-word_colour = Color(1, 0.964706, 0.878431, 1)
+word_colour = Color(1, 0.964706, 0.894118, 1)
 
 [node name="UiScale" type="Node" parent="MoveHintLayer"]
 script = ExtResource("ui_scale")
