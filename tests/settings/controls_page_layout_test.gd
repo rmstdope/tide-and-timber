@@ -23,8 +23,9 @@ func test_tab_at() -> void:
 	assert_int(ControlsPage.tab_at(Vector2(10, 10))).is_equal(-1)
 
 func test_page_fits_the_base() -> void:
-	assert_float(ControlsPage.row_rect(8).end.y).is_less_equal(ControlsPage.LINE_BASELINE - 8)
-	assert_float(ControlsPage.FIXED_BASELINES[1]).is_less_equal(MenuStrip.BOTTOM - KeyHint.HEIGHT)
+	var n := ControlsLayout.make(false, 1.0, 1.0)
+	assert_float(n.row_rect(8).end.y).is_less_equal(n.no_key_baseline() - 8)
+	assert_float(n.content_bottom()).is_less_equal(MenuStrip.BOTTOM - KeyHint.HEIGHT)
 	for r in ControlsMenu.ROWS:
 		for s in 2:
 			assert_bool(ControlsPage.row_rect(r).encloses(ControlsPage.slot_rect(r, s))).is_true()

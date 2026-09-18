@@ -122,6 +122,7 @@ func _make_tabs() -> void:
 	var top := 14.0 + grow
 	var w0 := pad + ceilf(width(ControlsPage.TAB_NAMES[0]) * rel)
 	var w1 := pad + ceilf(width(ControlsPage.TAB_NAMES[1]) * rel)
+	# Equality is meant: stacked at Text Normal and UI 2x the sum is exactly 320, which keeps today's stacked tabs side by side (controls_layout_test.gd::test_stacked_rows_at_text_normal_are_todays).
 	if (w0 + TAB_GAP + w1 + 2.0 * ControlsPage.SCREEN_MARGIN) * ui <= 320.0:
 		var x0 := roundf(160.0 - (w0 + TAB_GAP + w1) / 2.0)
 		_tabs = [Rect2(x0, top, w0, h), Rect2(x0 + w0 + TAB_GAP, top, w1, h)]
@@ -191,6 +192,9 @@ func tab_rect(i: int) -> Rect2:
 
 func tab_baseline(i: int) -> float:
 	return _tabs[i].position.y + 9.0 + grow
+
+func tab_count() -> int:
+	return _tabs.size()
 
 func row_rect(r: int) -> Rect2:
 	return Rect2(list_x, list_top + r * row_h, list_w, row_h)

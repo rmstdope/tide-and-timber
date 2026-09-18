@@ -134,3 +134,24 @@ func test_largest_ui_and_text_keep_the_highlighted_slot_in_view() -> void:
 		var c := page.layout.slot_rect(r, page.rules.slot)
 		assert_bool(page.view.encloses(Rect2(page.to_page(c.position), c.size))).is_true()
 		await _press(KEY_DOWN)
+
+func test_largest_ui_and_text_read_the_reset_row_from_its_top() -> void:
+	_size(2)
+	_text(2)
+	await _open_page()
+	await _settle()
+	await _press(KEY_UP)
+	assert_int(page.rules.row).is_equal(8)
+	var span := ControlsPage.reset_span(page.layout, page.view.size.y)
+	assert_bool(span.x < span.y).is_true()
+	assert_int(page.offset).is_equal(span.x)
+	var last := page.offset
+	for i in 40:
+		if page.rules.row != 8:
+			break
+		last = page.offset
+		await _press(KEY_DOWN)
+		if page.rules.row == 8:
+			assert_int(page.offset).is_equal(mini(last + 17, span.y))
+	assert_int(page.rules.row).is_equal(0)
+	assert_int(last).is_equal(span.y)

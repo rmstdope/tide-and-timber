@@ -5,6 +5,7 @@ extends Control
 ## At a scale where its rows no longer fit across the screen, every row goes onto two lines: the name, then its slots.
 ## When its content is taller than the screen above its strip, it scrolls to the highlighted row, with ▲ / ▼ where content is hidden.
 ## Its words grow with Text size; the tabs, rows and list grow around them, and the lines under the list break at spaces once they would pass the screen's edges.
+## At the largest sizes, Down on the Reset row reads on through the lines under the list, one line a push, before it wraps to the top.
 
 signal closed              # Back or Leave: the board takes input again on Controls
 signal resume_requested    # Start or Leave-after-Start, opened from the pause board
@@ -26,8 +27,6 @@ const ROW_H := 11.0
 const NAME_X := 20.0
 const SLOT_XS := [144.0, 212.0]          # left edge of slot 0 and slot 1
 const SLOT_W := 60.0
-const LINE_BASELINE := 137.0
-const FIXED_BASELINES := [147.0, 156.0]
 const KEYBOARD_FIXED := ["Menus always use the arrow keys,", "Enter and Esc"]   # one agreed sentence, broken to fit 320
 const CONTROLLER_FIXED_WORDS := ["Menus always use the d-pad,", "and"]          # then (A) after the first, (B) after "and"
 const RESET_NAMES := ["Reset keyboard to defaults", "Reset controller to defaults"]
@@ -205,13 +204,17 @@ func frame(band_top: float, band_bottom: float) -> void:
 		view = Rect2(0, band_top + ScrollWindow.MARK_ROW, 320,
 				band_bottom - band_top - 2.0 * ScrollWindow.MARK_ROW)
 		var content := bottom - CONTENT_TOP
-		var e := layout.row_extent(rules.row)
-		offset = ScrollWindow.follow(content, view.size.y, e.x, e.y, offset)
-		# A second pass, so a row whose extent is taller than the view is itself wholly visible.
-		var r := layout.row_rect(rules.row)
-		offset = ScrollWindow.follow(content, view.size.y, r.position.y - CONTENT_TOP, r.end.y - CONTENT_TOP, offset)
-		# A third, so a row taller than the view still shows its highlighted slot.
-		if rules.row != ControlsMenu.RESET_ROW:
+		if rules.row == ControlsMenu.RESET_ROW:
+			# Clamped, never followed: landing shows the row from its top, and a read-down offset is kept.
+			var span := reset_span(layout, view.size.y)
+			offset = clampi(offset, span.x, span.y)
+		else:
+			var e := layout.row_extent(rules.row)
+			offset = ScrollWindow.follow(content, view.size.y, e.x, e.y, offset)
+			# A second pass, so a row whose extent is taller than the view is itself wholly visible.
+			var r := layout.row_rect(rules.row)
+			offset = ScrollWindow.follow(content, view.size.y, r.position.y - CONTENT_TOP, r.end.y - CONTENT_TOP, offset)
+			# A third, so a row taller than the view still shows its highlighted slot.
 			var c := layout.slot_rect(rules.row, rules.slot)
 			offset = ScrollWindow.follow(content, view.size.y, c.position.y - CONTENT_TOP, c.end.y - CONTENT_TOP, offset)
 	if scrolls != was_scrolls or offset != was_offset or view != was_view:
@@ -233,6 +236,17 @@ func _frame() -> void:
 		return
 	var b := ScrollWindow.band(get_global_transform_with_canvas(), strip.screen_top())
 	frame(b.x, b.y)
+
+# One push or wheel notch through the bottom of the page while the Reset row is highlighted: dir +1 reads down
+# one line, -1 back up one. False when there is no more to read that way, so a push moves the highlight instead.
+func _read_on(dir: int) -> bool:
+	if not scrolls or rules.row != ControlsMenu.RESET_ROW:
+		return false
+	var to := read_on(offset, dir, int(layout.line_step()), reset_span(layout, view.size.y))
+	if to == offset:
+		return false
+	offset = to
+	return true
 
 ## Opens the page on the tab of the device used last. from_pause: opened from the Paused board.
 func open(from_pause: bool) -> void:
@@ -264,6 +278,17 @@ static func tab_at(point: Vector2, p_stacked := false) -> int:
 ## The row's rectangle.
 static func row_rect(r: int, p_stacked := false) -> Rect2:
 	return _at_text_normal(p_stacked).row_rect(r)
+
+## The offsets the Reset row may be read at: x shows the row from its top, y shows the page's bottom.
+## x == y when the row and the lines under the list fit the band together; then nothing reads on.
+static func reset_span(l: ControlsLayout, band_h: float) -> Vector2i:
+	var content := l.content_bottom() - CONTENT_TOP
+	var last := maxi(ceili(content - band_h), 0)
+	return Vector2i(mini(floori(l.row_extent(ControlsMenu.RESET_ROW).x), last), last)
+
+## One line down (dir +1) or up (-1) through the Reset span, stopping at its ends.
+static func read_on(p_offset: int, dir: int, line: int, span: Vector2i) -> int:
+	return clampi(p_offset + dir * line, span.x, span.y)
 
 const SHAPES_EMPTY := "! —"   # an empty slot of an action with no key, while Colour cues is Shapes
 
@@ -302,6 +327,12 @@ func _input(event: InputEvent) -> void:
 			_refresh()
 			get_viewport().set_input_as_handled()
 			return
+	if rules.box == ControlsMenu.Box.NONE:
+		var notch := BoxLayout.wheel_push(event)
+		if notch != -1 and _read_on(-1 if notch == BoxLayout.Push.WHEEL_UP else 1):
+			_refresh()
+			get_viewport().set_input_as_handled()
+			return
 	var step := InputDevice.menu_step(event)
 	if rules.box != ControlsMenu.Box.NONE:
 		match step:
@@ -320,9 +351,11 @@ func _input(event: InputEvent) -> void:
 			_:
 				return   # Start, tabs and Clear do nothing in a box; the board and the openers ignore input while the page is up
 	elif step == MenuPush.Step.UP:
-		rules.move(-1)
+		if not _read_on(-1):
+			rules.move(-1)
 	elif step == MenuPush.Step.DOWN:
-		rules.move(1)
+		if not _read_on(1):
+			rules.move(1)
 	elif step == MenuPush.Step.LEFT:
 		rules.side(-1)
 	elif step == MenuPush.Step.RIGHT:
@@ -453,7 +486,7 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 0, 320, 180), BACKGROUND)
 	draw_set_transform(Vector2(0, shift()))
 	_centred_words("Controls", 160.0, layout.heading_baseline, TEXT)
-	for i in TAB_RECTS.size():
+	for i in layout.tab_count():
 		var rect := layout.tab_rect(i)
 		draw_style_box(PLANK_HIGHLIGHT_STYLE if rules.device == i else PLANK_STYLE, rect)
 		_centred_words(TAB_NAMES[i], rect.get_center().x, layout.tab_baseline(i), TEXT)

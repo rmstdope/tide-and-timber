@@ -71,6 +71,20 @@ func _drawn(r: int) -> Rect2:
 	var rect := ControlsPage.row_rect(r, true)
 	return Rect2(page.to_page(rect.position), rect.size)
 
+# Presses Down until the highlight leaves its row: on the Reset row Down first reads on to the page's bottom.
+func _down_to_next_row() -> void:
+	var from := page.rules.row
+	for i in 10:
+		await _press(KEY_DOWN)
+		if page.rules.row != from:
+			return
+	fail("Down never left row %d" % from)
+
+func _wheel(up: bool, times: int) -> void:
+	for i in times:
+		runner.simulate_mouse_button_pressed(MOUSE_BUTTON_WHEEL_UP if up else MOUSE_BUTTON_WHEEL_DOWN)
+		await runner.await_input_processed()
+
 # --- pure ---
 
 func test_content_bottom_and_row_extent() -> void:
@@ -145,7 +159,7 @@ func test_every_row_is_drawn_inside_the_view() -> void:
 	for r in ControlsMenu.ROWS:
 		assert_int(page.rules.row).is_equal(r)
 		assert_bool(page.view.encloses(_drawn(r))).is_true()
-		await _press(KEY_DOWN)
+		await _down_to_next_row()
 	assert_int(page.rules.row).is_equal(0)
 	page.rules.switch_tab()
 	page._refresh()
@@ -153,7 +167,7 @@ func test_every_row_is_drawn_inside_the_view() -> void:
 	for r in ControlsMenu.ROWS:
 		assert_int(page.rules.row).is_equal(r)
 		assert_bool(page.view.encloses(_drawn(r))).is_true()
-		await _press(KEY_DOWN)
+		await _down_to_next_row()
 
 func test_large_title_page_scrolls() -> void:
 	_size(1)
@@ -237,6 +251,12 @@ func test_clicks_land_where_drawn() -> void:
 	assert_int(page.offset).is_equal(201)
 	_left_click(page, ControlsPage.tab_rect(1, true).get_center())   # the unscrolled place, outside the view
 	assert_int(page.rules.device).is_equal(Controls.Device.KEYBOARD)
+	await _press(KEY_DOWN)   # Down on Reset first reads on through the lines under the list (controls-bottom c)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(210)
+	await _press(KEY_DOWN)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(216)
 	await _press(KEY_DOWN)
 	assert_int(page.rules.row).is_equal(0)
 	assert_int(page.offset).is_equal(0)
@@ -260,3 +280,113 @@ func test_an_unknown_band_leaves_the_page_unscrolled() -> void:
 	assert_bool(page.scrolls).is_false()
 	assert_int(page.offset).is_equal(0)
 	assert_that(page.view).is_equal(Rect2(0, 0, 320, 180))
+
+# --- the bottom of the page when it does not all fit (controls-bottom c) ---
+
+func test_reset_span_and_read_on() -> void:
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 2.0), 54)).is_equal(Vector2i(201, 216))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 2.0), 32)).is_equal(Vector2i(201, 238))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 2.0, 1.0), 100)).is_equal(Vector2i(345, 370))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 2.0, 1.0), 200)).is_equal(Vector2i(270, 270))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(false, 1.0, 1.0), 180)).is_equal(Vector2i(0, 0))
+	var s := Vector2i(201, 216)
+	assert_int(ControlsPage.read_on(201, 1, 9, s)).is_equal(210)
+	assert_int(ControlsPage.read_on(210, 1, 9, s)).is_equal(216)
+	assert_int(ControlsPage.read_on(216, 1, 9, s)).is_equal(216)
+	assert_int(ControlsPage.read_on(216, -1, 9, s)).is_equal(207)
+	assert_int(ControlsPage.read_on(207, -1, 9, s)).is_equal(201)
+	assert_int(ControlsPage.read_on(201, -1, 9, s)).is_equal(201)
+
+func test_down_on_reset_reads_to_the_bottom_then_wraps() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	await _press(KEY_UP)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(201)
+	assert_bool(page.shows_mark_below()).is_true()
+	await _press(KEY_DOWN)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(210)
+	assert_bool(page.shows_mark_above()).is_true()
+	assert_bool(page.shows_mark_below()).is_true()
+	await _press(KEY_DOWN)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(216)
+	assert_bool(page.shows_mark_below()).is_false()
+	assert_bool(page.view.has_point(page.to_page(Vector2(160, page.layout.content_bottom() - 1)))).is_true()
+	await _press(KEY_DOWN)
+	assert_int(page.rules.row).is_equal(0)
+	assert_int(page.offset).is_equal(0)
+
+func test_up_on_reset_reads_back_then_moves_to_pause() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	await _press(KEY_UP)
+	await _press(KEY_DOWN)
+	await _press(KEY_DOWN)
+	assert_int(page.offset).is_equal(216)
+	await _press(KEY_UP)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(207)
+	await _press(KEY_UP)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(201)
+	assert_bool(page.view.encloses(_drawn(8))).is_true()
+	await _press(KEY_UP)
+	assert_int(page.rules.row).is_equal(7)
+	assert_bool(page.view.encloses(_drawn(7))).is_true()
+
+func test_wheel_reads_the_bottom_without_moving_the_highlight() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	await _wheel(false, 1)
+	assert_int(page.rules.row).is_equal(0)
+	assert_int(page.offset).is_equal(0)
+	await _press(KEY_UP)
+	await _wheel(false, 3)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(216)
+	await _wheel(true, 3)
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(201)
+
+func test_a_read_down_reset_row_is_pointed_at_where_drawn() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	await _press(KEY_UP)
+	await _press(KEY_DOWN)
+	await _press(KEY_DOWN)
+	assert_int(page.offset).is_equal(216)
+	_left_click(page, page.to_page(Vector2(160, 210)))   # scrolled above the view
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.NONE)
+	_motion(page, page.to_page(Vector2(160, 222)))
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(216)
+	_left_click(page, page.to_page(Vector2(160, 222)))
+	assert_int(page.rules.box).is_equal(ControlsMenu.Box.RESET)
+	assert_int(page.offset).is_equal(216)
+
+func test_tab_and_size_changes_keep_a_read_down_page_in_range() -> void:
+	_size(2)
+	await _open_page()
+	await _settle()
+	await _press(KEY_UP)
+	await _press(KEY_DOWN)
+	await _press(KEY_DOWN)
+	page.rules.switch_tab()
+	page._refresh()
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(216)
+	_size(-2)
+	await _settle()
+	assert_bool(page.scrolls).is_false()
+	assert_int(page.offset).is_equal(0)
+	assert_int(page.rules.row).is_equal(8)
+	_size(2)
+	await _settle()
+	assert_int(page.rules.row).is_equal(8)
+	assert_int(page.offset).is_equal(201)
