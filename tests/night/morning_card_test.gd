@@ -20,3 +20,7 @@ func test_card_is_wide_enough() -> void:
 	assert_int(MorningCardView.WIDTH).is_greater_equal(18 * 8 + 16)
 	assert_int(MorningCardView.WIDTH).is_greater_equal(17 * 8 + 8)
 	assert_int(MorningCardView.height_for(6)).is_equal(84)
+
+func test_height_for_grows_with_rel() -> void:
+	assert_int(MorningCardView.height_for(6)).is_equal(84)
+	assert_int(MorningCardView.height_for(6, 2.0)).is_equal(156)
