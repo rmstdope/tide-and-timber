@@ -31,7 +31,7 @@ func test_the_named_values() -> void:
 		&"SUN": "f6cc2b", &"MOON": "eff8ff",
 		&"JOURNAL_COVER": "004d83", &"JOURNAL_SPINE": "002d4d", &"JOURNAL_PAGE": "fff6e4",
 		&"JOURNAL_WRITING": "80776b", &"JOURNAL_MISSED": "a70c21",
-		&"BAD": "e40b29", &"CROSS": "fff6e4", &"WARN": "f78b54",
+		&"BAD": "a70c21", &"CROSS": "fff6e4", &"WARN": "f78b54",
 	}
 	var map := _map()
 	assert_int(map.size()).is_equal(want.size())

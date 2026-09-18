@@ -25,6 +25,6 @@ const JOURNAL_SPINE := Color("#002d4d")  ## its spine
 const JOURNAL_PAGE := Color("#fff6e4")   ## its page
 const JOURNAL_WRITING := Color("#80776b")## the three written lines
 const JOURNAL_MISSED := Color("#a70c21") ## the cross when the day was not kept
-const BAD := Color("#e40b29")            ## cue: the outline of a spot he cannot build on
+const BAD := Color("#a70c21")            ## cue: the outline of a spot he cannot build on
 const CROSS := Color("#fff6e4")          ## cue: the ✕ on that outline, under Shapes cues
 const WARN := Color("#f78b54")           ## cue: the "!" and the line for an action with no key

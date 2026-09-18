@@ -7,10 +7,10 @@ const WOOD := HudColours.WOOD
 const WOOD_LIGHT := HudColours.WOOD_LIGHT
 const FLAME := Color("#ff9a2a")
 const FLAME_CORE := Color("#ffe06a")
-const RED := Color("#e0503a")
+const RED := HudColours.BAD
 const ASH_DARK := Color("#6a625c")
 const ASH := Color("#8a827a")
-const PALE := Color("#f4ead2")
+const PALE := HudColours.CROSS
 
 ## The square box of the ✕ on each drawing, relative to its origin. Odd sides, so the ✕ has one middle pixel.
 const LEAN_TO_CROSS := Rect2i(-5, -25, 11, 11)   # middle (0, -20): the middle of the lean-to
