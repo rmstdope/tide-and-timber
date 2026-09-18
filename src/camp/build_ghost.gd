@@ -11,7 +11,6 @@ func _ready() -> void:
 	hide()
 	z_index = 10
 	modulate.a = ALPHA
-	Display.changed.connect(queue_redraw)
 
 func show_at(p_thing: BuildMenu.Thing, origin: Vector2, p_ok: bool) -> void:
 	thing = p_thing
@@ -20,9 +19,9 @@ func show_at(p_thing: BuildMenu.Thing, origin: Vector2, p_ok: bool) -> void:
 	show()
 	queue_redraw()
 
-## True when the outline carries the ✕: a spot he cannot build on, while Colour cues is Shapes.
+## True when the outline carries the ✕: any spot he cannot build on, whatever Colour cues says.
 func shows_cross() -> bool:
-	return not ok and Display.prefs.cues == DisplayPrefs.Cues.SHAPES
+	return not ok
 
 func _draw() -> void:
 	if thing == BuildMenu.Thing.LEAN_TO:
