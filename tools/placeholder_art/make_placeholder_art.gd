@@ -61,10 +61,6 @@ func _init() -> void:
 func _blank(w: int, h: int) -> Image:
 	return Image.create(w, h, false, Image.FORMAT_RGBA8)
 
-func _rects(image: Image, origin: Vector2i, rects: Array) -> void:
-	for r: Array in rects:
-		image.fill_rect(Rect2i(origin.x + r[0], origin.y + r[1], r[2], r[3]), Color(r[4]))
-
 func _pattern(image: Image, origin: Vector2i, rows: Array, colour: Color) -> void:
 	for y in rows.size():
 		var row: String = rows[y]

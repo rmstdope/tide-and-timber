@@ -6,6 +6,7 @@ const IN_PLAY_LINES := {
 	"res://src/day_night/day_night.tscn": ["Hud/Plank/DayLabel", "Hud/Plank/TimeLabel", "SunsetLayer/Sunset/Text"],
 	"res://src/autosave/autosave.tscn": ["Line/Dawn/Text"],
 	"res://src/beach/beach.tscn": ["ShelterLineLayer/ShelterLine/Text"],
+	"res://src/waking/waking.tscn": ["Night/LineLayer/NightLine/Text", "Night/BlackLineLayer/BlackLine"],
 }
 
 func _scene(path: String) -> Node:
@@ -37,3 +38,8 @@ func test_the_dawn_save_box_is_untouched() -> void:
 	var box := root.get_node("BoxLayer/Box/Panel") as Control
 	var style := box.get_theme_stylebox(&"panel") as StyleBoxFlat
 	assert_str(style.resource_path).is_equal("res://src/title/plank.tres")
+
+func test_the_move_hint_words_are_pale() -> void:
+	var root := _scene("res://src/waking/waking.tscn")
+	var line := root.get_node("MoveHintLayer/MoveHint/Line") as HintView
+	assert_bool(line.word_colour.is_equal_approx(HudColours.PALE)).is_true()

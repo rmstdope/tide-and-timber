@@ -31,7 +31,9 @@ func test_every_icon_stands_out_on_the_slot() -> void:
 
 func test_the_full_shell_reads_as_water() -> void:
 	assert_array(_colours(_icon("fresh_water"))).is_not_equal(_colours(_icon("empty_shell")))
-	assert_float(ColourSight.worst_distance(Color("#4498d1"), Color("#4b2a1b"))).is_greater_equal(20.0)
+	var water := _icon("fresh_water").get_pixel(4, 3)
+	var hollow := _icon("empty_shell").get_pixel(4, 3)
+	assert_float(ColourSight.worst_distance(water, hollow)).is_greater_equal(20.0)
 
 func test_the_icons_are_the_pack_ramps() -> void:
 	assert_array(_colours(_icon("coconut"))).is_equal(["281c0d", "4b2a1b", "6c4326", "865932"])
