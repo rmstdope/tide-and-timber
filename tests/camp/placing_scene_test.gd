@@ -127,6 +127,19 @@ func test_shapes_leaves_a_good_spot_plain() -> void:
 	assert_bool((_n("Ghost") as BuildGhost).ok).is_true()
 	assert_bool((_n("Ghost") as BuildGhost).shows_cross()).is_false()
 
+func test_standard_cross_on_rock() -> void:
+	await _choose_lean_to_at(Vector2i(99, 11), F.DOWN)
+	assert_bool((_n("Ghost") as BuildGhost).ok).is_false()
+	assert_bool((_n("Ghost") as BuildGhost).shows_cross()).is_true()
+	await _press(KEY_E)
+	assert_int(builder.mode).is_equal(M.PLACING)
+	assert_int(inventory.count(Item.Kind.DRIFTWOOD)).is_equal(9)
+
+func test_standard_leaves_a_good_spot_plain() -> void:
+	await _choose_lean_to_at(Vector2i(92, 11), F.DOWN)
+	assert_bool((_n("Ghost") as BuildGhost).ok).is_true()
+	assert_bool((_n("Ghost") as BuildGhost).shows_cross()).is_false()
+
 func test_red_over_driftwood() -> void:
 	await _choose_lean_to_at(Vector2i(88, 11), F.DOWN)
 	assert_bool(_n("Ghost").ok).is_false()
