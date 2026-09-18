@@ -12,9 +12,17 @@ fail() { echo "FAIL $1: $2"; failed=1; }
 step_line() {
   local text="$1" file="${2:-$wf}"
   [ -f "$file" ] || return 0
-  awk -v t="$text" '{s=$0; sub(/^[ \t]+/,"",s)} s==t {print NR; exit}' "$file"
+  # The text goes through the environment: awk -v would expand escapes such as \n in it.
+  T="$text" awk '{s=$0; sub(/^[ \t]+/,"",s)} s==ENVIRON["T"] {print NR; exit}' "$file"
 }
 has_line() { [ -n "$(step_line "$@")" ]; }
+
+# The 1-based number of the first line equal to <text> (whitespace-stripped) after line <after>.
+step_line_after() {
+  local after="$1" text="$2"
+  [ -n "$after" ] || return 0
+  T="$text" awk -v a="$after" 'NR>a {s=$0; sub(/^[ \t]+/,"",s)} NR>a && s==ENVIRON["T"] {print NR; exit}' "$wf"
+}
 
 # Every line number given is non-empty and strictly greater than the one before.
 increasing() {
@@ -23,6 +31,44 @@ increasing() {
     [ -n "$n" ] && [ "$n" -gt "$prev" ] || return 1
     prev="$n"
   done
+}
+
+test_cancels_superseded_runs_on_every_ref() {
+  if ! has_line 'cancel-in-progress: true'; then fail "${FUNCNAME[0]}" "no cancel-in-progress: true"
+  elif grep -qF 'cancel-in-progress: ${{' "$wf"; then fail "${FUNCNAME[0]}" "cancel-in-progress still conditional"
+  else ok "${FUNCNAME[0]}"; fi
+}
+
+test_checkout_fetches_two_commits() {
+  if increasing "$(step_line 'fetch-depth: 2')" "$(step_line 'id: changes')"; then ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "fetch-depth: 2 missing or not before id: changes"; fi
+}
+
+test_changed_paths_step_feeds_ci_needed() {
+  if increasing "$(step_line 'id: changes')" "$(step_line 'BEFORE: ${{ github.event.before }}')" \
+       "$(step_line 'base=HEAD^1')" \
+       "$(step_line 'git fetch --no-tags --depth=1 origin "$base" || base=""')" \
+       "$(step_line 'printf '"'"'%s\n'"'"' "$paths" | scripts/ci-needed >> "$GITHUB_OUTPUT"')"; then
+    ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "changed-paths step lines missing or out of order"; fi
+}
+
+test_every_step_after_changed_paths_is_conditional() {
+  local c steps ifs before
+  c="$(step_line 'id: changes')"
+  [ -n "$c" ] || { fail "${FUNCNAME[0]}" "no id: changes"; return; }
+  steps="$(awk -v c="$c" 'NR>c && /^[ \t]*- (name|uses):/' "$wf" | wc -l | tr -d ' ')"
+  ifs="$(awk -v c="$c" -v t="if: steps.changes.outputs.run == 'true'" 'NR>c {s=$0; sub(/^[ \t]+/,"",s); if (s==t) n++} END {print n+0}' "$wf")"
+  before="$(awk -v c="$c" 'NR<c && /steps\.changes\.outputs\.run/' "$wf")"
+  if [ "$steps" -lt 2 ]; then fail "${FUNCNAME[0]}" "only $steps steps after changed paths"
+  elif [ "$steps" != "$ifs" ]; then fail "${FUNCNAME[0]}" "$steps steps after changed paths, $ifs conditional"
+  elif [ -n "$before" ]; then fail "${FUNCNAME[0]}" "a step before changed paths is conditional"
+  else ok "${FUNCNAME[0]}"; fi
+}
+
+test_ci_needed_is_executable() {
+  if [ -x "$root/scripts/ci-needed" ]; then ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "scripts/ci-needed missing or not executable"; fi
 }
 
 test_harness_catches_a_missing_line() {
@@ -37,7 +83,7 @@ test_harness_catches_a_missing_line() {
 test_triggers_on_push_and_pull_request_to_main() {
   local l
   for l in 'push:' 'pull_request:' 'contents: read' \
-           "cancel-in-progress: \${{ github.event_name == 'pull_request' }}"; do
+           'cancel-in-progress: true'; do
     has_line "$l" || { fail "${FUNCNAME[0]}" "missing '$l'"; return; }
   done
   local n; n="$(grep -c '^    branches: \[main\]$' "$wf" 2>/dev/null)"
@@ -75,15 +121,16 @@ test_pins_the_godot_version_claude_md_names() {
 }
 
 test_runs_shell_suites_then_gate_fast_after_install() {
-  local n
+  local n suites
   n="$(grep -c 'set -euo pipefail' "$wf" 2>/dev/null)"
-  if ! increasing "$(step_line "$SETUP")" "$(step_line '- name: Shell suites')" \
-       "$(step_line 'set -euo pipefail')" \
+  suites="$(step_line '- name: Shell suites')"
+  if ! increasing "$(step_line "$SETUP")" "$suites" \
+       "$(step_line_after "$suites" 'set -euo pipefail')" \
        "$(step_line 'for suite in scripts/tests/*-test.sh; do')" \
        "$(step_line 'bash "$suite"')" "$(step_line 'run: scripts/gate-fast')"; then
     fail "${FUNCNAME[0]}" "install, suites, gate-fast are missing or out of order"
   elif ! has_line 'submodules: false'; then fail "${FUNCNAME[0]}" "submodules not off"
-  elif [ "${n:-0}" != 1 ]; then fail "${FUNCNAME[0]}" "set -euo pipefail appears '${n:-0}' times, want 1"
+  elif [ "${n:-0}" != 2 ]; then fail "${FUNCNAME[0]}" "set -euo pipefail appears '${n:-0}' times, want 2 (changed paths, shell suites)"
   else ok "${FUNCNAME[0]}"; fi
 }
 
@@ -110,4 +157,9 @@ test_pins_the_godot_version_claude_md_names
 test_runs_shell_suites_then_gate_fast_after_install
 test_every_script_the_workflow_runs_exists_and_is_executable
 test_builds_no_exports
+test_cancels_superseded_runs_on_every_ref
+test_checkout_fetches_two_commits
+test_changed_paths_step_feeds_ci_needed
+test_every_step_after_changed_paths_is_conditional
+test_ci_needed_is_executable
 exit "$failed"

@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# Can these changed paths affect the gate? (tr-ot1) Modelled on the harness's
+# .claude/cerebro/scripts/ci-needed, with this project's own skip list.
+#
+#     git diff --name-only --no-renames "$base" HEAD | scripts/ci-needed >> "$GITHUB_OUTPUT"
+#
+#   stdin    changed paths, one per line; blank lines are ignored.
+#   stdout   exactly one line, `run=true' or `run=false' - the shape $GITHUB_OUTPUT takes.
+#   stderr   why: `ci-needed: <path>' for the first path that reaches the gate,
+#            `ci-needed: none of <n> paths reaches the gate' for a skip, or
+#            `ci-needed: no paths given, running everything'.
+#   exit 0   an answer was given. No paths at all is a BROKEN diff and answers `run=true'.
+#   exit 2   any argument: usage error, nothing on stdout.
+#
+# No `-e' on purpose: a crash must be a red step, never a `run=false'. The only skip path is the
+# explicit `echo run=false' at the bottom.
+#
+# A suite or tool that starts reading anything under docs/ or README.md must remove that entry
+# below in the same pull request, or a change that should be red is skipped green.
+
+set -uo pipefail
+
+if [[ $# -gt 0 ]]; then
+  echo "usage: ci-needed < paths" >&2
+  exit 2
+fi
+
+count=0
+while IFS= read -r path; do
+  [[ -n "$path" ]] || continue
+  count=$((count + 1))
+  case "$path" in
+    docs/*)
+      # Nothing under tests/, scripts/ or tools/ reads docs/, and Godot imports none of its
+      # file types (.html, .css, .js, .md).
+      ;;
+    README.md)
+      # Read by nothing.
+      ;;
+    *)
+      echo "ci-needed: $path" >&2
+      echo run=true
+      exit 0
+      ;;
+  esac
+done
+
+if [[ $count -eq 0 ]]; then
+  echo "ci-needed: no paths given, running everything" >&2
+  echo run=true
+  exit 0
+fi
+
+echo "ci-needed: none of $count paths reaches the gate" >&2
+echo run=false
