@@ -133,3 +133,7 @@ func test_vegetation_stands_on_jungle() -> void:
 		assert_int(BeachLayout.kind_at(cell)).override_failure_message("%s" % cell).is_equal(BeachLayout.Kind.JUNGLE)
 		assert_bool(seen.has(cell)).override_failure_message("%s twice" % cell).is_false()
 		seen[cell] = true
+
+func test_world_rect_is_the_whole_map_in_px() -> void:
+	assert_that(BeachLayout.world_rect()).is_equal(Rect2(0, 0, 2944, 416))
+	assert_vector(BeachLayout.world_rect().size).is_equal(Vector2(BeachLayout.MAP_SIZE * BeachLayout.TILE))

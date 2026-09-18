@@ -49,3 +49,7 @@ static func cell_centre(cell: Vector2i) -> Vector2:
 
 static func cell_base(cell: Vector2i) -> Vector2:
 	return Vector2(cell.x * TILE + 8, (cell.y + 1) * TILE)
+
+## The whole painted map in px, its origin at (0, 0): the rectangle the view may never leave.
+static func world_rect() -> Rect2:
+	return Rect2(Vector2.ZERO, Vector2(MAP_SIZE * TILE))

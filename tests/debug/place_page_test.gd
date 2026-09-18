@@ -84,7 +84,10 @@ func test_select_a_place_moves_him_and_the_view_while_paused() -> void:
 	await _tap(KEY_ENTER)
 	assert_vector(player.global_position).is_equal(BeachLayout.cell_centre(DebugPlaces.SPRING_CELL))
 	assert_int(player.facing).is_equal(Walk.Facing.UP)
-	assert_vector((beach.get_node("%Camera") as LooseCamera).centre).is_equal(player.global_position)
+	var camera := beach.get_node("%Camera") as LooseCamera
+	# the spring sits near the treeline, so the view snaps to him but stops at the island's top edge
+	assert_vector(camera.centre).is_equal(LooseFollow.clamp_centre(player.global_position, camera.bounds))
+	assert_float(camera.centre.y).is_equal(Screen.CENTRE.y)
 	assert_bool(get_tree().paused).is_true()
 	assert_bool(panel.visible).is_true()
 	assert_int(panel.rules.page).is_equal(DebugMenu.Page.PLACE)
