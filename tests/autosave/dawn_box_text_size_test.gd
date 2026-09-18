@@ -29,10 +29,6 @@ func after_test() -> void:
 	get_tree().root.content_scale_mode = _saved_mode
 	Display.use_prefs(DisplayPrefs.new())
 
-func _size_up(steps: int) -> void:
-	for i in steps:
-		Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
-
 func _n(unique: String) -> Control:
 	return autosave.get_node("%" + unique)
 
@@ -51,10 +47,6 @@ func _fail_dawn(more: Array = []) -> void:
 func _key(key: Key) -> void:
 	runner.simulate_key_pressed(key)
 	await runner.await_input_processed()
-
-func _highlighted(unique: String) -> void:
-	assert_bool(is_same(_n(unique).get_theme_stylebox("panel"), Autosave.PLANK_HIGHLIGHT_STYLE)) \
-		.override_failure_message(unique + " is not highlighted").is_true()
 
 func _text_up(steps: int) -> void:
 	for i in steps:
