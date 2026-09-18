@@ -46,6 +46,7 @@ func _ready() -> void:
 		return BeachLayout.is_wadeable(BeachLayout.kind_at(BeachLayout.cell_at(at)))
 	%Player.trail_mark.connect(_on_trail_mark)
 	%Camera.target = %Player
+	%Camera.keep_inside(BeachLayout.world_rect())
 	%Camera.snap_to_target()
 	%ItemBar.bind(inventory)
 	%Interactor.setup(%Player, inventory, %Prompt)
