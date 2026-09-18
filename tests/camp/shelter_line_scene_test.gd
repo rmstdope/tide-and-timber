@@ -74,8 +74,12 @@ func _line() -> Control:
 func test_line_text_on_the_band() -> void:
 	assert_str((_line().get_node("Text") as Label).text).is_equal("That should see me through the night.")
 	assert_bool(_line().visible).is_false()
-	# 296 wide, centred, its bottom 14 above the picture's
-	assert_vector(_line().position).is_equal(Vector2((Screen.WIDTH - 296) / 2, Screen.HEIGHT - 30))
+	# as wide as its words plus SpokenLine.BAND_MARGIN each side, centred, its bottom 14 above the picture's
+	var text := _line().get_node("Text") as Label
+	assert_float(text.position.x).is_equal(SpokenLine.BAND_MARGIN)
+	assert_float(_line().size.x - text.position.x - text.size.x).is_equal(SpokenLine.BAND_MARGIN)
+	assert_float(_line().position.x).is_equal(roundf((Screen.WIDTH - _line().size.x) / 2.0))
+	assert_float(_line().position.y + _line().size.y).is_equal(Screen.HEIGHT - 14)
 
 func test_line_shows_when_fire_lit_then_fades() -> void:
 	var dn := _clock()
