@@ -27,14 +27,12 @@ mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
 [node name="Picture" type="Control" parent="."]
-; temporary: removed and repainted by tr-1o0.2
 unique_name_in_owner = true
 layout_mode = 0
-scale = Vector2(2, 2)
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 mouse_filter = 2
 script = ExtResource("2_picture")
 
