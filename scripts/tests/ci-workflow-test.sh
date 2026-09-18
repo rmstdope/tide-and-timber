@@ -143,10 +143,50 @@ test_every_script_the_workflow_runs_exists_and_is_executable() {
 
 test_builds_no_exports() {
   local pat
-  for pat in gate-full upload-artifact export_templates export-release build/ tags:; do
+  for pat in gate-full export_templates export-release build/ tags:; do
     if grep -qF -- "$pat" "$wf"; then fail "${FUNCNAME[0]}" "'$pat' found in gate.yml"; return; fi
   done
+  local n
+  n="$(grep -c '^[[:space:]]*uses: actions/upload-artifact@' "$wf")"
+  if [ "$n" != 1 ]; then fail "${FUNCNAME[0]}" "$n upload-artifact steps, want exactly 1"; return; fi
   ok "${FUNCNAME[0]}"
+}
+
+test_push_skips_a_tree_already_gated() {
+  local c
+  c="$(step_line 'id: changes')"
+  if increasing "$c" \
+       "$(step_line_after "$c" 'GH_TOKEN: ${{ github.token }}')" \
+       "$(step_line_after "$c" 'tree="$(git rev-parse '"'"'HEAD^{tree}'"'"')"')" \
+       "$(step_line_after "$c" 'echo "tree=$tree" >> "$GITHUB_OUTPUT"')" \
+       "$(step_line_after "$c" 'printf '"'"'%s\n'"'"' "$tree" > "$RUNNER_TEMP/gated-tree"')" \
+       "$(step_line_after "$c" 'if [ "$GITHUB_EVENT_NAME" = push ] && [ "$(scripts/ci-gated "$tree")" = run=false ]; then')" \
+       "$(step_line_after "$c" 'echo run=false >> "$GITHUB_OUTPUT"')" \
+       "$(step_line_after "$c" 'base=HEAD^1')"; then ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "the tree lookup is missing or out of order in Changed paths"; fi
+}
+
+test_records_the_gated_tree_after_gate_fast() {
+  local g
+  g="$(step_line 'run: scripts/gate-fast')"
+  if increasing "$g" \
+       "$(step_line_after "$g" '- name: Record the gated tree')" \
+       "$(step_line_after "$g" 'uses: actions/upload-artifact@v7')" \
+       "$(step_line_after "$g" 'name: gated-tree-${{ steps.changes.outputs.tree }}')" \
+       "$(step_line_after "$g" 'path: ${{ runner.temp }}/gated-tree')" \
+       "$(step_line_after "$g" 'retention-days: 7')" \
+       "$(step_line_after "$g" 'if-no-files-found: error')"; then ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "no Record the gated tree step after gate-fast"; fi
+}
+
+test_reads_artifacts() {
+  if has_line 'actions: read' && has_line 'contents: read'; then ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "permissions lack actions: read or contents: read"; fi
+}
+
+test_ci_gated_is_executable() {
+  if [ -x "$root/scripts/ci-gated" ]; then ok "${FUNCNAME[0]}"
+  else fail "${FUNCNAME[0]}" "scripts/ci-gated missing or not executable"; fi
 }
 
 test_harness_catches_a_missing_line
@@ -162,4 +202,8 @@ test_checkout_fetches_two_commits
 test_changed_paths_step_feeds_ci_needed
 test_every_step_after_changed_paths_is_conditional
 test_ci_needed_is_executable
+test_push_skips_a_tree_already_gated
+test_records_the_gated_tree_after_gate_fast
+test_reads_artifacts
+test_ci_gated_is_executable
 exit "$failed"

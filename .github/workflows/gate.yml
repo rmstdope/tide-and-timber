@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: gate-${{ github.ref }}
@@ -28,8 +29,16 @@ jobs:
         id: changes
         env:
           BEFORE: ${{ github.event.before }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          echo "tree=$tree" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$tree" > "$RUNNER_TEMP/gated-tree"
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$(scripts/ci-gated "$tree")" = run=false ]; then
+            echo run=false >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
             base=HEAD^1
           else
@@ -68,3 +77,12 @@ jobs:
       - name: gate-fast
         if: steps.changes.outputs.run == 'true'
         run: scripts/gate-fast
+
+      - name: Record the gated tree
+        if: steps.changes.outputs.run == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gated-tree-${{ steps.changes.outputs.tree }}
+          path: ${{ runner.temp }}/gated-tree
+          retention-days: 7
+          if-no-files-found: error

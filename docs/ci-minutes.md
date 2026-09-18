@@ -125,7 +125,7 @@ the harness reads one.
 **Costs:** `main` has no branch protection, so a pull request can merge while behind `main`; the
 `main` run is the only proof that the combination is green. Without it, a semantic conflict between
 two merges goes unseen until the next pull request's gate.
-**Verdict:** Recommended — tr-piz.
+**Verdict:** Applied in tr-piz: a push to `main` skips the gate when a green run already recorded its exact tree (artifact `gated-tree-<tree sha>`); a merge made while behind `main` is still gated in full.
 
 ### Self-hosted or larger runners
 
