@@ -13,9 +13,7 @@ const TITLE_SCENE := "res://src/title/title_screen.tscn"
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
 # The board at Text size Normal. lay_out() measures the words instead of reading these, so they are
-# the reference the suites check that Normal still draws, not values the layout uses.
-const BOARD_X := 88.0
-const BOARD_W := 144.0
+# what tests/debug/pause_debug_test.gd checks Normal still draws, not values the layout uses.
 const BOARD_H_THREE := 96.0          # plus PLANK_STEP per extra plank
 const PLANK_X := 12.0                # inside the board
 const PLANK_TOP := 28.0              # first plank's top inside the board

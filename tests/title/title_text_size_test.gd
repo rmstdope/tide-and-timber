@@ -119,6 +119,9 @@ func test_the_normal_height_constants_match_the_scene() -> void:
 	_broken()
 	await _settle()
 	assert_float(_node("Menu").get_combined_minimum_size().y).is_equal(TitleScreen.MENU_HEIGHT_DIMMED)
+	_open("user://test_saves/title_text_size_none")   # never created: no save
+	await _settle()
+	assert_float(_node("Menu").get_combined_minimum_size().y).is_equal(TitleScreen.MENU_HEIGHT)
 
 func test_largest_ui_and_text_scroll_and_stay_on_screen() -> void:
 	Display.prefs.step(S.UI_SIZE, 2)
