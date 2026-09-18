@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — first launch B</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+page('First launch B — opens fullscreen','The very first time the game is started it fills the screen. The Fullscreen row says On.',[
+ fig('1. First launch ever','Title screen fills the screen.',desk(1,titleScr())),
+ fig('2. Settings','Fullscreen: On.',fsScreen([R.ui,R.tx,R.cc,{label:'Fullscreen',val:'On',first:0,last:1},R.ct],3,'Fills the whole screen. Cmd+Enter also switches.'))],
+ 'Cost: many console-style games start this way and it feels immersive at once — but it changes what we settled for first launch, and on some screens it opens with black bars around the picture.');
+</script></body></html>

@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — shortcut B</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+const game=beach()+dial(.55,'16:30','DAY 2')+bar()+hint([['E','Use']]);
+const note=r(212,6,102,14,P.plankDk)+r(213,7,100,12,P.plank)+t(263,15,'Fullscreen On',4.5,P.text,'middle');
+page('Shortcut B — a small note confirms it','After the shortcut, a small plank in the top-right corner says the new mode for about two seconds, then fades.',[
+ fig('1. In a window','',desk(0,game)),
+ fig('2. After the shortcut','Note: Fullscreen On. Pressing again shows Fullscreen Off.',desk(1,game,note))],
+ 'Cost: reassures a player who pressed it by accident — but it is one more thing over the island, and the change of screen already says it.');
+</script></body></html>

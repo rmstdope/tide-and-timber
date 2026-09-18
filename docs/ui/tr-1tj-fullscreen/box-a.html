@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — while choosing a key A</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+page('While choosing a new key A — the shortcut still switches, the box keeps waiting','On the Controls page, while the box is waiting for a new key, Cmd+Enter (Alt+Enter) switches the screen as it does everywhere else. It is not taken as the new key; the box is still waiting afterwards.',[
+ fig('1. Waiting for a key','',desk(0,waitBox())),
+ fig('2. After Cmd+Enter','The screen is full; the box is still waiting.',desk(1,waitBox()))],
+ 'Recommended: the shortcut behaves the same on every screen, as the team asked. Plain Enter can still be chosen as a key.');
+</script></body></html>

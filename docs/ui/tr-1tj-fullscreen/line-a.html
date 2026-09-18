@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fullscreen — line A</title><script src="common.js"></script><script src="fs.js"></script></head><body><script>
+
+const F={label:'Fullscreen',val:'Off',first:1,last:0};const rows=[R.ui,R.tx,R.cc,F,R.ct];
+page('Line A — the line under the list also teaches the shortcut','When Fullscreen is highlighted, the line under the list names the shortcut for the computer it is running on.',[
+ fig('1. On a Mac','',fsScreen(rows,3,'Fills the whole screen. Cmd+Enter also switches.')),
+ fig('2. On Windows or Linux','',fsScreen(rows,3,'Fills the whole screen. Alt+Enter also switches.'))],
+ 'Recommended: the shortcut is not on the Controls page, so this line is the only place a player can learn it exists.');
+</script></body></html>
