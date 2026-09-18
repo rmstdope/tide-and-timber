@@ -86,13 +86,15 @@ func _ready() -> void:
 ## Lays the box out for the current UI scale and words: side by side, or stacked when the two buttons
 ## are too wide; OK alone follows its two-button form.
 func _fit_box() -> void:
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 	var labels: Array[Label] = [%Lines]
 	var nodes: Array[Control] = [%Lines]
-	_box_layout = _box_normal.at(UiScale.current(Display.prefs, get_tree().root), %Safe.size, %Other.size,
-			BoxLayout.label_heights(labels))
+	_box_layout = _box_normal.at(UiScale.current(Display.prefs, get_tree().root),
+			BoxLayout.button_size(%Safe, _box_normal.left), BoxLayout.button_size(%Other, _box_normal.right),
+			BoxLayout.label_heights(labels, rel), BoxLayout.label_widths(labels, rel))
 	if rules.box == ControlsMenu.Box.NO_PAD:
 		_box_layout = _box_layout.one_button()
-	_box_layout.place(%Box.get_node("Panel"), nodes, %Safe, %Other)
+	_box_layout.place(%Box.get_node("Panel"), nodes, %Safe, %Other, rel)
 
 ## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
 func _push_box(push: BoxLayout.Push) -> void:
@@ -459,8 +461,8 @@ func _refresh() -> void:
 		var reset := rules.box == ControlsMenu.Box.RESET
 		var no_pad := rules.box == ControlsMenu.Box.NO_PAD
 		%Lines.text = "\n".join(rules.box_lines())
-		(%Safe.get_node("Label") as Label).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
-		(%Other.get_node("Label") as Label).text = "Reset" if reset else "Leave"
+		(%Safe.get_node("Label") as GrownWords).text = "OK" if no_pad else "Keep mine" if reset else "Set a key"
+		(%Other.get_node("Label") as GrownWords).text = "Reset" if reset else "Leave"
 		%Other.visible = not no_pad
 		_fit_box()
 		for b: ControlsMenu.BoxButton in [ControlsMenu.BoxButton.SAFE, ControlsMenu.BoxButton.OTHER]:

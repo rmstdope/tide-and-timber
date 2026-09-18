@@ -326,14 +326,16 @@ func _draw_marks(which: TitleMenu.Box) -> void:
 ## Both are laid out whether shown or not, so a box opens already fitted.
 func _fit_boxes() -> void:
 	var s := UiScale.current(Display.prefs, get_tree().root)
-	_start_over_box = _fit_box(_start_over_normal, %StartOverBox, %KeepMyIsland, %StartOver, s)
-	_replace_box = _fit_box(_replace_normal, %ReplaceBox, %Cancel, %ReplaceStartOver, s)
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
+	_start_over_box = _fit_box(_start_over_normal, %StartOverBox, %KeepMyIsland, %StartOver, s, rel)
+	_replace_box = _fit_box(_replace_normal, %ReplaceBox, %Cancel, %ReplaceStartOver, s, rel)
 
-func _fit_box(normal: BoxLayout, panel: Control, left: Control, right: Control, s: float) -> BoxLayout:
+func _fit_box(normal: BoxLayout, panel: Control, left: Control, right: Control, s: float, rel: float) -> BoxLayout:
 	var labels: Array[Label] = [panel.get_node("Clip/Content/FirstLine"), panel.get_node("Clip/Content/SecondLine")]
 	var lines: Array[Control] = [panel.get_node("Clip/Content/FirstLine"), panel.get_node("Clip/Content/SecondLine")]
-	var layout := normal.at(s, left.size, right.size, BoxLayout.label_heights(labels))
-	layout.place(panel, lines, left, right)
+	var layout := normal.at(s, BoxLayout.button_size(left, normal.left), BoxLayout.button_size(right, normal.right),
+			BoxLayout.label_heights(labels, rel), BoxLayout.label_widths(labels, rel))
+	layout.place(panel, lines, left, right, rel)
 	return layout
 
 ## The open box's left (stacked: top) button.

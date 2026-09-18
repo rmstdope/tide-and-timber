@@ -1,10 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/autosave/autosave.gd" id="1_autosave"]
 [ext_resource type="Script" path="res://src/autosave/journal_icon.gd" id="2_journal"]
 [ext_resource type="StyleBox" path="res://src/title/plank.tres" id="3_plank"]
 [ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
 [ext_resource type="Script" path="res://src/hud/spoken_line.gd" id="spoken_line"]
+[ext_resource type="Script" path="res://src/display/grown_words.gd" id="99_grown"]
 
 [node name="Autosave" type="Node"]
 process_mode = 3
@@ -152,8 +153,13 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="BoxLayer/Box/Panel/Clip/Content/TryAgain"]
+[node name="Label" type="Control" parent="BoxLayer/Box/Panel/Clip/Content/TryAgain"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("99_grown")
+
+[node name="Words" type="Label" parent="BoxLayer/Box/Panel/Clip/Content/TryAgain/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8
@@ -171,8 +177,13 @@ offset_bottom = 86.0
 focus_mode = 0
 mouse_filter = 0
 
-[node name="Label" type="Label" parent="BoxLayer/Box/Panel/Clip/Content/KeepPlaying"]
+[node name="Label" type="Control" parent="BoxLayer/Box/Panel/Clip/Content/KeepPlaying"]
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("99_grown")
+
+[node name="Words" type="Label" parent="BoxLayer/Box/Panel/Clip/Content/KeepPlaying/Label"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
 theme_override_font_sizes/font_size = 8

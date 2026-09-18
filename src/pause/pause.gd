@@ -342,10 +342,13 @@ func _draw_marks() -> void:
 
 ## Lays the quit box out for the current UI scale and words: side by side, or stacked when too wide.
 func _fit_quit_box() -> void:
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 	var labels: Array[Label] = [%FirstLine, %SecondLine]
 	var nodes: Array[Control] = [%FirstLine, %SecondLine]
-	_quit_box = _quit_normal.at(UiScale.current(Display.prefs, get_tree().root), %Stay.size, %Quit.size, BoxLayout.label_heights(labels))
-	_quit_box.place(%QuitBox.get_node("Panel"), nodes, %Stay, %Quit)
+	_quit_box = _quit_normal.at(UiScale.current(Display.prefs, get_tree().root),
+			BoxLayout.button_size(%Stay, _quit_normal.left), BoxLayout.button_size(%Quit, _quit_normal.right),
+			BoxLayout.label_heights(labels, rel), BoxLayout.label_widths(labels, rel))
+	_quit_box.place(%QuitBox.get_node("Panel"), nodes, %Stay, %Quit, rel)
 
 ## One push or wheel notch on the open quit box: the highlight and the scroll, by BoxLayout's rule.
 func _push_quit_box(push: BoxLayout.Push) -> void:

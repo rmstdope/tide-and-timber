@@ -85,8 +85,8 @@ func test_dawn_failed_opens_the_box_and_pauses() -> void:
 	assert_bool(_paused()).is_true()
 	assert_str((_n("FirstLine") as Label).text).is_equal("The day couldn't be saved.")
 	assert_str((_n("SecondLine") as Label).text).is_equal("Your progress since yesterday may be lost if you quit.")
-	assert_str((_n("TryAgain").get_node("Label") as Label).text).is_equal("Try again")
-	assert_str((_n("KeepPlaying").get_node("Label") as Label).text).is_equal("Keep playing")
+	assert_str((_n("TryAgain").get_node("Label") as GrownWords).text).is_equal("Try again")
+	assert_str((_n("KeepPlaying").get_node("Label") as GrownWords).text).is_equal("Keep playing")
 	assert_object(_style("TryAgain")).is_same(PLANK_HIGHLIGHT)
 	assert_object(_style("KeepPlaying")).is_same(PLANK)
 
@@ -152,7 +152,7 @@ func test_box_never_unpauses_someone_elses_pause() -> void:
 	assert_bool(_paused()).is_true()
 
 func test_words_fit() -> void:
-	for label: Label in [_n("Text"), _n("FirstLine"), _n("TryAgain").get_node("Label"), _n("KeepPlaying").get_node("Label")]:
+	for label: Label in [_n("Text"), _n("FirstLine"), _n("TryAgain").get_node("Label/Words"), _n("KeepPlaying").get_node("Label/Words")]:
 		assert_bool(label.get_minimum_size().x <= label.size.x) \
 			.override_failure_message("%s does not fit" % label.text).is_true()
 	assert_int((_n("SecondLine") as Label).get_line_count()).is_less_equal(2)

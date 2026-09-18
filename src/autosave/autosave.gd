@@ -97,10 +97,13 @@ func _input(event: InputEvent) -> void:
 
 ## Lays the box out for the current UI scale: side by side, or stacked when too wide.
 func _fit_box() -> void:
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 	var labels: Array[Label] = [%FirstLine, %SecondLine]
 	var nodes: Array[Control] = [%FirstLine, %SecondLine]
-	_box = _box_normal.at(UiScale.current(Display.prefs, get_tree().root), %TryAgain.size, %KeepPlaying.size, BoxLayout.label_heights(labels))
-	_box.place(%Box.get_node("Panel"), nodes, %TryAgain, %KeepPlaying)
+	_box = _box_normal.at(UiScale.current(Display.prefs, get_tree().root),
+			BoxLayout.button_size(%TryAgain, _box_normal.left), BoxLayout.button_size(%KeepPlaying, _box_normal.right),
+			BoxLayout.label_heights(labels, rel), BoxLayout.label_widths(labels, rel))
+	_box.place(%Box.get_node("Panel"), nodes, %TryAgain, %KeepPlaying, rel)
 
 ## One push or wheel notch on the open box: the highlight and the scroll, by BoxLayout's rule.
 func _push_box(push: BoxLayout.Push) -> void:
