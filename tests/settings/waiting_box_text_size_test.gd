@@ -17,7 +17,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Pause.debug_tools = false
 	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
@@ -94,7 +94,7 @@ func test_the_ring_moves_with_the_words() -> void:
 func test_a_window_resize_refits_the_box() -> void:
 	await _open_box()
 	_size(S.TEXT_SIZE, 2)
-	get_tree().root.size = Vector2i(320, 180)
+	get_tree().root.size = Vector2i(640, 360)
 	await await_idle_frame()
 	assert_float(_box().layout.panel.size.y * UiScale.current(Display.prefs, get_tree().root)) \
 		.is_less_equal(172.0)

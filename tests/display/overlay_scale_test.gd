@@ -32,7 +32,7 @@ func test_factor_times_k_is_whole() -> void:
 
 func test_whole_scale_follows_the_window() -> void:
 	var root := get_tree().root
-	root.size = Vector2i(1280, 720)
+	root.size = Vector2i(2560, 1440)
 	assert_int(OverlayScale.whole_scale(root)).is_equal(2)
 	root.size = Vector2i(3840, 2160)
 	assert_int(OverlayScale.whole_scale(root)).is_equal(6)
@@ -51,7 +51,7 @@ func test_layer_transform_keeps_the_anchor_still() -> void:
 
 func test_applies_to_parent_layer_and_follows_resize() -> void:
 	var root := get_tree().root
-	root.size = Vector2i(1280, 720)
+	root.size = Vector2i(2560, 1440)
 	var layer := CanvasLayer.new()
 	var scaler: OverlayScale = OverlayScale.new()
 	scaler.anchor = OverlayScale.ANCHOR_CENTRE
@@ -61,9 +61,9 @@ func test_applies_to_parent_layer_and_follows_resize() -> void:
 	assert_bool(layer.transform == Transform2D.IDENTITY).is_true()
 	scaler.multiplier = OverlayScale.LARGE
 	assert_bool(layer.transform.is_equal_approx(OverlayScale.layer_transform(1.5, OverlayScale.ANCHOR_CENTRE))).is_true()
-	root.size = Vector2i(640, 360)
+	root.size = Vector2i(1280, 720)
 	assert_bool(layer.transform.is_equal_approx(OverlayScale.layer_transform(2.0, OverlayScale.ANCHOR_CENTRE))).is_true()
-	root.size = Vector2i(1920, 1080)
+	root.size = Vector2i(3840, 2160)
 	assert_float(layer.transform.get_scale().x).is_equal_approx(5.0 / 3.0, 0.0001)
 
 func test_does_nothing_without_a_layer_parent() -> void:

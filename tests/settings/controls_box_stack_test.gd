@@ -13,7 +13,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(1280, 720)
+	get_tree().root.size = Vector2i(2560, 1440)
 	Pause.debug_tools = false
 	Display.use_prefs(DisplayPrefs.new())
 	InputDevice.reset()
@@ -155,9 +155,9 @@ func test_window_resize_refits() -> void:
 	_size_up(1)
 	await _open_reset()
 	assert_float(_panel().size.x).is_equal(204.0)
-	get_tree().root.size = Vector2i(640, 360)
-	assert_float(_panel().size.x).is_equal(152.0)
 	get_tree().root.size = Vector2i(1280, 720)
+	assert_float(_panel().size.x).is_equal(152.0)
+	get_tree().root.size = Vector2i(2560, 1440)
 
 func test_up_down_do_nothing_side_by_side() -> void:
 	await _open_reset()

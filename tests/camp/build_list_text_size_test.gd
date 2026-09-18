@@ -18,7 +18,7 @@ func after_test() -> void:
 	get_tree().root.content_scale_mode = _saved_mode
 	Display.use_prefs(DisplayPrefs.new())
 
-func _open(ui_size: int, text_size: int, window := Vector2i(640, 360)) -> BuildList:
+func _open(ui_size: int, text_size: int, window := Vector2i(1280, 720)) -> BuildList:
 	get_tree().root.size = window
 	var p := DisplayPrefs.new()
 	p.step(DisplayPrefs.Setting.UI_SIZE, ui_size)
@@ -135,7 +135,7 @@ func test_side_by_side_width_grows_with_the_words() -> void:
 	assert_float(list.side_by_side_width(2.0)).is_equal(340.0)
 
 func test_a_small_window_still_fits() -> void:
-	var list := _open(0, 2, Vector2i(320, 180))
+	var list := _open(0, 2, Vector2i(640, 360))
 	assert_vector(list.size).is_equal(Vector2(252, 101))
 	assert_float(list.position.x).is_greater_equal(0.0)
 	assert_float(list.position.x + list.size.x).is_less_equal(320.0)

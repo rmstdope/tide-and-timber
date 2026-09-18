@@ -17,7 +17,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(1280, 720)
+	get_tree().root.size = Vector2i(2560, 1440)
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
 

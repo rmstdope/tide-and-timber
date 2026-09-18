@@ -8,7 +8,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 
 func after_test() -> void:
@@ -35,7 +35,7 @@ func test_total_multiplies_ui_and_text() -> void:
 	assert_float(TextScale.total(Display.prefs, root)).is_equal(4.0)
 
 func test_relative_is_one_at_text_normal() -> void:
-	for size: Vector2i in [Vector2i(640, 360), Vector2i(320, 180)]:
+	for size: Vector2i in [Vector2i(1280, 720), Vector2i(640, 360)]:
 		for n in 3:
 			Display.use_prefs(DisplayPrefs.new())
 			get_tree().root.size = size
@@ -52,7 +52,7 @@ func test_relative_divides_out_ui() -> void:
 	_step(DisplayPrefs.Setting.TEXT_SIZE, 1)
 	assert_float(TextScale.relative(Display.prefs, root)).is_equal(2.0)
 	Display.use_prefs(DisplayPrefs.new())
-	root.size = Vector2i(320, 180)
+	root.size = Vector2i(640, 360)
 	_step(DisplayPrefs.Setting.TEXT_SIZE, 1)
 	assert_float(TextScale.relative(Display.prefs, root)).is_equal(2.0)
 

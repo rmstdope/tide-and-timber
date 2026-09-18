@@ -90,7 +90,7 @@ func test_text_left_is_kept() -> void:
 	assert_float((line.get_node("Text") as Control).size.x).is_equal(line.size.x - 16)
 
 func test_refits_on_display_changed() -> void:
-	get_tree().root.size = Vector2i(1280, 720)
+	get_tree().root.size = Vector2i(2560, 1440)
 	var line := _band_line()
 	line.say("That should see me through the night.")
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
@@ -100,12 +100,12 @@ func test_refits_on_display_changed() -> void:
 	assert_float(line.size.y).is_equal(16.0)
 
 func test_refits_on_window_resize() -> void:
-	get_tree().root.size = Vector2i(1280, 720)
+	get_tree().root.size = Vector2i(2560, 1440)
 	var line := _band_line()
 	line.say("That should see me through the night.")
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	assert_float(line.size.x).is_equal(208.0)
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	assert_float(line.size.x).is_equal(156.0)
 
 func test_text_large_widens_without_wrapping() -> void:
@@ -172,7 +172,7 @@ func test_bare_line_grows_about_its_centre() -> void:
 	assert_float(l.position.y + l.size.y * 2.0 / 2.0).is_equal_approx(90.0, 0.5)
 
 func test_refits_on_text_size_changed() -> void:
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	var line := _band_line()
 	line.say("The tide is turning again.")
 	Display.prefs.step(DisplayPrefs.Setting.TEXT_SIZE, 1)

@@ -63,7 +63,7 @@ func test_slots_stop_the_mouse() -> void:
 func test_name_plank_stays_on_screen_at_largest() -> void:
 	var root := get_tree().root
 	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	root.size = Vector2i(1280, 720)
+	root.size = Vector2i(2560, 1440)
 	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 	inv.add(K.SHELLFISH)
@@ -72,7 +72,7 @@ func test_name_plank_stays_on_screen_at_largest() -> void:
 
 func _big_root() -> void:
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 
 func test_name_plank_grows_with_text_size() -> void:
