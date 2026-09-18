@@ -70,10 +70,16 @@ const REPAINTED := [
 	"res://assets/beach/palm.png", "res://assets/beach/palm_coconuts.png", "res://assets/beach/coconut.png",
 	"res://assets/beach/driftwood.png", "res://assets/beach/spring.png", "res://assets/beach/shellfish.png",
 	"res://assets/beach/ripple.png", "res://assets/beach/puff.png",
+	"res://assets/items/coconut.png", "res://assets/items/driftwood.png",
+	"res://assets/items/empty_shell.png", "res://assets/items/fresh_water.png",
+	"res://assets/items/shellfish.png",
 ]
 const OUTLINED := [
 	"res://assets/beach/palm.png", "res://assets/beach/palm_coconuts.png", "res://assets/beach/coconut.png",
 	"res://assets/beach/driftwood.png", "res://assets/beach/spring.png", "res://assets/beach/shellfish.png",
+	"res://assets/items/coconut.png", "res://assets/items/driftwood.png",
+	"res://assets/items/empty_shell.png", "res://assets/items/fresh_water.png",
+	"res://assets/items/shellfish.png",
 ]
 
 func test_repainted_pieces_use_only_pack_colours() -> void:
