@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## The display settings model: three values, steps that stop at the ends, and a file read all or nothing.
+## The display settings model: four values, steps that stop at the ends, and a file read all or nothing.
 
 const DIR := "user://test_display"
 const FILE := "user://test_display/display.json"
@@ -25,6 +25,7 @@ func _assert_defaults(p: DisplayPrefs, why: String = "") -> void:
 	assert_int(p.ui_size).override_failure_message("ui_size %s" % why).is_equal(DisplayPrefs.Size.NORMAL)
 	assert_int(p.text_size).override_failure_message("text_size %s" % why).is_equal(DisplayPrefs.Size.NORMAL)
 	assert_int(p.cues).override_failure_message("cues %s" % why).is_equal(DisplayPrefs.Cues.STANDARD)
+	assert_bool(p.fullscreen).override_failure_message("fullscreen %s" % why).is_false()
 
 func test_starts_at_normal_normal_standard() -> void:
 	var p := DisplayPrefs.new()
@@ -35,6 +36,7 @@ func test_counts() -> void:
 	assert_int(DisplayPrefs.count(S.UI_SIZE)).is_equal(3)
 	assert_int(DisplayPrefs.count(S.TEXT_SIZE)).is_equal(3)
 	assert_int(DisplayPrefs.count(S.CUES)).is_equal(2)
+	assert_int(DisplayPrefs.count(S.FULLSCREEN)).is_equal(2)
 
 func test_step_moves_one_and_stops_at_the_ends() -> void:
 	var p := DisplayPrefs.new()
@@ -73,14 +75,14 @@ func test_to_dict_shape() -> void:
 	var p := DisplayPrefs.new()
 	p.step(S.TEXT_SIZE, 2)
 	p.step(S.CUES, 1)
-	assert_dict(p.to_dict()).is_equal({"version": 1, "ui_size": "normal", "text_size": "largest", "cues": "shapes"})
+	assert_dict(p.to_dict()).is_equal({"version": 1, "ui_size": "normal", "text_size": "largest", "cues": "shapes", "fullscreen": "off"})
 
 func test_a_change_is_written_at_once() -> void:
 	var p := DisplayPrefs.new(FILE)
 	p.step(S.UI_SIZE, 1)
 	assert_bool(FileAccess.file_exists(FILE)).is_true()
 	assert_dict(JSON.parse_string(_read())).is_equal(
-		{"version": 1.0, "ui_size": "large", "text_size": "normal", "cues": "standard"})
+		{"version": 1.0, "ui_size": "large", "text_size": "normal", "cues": "standard", "fullscreen": "off"})
 
 func test_no_path_writes_nothing() -> void:
 	var p := DisplayPrefs.new()
@@ -93,10 +95,12 @@ func test_round_trip() -> void:
 	p.step(S.UI_SIZE, 2)
 	p.step(S.TEXT_SIZE, 1)
 	p.step(S.CUES, 1)
+	p.step(S.FULLSCREEN, 1)
 	var q := DisplayPrefs.load_from(FILE)
 	assert_int(q.ui_size).is_equal(DisplayPrefs.Size.LARGEST)
 	assert_int(q.text_size).is_equal(DisplayPrefs.Size.LARGE)
 	assert_int(q.cues).is_equal(DisplayPrefs.Cues.SHAPES)
+	assert_bool(q.fullscreen).is_true()
 	assert_str(q.path).is_equal(FILE)
 
 func test_missing_file_gives_defaults_and_writes_nothing() -> void:
@@ -142,4 +146,45 @@ func test_next_change_saves_over_a_bad_file() -> void:
 	_write("not json")
 	DisplayPrefs.load_from(FILE).step(S.CUES, 1)
 	var d: Variant = JSON.parse_string(_read())
-	assert_dict(d).is_equal({"version": 1.0, "ui_size": "normal", "text_size": "normal", "cues": "shapes"})
+	assert_dict(d).is_equal({"version": 1.0, "ui_size": "normal", "text_size": "normal", "cues": "shapes", "fullscreen": "off"})
+
+func test_fullscreen_starts_off_and_steps_on_and_off() -> void:
+	var p := DisplayPrefs.new()
+	assert_bool(p.fullscreen).is_false()
+	assert_int(p.value(S.FULLSCREEN)).is_equal(0)
+	assert_bool(p.step(S.FULLSCREEN, 1)).is_true()
+	assert_bool(p.fullscreen).is_true()
+	assert_int(p.value(S.FULLSCREEN)).is_equal(1)
+	assert_bool(p.step(S.FULLSCREEN, 1)).is_false()
+	assert_bool(p.step(S.FULLSCREEN, -1)).is_true()
+	assert_bool(p.fullscreen).is_false()
+
+func test_set_fullscreen_saves_and_announces_once() -> void:
+	var p := DisplayPrefs.new(FILE)
+	var fired := [0]
+	p.changed.connect(func() -> void: fired[0] += 1)
+	assert_bool(p.set_fullscreen(true)).is_true()
+	assert_str(JSON.parse_string(_read())["fullscreen"]).is_equal("on")
+	assert_int(fired[0]).is_equal(1)
+	assert_bool(p.set_fullscreen(true)).is_false()
+	assert_int(fired[0]).is_equal(1)
+	assert_bool(p.set_fullscreen(false)).is_true()
+	assert_str(JSON.parse_string(_read())["fullscreen"]).is_equal("off")
+	assert_int(fired[0]).is_equal(2)
+
+func test_a_file_without_fullscreen_keeps_its_settings() -> void:
+	_write('{"version": 1, "ui_size": "large", "text_size": "normal", "cues": "shapes"}')
+	var p := DisplayPrefs.load_from(FILE)
+	assert_int(p.ui_size).is_equal(DisplayPrefs.Size.LARGE)
+	assert_int(p.cues).is_equal(DisplayPrefs.Cues.SHAPES)
+	assert_bool(p.fullscreen).is_false()
+
+func test_fullscreen_on_is_read_back() -> void:
+	_write('{"version": 1, "ui_size": "normal", "text_size": "normal", "cues": "standard", "fullscreen": "on"}')
+	assert_bool(DisplayPrefs.load_from(FILE).fullscreen).is_true()
+
+func test_a_bad_fullscreen_value_gives_the_defaults() -> void:
+	for bad in ["true", '"yes"']:
+		var text := '{"version": 1, "ui_size": "large", "text_size": "large", "cues": "shapes", "fullscreen": %s}' % bad
+		_write(text)
+		_assert_defaults(DisplayPrefs.load_from(FILE), text)
