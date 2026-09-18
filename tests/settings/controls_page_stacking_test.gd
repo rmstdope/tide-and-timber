@@ -122,8 +122,10 @@ func test_name_lines() -> void:
 	assert_array(Array(ControlsPage.name_lines("Walk right", w, font))).is_equal(["Walk right"])
 
 func test_text_baselines() -> void:
-	assert_array(ControlsPage.text_baselines()).is_equal([137.0, 147.0, 156.0])
-	assert_array(ControlsPage.text_baselines(true)).is_equal([236.0, 246.0, 255.0])
+	var n := ControlsLayout.make(false, 1.0, 1.0)
+	assert_array([n.no_key_baseline(), n.fixed_baseline(), n.content_bottom()]).is_equal([137.0, 147.0, 156.0])
+	var s := ControlsLayout.make(true, 1.0, 1.5)
+	assert_array([s.no_key_baseline(), s.fixed_baseline(), s.content_bottom()]).is_equal([236.0, 246.0, 255.0])
 
 # --- pause ---
 

@@ -4,6 +4,8 @@ extends Control
 ## Instanced by settings_board.tscn.
 ## At a scale where its rows no longer fit across the screen, every row goes onto two lines: the name, then its slots.
 ## When its content is taller than the screen above its strip, it scrolls to the highlighted row, with ▲ / ▼ where content is hidden.
+## Its words grow with Text size; the tabs, rows and list grow around them, and the lines under the list break at spaces once they would pass the screen's edges.
+## At the largest sizes, Down on the Reset row reads on through the lines under the list, one line a push, before it wraps to the top.
 
 signal closed              # Back or Leave: the board takes input again on Controls
 signal resume_requested    # Start or Leave-after-Start, opened from the pause board
@@ -21,32 +23,26 @@ const TAB_RECTS := [Rect2(78, 14, 72, 11), Rect2(154, 14, 88, 11)]   # Keyboard,
 const TAB_NAMES := ["Keyboard", "Controller"]
 const LIST_X := 16.0
 const LIST_W := 288.0
-const LIST_TOP := 28.0
 const ROW_H := 11.0
 const NAME_X := 20.0
 const SLOT_XS := [144.0, 212.0]          # left edge of slot 0 and slot 1
 const SLOT_W := 60.0
-const LINE_BASELINE := 137.0
-const FIXED_BASELINES := [147.0, 156.0]
 const KEYBOARD_FIXED := ["Menus always use the arrow keys,", "Enter and Esc"]   # one agreed sentence, broken to fit 320
 const CONTROLLER_FIXED_WORDS := ["Menus always use the d-pad,", "and"]          # then (A) after the first, (B) after "and"
 const RESET_NAMES := ["Reset keyboard to defaults", "Reset controller to defaults"]
 const SCREEN_MARGIN := 2.0
-const LIST_X_STACKED := 86.0             # (320 - 148) / 2
 const LIST_W_STACKED := 148.0            # fits inside the 160 units a 2x page shows, with margins
-const ROW_H_STACKED := 22.0              # the name line, then the slot line
 const SLOT_XS_STACKED := [96.0, 164.0]   # two 60-wide slots, 8 apart, centred in the stacked list
-const SLOT_TOP_STACKED := 11.0           # row top to slot top
 const NAME_LINE_STEP := 10.0             # baseline to baseline when a stacked name wraps
 const NAME_WRAP_W := 132.0               # both Reset names break before "to": "Reset keyboard to" (136) does not fit
-const TAB_RECTS_STACKED := [Rect2(82, 14, 68, 11), Rect2(154, 14, 84, 11)]
 const CONTENT_TOP := 3.0                 # the heading's top: HEADING_BASELINE less the font's 8-unit ascent; the scrolled content starts here
 
 var rules: ControlsMenu
 var offset := 0                          # whole units the content is scrolled up; 0 while it fits. Owned by frame().
 var scrolls := false                     # the content is not wholly inside the band; derived by frame(), never set elsewhere
 var view := Rect2(0, 0, 320, 180)        # where content shows, in page units; the whole page while it fits
-var stacked := false                     # derived by _restack, never set elsewhere
+var stacked := false                     # derived by _restack, never set elsewhere; always layout.stacked
+var layout := ControlsLayout.make(false, 1.0, 1.0)   # where every word, tab, row and slot goes; derived by _restack
 var strip: MenuStrip
 var change_slot: Callable = _change_slot   # tests swap in a recorder
 var capture := SlotCapture.new()
@@ -140,9 +136,11 @@ func _draw_box_marks() -> void:
 		ScrollWindow.draw_mark(marks, ScrollWindow.mark_centre(Rect2(Vector2.ZERO, marks.size), false), false)
 
 func _restack() -> void:
-	var now := stacks_at(get_global_transform_with_canvas().get_scale().x) if is_inside_tree() else false
-	if now != stacked:   # Display.changed already queued a redraw; a second would draw twice
-		stacked = now
+	var ui := get_global_transform_with_canvas().get_scale().x if is_inside_tree() else 1.0
+	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
+	if ui != layout.ui or rel != layout.rel:   # Display.changed already queued a redraw; a second would draw twice
+		layout = ControlsLayout.make(ControlsLayout.stacks(ui, rel), rel, ui)
+		stacked = layout.stacked
 		queue_redraw()
 	if rules.is_open:   # a size or window change re-follows the highlight even when stacked did not change
 		_frame()
@@ -151,18 +149,22 @@ func _restack() -> void:
 func _restack_later() -> void:
 	_restack.call_deferred()
 
-## True when today's rows, with the screen margins, are wider than the screen at on-screen scale s.
-static func stacks_at(s: float) -> bool:
-	return (LIST_W + 2.0 * SCREEN_MARGIN) * s > 320.0
+## The Text-Normal layout: UI Normal side by side, ControlsLayout.STACKED_UI stacked. Rows, slots and tabs
+## do not depend on UI scale at Text Normal, so one layout answers for every scale that stacks.
+static func _at_text_normal(p_stacked: bool) -> ControlsLayout:
+	return ControlsLayout.make(p_stacked, 1.0, ControlsLayout.STACKED_UI if p_stacked else 1.0)
+
+## True when the rows, with the screen margins, do not fit across at on-screen scale s with words grown by rel.
+static func stacks_at(s: float, rel := 1.0) -> bool:
+	return ControlsLayout.stacks(s, rel)
 
 ## The tab's rectangle.
 static func tab_rect(i: int, p_stacked := false) -> Rect2:
-	return TAB_RECTS_STACKED[i] if p_stacked else TAB_RECTS[i]
+	return _at_text_normal(p_stacked).tab_rect(i)
 
 ## Baseline of row r's name (its first line).
 static func name_origin(r: int, p_stacked := false) -> Vector2:
-	return Vector2(LIST_X_STACKED + 4.0, LIST_TOP + r * ROW_H_STACKED + 9.0) if p_stacked \
-			else Vector2(NAME_X, LIST_TOP + r * ROW_H + 9.0)
+	return _at_text_normal(p_stacked).name_origin(r)
 
 ## A name broken at spaces into lines no wider than max_w (greedy, at FONT_SIZE); one line if it fits.
 static func name_lines(text: String, max_w: float, font: Font) -> PackedStringArray:
@@ -178,23 +180,6 @@ static func name_lines(text: String, max_w: float, font: Font) -> PackedStringAr
 	lines.append(current)
 	return lines
 
-## Baselines of the no-key line and the two fixed lines, moved down below a stacked list.
-static func text_baselines(p_stacked := false) -> Array[float]:
-	var drop := ControlsMenu.ROWS * (ROW_H_STACKED - ROW_H) if p_stacked else 0.0
-	return [LINE_BASELINE + drop, FIXED_BASELINES[0] + drop, FIXED_BASELINES[1] + drop]
-
-## The last fixed line's baseline: the bottom of the scrolled content. Always the second fixed line, so the
-## offset never jumps when the no-key line appears or the tab changes.
-static func content_bottom(p_stacked := false) -> float:
-	return text_baselines(p_stacked)[2]
-
-## Row r's item (top, bottom) in content units (0 at CONTENT_TOP). The first row reaches up to include the heading
-## and tabs; the Reset row reaches down to include the no-key line and the fixed lines.
-static func row_extent(r: int, p_stacked := false) -> Vector2:
-	var rect := row_rect(r, p_stacked)
-	return ScrollWindow.stretch_ends(Vector2(rect.position.y - CONTENT_TOP, rect.end.y - CONTENT_TOP),
-			content_bottom(p_stacked) - CONTENT_TOP, r == 0, r == ControlsMenu.RESET_ROW)
-
 ## How far content is drawn down from where it sits unscrolled (negative when scrolled): 0 while it fits.
 func shift() -> float:
 	return view.position.y - CONTENT_TOP - offset if scrolls else 0.0
@@ -209,7 +194,7 @@ func frame(band_top: float, band_bottom: float) -> void:
 	var was_scrolls := scrolls
 	var was_offset := offset
 	var was_view := view
-	var bottom := content_bottom(stacked)
+	var bottom := layout.content_bottom()
 	if CONTENT_TOP >= band_top and bottom <= band_bottom:
 		scrolls = false
 		offset = 0
@@ -219,11 +204,19 @@ func frame(band_top: float, band_bottom: float) -> void:
 		view = Rect2(0, band_top + ScrollWindow.MARK_ROW, 320,
 				band_bottom - band_top - 2.0 * ScrollWindow.MARK_ROW)
 		var content := bottom - CONTENT_TOP
-		var e := row_extent(rules.row, stacked)
-		offset = ScrollWindow.follow(content, view.size.y, e.x, e.y, offset)
-		# A second pass, so a row whose extent is taller than the view is itself wholly visible.
-		var r := row_rect(rules.row, stacked)
-		offset = ScrollWindow.follow(content, view.size.y, r.position.y - CONTENT_TOP, r.end.y - CONTENT_TOP, offset)
+		if rules.row == ControlsMenu.RESET_ROW:
+			# Clamped, never followed: landing shows the row from its top, and a read-down offset is kept.
+			var span := reset_span(layout, view.size.y)
+			offset = clampi(offset, span.x, span.y)
+		else:
+			var e := layout.row_extent(rules.row)
+			offset = ScrollWindow.follow(content, view.size.y, e.x, e.y, offset)
+			# A second pass, so a row whose extent is taller than the view is itself wholly visible.
+			var r := layout.row_rect(rules.row)
+			offset = ScrollWindow.follow(content, view.size.y, r.position.y - CONTENT_TOP, r.end.y - CONTENT_TOP, offset)
+			# A third, so a row taller than the view still shows its highlighted slot.
+			var c := layout.slot_rect(rules.row, rules.slot)
+			offset = ScrollWindow.follow(content, view.size.y, c.position.y - CONTENT_TOP, c.end.y - CONTENT_TOP, offset)
 	if scrolls != was_scrolls or offset != was_offset or view != was_view:
 		queue_redraw()   # only on a change: _refresh redraws anyway, and _restack must not draw twice
 
@@ -233,16 +226,27 @@ func shows_mark_above() -> bool:
 
 ## True while ▼ is drawn.
 func shows_mark_below() -> bool:
-	return scrolls and ScrollWindow.hidden_below(offset, content_bottom(stacked) - CONTENT_TOP, view.size.y)
+	return scrolls and ScrollWindow.hidden_below(offset, layout.content_bottom() - CONTENT_TOP, view.size.y)
 
 # Frames against the page's band on screen. With no tree or strip yet the band is unknown, so the content's
 # own extent is passed and the page is left unscrolled rather than scrolled against a band that is not the real one.
 func _frame() -> void:
 	if not is_inside_tree() or strip == null:
-		frame(CONTENT_TOP, content_bottom(stacked))
+		frame(CONTENT_TOP, layout.content_bottom())
 		return
 	var b := ScrollWindow.band(get_global_transform_with_canvas(), strip.screen_top())
 	frame(b.x, b.y)
+
+# One push or wheel notch through the bottom of the page while the Reset row is highlighted: dir +1 reads down
+# one line, -1 back up one. False when there is no more to read that way, so a push moves the highlight instead.
+func _read_on(dir: int) -> bool:
+	if not scrolls or rules.row != ControlsMenu.RESET_ROW:
+		return false
+	var to := read_on(offset, dir, int(layout.line_step()), reset_span(layout, view.size.y))
+	if to == offset:
+		return false
+	offset = to
+	return true
 
 ## Opens the page on the tab of the device used last. from_pause: opened from the Paused board.
 func open(from_pause: bool) -> void:
@@ -265,29 +269,26 @@ static func pad_kind() -> DeviceTracker.Kind:
 
 ## What a point on the page hits: Vector2i(row, slot), slot -1 on the Reset row; Vector2i(-1, -1) for nothing.
 static func hit(point: Vector2, device: Controls.Device, p_stacked := false) -> Vector2i:
-	for r in ControlsMenu.ROWS:
-		if not row_rect(r, p_stacked).has_point(point):
-			continue
-		if r == ControlsMenu.RESET_ROW:
-			return Vector2i(r, -1)
-		for s in Controls.slot_count(device):
-			if slot_rect(r, s, p_stacked).has_point(point):
-				return Vector2i(r, s)
-		return Vector2i(-1, -1)   # the name part of an action row hits nothing
-	return Vector2i(-1, -1)
+	return _at_text_normal(p_stacked).hit(point, device)
 
 ## The tab under a point, or -1.
 static func tab_at(point: Vector2, p_stacked := false) -> int:
-	for i in TAB_RECTS.size():
-		if tab_rect(i, p_stacked).has_point(point):
-			return i
-	return -1
+	return _at_text_normal(p_stacked).tab_at(point)
 
 ## The row's rectangle.
 static func row_rect(r: int, p_stacked := false) -> Rect2:
-	if p_stacked:
-		return Rect2(LIST_X_STACKED, LIST_TOP + r * ROW_H_STACKED, LIST_W_STACKED, ROW_H_STACKED)
-	return Rect2(LIST_X, LIST_TOP + r * ROW_H, LIST_W, ROW_H)
+	return _at_text_normal(p_stacked).row_rect(r)
+
+## The offsets the Reset row may be read at: x shows the row from its top, y shows the page's bottom.
+## x == y when the row and the lines under the list fit the band together; then nothing reads on.
+static func reset_span(l: ControlsLayout, band_h: float) -> Vector2i:
+	var content := l.content_bottom() - CONTENT_TOP
+	var last := maxi(ceili(content - band_h), 0)
+	return Vector2i(mini(floori(l.row_extent(ControlsMenu.RESET_ROW).x), last), last)
+
+## One line down (dir +1) or up (-1) through the Reset span, stopping at its ends.
+static func read_on(p_offset: int, dir: int, line: int, span: Vector2i) -> int:
+	return clampi(p_offset + dir * line, span.x, span.y)
 
 const SHAPES_EMPTY := "! —"   # an empty slot of an action with no key, while Colour cues is Shapes
 
@@ -295,15 +296,15 @@ const SHAPES_EMPTY := "! —"   # an empty slot of an action with no key, while 
 static func empty_slot_mark(orange: bool, cues: DisplayPrefs.Cues) -> String:
 	return SHAPES_EMPTY if orange and cues == DisplayPrefs.Cues.SHAPES else "—"
 
-## Top-left of an empty slot's mark in cell: the "—" keeps today's place, so any prefix sits to its left.
-static func empty_slot_at(cell: Rect2, mark: String) -> Vector2:
-	return (cell.get_center() - Vector2(1, 2)).round() - Vector2((mark.length() - 1) * (Glyphs.W + Glyphs.GAP), 0)
+## Top-left of an empty slot's mark in cell, grown by rel about the dash: the "—" keeps today's place,
+## so any prefix sits to its left.
+static func empty_slot_at(cell: Rect2, mark: String, rel := 1.0) -> Vector2:
+	return (cell.get_center() - Vector2(1, 2) * rel).round() \
+			- Vector2(roundf((mark.length() - 1) * (Glyphs.W + Glyphs.GAP) * rel), 0)
 
 ## The slot's cell rectangle (row r, slot s).
 static func slot_rect(r: int, s: int, p_stacked := false) -> Rect2:
-	if p_stacked:
-		return Rect2(SLOT_XS_STACKED[s], LIST_TOP + r * ROW_H_STACKED + SLOT_TOP_STACKED, SLOT_W, ROW_H - 2)
-	return Rect2(SLOT_XS[s], LIST_TOP + r * ROW_H + 1, SLOT_W, ROW_H - 2)
+	return _at_text_normal(p_stacked).slot_rect(r, s)
 
 # The menu step comes first, so Esc (menu_cancel and pause) is Back; Tab and Clear come before Pause.
 # While waiting, every event goes to the capture and is consumed, so Esc and Start go in, not Back or Pause.
@@ -326,6 +327,12 @@ func _input(event: InputEvent) -> void:
 			_refresh()
 			get_viewport().set_input_as_handled()
 			return
+	if rules.box == ControlsMenu.Box.NONE:
+		var notch := BoxLayout.wheel_push(event)
+		if notch != -1 and _read_on(-1 if notch == BoxLayout.Push.WHEEL_UP else 1):
+			_refresh()
+			get_viewport().set_input_as_handled()
+			return
 	var step := InputDevice.menu_step(event)
 	if rules.box != ControlsMenu.Box.NONE:
 		match step:
@@ -344,9 +351,11 @@ func _input(event: InputEvent) -> void:
 			_:
 				return   # Start, tabs and Clear do nothing in a box; the board and the openers ignore input while the page is up
 	elif step == MenuPush.Step.UP:
-		rules.move(-1)
+		if not _read_on(-1):
+			rules.move(-1)
 	elif step == MenuPush.Step.DOWN:
-		rules.move(1)
+		if not _read_on(1):
+			rules.move(1)
 	elif step == MenuPush.Step.LEFT:
 		rules.side(-1)
 	elif step == MenuPush.Step.RIGHT:
@@ -379,8 +388,8 @@ func _on_gui_input(event: InputEvent) -> void:
 	# a point outside the view (a mark row, the gap above the strip) hits nothing.
 	var inside := view.has_point(m.position)
 	var at := m.position - Vector2(0, shift())
-	var tab := tab_at(at, stacked) if inside else -1
-	var h := hit(at, rules.device, stacked) if inside else Vector2i(-1, -1)
+	var tab := layout.tab_at(at) if inside else -1
+	var h := layout.hit(at, rules.device) if inside else Vector2i(-1, -1)
 	if PointerRule.is_move(event):
 		if h.x >= 0:
 			rules.hover(h.x, h.y)
@@ -474,28 +483,26 @@ func _exit_tree() -> void:
 func _draw() -> void:
 	if rules == null or not rules.is_open:
 		return
-	var font := get_theme_default_font()
 	draw_rect(Rect2(0, 0, 320, 180), BACKGROUND)
 	draw_set_transform(Vector2(0, shift()))
-	_centred(font, "Controls", 160.0, HEADING_BASELINE, TEXT)
-	for i in TAB_RECTS.size():
-		var rect := tab_rect(i, stacked)
+	_centred_words("Controls", 160.0, layout.heading_baseline, TEXT)
+	for i in layout.tab_count():
+		var rect := layout.tab_rect(i)
 		draw_style_box(PLANK_HIGHLIGHT_STYLE if rules.device == i else PLANK_STYLE, rect)
-		_centred(font, TAB_NAMES[i], rect.get_center().x, rect.position.y + 9, TEXT)
+		_centred_words(TAB_NAMES[i], rect.get_center().x, layout.tab_baseline(i), TEXT)
 	var keyboard := rules.device == Controls.Device.KEYBOARD
 	var kind := DeviceTracker.Kind.KEYBOARD if keyboard else pad_kind()
 	for r in ControlsMenu.ROWS:
 		if r == rules.row:
-			draw_style_box(PLANK_HIGHLIGHT_STYLE, row_rect(r, stacked))
-		var name: String = RESET_NAMES[rules.device] if r == ControlsMenu.RESET_ROW else Controls.NAMES[r]
-		var lines := name_lines(name, NAME_WRAP_W, font) if stacked else PackedStringArray([name])
+			draw_style_box(PLANK_HIGHLIGHT_STYLE, layout.row_rect(r))
+		var lines := layout.name_lines(r, rules.device)
+		var origin := layout.name_origin(r)
 		for j in lines.size():
-			draw_string(font, name_origin(r, stacked) + Vector2(0, j * NAME_LINE_STEP), lines[j],
-					HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, TEXT)
+			_words(lines[j], Vector2(layout.name_x(lines[j]), origin.y + j * layout.name_step()), TEXT)
 		if r == ControlsMenu.RESET_ROW:
 			continue
 		for s in Controls.slot_count(rules.device):
-			var cell := slot_rect(r, s, stacked)
+			var cell := layout.slot_rect(r, s)
 			var centre := cell.get_center()
 			var e := rules.controls.slot(r as Controls.Action, rules.device, s)
 			if e != null:
@@ -504,30 +511,17 @@ func _draw() -> void:
 			else:
 				var orange := rules.is_orange(r)
 				var mark := empty_slot_mark(orange, Display.prefs.cues)
-				Glyphs.draw(self, mark, empty_slot_at(cell, mark), ORANGE if orange else QUIET)
+				_glyphs(mark, empty_slot_at(cell, mark, layout.rel), ORANGE if orange else QUIET)
 			if r == rules.row and s == rules.slot:
 				draw_rect(cell, SLOT_OUTLINE, false, 1.0)
-	var baselines := text_baselines(stacked)
 	if rules.no_key_line != "":
-		_centred(font, rules.no_key_line, 160.0, baselines[0], ORANGE)
+		_lines(layout.fit_lines(ControlsLayout.word_lines(rules.no_key_line)), layout.no_key_baseline(), ORANGE)
 	if keyboard:
-		_centred(font, KEYBOARD_FIXED[0], 160.0, baselines[1], QUIET)
-		_centred(font, KEYBOARD_FIXED[1], 160.0, baselines[2], QUIET)
+		_lines(layout.fit_lines(ControlsLayout.keyboard_lines()), layout.fixed_baseline(), QUIET)
 	else:
-		var y: float = baselines[1]
-		var a := DeviceHints.picture_for(_pad_button(JOY_BUTTON_A), kind)
-		var b := DeviceHints.picture_for(_pad_button(JOY_BUTTON_B), kind)
-		var first := _width(font, CONTROLLER_FIXED_WORDS[0])
-		var second := _width(font, CONTROLLER_FIXED_WORDS[1])
-		var total := first + 4 + HintLine.picture_width(a) + 4 + second + 4 + HintLine.picture_width(b)
-		var x := roundf(160.0 - total / 2.0)
-		draw_string(font, Vector2(x, y), CONTROLLER_FIXED_WORDS[0], HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, QUIET)
-		x += first + 4
-		HintLine.draw_picture(self, a, Vector2(x, y - 8))
-		x += HintLine.picture_width(a) + 4
-		draw_string(font, Vector2(x, y), CONTROLLER_FIXED_WORDS[1], HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, QUIET)
-		x += second + 4
-		HintLine.draw_picture(self, b, Vector2(x, y - 8))
+		var a := DeviceHints.picture_for(pad_button(JOY_BUTTON_A), kind)
+		var b := DeviceHints.picture_for(pad_button(JOY_BUTTON_B), kind)
+		_lines(layout.fit_lines(ControlsLayout.controller_lines(a, b)), layout.fixed_baseline(), QUIET)
 	draw_set_transform(Vector2.ZERO)
 	if not scrolls:
 		return
@@ -541,14 +535,37 @@ func _draw() -> void:
 	if shows_mark_below():
 		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, false), false)
 
-func _width(font: Font, text: String) -> float:
-	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
+# Words with their baseline-left at `at`, grown by layout.rel; the scroll shift is restored after.
+func _words(text: String, at: Vector2, colour: Color) -> void:
+	draw_set_transform(at + Vector2(0, shift()), 0.0, Vector2.ONE * layout.rel)
+	draw_string(ControlsLayout.FONT, Vector2.ZERO, text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, colour)
+	draw_set_transform(Vector2(0, shift()))
 
-func _centred(font: Font, text: String, centre_x: float, baseline: float, colour: Color) -> void:
-	draw_string(font, Vector2(roundf(centre_x - _width(font, text) / 2.0), baseline), text, HORIZONTAL_ALIGNMENT_LEFT,
-		-1, FONT_SIZE, colour)
+# Glyphs with their top-left at `at`, grown by layout.rel.
+func _glyphs(text: String, at: Vector2, colour: Color) -> void:
+	draw_set_transform(at + Vector2(0, shift()), 0.0, Vector2.ONE * layout.rel)
+	Glyphs.draw(self, text, Vector2.ZERO, colour)
+	draw_set_transform(Vector2(0, shift()))
 
-static func _pad_button(index: JoyButton) -> InputEventJoypadButton:
+func _centred_words(text: String, centre_x: float, baseline: float, colour: Color) -> void:
+	_words(text, Vector2(roundf(centre_x - ceilf(ControlsLayout.width(text) * layout.rel) / 2.0), baseline), colour)
+
+# Lines of items (words and button pictures), each centred on 160, the first baseline at `first`.
+func _lines(lines: Array, first: float, colour: Color) -> void:
+	for j in lines.size():
+		var line: Array = lines[j]
+		var y := first + j * layout.line_step()
+		var x := roundf(160.0 - ControlsLayout.line_width(line, layout.rel) / 2.0)
+		for k in line.size():
+			if k > 0:
+				x += ControlsLayout.gap(line[k - 1], line[k], layout.rel)
+			if line[k] is DeviceHints.Picture:
+				HintLine.draw_picture(self, line[k], Vector2(x, y - 8))
+			else:
+				_words(line[k], Vector2(x, y), colour)
+			x += ControlsLayout.item_width(line[k], layout.rel)
+
+static func pad_button(index: JoyButton) -> InputEventJoypadButton:
 	var e := InputEventJoypadButton.new()
 	e.button_index = index
 	return e

@@ -9,6 +9,7 @@ enum Outcome { NONE, CLOSED, RESUME_PLAY, CHANGE_SLOT }
 
 const ROWS := 9                                # the eight Controls.Action rows, then the Reset row
 const RESET_ROW := 8
+const HAS_NO_KEY := "%s has no key"
 const LEAVE_QUESTION := "Leave anyway?"
 const SOME_ACTIONS := "Some actions have no key."
 const RESET_KEYBOARD := "Put every keyboard key back as it was?"
@@ -97,7 +98,7 @@ func clear() -> void:
 		return
 	controls.clear_slot(row as Controls.Action, device, slot)
 	if controls.has_no_key(row as Controls.Action, device):
-		no_key_line = "%s has no key" % Controls.NAMES[row]
+		no_key_line = HAS_NO_KEY % Controls.NAMES[row]
 
 ## Esc / B: CLOSED, or opens the LEAVING box when any action has no key on either tab.
 func back() -> Outcome:
@@ -191,7 +192,7 @@ func box_cancel() -> Outcome:
 func note_no_key(p_action: Controls.Action) -> void:
 	if not is_open:
 		return
-	no_key_line = "%s has no key" % Controls.NAMES[p_action]
+	no_key_line = HAS_NO_KEY % Controls.NAMES[p_action]
 
 ## Every action with no key on either tab, in Action order, each once.
 func empty_actions() -> Array[Controls.Action]:

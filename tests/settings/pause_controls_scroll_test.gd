@@ -124,3 +124,17 @@ func test_large_pause_page_scrolls_inside_its_band() -> void:
 	assert_float(bottom_on_screen).is_equal_approx(
 			page.strip.screen_top() - 2.0 - ScrollWindow.MARK_ROW * scale, 1.0 + scale)
 	assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
+
+func test_largest_pause_reads_the_bottom_in_more_pushes() -> void:
+	_size(2)
+	await _open_page()
+	await _tap(KEY_UP)
+	assert_int(page.offset).is_equal(201)
+	for expected: int in [210, 219, 228, 237, 238]:
+		await _tap(KEY_DOWN)
+		assert_int(page.rules.row).is_equal(8)
+		assert_int(page.offset).is_equal(expected)
+	assert_bool(page.shows_mark_below()).is_false()
+	await _tap(KEY_DOWN)
+	assert_int(page.rules.row).is_equal(0)
+	assert_int(page.offset).is_equal(15)   # row 0's place from pause, as on opening
