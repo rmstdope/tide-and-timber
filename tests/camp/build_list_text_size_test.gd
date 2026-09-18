@@ -215,6 +215,7 @@ func test_a_name_too_wide_for_the_list_wraps_and_pushes_the_cost_down() -> void:
 func test_godot_wraps_where_we_counted_at_every_size() -> void:
 	# _text_width_available() is not rounded, so this is the pin that our line count and the engine's
 	# wrap are given the identical width and cannot disagree at any size the game can reach.
+	var checked := 0
 	for ui_size in 3:
 		for text_size in 3:
 			var list := _open(ui_size, text_size)
@@ -227,4 +228,7 @@ func test_godot_wraps_where_we_counted_at_every_size() -> void:
 						continue
 					assert_int(label.get_line_count()).is_equal(
 							BuildList.wrapped_lines(label, label.text, text_w))
+					checked += 1
 			remove_child(list)
+	# Six of the nine pairs wrap nothing, so say out loud that the pin is not vacuous.
+	assert_int(checked).is_greater(0)
