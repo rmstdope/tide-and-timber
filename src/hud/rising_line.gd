@@ -23,8 +23,8 @@ static func show_over(host: Node2D, text: String) -> RisingLine:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_size_override(&"font_size", 8)
-	label.add_theme_color_override(&"font_color", Color("#fff3c4"))
-	label.add_theme_color_override(&"font_outline_color", Color("#3a2414"))
+	label.add_theme_color_override(&"font_color", HudColours.PALE)
+	label.add_theme_color_override(&"font_outline_color", HudColours.INK)
 	label.add_theme_constant_override(&"outline_size", 2)
 	label.size = label.get_minimum_size()
 	var rel := TextScale.relative(Display.prefs, host.get_tree().root) if host.is_inside_tree() else 1.0

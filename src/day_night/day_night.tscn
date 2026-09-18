@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/day_night/day_night.gd" id="1_dn"]
-[ext_resource type="StyleBox" path="res://src/title/plank.tres" id="2_plank"]
+[ext_resource type="StyleBox" path="res://src/hud/plank.tres" id="2_plank"]
 [ext_resource type="Script" path="res://src/day_night/clock_dial.gd" id="3_dial"]
 [ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
 [ext_resource type="Script" path="res://src/hud/spoken_line.gd" id="spoken_line"]
@@ -38,7 +38,7 @@ offset_top = 5.0
 offset_right = 64.0
 offset_bottom = 13.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.894118, 1)
 theme_override_font_sizes/font_size = 8
 text = "DAY 1"
 horizontal_alignment = 1
@@ -60,7 +60,7 @@ offset_top = 43.0
 offset_right = 64.0
 offset_bottom = 51.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.894118, 1)
 theme_override_font_sizes/font_size = 8
 text = "13:00"
 horizontal_alignment = 1
@@ -95,7 +95,7 @@ color = Color(0, 0, 0, 0.45)
 offset_right = 296.0
 offset_bottom = 16.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.894118, 1)
 theme_override_font_sizes/font_size = 8
 text = "It'll be dark soon. I need shelter."
 horizontal_alignment = 1

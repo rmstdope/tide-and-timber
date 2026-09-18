@@ -33,15 +33,15 @@ func _ready() -> void:
 	name_label = Label.new()
 	name_label.mouse_filter = MOUSE_FILTER_IGNORE
 	name_label.add_theme_font_size_override(&"font_size", 8)
-	name_label.add_theme_color_override(&"font_color", Color("#f4e3c1"))
+	name_label.add_theme_color_override(&"font_color", HudColours.CREAM)
 	name_label.position = Vector2(4, 3)
 	name_plank.add_child(name_label)
 	name_plank.draw.connect(func() -> void:
 		var w := name_plank.size.x
 		var h := name_plank.size.y
-		name_plank.draw_rect(Rect2(0, 0, w, h), Color("#7a5030"))
-		name_plank.draw_rect(Rect2(1, 1, w - 2, h - 2), Color("#b07a45"))
-		name_plank.draw_rect(Rect2(1, 1, w - 2, 1), Color("#d9a56b")))
+		name_plank.draw_rect(Rect2(0, 0, w, h), HudColours.WOOD_DARK)
+		name_plank.draw_rect(Rect2(1, 1, w - 2, h - 2), HudColours.WOOD)
+		name_plank.draw_rect(Rect2(1, 1, w - 2, 1), HudColours.WOOD_LIGHT))
 	add_child(name_plank)
 	Display.changed.connect(_refit_name)
 	get_tree().root.size_changed.connect(_refit_name)
@@ -98,6 +98,6 @@ func _scale() -> float:
 	return UiScale.current(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, PLANK_SIZE), Color("#7a5030"))
-	draw_rect(Rect2(1, 1, 139, 20), Color("#b07a45"))
-	draw_rect(Rect2(1, 1, 139, 1), Color("#d9a56b"))
+	draw_rect(Rect2(Vector2.ZERO, PLANK_SIZE), HudColours.WOOD_DARK)
+	draw_rect(Rect2(1, 1, 139, 20), HudColours.WOOD)
+	draw_rect(Rect2(1, 1, 139, 1), HudColours.WOOD_LIGHT)

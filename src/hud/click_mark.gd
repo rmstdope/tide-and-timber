@@ -2,7 +2,7 @@ class_name ClickMark
 extends Node2D
 ## A small pale cross where a click landed, shown briefly, then gone.
 
-const COLOUR := Color("#fff3c4")
+const COLOUR := HudColours.PALE
 const LIFETIME := 0.5            # s until freed
 const FADE_DELAY := 0.2          # s fully opaque before fading
 const NODE_NAME := &"ClickMark"
