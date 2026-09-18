@@ -9,9 +9,10 @@ member of the public who bought or downloaded it; nobody else reads its output. 
 game runs, saves and loads, and the story can be played from the wreck to the ending.
 
 It ships as native desktop executables for macOS and Windows, uploaded to Steam and/or itch.io. CI
-builds every merge to main; the navigator publishes tagged releases to the store by hand. Saves and
-settings are local files in the OS user-data directory, mirrored by the store's cloud sync. There is
-no server of our own, so "down" means only a broken build or a corrupted save.
+runs the tests on every pull request and every merge to main and builds no exports; the navigator
+builds them locally with `scripts/gate-full` and publishes tagged releases to the store by hand.
+Saves and settings are local files in the OS user-data directory, mirrored by the store's cloud
+sync. There is no server of our own, so "down" means only a broken build or a corrupted save.
 
 A new player sees a title screen, picks New Game, watches a short pixel-art shipwreck cutscene and
 wakes on the beach with nothing. The first thing they came to do is survive the first night: find

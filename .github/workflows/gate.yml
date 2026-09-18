@@ -14,12 +14,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  gate-full:
-    runs-on: macos-26
-    timeout-minutes: 45
-    env:
-      HOMEBREW_NO_INSTALL_CLEANUP: 1
-      HOMEBREW_NO_ANALYTICS: 1
+  gate-fast:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Check out
         uses: actions/checkout@v7
@@ -27,22 +24,15 @@ jobs:
           submodules: false
 
       - name: Install Godot
-        run: brew install --cask godot
+        uses: chickensoft-games/setup-godot@c233594225991af5aec714e52457cc76d6df8fa2 # v2.4.2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: false
+          cache: false
 
       - name: Godot version
-        id: godot
-        run: |
-          set -euo pipefail
-          raw="$(godot --headless --version | head -n 1)"
-          echo "godot --headless --version: $raw"
-          [[ $raw =~ ^([0-9]+\.[0-9]+(\.[0-9]+)?\.stable) ]]
-          echo "templates=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore export templates
-        uses: actions/cache@v6
-        with:
-          path: ~/Library/Application Support/Godot/export_templates/${{ steps.godot.outputs.templates }}
-          key: godot-export-templates-${{ steps.godot.outputs.templates }}-${{ runner.os }}
+        run: godot --headless --version
 
       - name: Shell suites
         run: |
@@ -53,21 +43,5 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: gate-full
-        run: scripts/gate-full
-
-      - name: Upload macOS export
-        uses: actions/upload-artifact@v7
-        with:
-          name: tide-and-timber-macos
-          path: build/macos/tide-and-timber.zip
-          if-no-files-found: error
-          retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
-
-      - name: Upload Windows export
-        uses: actions/upload-artifact@v7
-        with:
-          name: tide-and-timber-windows
-          path: build/windows/
-          if-no-files-found: error
-          retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
+      - name: gate-fast
+        run: scripts/gate-fast
