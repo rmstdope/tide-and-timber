@@ -44,3 +44,16 @@ question.
 it is still reachable afterwards.
 
 **Seen before.** No.
+
+## Test window sizes doubled twice (Cyclops, second attempt)
+
+**What happened.** Rebuilding on main, `git show 711b2ea -- <file> | git apply -3` was run in a loop over
+the old branch's test files with its output piped through `grep -v cleanly`. The hunks applied, but
+the filtered output looked like failure, so the window sizes were then doubled again by a script. Every
+suite ran at four times main's window until a sub-agent noticed.
+**Why.** Output filtered to "errors only" read as "nothing applied"; `git diff --stat` was not checked
+between the two steps.
+**Cost.** Four parallel sub-agents started on a wrong base; about 15 minutes, and one corrective message each.
+**Prevent by.** After any bulk `git apply`, check `git diff --stat` before a second mechanical pass;
+never filter `git apply` output.
+**Seen before.** No.
