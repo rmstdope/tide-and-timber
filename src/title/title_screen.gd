@@ -258,7 +258,7 @@ func _apply_ui_size() -> void:
 	_place_menu()
 	_place_menu.call_deferred()   # decide again once the strip's own deferred layout has run
 
-## Scales c by s about the fixed screen point (160, 90), from wherever c now is.
+## Scales c by s about the fixed screen point at the picture's centre, from wherever c now is.
 func _grow_about_centre(c: Control, s: float) -> void:
 	c.pivot_offset = OverlayScale.ANCHOR_CENTRE - c.position
 	c.scale = Vector2(s, s)
@@ -270,7 +270,7 @@ func _frame_boxes() -> void:
 		return
 	var s := UiScale.current(Display.prefs, get_tree().root)
 	# The band is measured in the units _fit_boxes() works in: each box carries its own scale about
-	# (160, 90), so the panel's parent transform is that scale, not the box's own global transform.
+	# the picture's centre, so the panel's parent transform is that scale, not the box's own global transform.
 	var b := ScrollWindow.band(OverlayScale.layer_transform(s, OverlayScale.ANCHOR_CENTRE), strip.screen_top())
 	_start_over_frame = _frame_box(_start_over_box, %StartOverBox as Control, b, _start_over_offset, s)
 	_start_over_offset = _start_over_frame.offset
@@ -349,7 +349,7 @@ func _place_menu() -> void:
 	m.pivot_offset = Vector2.ZERO
 	m.scale = Vector2(s, s)
 	var rel := TextScale.relative(Display.prefs, get_tree().root)
-	var room := floorf((320.0 - 2.0 * SpokenLine.SCREEN_MARGIN) / s)
+	var room := floorf((Screen.WIDTH - 2.0 * SpokenLine.SCREEN_MARGIN) / s)
 	(%Reason as GrownWords).max_width = room
 	var inner := room - PLANK_STYLE.get_minimum_size().x
 	for words: GrownWords in [%Continue.get_node("Lines/Label"), %DayLine,
@@ -366,18 +366,18 @@ func _place_menu() -> void:
 		p.custom_minimum_size = Vector2(widest, PLANK_MIN.y + ceilf(WORD_HEIGHT * rel) - WORD_HEIGHT)
 	var height := m.get_combined_minimum_size().y
 	m.size.y = height   # a Container never shrinks by itself; keep its rect to the planks shown
-	var x := roundf(160.0 - 160.0 * s)
+	var x := roundf(Screen.CENTRE.x - Screen.CENTRE.x * s)
 	var b := ScrollWindow.band(Transform2D(0.0, Vector2(s, s), 0.0, Vector2.ZERO), strip.screen_top())
 	var band_h := b.y - b.x
 	if height <= band_h:
 		menu_scrolls = false
 		menu_offset = 0
 		(%MenuClip as Control).position = Vector2.ZERO
-		(%MenuClip as Control).size = Vector2(320, 180)
+		(%MenuClip as Control).size = Screen.SIZE
 		m.position = Vector2(x, menu_top_at(_menu_top, height, s, _menu_normal_height, strip.screen_top()))
 		%MenuMarks.position = Vector2(x, 0)
 		%MenuMarks.scale = Vector2(s, s)
-		(%MenuMarks as Control).size = Vector2(320, band_h)
+		(%MenuMarks as Control).size = Vector2(Screen.WIDTH, band_h)
 		%MenuMarks.visible = false
 	else:
 		menu_scrolls = true
@@ -385,11 +385,11 @@ func _place_menu() -> void:
 		var e := _choice_extent(menu.highlighted)
 		menu_offset = ScrollWindow.follow(height, view_h, e.x, e.y, menu_offset)
 		(%MenuClip as Control).position = Vector2(0, (b.x + ScrollWindow.MARK_ROW) * s)
-		(%MenuClip as Control).size = Vector2(320, view_h * s)
+		(%MenuClip as Control).size = Vector2(Screen.WIDTH, view_h * s)
 		m.position = Vector2(x, -menu_offset * s)   # relative to the clip
 		%MenuMarks.position = Vector2(x, b.x * s)
 		%MenuMarks.scale = Vector2(s, s)
-		(%MenuMarks as Control).size = Vector2(320, band_h)
+		(%MenuMarks as Control).size = Vector2(Screen.WIDTH, band_h)
 		# the marks belong to the menu the player is in: the Settings board is over it, with its own strip
 		%MenuMarks.visible = not menu.settings_open
 		%MenuMarks.queue_redraw()

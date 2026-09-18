@@ -7,8 +7,8 @@ const NORMAL := 1.0
 const LARGE := 1.5
 const LARGEST := 2.0
 const ANCHOR_TOP_LEFT := Vector2(0, 0)
-const ANCHOR_BOTTOM_CENTRE := Vector2(160, 180)
-const ANCHOR_CENTRE := Vector2(160, 90)
+const ANCHOR_BOTTOM_CENTRE := Vector2(Screen.CENTRE.x, Screen.HEIGHT)
+const ANCHOR_CENTRE := Screen.CENTRE
 
 @export var anchor := ANCHOR_CENTRE
 var multiplier := NORMAL:               # setting it re-applies at once
@@ -25,7 +25,7 @@ static func factor(m: float, k: int) -> float:
 static func whole_scale(window: Window) -> int:
 	return maxi(1, roundi(window.get_final_transform().x.x))
 
-## The layer transform that scales by `s` about the point `about` (320x180 units).
+## The layer transform that scales by `s` about the point `about` (the picture's units).
 static func layer_transform(s: float, about: Vector2) -> Transform2D:
 	return Transform2D(0.0, Vector2(s, s), 0.0, about * (1.0 - s))
 

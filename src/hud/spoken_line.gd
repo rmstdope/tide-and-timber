@@ -5,7 +5,6 @@ extends Control
 ## Children, all optional: "Band" (ColorRect, resized to the whole control), "Text" (Label; when
 ## absent, this node itself must be the Label). Any other child (the dawn line's journal) keeps its offsets.
 
-const SCREEN_WIDTH := 320.0
 const SCREEN_MARGIN := 4.0          # on-screen art px kept clear at each side once a line narrows
 
 @export var grows_up := true        # true: the bottom edge stays put; false: the vertical centre stays put
@@ -56,7 +55,7 @@ func fit(s: float, rel: float = 1.0) -> void:
 	var lines := maxi(1, _text.get_line_count())
 	var step := _text.get_line_height() + _text.get_theme_constant(&"line_spacing")
 	var h := _full_height + (lines - 1) * step + lines * (ceilf(step * rel) - step)
-	position = Vector2(roundf((SCREEN_WIDTH - w) / 2.0), _bottom - h if grows_up else roundf(_centre_y - h / 2.0))
+	position = Vector2(roundf((Screen.WIDTH - w) / 2.0), _bottom - h if grows_up else roundf(_centre_y - h / 2.0))
 	if own:
 		size = Vector2(w, h) / rel
 	else:

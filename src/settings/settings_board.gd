@@ -11,14 +11,13 @@ signal resume_requested    # the Pause input, opened from the pause board: the o
 
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
-const BOARD_X := 8.0
+const BOARD_X := (Screen.WIDTH - 304.0) / 2.0   # the board centred; 304 is BOARD_W
 const BOARD_W := 304.0
 const BOARD_H := 138.0          # heading, four rows, the two-line explaining line, bottom margin
 const PLANK_X := 52.0           # rows centred: (304 - 200) / 2
 const PLANK_TOP := 28.0
 const PLANK_STEP := 20.0
 const PLANK_SIZE := Vector2(200, 16)
-const BASE_HEIGHT := 180.0
 const TEXT := Color(1, 0.964706, 0.878431, 1)
 const ARROW_DIM := Color(0.627451, 0.501961, 0.376471, 1)   # #a08060, an end's arrow
 const FONT_SIZE := 8
@@ -52,11 +51,11 @@ var rest_panel := Rect2(BOARD_X, 21, BOARD_W, BOARD_H)   # lay_out's centred pan
 
 ## The panel's width at on-screen scale s: BOARD_W, or less so it fits the screen with SCREEN_MARGIN each side.
 static func panel_width(s: float) -> float:
-	return minf(BOARD_W, floorf(320.0 / s - 2.0 * SCREEN_MARGIN))
+	return minf(BOARD_W, floorf(Screen.WIDTH / s - 2.0 * SCREEN_MARGIN))
 
 ## True when a plank widest_row wide, with the panel's sides and the screen margins, is wider than the screen at s.
 static func stacks(widest_row: float, s: float) -> bool:
-	return (widest_row + 2.0 * PANEL_SIDE + 2.0 * SCREEN_MARGIN) * s > 320.0
+	return (widest_row + 2.0 * PANEL_SIDE + 2.0 * SCREEN_MARGIN) * s > Screen.WIDTH
 
 ## How many lines text takes wrapped at width, as an autowrap-smart Label draws it.
 static func line_count(text: String, width: float, font: Font, font_size: int) -> int:
@@ -153,7 +152,7 @@ func lay_out(s: float, retry: bool = true) -> void:
 	heading.scale = Vector2.ONE * rel
 	heading.size = Vector2(panel_w / rel, FONT_SIZE)
 	var panel_h := line_top + line_h + BOTTOM_MARGIN
-	rest_panel = Rect2(floorf((320.0 - panel_w) / 2.0), floorf((BASE_HEIGHT - panel_h) / 2.0), panel_w, panel_h)
+	rest_panel = Rect2(floorf((Screen.WIDTH - panel_w) / 2.0), floorf((Screen.HEIGHT - panel_h) / 2.0), panel_w, panel_h)
 	(%Content as Control).size = rest_panel.size
 	_frame()
 	if not settled and retry:
@@ -215,7 +214,7 @@ func _item_extent(item: SettingsMenu.Plank) -> Vector2:
 
 func _frame() -> void:
 	if not is_inside_tree() or strip == null:
-		frame(0.0, BASE_HEIGHT)
+		frame(0.0, Screen.HEIGHT)
 		return
 	var b := ScrollWindow.band(get_global_transform_with_canvas(), strip.screen_top())
 	frame(b.x, b.y)

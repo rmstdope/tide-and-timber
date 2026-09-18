@@ -19,7 +19,6 @@ const PLANK_X := 12.0                # inside the board
 const PLANK_TOP := 28.0              # first plank's top inside the board
 const PLANK_STEP := 20.0             # the Normal step; lay_out() uses plank_h + PLANK_GAP
 const PLANK_SIZE := Vector2(120, 16)
-const BASE_HEIGHT := 180.0
 const HEADING_TOP := 8.0        # panel top to the heading's top; the scrolled content starts here
 const BOTTOM_MARGIN := 12.0     # last plank's bottom to the panel's bottom (96 - 84)
 const WORD_HEIGHT := 8.0        # one line of words at Normal: the heading's height
@@ -307,7 +306,7 @@ func lay_out(retry: bool = true) -> void:
 	if dev_tag != null:
 		dev_tag.position.x = board_w - DEV_TAG_RIGHT
 	var h := top + (rules.items.size() - 1) * step + plank_h + BOTTOM_MARGIN
-	rest_panel = Rect2(floorf((320.0 - board_w) / 2.0), floorf((BASE_HEIGHT - h) / 2.0), board_w, h)
+	rest_panel = Rect2(floorf((Screen.WIDTH - board_w) / 2.0), floorf((Screen.HEIGHT - h) / 2.0), board_w, h)
 	(%Content as Control).size = rest_panel.size
 	if not settled and retry:
 		# Once, on the next frame, when the shrink has reached the planks. Never again: a plank whose
@@ -318,7 +317,7 @@ func _frame(retry: bool = true) -> void:
 	if is_queued_for_deletion():
 		return   # a deferred retry that arrived as the board was going away
 	if not is_inside_tree() or strip == null:
-		frame(0.0, BASE_HEIGHT)   # lay_out needs the tree; leave the rects as they are
+		frame(0.0, Screen.HEIGHT)   # lay_out needs the tree; leave the rects as they are
 		return
 	lay_out(retry)
 	var b := ScrollWindow.band((%Board as Control).get_global_transform_with_canvas(), strip.screen_top())

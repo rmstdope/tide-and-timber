@@ -15,7 +15,6 @@ const STACKED_ROW_SIZE := Vector2(144, 21)
 const STACKED_ROW_TOP: Array[int] = [14, 37]
 const LINE_HEIGHT := 9.0                # the cost line's top below the name line's top when stacked
 const COST_GAP := 8.0                   # the least space between a name and its cost, side by side
-const SCREEN_WIDTH := 320.0
 const TEXT := HudColours.PALE
 const GREYED := HudColours.DIM
 const BORDER := HudColours.WOOD_DARK
@@ -23,7 +22,6 @@ const FILL := HudColours.WOOD
 const HIGHLIGHT := HudColours.WOOD_LIGHT
 const CONTENT_TOP := 3.0                # the title's top: the scrolled content starts here
 const CONTENT_BOTTOM_MARGIN := 3.0      # the last row's bottom to the list's bottom
-const SCREEN_HEIGHT := 180.0            # the band's bottom edge when no hint is shown
 
 # The Normal geometry, named. Only words grow; every one of these keeps its UI-size scale.
 const TEXT_LINE := 8.0                  # one line of words, in list units, at Text size Normal
@@ -70,13 +68,13 @@ const RIGHT_OF_HIM := 12.0
 var _man := Vector2.ZERO
 var _placed := false
 
-## Top-left on the 320x180 screen of the list drawn at scale s: its bottom-left corner RIGHT_OF_HIM right of
+## Top-left on the picture of the list drawn at scale s: its bottom-left corner RIGHT_OF_HIM right of
 ## and ABOVE_HIM above him, kept on screen; when wider than the screen less both margins, centred instead.
 static func top_left_for(man_on_screen: Vector2, s: float = 1.0, box: Vector2 = SIZE) -> Vector2:
 	var w := box.x * s
 	var h := box.y * s
-	var x := roundf((320.0 - w) / 2.0) if w > 320.0 - 2.0 * SCREEN_MARGIN \
-			else clampf(roundf(man_on_screen.x) + RIGHT_OF_HIM, SCREEN_MARGIN, 320.0 - SCREEN_MARGIN - w)
+	var x := roundf((Screen.WIDTH - w) / 2.0) if w > Screen.WIDTH - 2.0 * SCREEN_MARGIN \
+			else clampf(roundf(man_on_screen.x) + RIGHT_OF_HIM, SCREEN_MARGIN, Screen.WIDTH - SCREEN_MARGIN - w)
 	var y := maxf(2.0, roundf(roundf(man_on_screen.y) - ABOVE_HIM - h))
 	return Vector2(x, y)
 
@@ -118,7 +116,7 @@ func _frame(s: float) -> void:
 func _hint_top() -> float:
 	if hint != null and hint.is_visible_in_tree():
 		return HintLift.screen_rect(hint).position.y
-	return SCREEN_HEIGHT
+	return Screen.HEIGHT
 
 ## Frames the list, already scaled by s and placed, to the band [band_top, band_bottom] in its parent's units,
 ## and scrolls the content so the highlighted row is wholly visible.
@@ -165,7 +163,7 @@ func _item_extent(i: int) -> Vector2:
 
 ## True when a list side_by_side_width wide, drawn at scale s, is wider than the screen.
 static func stacks(side_by_side_width: float, s: float) -> bool:
-	return side_by_side_width * s > SCREEN_WIDTH
+	return side_by_side_width * s > Screen.WIDTH
 
 ## The list's unscaled width with every row side by side for the words it shows now, grown by `rel`:
 ## SIZE.x, or wider when a row's grown name, COST_GAP and cost, plus the 3-unit insets on both sides

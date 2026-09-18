@@ -15,7 +15,6 @@ const RING_GAP := 4                     # the line's end to the ring
 const HOLD := "Hold"
 const TO_CANCEL := "to cancel"
 const PLANK_STYLE := preload("res://src/title/plank.tres")
-const SCREEN := Vector2(320, 180)
 const SIDE_PAD := 4.0                   # each side of the plank, outside the words
 const TOP_PAD := 8.0                    # plank top to the first word row's top
 const BOTTOM_PAD := 16.0                # the hold row's bottom to the plank bottom
@@ -29,7 +28,7 @@ const FIT_EPSILON := 0.001       # name_lines wraps on area / rel; _fits multipl
 ## The whole measured layout in page units; the host layer multiplies by the UI scale.
 class Layout extends RefCounted:
 	var rel := 1.0                      # the words' scale inside the box; 1.0 at Text size Normal
-	var panel := Rect2()                # the plank, whole units, centred on (160, 90)
+	var panel := Rect2()                # the plank, whole units, centred on the picture's centre
 	var names := PackedStringArray()    # the action name, wrapped
 	var presses := PackedStringArray()  # "Press a new key" / "Press a new button", wrapped
 	var hold: Array = []                # 1 or 2 rows; each an Array of String and DeviceHints.Picture
@@ -102,7 +101,7 @@ func _draw() -> void:
 	if lines.is_empty() or layout == null:
 		return
 	var font := get_theme_default_font()
-	draw_rect(Rect2(Vector2.ZERO, SCREEN), DIM)
+	draw_rect(Rect2(Vector2.ZERO, Screen.SIZE), DIM)
 	draw_style_box(PLANK_STYLE, layout.panel)
 	var y := layout.panel.position.y + TOP_PAD
 	for line in layout.names:
@@ -162,8 +161,8 @@ static func layout_at(p_lines: PackedStringArray, p_items: Array, rel: float, ui
 	var pw := ceilf(_word(p_lines[1], font) * rel)
 	var whole_hold: Array = [p_items[0], p_items[1], p_items[2]]
 	var hw := _row_width(whole_hold, rel, font)
-	# The hold row is centred on 160 and the ring hangs off its right end, so a whole hold line
-	# wants the ring's room on one side of the centre: twice it, in a width centred on 160.
+	# The hold row is centred on the picture's centre and the ring hangs off its right end, so a whole hold line
+	# wants the ring's room on one side of the centre: twice it, in a width centred on the picture's centre.
 	var panel_w := TextScale.fit_width(PANEL.size.x,
 			maxf(maxf(nw, pw), hw + 2.0 * (RING_GAP + RING_SIZE)) + 2.0 * SIDE_PAD, ui)
 	var area := panel_w - 2.0 * SIDE_PAD
@@ -178,7 +177,7 @@ static func layout_at(p_lines: PackedStringArray, p_items: Array, rel: float, ui
 	l.pic_dy = floorf((l.step - LINE_STEP) / 2.0)
 	var word_rows := float(l.names.size() + l.presses.size())
 	var panel_h := TOP_PAD + word_rows * l.step + HOLD_GAP + l.hold.size() * l.hold_h + BOTTOM_PAD
-	l.panel = Rect2(roundf(160.0 - panel_w / 2.0), roundf(90.0 - panel_h / 2.0), panel_w, panel_h)
+	l.panel = Rect2(roundf(Screen.CENTRE.x - panel_w / 2.0), roundf(Screen.CENTRE.y - panel_h / 2.0), panel_w, panel_h)
 	var last: Array = l.hold[l.hold.size() - 1]
 	var row_w := _row_width(last, rel, font)
 	var mid := l.panel.get_center().x
@@ -190,7 +189,7 @@ static func layout_at(p_lines: PackedStringArray, p_items: Array, rel: float, ui
 
 ## The whole box is on screen, every row is inside the words area, and the ring is on the plank.
 static func _fits(l: Layout, area: float, ui: float, font: Font) -> bool:
-	if l.panel.size.y * ui > SCREEN.y - 2.0 * SpokenLine.SCREEN_MARGIN:
+	if l.panel.size.y * ui > Screen.HEIGHT - 2.0 * SpokenLine.SCREEN_MARGIN:
 		return false
 	for line in l.names:
 		if _word_f(line, font) * l.rel > area + FIT_EPSILON:

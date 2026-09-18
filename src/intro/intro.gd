@@ -3,8 +3,8 @@ extends Control
 ## The shipwreck intro: draws an IntroStory and turns input into its moves.
 
 const CAPTIONS := ["Three weeks out of port.", "Then the storm found us.", "The mast gave way.", "..."]
-const CAPTION_BAR_Y := 138.0             # on pictures 0..2
-const BLACK_BEAT_CAPTION_BAR_Y := 79.0   # vertically centred on the black beat
+const CAPTION_BAR_Y := Screen.HEIGHT - 42.0   # on pictures 0..2
+const BLACK_BEAT_CAPTION_BAR_Y := floorf((Screen.HEIGHT - 22.0) / 2.0)   # the 22-tall bar centred on the black beat
 const SURF_VOLUME := 0.6
 const WAKING_SCENE := "res://src/waking/waking.tscn"
 

@@ -2,7 +2,7 @@ class_name DebugKeyLine
 extends Control
 ## The short line top-centre that confirms F1-F4, and the reader of those keys.
 
-const BOX := Rect2(110, 6, 100, 14)
+const BOX := Rect2(Screen.CENTRE.x - 50.0, 6, 100, 14)
 const BOX_COLOUR := Color(0, 0, 0, 0.6)
 const TEXT := Color("#9fe89f")
 const TEXT_Y := 10.0
@@ -14,7 +14,7 @@ var _left := 0.0          # seconds the line still shows
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
-	size = Vector2(320, 180)
+	size = Screen.SIZE
 	visible = false
 
 ## Shows `line` for SECONDS from now, replacing any line showing.
