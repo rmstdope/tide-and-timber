@@ -42,3 +42,8 @@ func test_the_caption_bar_sits_42_above_the_bottom() -> void:
 func test_text_fits_the_picture() -> void:
 	assert_float(TextScale.fit_width(10.0, 10.0 + Screen.WIDTH, 1.0)) 			.is_equal(Screen.WIDTH - 2.0 * SpokenLine.SCREEN_MARGIN)
 
+
+func test_the_controls_block_is_centred() -> void:
+	var above := ControlsPage.CONTENT_TOP
+	var below := Screen.HEIGHT - ControlsLayout.make(false, 1.0, 1.0).content_bottom()
+	assert_float(absf(above - below)).is_less_equal(1.0)

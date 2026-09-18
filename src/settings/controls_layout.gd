@@ -119,7 +119,7 @@ static func make(p_stacked: bool, p_rel: float, p_ui: float) -> ControlsLayout:
 func _make_tabs() -> void:
 	var pad := 4.0 if stacked else 8.0
 	var h := ControlsPage.ROW_H + grow
-	var top := 14.0 + grow
+	var top := ControlsPage.TAB_TOP + grow
 	var w0 := pad + ceilf(width(ControlsPage.TAB_NAMES[0]) * rel)
 	var w1 := pad + ceilf(width(ControlsPage.TAB_NAMES[1]) * rel)
 	# Equality is meant: stacked at Text Normal and UI 2x the sum is exactly the picture's width, which keeps today's stacked tabs side by side (controls_layout_test.gd::test_stacked_rows_at_text_normal_are_todays).

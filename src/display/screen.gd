@@ -21,8 +21,8 @@ extends RefCounted
 ##
 ## Never instantiated.
 
-const WIDTH := 320.0
-const HEIGHT := 180.0
+const WIDTH := 640.0
+const HEIGHT := 360.0
 const SIZE := Vector2(WIDTH, HEIGHT)
 const CENTRE := Vector2(WIDTH / 2.0, HEIGHT / 2.0)
 const MIN_WINDOW := Vector2i(int(WIDTH), int(HEIGHT))   # never smaller than one times the picture

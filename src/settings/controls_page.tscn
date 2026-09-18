@@ -9,8 +9,8 @@
 visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 process_mode = 3
 script = ExtResource("1_page")
 
@@ -18,22 +18,22 @@ script = ExtResource("1_page")
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 mouse_filter = 2
 
 [node name="Dim" type="ColorRect" parent="Box"]
 layout_mode = 0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 color = Color(0, 0, 0, 0.35)
 
 [node name="Panel" type="Panel" parent="Box"]
 layout_mode = 0
-offset_left = 12.0
-offset_top = 42.0
-offset_right = 308.0
-offset_bottom = 138.0
+offset_left = 172.0
+offset_top = 132.0
+offset_right = 468.0
+offset_bottom = 228.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_plank")
 
@@ -120,6 +120,6 @@ mouse_filter = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-offset_right = 320.0
-offset_bottom = 180.0
+offset_right = 640.0
+offset_bottom = 360.0
 script = ExtResource("3_waiting")

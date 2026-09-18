@@ -18,8 +18,11 @@ const QUIET := HudColours.DIM         # the fixed line and an ordinary empty slo
 const ORANGE := HudColours.WARN       # a dash in a row with no key on this tab, and the no-key line
 const SLOT_OUTLINE := Color("#ffe27a")
 const FONT_SIZE := 8
-const HEADING_BASELINE := 11.0
-const TAB_RECTS := [Rect2(Screen.CENTRE.x - 82.0, 14, 72, 11), Rect2(Screen.CENTRE.x - 6.0, 14, 88, 11)]   # Keyboard, Controller
+const CONTENT_H := 153.0                 # the heading's top (3) to the second fixed line's baseline (156), at Normal
+const TOP_SHIFT := floorf((Screen.HEIGHT - CONTENT_H) / 2.0) - 3.0   # the whole block centred on the page
+const HEADING_BASELINE := 11.0 + TOP_SHIFT
+const TAB_TOP := 14.0 + TOP_SHIFT
+const TAB_RECTS := [Rect2(Screen.CENTRE.x - 82.0, TAB_TOP, 72, 11), Rect2(Screen.CENTRE.x - 6.0, TAB_TOP, 88, 11)]   # Keyboard, Controller
 const TAB_NAMES := ["Keyboard", "Controller"]
 const LIST_W := 288.0
 const LIST_X := (Screen.WIDTH - LIST_W) / 2.0
@@ -35,7 +38,7 @@ const LIST_W_STACKED := 148.0            # fits inside the 160 units a 2x page s
 const SLOT_XS_STACKED := [Screen.CENTRE.x - 64.0, Screen.CENTRE.x + 4.0]   # two 60-wide slots, 8 apart, centred in the stacked list
 const NAME_LINE_STEP := 10.0             # baseline to baseline when a stacked name wraps
 const NAME_WRAP_W := 132.0               # both Reset names break before "to": "Reset keyboard to" (136) does not fit
-const CONTENT_TOP := 3.0                 # the heading's top: HEADING_BASELINE less the font's 8-unit ascent; the scrolled content starts here
+const CONTENT_TOP := 3.0 + TOP_SHIFT     # the heading's top: HEADING_BASELINE less the font's 8-unit ascent; the scrolled content starts here
 
 var rules: ControlsMenu
 var offset := 0                          # whole units the content is scrolled up; 0 while it fits. Owned by frame().

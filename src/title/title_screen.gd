@@ -6,9 +6,11 @@ extends Control
 
 const INTRO_SCENE := "res://src/intro/intro.tscn"
 const GAME_SCENE := "res://src/waking/waking.tscn"
-const MENU_TOP := 97.0                  # the menu's place: three planks with no save
-const MENU_TOP_WITH_SAVE := 83.0        # four planks still clear the bottom edge
-const MENU_TOP_DIMMED := 75.0           # Continue, reason line, New Game, Settings, Quit clear the bottom edge
+# The title screen's whole composition is proportional to the picture, not measured from an edge,
+# so these three doubled with it in tr-1o0.1; tr-1o0.2 repaints the scene at 640x360.
+const MENU_TOP := 194.0                 # the menu's place: three planks with no save
+const MENU_TOP_WITH_SAVE := 166.0       # four planks still clear the bottom edge
+const MENU_TOP_DIMMED := 150.0          # Continue, reason line, New Game, Settings, Quit clear the bottom edge
 const PLANK_MIN := Vector2(90, 18)       # a menu plank at Normal (the scene's custom_minimum_size)
 const WORD_HEIGHT := 8.0
 const MENU_HEIGHT := 60.0                # the menu at Normal Text size: three planks with no save

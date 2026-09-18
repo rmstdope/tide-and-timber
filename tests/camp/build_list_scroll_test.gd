@@ -47,7 +47,7 @@ func _show(list: BuildList) -> void:
 	list.show_menu(_menu)
 
 func test_largest_above_a_lifted_hint_scrolls_from_the_top() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	_hint(list, 108)
 	assert_bool(list.scrolls).is_true()
 	assert_int(list.offset).is_equal(0)
@@ -63,7 +63,7 @@ func test_largest_above_a_lifted_hint_scrolls_from_the_top() -> void:
 	assert_vector(list.rows[1].position).is_equal(Vector2(3, 37))
 
 func test_moving_scrolls_to_the_highlight_and_back() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	_hint(list, 108)
 	_menu.move(1)
 	_show(list)
@@ -80,7 +80,7 @@ func test_moving_scrolls_to_the_highlight_and_back() -> void:
 	assert_bool(list.shows_mark_below()).is_true()
 
 func test_hovered_row_scrolls_into_view() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	_hint(list, 108)
 	_menu.hover(BuildMenu.Thing.FIRE)
 	_show(list)
@@ -88,7 +88,7 @@ func test_hovered_row_scrolls_into_view() -> void:
 	assert_bool(_visible(list, 1)).is_true()
 
 func test_opening_again_starts_at_the_top() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	_hint(list, 108)
 	_menu.move(1)
 	_show(list)
@@ -103,7 +103,7 @@ func test_opening_again_starts_at_the_top() -> void:
 	assert_bool(list.shows_mark_below()).is_true()
 
 func test_no_highlight_keeps_the_offset() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	_hint(list, 108)
 	_menu.move(1)
 	_show(list)
@@ -113,7 +113,7 @@ func test_no_highlight_keeps_the_offset() -> void:
 	assert_int(list.offset).is_equal(23)
 
 func test_fits_below_a_low_hint_exactly_as_before() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	_hint(list, 164)
 	assert_bool(list.scrolls).is_false()
 	assert_int(list.offset).is_equal(0)
@@ -125,7 +125,7 @@ func test_fits_below_a_low_hint_exactly_as_before() -> void:
 	assert_bool(list.shows_mark_below()).is_false()
 
 func test_normal_fits_exactly_as_before() -> void:
-	var list := _open(0, Vector2i(640, 360))
+	var list := _open(0, Vector2i(1280, 720))
 	_hint(list, 136)
 	assert_bool(list.scrolls).is_false()
 	assert_vector(list.size).is_equal(BuildList.SIZE)
@@ -133,7 +133,7 @@ func test_normal_fits_exactly_as_before() -> void:
 	assert_object(list.clip.get_rect()).is_equal(Rect2(Vector2.ZERO, BuildList.SIZE))
 
 func test_a_hint_that_moves_or_hides_reframes() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	var h := _hint(list, 164)
 	assert_bool(list.scrolls).is_false()
 	h.position.y = 108
@@ -146,7 +146,7 @@ func test_a_hint_that_moves_or_hides_reframes() -> void:
 	assert_bool(list.scrolls).is_true()
 
 func test_size_change_refollows() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	_hint(list, 108)
 	_menu.move(1)
 	_show(list)
@@ -163,7 +163,7 @@ func test_size_change_refollows() -> void:
 	assert_bool(_visible(list, 1)).is_true()
 
 func test_rows_are_clipped() -> void:
-	var list := _open(0, Vector2i(640, 360))
+	var list := _open(0, Vector2i(1280, 720))
 	assert_bool(list.clip.clip_contents).is_true()
 	assert_int(list.clip.mouse_filter).is_equal(Control.MOUSE_FILTER_IGNORE)
 	assert_int(list.content.mouse_filter).is_equal(Control.MOUSE_FILTER_IGNORE)
@@ -173,6 +173,6 @@ func test_rows_are_clipped() -> void:
 	assert_object(list.content.get_parent()).is_equal(list.clip)
 
 func test_without_a_hint_the_screen_bottom_bounds_it() -> void:
-	var list := _open(2, Vector2i(640, 360))
+	var list := _open(2, Vector2i(1280, 720))
 	assert_bool(list.scrolls).is_false()
 	assert_vector(list.size).is_equal(BuildList.STACKED_SIZE)

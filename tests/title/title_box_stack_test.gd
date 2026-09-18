@@ -23,7 +23,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 
 func after_test() -> void:
@@ -205,11 +205,11 @@ func test_window_resize_refits() -> void:
 	await _open_start_over_box()
 	_large()
 	assert_float(_control("%StartOverBox").size.x).is_equal(204.0)
-	get_tree().root.size = Vector2i(320, 180)
+	get_tree().root.size = Vector2i(640, 360)
 	var box := _control("%StartOverBox")
 	assert_float(box.size.x).is_equal(152.0)
 	assert_vector(box.position + box.pivot_offset).is_equal(Vector2(160, 90))
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 
 func test_a_box_opened_while_stacked_is_already_fitted() -> void:
 	_saved()

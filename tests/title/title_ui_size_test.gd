@@ -16,7 +16,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
 
@@ -125,7 +125,7 @@ func test_launched_at_largest_the_board_strip_is_in_the_corner() -> void:
 func test_a_window_resize_regrows_the_title() -> void:
 	_step(1)
 	_open()
-	get_tree().root.size = Vector2i(960, 540)
+	get_tree().root.size = Vector2i(1920, 1080)
 	await get_tree().process_frame
 	assert_vector(board.scale).is_equal_approx(Vector2(5.0 / 3.0, 5.0 / 3.0), EPS)
 	assert_vector((screen.get_node("%Menu") as Control).scale).is_equal_approx(Vector2(5.0 / 3.0, 5.0 / 3.0), EPS)

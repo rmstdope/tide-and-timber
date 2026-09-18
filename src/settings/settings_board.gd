@@ -47,7 +47,7 @@ var open_controls: Callable = _open_controls   # tests replace it
 var stacked := false               # the rows are on two lines; derived by lay_out, never set elsewhere
 var offset := 0                    # whole units the content is scrolled up; 0 while it fits. Owned by frame()
 var scrolls := false               # the content does not fit the band; derived by frame(), never set elsewhere
-var rest_panel := Rect2(BOARD_X, 21, BOARD_W, BOARD_H)   # lay_out's centred panel, before framing
+var rest_panel := Rect2(BOARD_X, floorf((Screen.HEIGHT - BOARD_H) / 2.0), BOARD_W, BOARD_H)   # lay_out's centred panel, before framing
 
 ## The panel's width at on-screen scale s: BOARD_W, or less so it fits the screen with SCREEN_MARGIN each side.
 static func panel_width(s: float) -> float:

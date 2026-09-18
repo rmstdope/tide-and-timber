@@ -13,7 +13,7 @@ func before_test() -> void:
 	_saved_size = get_tree().root.size
 	_saved_mode = get_tree().root.content_scale_mode
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Pause.debug_tools = false
 	InputDevice.reset()
 	Display.use_prefs(DisplayPrefs.new())
@@ -128,9 +128,9 @@ func test_build_list_grows_beside_him() -> void:
 	var him := Vector2(100, 150)
 	_step(1)
 	list.place_beside(him)
-	get_tree().root.size = Vector2i(320, 180)   # k = 1: Large rounds up to 2
+	get_tree().root.size = Vector2i(640, 360)   # k = 1: Large rounds up to 2
 	assert_vector(list.scale).is_equal(Vector2(2, 2))
-	get_tree().root.size = Vector2i(640, 360)
+	get_tree().root.size = Vector2i(1280, 720)
 	Display.use_prefs(DisplayPrefs.new())
 	list.place_beside(him)
 	assert_vector(list.scale).is_equal(Vector2.ONE)
