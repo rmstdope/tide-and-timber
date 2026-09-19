@@ -265,3 +265,14 @@ func test_box_shows_select_and_back() -> void:
 	_fail_dawn()
 	assert_bool(autosave.strip.is_visible_in_tree()).is_true()
 	assert_str(autosave.strip.text()).is_equal("[Enter] Select   [Esc] Back")
+
+func _words(button: String) -> Color:
+	return (_n(button).get_node("Label/Words") as Label).get_theme_color("font_color")
+
+func test_the_selected_button_has_ink_words() -> void:
+	_fail_dawn()
+	assert_that(_words("TryAgain")).is_equal(HudColours.INK)
+	assert_that(_words("KeepPlaying")).is_equal(HudColours.CREAM)
+	await _key(KEY_RIGHT)
+	assert_that(_words("TryAgain")).is_equal(HudColours.CREAM)
+	assert_that(_words("KeepPlaying")).is_equal(HudColours.INK)

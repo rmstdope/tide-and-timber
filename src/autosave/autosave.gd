@@ -183,8 +183,8 @@ func _refresh() -> void:
 	if rules.box_open:
 		_frame_box()
 	_box_was_open = rules.box_open
-	%TryAgain.add_theme_stylebox_override("panel", _style_for(DawnSave.Choice.TRY_AGAIN))
-	%KeepPlaying.add_theme_stylebox_override("panel", _style_for(DawnSave.Choice.KEEP_PLAYING))
+	Plate.paint(%TryAgain, rules.selected == DawnSave.Choice.TRY_AGAIN)
+	Plate.paint(%KeepPlaying, rules.selected == DawnSave.Choice.KEEP_PLAYING)
 
 func _style_for(button: DawnSave.Choice) -> StyleBox:
-	return PLANK_HIGHLIGHT_STYLE if rules.selected == button else PLANK_STYLE
+	return Plate.style(rules.selected == button)
