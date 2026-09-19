@@ -1,0 +1,19 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/beach/waves.png" id="1_xd3lr"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ebtya"]
+texture = ExtResource("1_xd3lr")
+0:0/animation_frame_0/duration = 0.16
+0:0/animation_frame_1/duration = 0.16
+0:0/animation_frame_2/duration = 0.16
+0:0/animation_frame_3/duration = 0.16
+0:0/animation_frame_4/duration = 0.16
+0:0/animation_frame_5/duration = 0.16
+0:0/animation_frame_6/duration = 0.16
+0:0/animation_frame_7/duration = 0.16
+0:0/animation_frame_8/duration = 0.16
+0:0/0 = 0
+
+[resource]
+sources/0 = SubResource("TileSetAtlasSource_ebtya")

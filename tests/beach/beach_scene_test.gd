@@ -41,6 +41,34 @@ func test_ground_matches_layout() -> void:
 				fail("ground at %s is %s" % [cell, ground.get_cell_atlas_coords(cell)])
 				return
 
+func test_waves_fill_the_waterline() -> void:
+	var waves := beach.get_node_or_null("%Waves") as TileMapLayer
+	assert_object(waves).is_not_null()
+	if waves == null:
+		return
+	for y in BeachLayout.map_size().y:
+		for x in BeachLayout.map_size().x:
+			var cell := Vector2i(x, y)
+			var foam := BeachLayout.kind_at(cell) == BeachLayout.Kind.FOAM
+			if waves.get_cell_source_id(cell) != (0 if foam else -1) \
+					or (foam and waves.get_cell_atlas_coords(cell) != Vector2i.ZERO):
+				fail("waves at %s: source %d" % [cell, waves.get_cell_source_id(cell)])
+				return
+	assert_int(waves.get_cell_source_id(Vector2i(16, 15))).is_equal(0)
+	assert_int(waves.get_cell_source_id(Vector2i(167, 15))).is_equal(0)
+	assert_int(waves.get_cell_source_id(Vector2i(15, 15))).is_equal(-1)
+	assert_int(waves.get_cell_source_id(Vector2i(168, 15))).is_equal(-1)
+	assert_int(waves.get_used_cells().size()).is_equal(152)
+
+func test_waves_sit_between_ground_and_decor() -> void:
+	var waves := beach.get_node_or_null("%Waves")
+	assert_object(waves).is_not_null()
+	if waves == null:
+		return
+	assert_int(waves.get_index()).is_equal(beach.get_node("%Ground").get_index() + 1)
+	assert_bool(waves.get_index() < beach.get_node("%Decor").get_index()).is_true()
+	assert_object((waves as TileMapLayer).tile_set).is_same(load("res://src/beach/beach_waves.tres"))
+
 func test_layout_is_in_the_scene_before_it_runs() -> void:
 	var scene := (load(BeachLayout.SCENE) as PackedScene).instantiate()
 	assert_object((scene.get_node("%Ground") as TileMapLayer).get_used_rect()).is_equal(Rect2i(Vector2i.ZERO, BeachLayout.map_size()))
