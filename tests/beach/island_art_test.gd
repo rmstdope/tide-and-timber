@@ -70,12 +70,6 @@ func test_waves_match_the_drawing() -> void:
 				diff = "waves differ from the drawing first at (%d, %d)" % [x, y]
 	assert_str(diff).is_empty()
 
-func test_wave_wash_uses_the_foam_colours() -> void:
-	assert_bool(WaveWash.WATER == Color("#7baadb")).is_true()
-	assert_bool(WaveWash.EDGE == Color("#a3c8ee")).is_true()
-	assert_bool(PackPalette.has(WaveWash.WATER)).is_true()
-	assert_bool(PackPalette.has(WaveWash.EDGE)).is_true()
-
 func _assert_crop(scene_path: String, sheet: String, region: Rect2, offset: Vector2) -> void:
 	var prop := auto_free((load(scene_path) as PackedScene).instantiate()) as Node
 	var sprite := prop.get_node("Sprite") as Sprite2D

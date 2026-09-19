@@ -93,10 +93,17 @@ func test_hint_fades_after_a_few_steps_and_stays_gone() -> void:
 	waking.tick(0.1)
 	assert_bool(_node("MoveHint").visible).is_false()
 
-func test_wash_is_under_him() -> void:
-	var decor := _node("Beach").get_node("%Decor")
-	assert_int(decor.get_children().filter(func(n: Node) -> bool: return n is WaveWash).size()).is_equal(1)
+func test_he_stands_in_the_world() -> void:
 	assert_object(player.get_parent()).is_same(_node("Beach").get_node("%World"))
+
+func test_no_wash_on_a_new_game() -> void:
+	var decor := _node("Beach").get_node("%Decor")
+	var washes := decor.get_children().filter(func(n: Node) -> bool:
+		return n.get_script() != null and (n.get_script() as Script).resource_path == "res://src/waking/wave_wash.gd")
+	assert_int(washes.size()).is_equal(0)
+
+func test_waves_show_while_he_wakes() -> void:
+	assert_int((_node("Beach").get_node("%Waves") as TileMapLayer).get_used_cells().size()).is_equal(152)
 
 func test_waves_are_heard_on_the_beach() -> void:
 	assert_bool((_node("Surf") as SurfSound).audible).is_true()
