@@ -67,8 +67,8 @@ func test_b_opens_list_enough_driftwood() -> void:
 	assert_str(_list().cost_labels[0].text).is_equal("9/8 driftwood")
 	assert_str(_list().cost_labels[1].text).is_equal("Needs a lean-to")
 	assert_int(builder.menu.highlighted).is_equal(0)
-	assert_that(_list().cost_labels[1].get_theme_color(&"font_color")).is_equal(BuildList.GREYED)
-	assert_that(_list().cost_labels[0].get_theme_color(&"font_color")).is_equal(BuildList.TEXT)
+	assert_that(_list().cost_labels[1].get_theme_color(&"font_color")).is_equal(HudColours.DIM)
+	assert_that(_list().cost_labels[0].get_theme_color(&"font_color")).is_equal(HudColours.INK)
 
 func test_list_opens_empty_inventory_nothing_highlighted() -> void:
 	await _press(KEY_B)
@@ -199,3 +199,15 @@ func test_menu_key_wins_over_use() -> void:
 	assert_int(builder.mode).is_equal(M.LIST)
 	await _press(KEY_ESCAPE)
 	assert_int(builder.mode).is_equal(M.CLOSED)
+
+func test_every_row_is_a_plate_and_the_highlighted_one_is_chosen() -> void:
+	_driftwood(9)
+	await _press(KEY_B)
+	assert_object(_list().row_style(0)).is_same(Plate.CHOSEN_STYLE)
+	assert_object(_list().row_style(1)).is_same(Plate.STYLE)
+
+func test_with_nothing_highlighted_every_row_is_a_plain_plate() -> void:
+	await _press(KEY_B)
+	assert_int(builder.menu.highlighted).is_equal(-1)
+	assert_object(_list().row_style(0)).is_same(Plate.STYLE)
+	assert_object(_list().row_style(1)).is_same(Plate.STYLE)
