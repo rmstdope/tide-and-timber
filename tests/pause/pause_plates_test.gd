@@ -56,3 +56,6 @@ func test_the_quit_box_buttons_follow_the_selection() -> void:
 	var other := "Quit" if chosen == "Stay" else "Stay"
 	assert_that(_words(chosen)).is_equal(HudColours.INK)
 	assert_that(_words(other)).is_equal(HudColours.CREAM)
+	await _tap(KEY_LEFT if chosen == "Quit" else KEY_RIGHT)
+	assert_that(_words(other)).is_equal(HudColours.INK)
+	assert_that(_words(chosen)).is_equal(HudColours.CREAM)

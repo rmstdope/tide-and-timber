@@ -211,3 +211,13 @@ func test_with_nothing_highlighted_every_row_is_a_plain_plate() -> void:
 	assert_int(builder.menu.highlighted).is_equal(-1)
 	assert_object(_list().row_style(0)).is_same(Plate.STYLE)
 	assert_object(_list().row_style(1)).is_same(Plate.STYLE)
+
+func test_moving_the_highlight_moves_the_ink_words_and_the_chosen_plate() -> void:
+	_driftwood(9)
+	await _press(KEY_B)
+	await _press(KEY_DOWN)
+	assert_int(builder.menu.highlighted).is_equal(1)
+	assert_that(_list().name_labels[1].get_theme_color(&"font_color")).is_equal(HudColours.INK)   # unaffordable, but chosen
+	assert_that(_list().name_labels[0].get_theme_color(&"font_color")).is_equal(HudColours.CREAM)
+	assert_object(_list().row_style(1)).is_same(Plate.CHOSEN_STYLE)
+	assert_object(_list().row_style(0)).is_same(Plate.STYLE)
