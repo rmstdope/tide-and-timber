@@ -18,7 +18,6 @@ const PLANK_X := 52.0           # rows centred: (304 - 200) / 2
 const PLANK_TOP := 28.0
 const PLANK_STEP := 20.0
 const PLANK_SIZE := Vector2(200, 16)
-const TEXT := Color(1, 0.964706, 0.878431, 1)
 const ARROW_DIM := Color(0.627451, 0.501961, 0.376471, 1)   # #a08060, an end's arrow
 const FONT_SIZE := 8
 const LINE_SPACING := 2.0          # %Line's theme line_spacing
@@ -347,17 +346,16 @@ func _refresh() -> void:
 	%Panel.visible = not rules.controls_open
 	strip.visible = not rules.controls_open
 	for item: SettingsMenu.Plank in rules.items:
-		_plank(item).add_theme_stylebox_override("panel",
-				PLANK_HIGHLIGHT_STYLE if rules.highlighted == item else PLANK_STYLE)
+		Plate.paint(_plank(item), rules.highlighted == item)   # before the arrows, which may dim
 	for item: SettingsMenu.Plank in SettingsMenu.SETTING_OF:
 		var s: DisplayPrefs.Setting = SettingsMenu.SETTING_OF[item]
 		var v := Display.prefs.value(s)
 		var row := _plank(item)
 		(row.get_node("Row/Value") as GrownWords).text = VALUE_WORDS[s][v]
 		(row.get_node("Row/Prev") as GrownWords).words().add_theme_color_override(
-				"font_color", ARROW_DIM if v == 0 else TEXT)
+				"font_color", ARROW_DIM if v == 0 else Plate.words(rules.highlighted == item))
 		(row.get_node("Row/Next") as GrownWords).words().add_theme_color_override(
-				"font_color", ARROW_DIM if v == DisplayPrefs.count(s) - 1 else TEXT)
+				"font_color", ARROW_DIM if v == DisplayPrefs.count(s) - 1 else Plate.words(rules.highlighted == item))
 	%Line.text = line_for(rules.highlighted)
 	if rules.is_open:
 		_frame()

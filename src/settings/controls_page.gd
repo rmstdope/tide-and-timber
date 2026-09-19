@@ -470,8 +470,7 @@ func _refresh() -> void:
 		# Styled before fitting: a button's minimum size includes its plank's margins, so a box first
 		# fitted unstyled would centre a button narrower than the one it draws.
 		for b: ControlsMenu.BoxButton in [ControlsMenu.BoxButton.SAFE, ControlsMenu.BoxButton.OTHER]:
-			_box_button(b).add_theme_stylebox_override("panel",
-					PLANK_HIGHLIGHT_STYLE if rules.box_selected == b else PLANK_STYLE)
+			Plate.paint(_box_button(b), rules.box_selected == b)
 		_fit_box()
 	strip.visible = not waiting
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if box_up else DeviceHints.Hint.CONTROLS_PAGE)
@@ -496,7 +495,7 @@ func _draw() -> void:
 	for i in layout.tab_count():
 		var rect := layout.tab_rect(i)
 		draw_style_box(PLANK_HIGHLIGHT_STYLE if rules.device == i else PLANK_STYLE, rect)
-		_centred_words(TAB_NAMES[i], rect.get_center().x, layout.tab_baseline(i), TEXT)
+		_centred_words(TAB_NAMES[i], rect.get_center().x, layout.tab_baseline(i), Plate.words(rules.device == i))
 	var keyboard := rules.device == Controls.Device.KEYBOARD
 	var kind := DeviceTracker.Kind.KEYBOARD if keyboard else pad_kind()
 	for r in ControlsMenu.ROWS:
@@ -505,7 +504,8 @@ func _draw() -> void:
 		var lines := layout.name_lines(r, rules.device)
 		var origin := layout.name_origin(r)
 		for j in lines.size():
-			_words(lines[j], Vector2(layout.name_x(lines[j]), origin.y + j * layout.name_step()), TEXT)
+			_words(lines[j], Vector2(layout.name_x(lines[j]), origin.y + j * layout.name_step()),
+					Plate.words(r == rules.row))
 		if r == ControlsMenu.RESET_ROW:
 			continue
 		for s in Controls.slot_count(rules.device):
