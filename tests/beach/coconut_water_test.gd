@@ -153,7 +153,7 @@ func test_take_fallen_coconut() -> void:
 	assert_int(_count(beach.get_node("%Decor"), "coconut.tscn")).is_equal(1)
 
 func test_leaning_palm_drops_under_its_crown() -> void:
-	var L := BeachLayout.cell_base(BeachLayout.PALMS[5])
+	var L := BeachLayout.cell_base(BeachLayout.palms()[5])
 	await _stand(L + Vector2(-10, 0), Walk.Facing.RIGHT)
 	await _press_e()
 	var drops := beach.get_node("%Decor").get_children().filter(func(n: Node) -> bool:

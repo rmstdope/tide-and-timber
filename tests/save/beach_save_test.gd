@@ -58,13 +58,13 @@ func test_restore_into_a_fresh_beach() -> void:
 	assert_int(_count(b, "shellfish.tscn")).is_equal(BeachLayout.shellfish().size() - 1)
 
 func test_restored_beach_keeps_each_shell() -> void:
-	_take(beach, Beach.SHELLFISH, BeachLayout.SHELLFISH[0])
+	_take(beach, Beach.SHELLFISH, BeachLayout.shellfish()[0])
 	var data := beach.capture()
 	var b := scene_runner(SCENE).scene() as Beach
 	assert_bool(b.restore(data)).is_true()
 	await await_idle_frame()
 	for i in [1, 3]:
-		var shell := _prop_at(b, Beach.SHELLFISH, BeachLayout.SHELLFISH[i]) as Node2D
+		var shell := _prop_at(b, Beach.SHELLFISH, BeachLayout.shellfish()[i]) as Node2D
 		var region := ((shell.get_node("Sprite") as Sprite2D).texture as AtlasTexture).region
 		assert_bool(region == Rect2(BeachArt.SHELL_SHAPES[i])).override_failure_message("shell %d %s" % [i, region]).is_true()
 

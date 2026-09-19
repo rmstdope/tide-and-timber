@@ -96,16 +96,16 @@ func _sprite_at(parent: String, suffix: String, cell: Vector2i) -> Sprite2D:
 	return null
 
 func test_palms_cycle_six_shapes() -> void:
-	for i in BeachLayout.PALMS.size():
-		var sprite := _sprite_at("%World", "palm.tscn", BeachLayout.PALMS[i])
+	for i in BeachLayout.palms().size():
+		var sprite := _sprite_at("%World", "palm.tscn", BeachLayout.palms()[i])
 		var want := Rect2(BeachArt.PALM_SHAPES[i % 6])
 		want.position.x -= BeachArt.BARE_SHIFT
 		assert_bool((sprite.texture as AtlasTexture).region == want) \
 			.override_failure_message("palm %d region %s" % [i, (sprite.texture as AtlasTexture).region]).is_true()
 
 func test_shells_cycle_four() -> void:
-	for i in BeachLayout.SHELLFISH.size():
-		var sprite := _sprite_at("%Decor", "shellfish.tscn", BeachLayout.SHELLFISH[i])
+	for i in BeachLayout.shellfish().size():
+		var sprite := _sprite_at("%Decor", "shellfish.tscn", BeachLayout.shellfish()[i])
 		assert_bool((sprite.texture as AtlasTexture).region == Rect2(BeachArt.SHELL_SHAPES[i % 4])) \
 			.override_failure_message("shell %d" % i).is_true()
 
