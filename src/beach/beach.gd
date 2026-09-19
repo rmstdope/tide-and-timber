@@ -16,12 +16,18 @@ var inventory := Inventory.new()
 var walk_grid: WalkGrid
 
 func _ready() -> void:
+	var palms := BeachLayout.palms()
+	var shells := BeachLayout.shellfish()
 	for parent: Node in [%Decor, %World]:
 		for child in parent.get_children():
 			if child.scene_file_path in BeachLayout.PROP_SCENES:
 				child.set_meta(CELL_META, BeachLayout.cell_of_base((child as Node2D).position))
 			if child.scene_file_path == BeachLayout.PALM:
+				# Each wears the shape of its place in the layout list, so every launch and load looks the same.
+				BeachArt.dress_palm(child, palms.find(child.get_meta(CELL_META)) % BeachArt.PALM_SHAPES.size())
 				(child.get_node("Shake") as Shake).drop_parent = %Decor
+			elif child.scene_file_path == BeachLayout.SHELLFISH:
+				BeachArt.dress_shellfish(child, shells.find(child.get_meta(CELL_META)) % BeachArt.SHELL_SHAPES.size())
 	%Player.position = BeachLayout.cell_centre(BeachLayout.SPAWN_CELL)
 	%Player.facing = Walk.Facing.DOWN
 	%Player.is_wading_at = func(at: Vector2) -> bool:
