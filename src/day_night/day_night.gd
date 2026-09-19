@@ -15,7 +15,8 @@ var sunset := SunsetLine.new()
 var running := false
 var time_scale := 1.0   # multiplies game time only; 1.0 in the game; the preview raises it
 
-const PLANK_WIDTH := 64.0     # the plank's Normal width in day_night.tscn
+const FRAME_EDGE := 6.0      # the knobbed frame's edge on every side, src/hud/frame.tres's texture margin; nothing is drawn inside it
+const PLANK_WIDTH := 64.0     # the frame's Normal width in day_night.tscn
 const PLANK_HEIGHT := 54.0
 const LABEL_HEIGHT := 8.0
 const DAY_TOP := 5.0

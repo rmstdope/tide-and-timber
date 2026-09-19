@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## The clock plank is the HUD's own wood, every line drawn over the world is pale, and the boxes the
+## The clock sits in the knobbed frame, every line drawn over the world is pale, and the boxes the
 ## player opens are left where they were.
 
 const IN_PLAY_LINES := {
@@ -12,15 +12,14 @@ const IN_PLAY_LINES := {
 func _scene(path: String) -> Node:
 	return auto_free((load(path) as PackedScene).instantiate())
 
-func test_the_clock_plank_is_the_hud_plank() -> void:
+func test_the_clock_sits_in_the_knobbed_frame() -> void:
 	var root := _scene("res://src/day_night/day_night.tscn")
 	var plank := root.get_node("Hud/Plank") as Control
-	var style := plank.get_theme_stylebox(&"panel") as StyleBoxFlat
-	assert_str(style.resource_path).is_equal("res://src/hud/plank.tres")
-	assert_bool(style.bg_color.is_equal_approx(HudColours.WOOD)).is_true()
-	assert_bool(style.border_color.is_equal_approx(HudColours.WOOD_DARK)).is_true()
+	var style := plank.get_theme_stylebox(&"panel") as StyleBoxTexture
+	assert_object(style).override_failure_message("the clock's panel is not a StyleBoxTexture").is_not_null()
+	assert_str(style.resource_path).is_equal("res://src/hud/frame.tres")
 	for side: String in ["left", "top", "right", "bottom"]:
-		assert_int(style.get("border_width_%s" % side)).is_equal(2)
+		assert_float(style.get("texture_margin_%s" % side)).is_equal(DayNight.FRAME_EDGE)
 
 func test_every_in_play_line_is_pale() -> void:
 	for path: String in IN_PLAY_LINES:

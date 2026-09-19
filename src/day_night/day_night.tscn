@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/day_night/day_night.gd" id="1_dn"]
-[ext_resource type="StyleBox" path="res://src/hud/plank.tres" id="2_plank"]
+[ext_resource type="StyleBox" path="res://src/hud/frame.tres" id="2_frame"]
 [ext_resource type="Script" path="res://src/day_night/clock_dial.gd" id="3_dial"]
 [ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
 [ext_resource type="Script" path="res://src/hud/spoken_line.gd" id="spoken_line"]
@@ -30,7 +30,7 @@ offset_top = 4.0
 offset_right = 68.0
 offset_bottom = 58.0
 mouse_filter = 2
-theme_override_styles/panel = ExtResource("2_plank")
+theme_override_styles/panel = ExtResource("2_frame")
 
 [node name="DayLabel" type="Label" parent="Hud/Plank"]
 unique_name_in_owner = true
