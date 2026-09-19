@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 ## Since tr-1o0.1 (640x360) the three-plank board a player sees fits at every UI size, Text size and window
 ## (pause_text_size_test.gd holds that), so this suite builds the four-plank debug board, the one that still
 ## scrolls: at UI Largest and Text Largest in the default 1280x720 window (k = 2) it rests 236x156 over a
-## 133-deep band, a 113-unit view over 136 of content, so it scrolls 23 units, only for the last plank.
+## 121-deep band, a 101-unit view over 136 of content, so it scrolls 35 units.
 
 const S := DisplayPrefs.Setting
 
@@ -102,7 +102,7 @@ func test_largest_board_is_framed_above_the_lifted_strip() -> void:
 	_assert_scrolls()
 	assert_that(pause.rest_panel).is_equal(_centred(Vector2(236, 156)))
 	var b := _band()
-	assert_that(b).is_equal(Vector2(91, 224))
+	assert_that(b).is_equal(Vector2(91, 212))
 	assert_that(_node("Panel").get_rect()).is_equal(Rect2(pause.rest_panel.position.x, b.x, 236, b.y - b.x))
 	assert_that(_node("Clip").get_rect()).is_equal(
 			Rect2(0, ScrollWindow.MARK_ROW, 236, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW))
@@ -125,11 +125,11 @@ func test_moving_scrolls_to_the_highlight_and_wraps() -> void:
 	assert_bool(_shown("Settings")).is_true()
 	await _tap(KEY_DOWN)
 	assert_int(pause.rules.highlighted).is_equal(PauseMenu.Plank.DEBUG)
-	assert_int(pause.scroll_offset).is_equal(0)
+	assert_int(pause.scroll_offset).is_equal(7)   # the Debug plank's bottom is 7 below the 101-unit view
 	assert_bool(_shown("Debug")).is_true()
 	await _tap(KEY_DOWN)
 	assert_int(pause.scroll_offset).is_equal(_max_offset())
-	assert_int(_max_offset()).is_equal(23)   # 156 - 8 heading - 12 margin - 113 view
+	assert_int(_max_offset()).is_equal(35)   # 156 - 8 heading - 12 margin - 101 view
 	assert_bool(_shown("QuitToTitle")).is_true()
 	assert_bool(pause.shows_mark_above()).is_true()
 	assert_bool(pause.shows_mark_below()).is_false()

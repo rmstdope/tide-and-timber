@@ -75,9 +75,9 @@ func test_place_converts_to_the_parent_units() -> void:
 	layer.add_child(c)
 	add_child(layer)
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
-	# at 2x the line's screen top is Screen.HEIGHT - 28 and the plank's is Screen.HEIGHT - 46: lifted 48 on
-	# screen to sit GAP above it, 24 in the line's own units
-	assert_float(HintLift.place(c, Screen.HEIGHT - 14, 14.0)).is_equal_approx(-48.0, 0.01)
-	assert_float(c.position.y).is_equal_approx(Screen.HEIGHT - 14 - 24, 0.01)
+	# at 2x the line's screen top is Screen.HEIGHT - 28 and the plank's is Screen.HEIGHT - 70: lifted 72 on
+	# screen to sit GAP above it, 36 in the line's own units
+	assert_float(HintLift.place(c, Screen.HEIGHT - 14, 14.0)).is_equal_approx(-72.0, 0.01)
+	assert_float(c.position.y).is_equal_approx(Screen.HEIGHT - 14 - 36, 0.01)
 	assert_float(HintLift.screen_rect(c).end.y).is_equal_approx(_plank(2.0).position.y - HintLift.GAP, 0.01)
 	assert_float(c.position.x).is_equal(0.0)

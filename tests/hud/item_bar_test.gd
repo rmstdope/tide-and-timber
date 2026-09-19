@@ -23,14 +23,15 @@ func after_test() -> void:
 func test_eight_slots_centred_at_bottom() -> void:
 	assert_int(bar.slots.size()).is_equal(8)
 	assert_vector(bar.position).is_equal(Vector2(roundi((Screen.WIDTH - ItemBar.PLANK_SIZE.x) / 2), ItemBar.TOP))
-	assert_vector(bar.slots[7].position).is_equal(Vector2(122, 3))
+	assert_vector(bar.slots[0].position).is_equal(Vector2(7, 6))
+	assert_vector(bar.slots[7].position).is_equal(Vector2(175, 6))
 
 func test_slots_follow_inventory() -> void:
 	inv.add(K.DRIFTWOOD, 3)
 	inv.add(K.SHELLFISH)
 	assert_int(bar.slots[0].kind).is_equal(K.DRIFTWOOD)
 	assert_str(bar.slots[0].count_text()).is_equal("3")
-	assert_str(bar.slots[1].count_text()).is_equal("1")
+	assert_str(bar.slots[1].count_text()).is_equal("")
 	assert_str(bar.slots[2].count_text()).is_equal("")
 	inv.remove(K.DRIFTWOOD, 3)
 	assert_str(bar.slots[0].count_text()).is_equal("")
@@ -81,7 +82,7 @@ func test_name_plank_grows_with_text_size() -> void:
 	inv.add(K.SHELLFISH)
 	bar.slots[0].mouse_entered.emit()
 	assert_vector(bar.name_plank.size).is_equal_approx(Vector2(136, 21), Vector2(0.01, 0.01))
-	assert_vector(bar.name_plank.position).is_equal_approx(Vector2(-57, -27), Vector2(0.01, 0.01))
+	assert_vector(bar.name_plank.position).is_equal_approx(Vector2(-50, -27), Vector2(0.01, 0.01))
 	assert_vector(bar.name_label.scale).is_equal_approx(Vector2(2, 2), Vector2(0.01, 0.01))
 	assert_vector(bar.name_label.position).is_equal_approx(Vector2(4, 3), Vector2(0.01, 0.01))
 
@@ -115,3 +116,8 @@ func test_at_the_largest_sizes_every_name_plank_fits_the_picture(
 		assert_float(bar.name_plank.size.x * s).override_failure_message(
 				"%s's plank, %s wide on screen, does not fit the picture" % [Item.name_of(kind), bar.name_plank.size.x * s]) \
 			.is_less_equal(Screen.WIDTH - 4.0)
+
+func test_no_slot_is_selected_after_refresh() -> void:
+	inv.add(K.DRIFTWOOD, 3)
+	for slot in bar.slots:
+		assert_bool(slot.selected).is_false()

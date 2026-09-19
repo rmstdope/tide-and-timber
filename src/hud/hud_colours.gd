@@ -10,7 +10,6 @@ const WOOD_DARK := Color("#58351e")      ## every plank's and slot's border
 const WOOD := Color("#865932")           ## every plank's fill
 const WOOD_LIGHT := Color("#b68c48")     ## a plank's 1 px top highlight, a highlighted row
 const SLOT_FACE := Color("#fee0a1")      ## the face of a slot, behind the icon
-const SLOT_EDGE := Color("#fff6e4")      ## the slot's 1 px top highlight
 const INK := Color("#301d0e")            ## the stack count, a key cap's letter, the rising line's outline
 const PALE := Color("#fff6e4")           ## every word drawn over the world, the click mark
 const CREAM := Color("#fee0a1")          ## a name on a plank, a key cap's face, the morning card's heading

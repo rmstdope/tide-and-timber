@@ -81,20 +81,20 @@ func test_large_text_widens_the_planks_and_the_board() -> void:
 func _band() -> Vector2:
 	return ScrollWindow.band((_node("Board")).get_global_transform_with_canvas(), pause.strip.screen_top())
 
-# Retired in tr-1o0.1: the three-plank Paused board scrolling, and the quit box stacking and scrolling. At
-# 640x360 no UI size, Text size and window reaches either; only the four-plank debug board still scrolls
-# (pause_scroll_test.gd). This is what fails if a later change grows either past the room above the strip.
-func test_at_the_largest_sizes_the_board_and_the_quit_box_fit_above_the_strip(
+# Retired in tr-1o0.1: the quit box stacking and scrolling; it fits at every size and window. Since tr-1ci.1
+# the item bar is 12 taller, so the strip lifts 24 higher at Largest and the three-plank Paused board, 128
+# tall, scrolls again in the 121-tall band (accepted by the navigator). This is what fails if a later change
+# grows the quit box past the room above the strip, or makes the board fit again unnoticed.
+func test_at_the_largest_sizes_the_board_scrolls_and_the_quit_box_fits_above_the_strip(
 		window: Vector2i, test_parameters := [[Vector2i(1280, 720)], [Vector2i(640, 360)]]) -> void:
 	get_tree().root.size = window
 	Display.prefs.step(S.UI_SIZE, 2)
 	Display.prefs.step(S.TEXT_SIZE, 2)
 	await _open()
 	var b := _band()
-	assert_float(pause.rest_panel.size.y).override_failure_message(
-			"the board, %s tall, outgrows the %s-tall band" % [pause.rest_panel.size.y, b.y - b.x]).is_less_equal(b.y - b.x)
-	assert_that(_node("Panel").get_rect()).is_equal(Rect2(pause.rest_panel.position.x,
-			clampf(pause.rest_panel.position.y, b.x, b.y - pause.rest_panel.size.y), pause.rest_panel.size.x, pause.rest_panel.size.y))
+	assert_float(b.y - b.x).is_equal(121.0)
+	assert_float(pause.rest_panel.size.y).is_equal(128.0)
+	assert_bool(pause.scrolls).is_true()
 	await _tap(KEY_UP)
 	await _tap(KEY_ENTER)
 	await _settle()

@@ -3,14 +3,14 @@ extends GdUnitTestSuite
 # Every screen-space constant that is derived from an edge or a centre, asserted as the expression
 # and never as a number, so these hold at any picture size (tr-1o0.1).
 
-func test_the_item_bar_sits_23_above_the_bottom() -> void:
-	assert_float(ItemBar.TOP).is_equal(Screen.HEIGHT - 23.0)
+func test_the_item_bar_sits_35_above_the_bottom() -> void:
+	assert_float(ItemBar.TOP).is_equal(Screen.HEIGHT - 35.0)
 
 func test_the_hint_strip_sits_4_above_the_bottom() -> void:
 	assert_float(MenuStrip.BOTTOM).is_equal(Screen.HEIGHT - 4.0)
 
-func test_the_key_hint_sits_44_above_the_bottom() -> void:
-	assert_float(KeyHint.TOP).is_equal(Screen.HEIGHT - 44.0)
+func test_the_key_hint_sits_56_above_the_bottom() -> void:
+	assert_float(KeyHint.TOP).is_equal(Screen.HEIGHT - 56.0)
 
 func test_the_move_hint_sits_14_above_the_bottom() -> void:
 	assert_float(Waking.MOVE_HINT_TOP).is_equal(Screen.HEIGHT - 14.0)

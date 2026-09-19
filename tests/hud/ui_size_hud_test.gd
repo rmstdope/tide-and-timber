@@ -34,9 +34,9 @@ func _is_scaled(n: Node, s: float, about: Vector2) -> bool:
 const LINE_BOTTOM := Vector2(Screen.CENTRE.x, Screen.HEIGHT - 14)
 ## The build hint band's bottom centre.
 const HINT_BOTTOM := Vector2(Screen.CENTRE.x, KeyHint.TOP + KeyHint.HEIGHT)
-## A hint lifted above the bar grown 2x (its top Screen.HEIGHT - 46) sits HintLift.GAP above it; at 1.5x, above Screen.HEIGHT - 34.5.
-const LIFTED_BOTTOM_2 := Screen.HEIGHT - 46 - HintLift.GAP
-const LIFTED_BOTTOM_1_5 := Screen.HEIGHT - 34.5 - HintLift.GAP
+## A hint lifted above the bar grown 2x (its top Screen.HEIGHT - 70) sits HintLift.GAP above it; at 1.5x, above Screen.HEIGHT - 52.5.
+const LIFTED_BOTTOM_2 := Screen.HEIGHT - 70 - HintLift.GAP
+const LIFTED_BOTTOM_1_5 := Screen.HEIGHT - 52.5 - HintLift.GAP
 
 func test_clock_grows_about_the_top_left() -> void:
 	var dn := _scene("res://src/day_night/day_night.tscn")
@@ -102,14 +102,14 @@ func test_build_hint_lifts_above_the_bar() -> void:
 	hint.show_hint(DeviceHints.Hint.BUILD_LIST)
 	await get_tree().process_frame
 	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(LIFTED_BOTTOM_2, 0.01)
-	# its 24-tall screen band tops out at HEIGHT - 72; back in its units about HEIGHT - 32: 32 + 40 / 2
-	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 52, 0.01)
+	# its 24-tall screen band tops out at HEIGHT - 96; back in its units about HEIGHT - 44: 44 + 52 / 2
+	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 70, 0.01)
 	assert_float(hint.position.x).is_equal(float(roundi((Screen.WIDTH - hint.size.x) / 2.0)))
 	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	await get_tree().process_frame
 	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(LIFTED_BOTTOM_1_5, 0.01)
-	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 47, 0.01)   # its 18-tall screen band tops out at HEIGHT - 54.5; back in its units about HEIGHT - 32: 32 + 22.5 / 1.5
+	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 63, 0.01)   # its 18-tall screen band tops out at HEIGHT - 72.5; back in its units about HEIGHT - 44: 44 + 28.5 / 1.5
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
 	assert_float(hint.position.y).is_equal_approx(KeyHint.TOP, 0.01)
@@ -118,8 +118,8 @@ func test_move_hint_lifts_above_the_bar() -> void:
 	var waking := _scene("res://src/waking/waking.tscn")
 	var hint := waking.get_node("%MoveHint") as Control
 	await get_tree().process_frame
-	# lifted 48 on screen, 24 in its own units, from its Normal top Screen.HEIGHT - 14
-	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 14 - 24, 0.01)
+	# lifted 72 on screen, 36 in its own units, from its Normal top Screen.HEIGHT - 14
+	assert_float(hint.position.y).is_equal_approx(Screen.HEIGHT - 14 - 36, 0.01)
 	assert_float(HintLift.screen_rect(hint).end.y).is_equal_approx(LIFTED_BOTTOM_2, 0.01)
 	assert_float(hint.position.x).is_equal(0.0)
 	assert_vector(hint.size).is_equal(Vector2(Screen.WIDTH, 14))

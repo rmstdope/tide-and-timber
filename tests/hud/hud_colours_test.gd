@@ -25,7 +25,7 @@ func test_every_colour_is_a_pack_colour() -> void:
 func test_the_named_values() -> void:
 	var want := {
 		&"WOOD_DARK": "58351e", &"WOOD": "865932", &"WOOD_LIGHT": "b68c48",
-		&"SLOT_FACE": "fee0a1", &"SLOT_EDGE": "fff6e4", &"INK": "301d0e",
+		&"SLOT_FACE": "fee0a1", &"INK": "301d0e",
 		&"PALE": "fff6e4", &"CREAM": "fee0a1", &"DIM": "c6ab9f",
 		&"RING": "bbb1ad", &"CAP_SHADOW": "927e65", &"ARC": "fee0a1",
 		&"SUN": "f6cc2b", &"MOON": "eff8ff",
