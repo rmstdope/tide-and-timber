@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/title/title_screen.gd" id="1_title"]
-[ext_resource type="StyleBox" path="res://src/title/plank.tres" id="2_plank"]
+[ext_resource type="StyleBox" path="res://src/hud/frame.tres" id="2_frame"]
 [ext_resource type="PackedScene" path="res://src/settings/settings_board.tscn" id="3_settings"]
 [ext_resource type="Script" path="res://src/display/pixel_polygon.gd" id="4_pixelpoly"]
 [ext_resource type="Script" path="res://src/display/grown_words.gd" id="9_grown"]
@@ -394,7 +394,7 @@ offset_top = 132.0
 offset_right = 468.0
 offset_bottom = 228.0
 mouse_filter = 0
-theme_override_styles/panel = ExtResource("2_plank")
+theme_override_styles/panel = ExtResource("2_frame")
 
 [node name="Clip" type="Control" parent="StartOverBox"]
 layout_mode = 0
@@ -512,7 +512,7 @@ offset_top = 132.0
 offset_right = 468.0
 offset_bottom = 228.0
 mouse_filter = 0
-theme_override_styles/panel = ExtResource("2_plank")
+theme_override_styles/panel = ExtResource("2_frame")
 
 [node name="Clip" type="Control" parent="ReplaceBox"]
 layout_mode = 0
