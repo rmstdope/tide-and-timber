@@ -219,3 +219,12 @@ func test_on_mac_alt_is_taken_on_press() -> void:
 	_open_keys(true)
 	assert_int(cap.read(_key(KEY_ALT))).is_equal(SlotCapture.Result.TAKEN)
 	assert_int((cap.taken as InputEventKey).physical_keycode).is_equal(KEY_ALT)
+
+func test_alt_then_an_esc_hold_does_not_take_alt_on_its_release() -> void:
+	_open_keys(false)
+	cap.read(_key(KEY_ALT))
+	assert_int(cap.read(_key(KEY_ESCAPE))).is_equal(SlotCapture.Result.WAITING)
+	assert_int(cap.read(_key(KEY_ALT, false))).is_equal(SlotCapture.Result.WAITING)
+	assert_bool(cap.is_open).is_true()
+	assert_float(cap.hold_progress).is_equal(0.0)
+	assert_int(cap.advance(SlotCapture.HOLD_SECONDS)).is_equal(SlotCapture.Result.CANCELLED)

@@ -96,6 +96,7 @@ func _read_key(k: InputEventKey) -> Result:
 			return _take(k)
 		return Result.WAITING
 	if k.pressed:
+		_alt_pending = false   # any other key pressed: a later Alt release is not a lone Alt
 		if k.physical_keycode == KEY_ESCAPE:
 			_start_hold()
 			return Result.WAITING
