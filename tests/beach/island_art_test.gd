@@ -5,11 +5,14 @@ const WATER := "res://assets/pixel_crawler/Environment/Tilesets/Water_tiles.png"
 const ROCKS := "res://assets/pixel_crawler/Environment/Props/Static/Rocks.png"
 const VEGETATION := "res://assets/pixel_crawler/Environment/Props/Static/Vegetation.png"
 const TILES := "res://assets/beach/tiles.png"
-## Kind -> [sheet, source top-left]; FOAM is checked on its own.
+const WAVES := "res://assets/beach/waves.png"
+const WAVES_SOURCE := "res://assets/farming_101/tileset/sliced waves animation/bottom_waves.png"
+## Kind -> [sheet, source top-left].
 const GROUND := {
 	BeachLayout.Kind.JUNGLE: [FLOORS, Vector2i(32, 176)],
 	BeachLayout.Kind.SAND: [FLOORS, Vector2i(96, 352)],
 	BeachLayout.Kind.WET_SAND: [FLOORS, Vector2i(96, 384)],
+	BeachLayout.Kind.FOAM: [WATER, Vector2i(16, 192)],
 	BeachLayout.Kind.SHALLOWS: [WATER, Vector2i(16, 192)],
 	BeachLayout.Kind.DEEP: [WATER, Vector2i(96, 192)],
 	BeachLayout.Kind.CLIFF: [FLOORS, Vector2i(96, 160)],
@@ -30,23 +33,68 @@ func test_ground_tiles_are_the_pack_tiles() -> void:
 					diff = "%s differs first at (%d, %d)" % [BeachLayout.Kind.keys()[kind], x, y]
 		assert_str(diff).is_empty()
 
-func test_foam_tile_is_shallows_with_a_surf_line() -> void:
-	var tiles := _image(TILES)
-	var water := _image(WATER)
-	var x0 := BeachLayout.Kind.FOAM * 16
-	for x in 16:
-		assert_str(tiles.get_pixel(x0 + x, 0).to_html(false)).is_equal("a3c8ee")
-		for y in [1, 2]:
-			assert_str(tiles.get_pixel(x0 + x, y).to_html(false)).is_equal("7baadb")
-		for y in range(3, 16):
-			assert_bool(tiles.get_pixel(x0 + x, y) == water.get_pixel(16 + x, 192 + y)) \
-				.override_failure_message("FOAM (%d, %d)" % [x, y]).is_true()
+## Two pixels are the same when both are fully transparent or their colours match exactly.
+static func _same(a: Color, b: Color) -> bool:
+	return (a.a8 == 0 and b.a8 == 0) or a.to_html() == b.to_html()
 
-func test_wave_wash_uses_the_foam_colours() -> void:
-	assert_bool(WaveWash.WATER == Color("#7baadb")).is_true()
-	assert_bool(WaveWash.EDGE == Color("#a3c8ee")).is_true()
-	assert_bool(PackPalette.has(WaveWash.WATER)).is_true()
-	assert_bool(PackPalette.has(WaveWash.EDGE)).is_true()
+static func _drawing(path: String) -> Image:
+	var image := Image.load_from_file(ProjectSettings.globalize_path(path))
+	image.convert(Image.FORMAT_RGBA8)
+	return image
+
+func test_waves_are_the_pack_waves_warmed() -> void:
+	var waves := _rgba(WAVES)
+	var source := _rgba(WAVES_SOURCE)
+	assert_vector(Vector2(waves.get_size())).is_equal(Vector2(144, 16))
+	var diff := ""
+	for y in 16:
+		for x in 144:
+			var src := source.get_pixel(x, y)
+			var want := src
+			if src.to_html(false) == "c7b08b":
+				want = Color("#e2a46c")
+			elif src.to_html(false) == "249fde":
+				want = Color(0, 0, 0, 0)
+			if diff == "" and not _same(waves.get_pixel(x, y), want):
+				diff = "waves differ first at (%d, %d)" % [x, y]
+	assert_str(diff).is_empty()
+
+func test_waves_match_the_drawing() -> void:
+	var waves := _rgba(WAVES)
+	var drawn := _drawing("res://docs/ui/vendor-art-swap/waves_warm.png")
+	assert_vector(Vector2(drawn.get_size())).is_equal(Vector2(waves.get_size()))
+	var diff := ""
+	for y in drawn.get_height():
+		for x in drawn.get_width():
+			if diff == "" and not _same(waves.get_pixel(x, y), drawn.get_pixel(x, y)):
+				diff = "waves differ from the drawing first at (%d, %d)" % [x, y]
+	assert_str(diff).is_empty()
+
+func test_edge_tiles_are_sand_under_the_jungle_grass_edge() -> void:
+	var tiles := _rgba(TILES)
+	var floors := _rgba(FLOORS)
+	var diff := ""
+	for i in 3:
+		for y in 16:
+			for x in 16:
+				var kind := BeachLayout.Kind.JUNGLE if floors.get_pixel(16 + 16 * i + x, y).a8 == 255 else BeachLayout.Kind.SAND
+				var want := tiles.get_pixel(16 * kind + x, y)
+				if diff == "" and not _same(tiles.get_pixel(16 * (BeachLayout.EDGE_TILE + i) + x, y), want):
+					diff = "edge tile %d differs first at (%d, %d)" % [i, x, y]
+	assert_str(diff).is_empty()
+
+func test_edge_tiles_match_the_drawing() -> void:
+	var tiles := _rgba(TILES)
+	var drawn := _drawing("res://docs/ui/tr-cfq-beach/art/edge.png")
+	var diff := ""
+	for i in 3:
+		for y in 16:
+			for x in 16:
+				var d := drawn.get_pixel(16 * i + x, y)
+				var want := d if d.a8 > 0 else tiles.get_pixel(16 * BeachLayout.Kind.SAND + x, y)
+				if diff == "" and not _same(tiles.get_pixel(16 * (BeachLayout.EDGE_TILE + i) + x, y), want):
+					diff = "edge tile %d differs from the drawing first at (%d, %d)" % [i, x, y]
+	assert_str(diff).is_empty()
 
 func _assert_crop(scene_path: String, sheet: String, region: Rect2, offset: Vector2) -> void:
 	var prop := auto_free((load(scene_path) as PackedScene).instantiate()) as Node

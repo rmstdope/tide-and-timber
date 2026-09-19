@@ -22,7 +22,6 @@ func _ready() -> void:
 		player.control_enabled = false
 		player.global_position = BeachLayout.cell_centre(WAKE_CELL)
 		(%Beach.get_node("%Camera") as LooseCamera).snap_to_target()
-		%Beach.get_node("%Decor").add_child(WaveWash.new())
 		_last_position = player.global_position
 		wake.control_given.connect(_on_control_given)
 	else:

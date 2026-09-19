@@ -165,3 +165,25 @@ func test_painted_map_starts_at_the_origin() -> void:
 	var used := (beach.get_node("%Ground") as TileMapLayer).get_used_rect()
 	beach.free()
 	assert_vector(Vector2(used.position)).is_equal(Vector2.ZERO)
+
+func test_tile_at_draws_the_ragged_edge() -> void:
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(12, 8)))).is_equal(Vector2(7, 0))
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(13, 8)))).is_equal(Vector2(8, 0))
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(14, 8)))).is_equal(Vector2(9, 0))
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(92, 8)))).is_equal(Vector2(9, 0))
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(171, 8)))).is_equal(Vector2(7, 0))
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(11, 8)))).is_equal(Vector2(K.JUNGLE, 0))
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(172, 8)))).is_equal(Vector2(K.JUNGLE, 0))
+	assert_vector(Vector2(BeachLayout.tile_at(Vector2i(92, 7)))).is_equal(Vector2(K.JUNGLE, 0))
+	for y in BeachLayout.map_size().y:
+		if y == BeachLayout.EDGE_ROW:
+			continue
+		for x in BeachLayout.map_size().x:
+			var cell := Vector2i(x, y)
+			if BeachLayout.tile_at(cell) != Vector2i(BeachLayout.kind_at(cell), 0):
+				fail("tile_at %s" % cell)
+				return
+
+func test_edge_row_is_still_jungle() -> void:
+	for x in BeachLayout.map_size().x:
+		_expect(Vector2i(x, 8), K.JUNGLE)

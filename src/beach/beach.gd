@@ -1,6 +1,6 @@
 class_name Beach
 extends Node2D
-## The long beach: ground, props and the spring, the man, the loose camera, and what he carries with its bar.
+## The long beach: ground and its waves, props and the spring, the man, the loose camera, and what he carries with its bar.
 ## Handles no input itself (clicks go to %ClickWalker; B, and Esc while building, to %Builder).
 
 const DRIFTWOOD := preload("res://src/beach/props/driftwood.tscn")

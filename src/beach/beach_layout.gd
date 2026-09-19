@@ -5,6 +5,11 @@ extends RefCounted
 
 enum Kind { JUNGLE, SAND, WET_SAND, FOAM, SHALLOWS, DEEP, CLIFF }   # also the x of each tile in tiles.png
 const TILE := 16
+const EDGE_TILE := 7                # tiles.png x of the first of the three ragged-edge tiles, after the Kind tiles
+const TILE_COUNT := 10              # tiles in tiles.png: the seven Kind tiles, then the three edge tiles
+const EDGE_ROW := 8                 # the last jungle row
+const EDGE_FIRST_COLUMN := 12       # the ragged edge runs over the beach and its cliffs; the jungle carries on
+const EDGE_LAST_COLUMN := 171       # down the headlands beyond, so those keep the plain jungle tile
 const SCENE := "res://src/beach/beach.tscn"
 const PALM := "res://src/beach/props/palm.tscn"
 const ROCK := "res://src/beach/props/rock.tscn"
@@ -54,6 +59,13 @@ static func cell_of_base(base: Vector2) -> Vector2i:
 ## The kind painted at `cell` in beach.tscn; DEEP off the map or where nothing is painted.
 static func kind_at(cell: Vector2i) -> Kind:
 	return _map().kind_at(cell) as Kind
+
+## The tiles.png atlas coords beach.tscn paints at `cell`: on EDGE_ROW between the edge columns, edge
+## tile EDGE_TILE + cell.x % 3 (which reads as JUNGLE); everywhere else Vector2i(kind_at(cell), 0).
+static func tile_at(cell: Vector2i) -> Vector2i:
+	if cell.y == EDGE_ROW and cell.x >= EDGE_FIRST_COLUMN and cell.x <= EDGE_LAST_COLUMN:
+		return Vector2i(EDGE_TILE + cell.x % 3, 0)
+	return Vector2i(kind_at(cell), 0)
 
 static func is_solid(kind: Kind) -> bool:
 	return kind == Kind.JUNGLE or kind == Kind.DEEP or kind == Kind.CLIFF
