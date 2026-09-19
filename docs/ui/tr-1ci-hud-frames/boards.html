@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Frames on boards, plain plates for rows</title>
+<!-- tr-1ci mockup. The game's 640x360 base drawn x2. Open from the repository so the asset paths resolve. -->
+<style>
+  @font-face { font-family: "PS2P"; src: url("../../../assets/fonts/PressStart2P-Regular.ttf"); }
+  body { background: #1d1a17; color: #ead9c0; font: 14px/1.5 system-ui, sans-serif; margin: 24px auto; max-width: 1280px; padding: 0 16px; }
+  h1 { font-size: 20px; } h2 { font-size: 15px; margin: 28px 0 6px; } p { color: #b9a88e; max-width: 90ch; margin: 4px 0 10px; }
+  canvas { width: 100%; display: block; border: 1px solid #4a4035; image-rendering: pixelated; }
+</style>
+<script>const OPT = { rows: "plain", slot: "slot_inset.png" };</script>
+<h1>Frames on boards, plain plates for rows</h1>
+<p>Every board that holds things (the clock, the item bar, the pause board, settings, question boxes, the build list, the morning card) gets the knobbed frame. Everything inside a board, and every small thing floating over the world (menu rows, title rows, the item name, the use prompt), is a plain two-colour plate. Rows stay today's height; the chosen row turns light wood with a pale edge, as today. Words on the build list and the morning card are stand-ins; their real words do not change.</p>
+<h2>Play: the bar, the clock, the item name (plain plate) and a use prompt (plain plate)</h2><canvas id="play" data-scene="play" width="1280" height="720"></canvas>
+<h2>The pause board</h2><canvas id="pause" data-scene="pause" width="1280" height="720"></canvas>
+<h2>A question box</h2><canvas id="confirm" data-scene="confirm" width="1280" height="720"></canvas>
+<h2>The settings board</h2><canvas id="settings" data-scene="settings" width="1280" height="720"></canvas>
+<h2>The build list</h2><canvas id="build" data-scene="build" width="1280" height="720"></canvas>
+<h2>The morning card</h2><canvas id="morning" data-scene="morning" width="1280" height="720"></canvas>
+<h2>The title screen</h2><canvas id="title" data-scene="title" width="1280" height="720"></canvas>
+<script src="common.js"></script>
