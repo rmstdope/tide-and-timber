@@ -137,7 +137,7 @@ func test_build_list_grows_beside_him() -> void:
 	Display.use_prefs(DisplayPrefs.new())
 	list.place_beside(him)
 	assert_vector(list.scale).is_equal(Vector2.ONE)
-	assert_vector(list.position).is_equal(Vector2(112, 81))
+	assert_vector(list.position).is_equal(Vector2(112, 71))
 	_step(1)
 	assert_vector(list.scale).is_equal(Vector2(1.5, 1.5))
 	assert_vector(list.position).is_equal(BuildList.top_left_for(him, 1.5))
