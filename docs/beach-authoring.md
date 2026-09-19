@@ -9,7 +9,8 @@ layout in code; `BeachLayout` (and `BeachMap` under it) read the scene once per 
 `Ground` is a TileMapLayer painted with `src/beach/beach_tiles.tres`, one tile per kind of ground
 (jungle, sand, wet sand, foam, shallows, deep water, cliff). What a cell *is* comes from the tile's
 `kind` custom data, not its place in the atlas. Jungle, deep water and cliff are solid; shallows are
-waded. A cell with no tile counts as deep water. The map starts at cell (0, 0) and its size is the
+waded. A cell with no tile counts as deep water. A tile added to the TileSet must have its `kind` set;
+an untagged tile reads as 0, jungle, which is solid. The map starts at cell (0, 0) and its size is the
 painted area.
 
 ## Props
@@ -30,7 +31,9 @@ props, set the 2D editor's grid step to 16x16 with offset (8, 0).
   do that only together with a save migration. Adding new pieces is safe.
 - **The layout tests pin rules a layout must keep**: `tests/beach/beach_layout_test.gd` checks
   that props stand on walkable ground, both headlands can be reached, shellfish lie on wet sand, and
-  so on. A deliberate terrain change may need their sample cells updated.
+  so on; `test_takeable_props_stay_where_saves_expect_them` pins every driftwood and shellfish cell,
+and `test_painted_map_starts_at_the_origin` fails if anything is painted left of or above (0, 0).
+A deliberate terrain change may need their sample cells updated.
 
 ## Reading a layout change in review
 

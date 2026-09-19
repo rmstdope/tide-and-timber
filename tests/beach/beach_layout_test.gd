@@ -123,7 +123,7 @@ func test_enough_driftwood_for_camp() -> void:
 	for i in BeachLayout.driftwood().size():
 		var cell := BeachLayout.driftwood()[i]
 		assert_int(BeachLayout.kind_at(cell)).override_failure_message("%s not sand" % cell).is_equal(K.SAND)
-		# The first five are the original pieces; DRIFTWOOD[2] stands by spawn on purpose.
+		# The first five are the original pieces; driftwood()[2] stands by spawn on purpose.
 		if i >= 5:
 			assert_bool(cell.x >= 83 and cell.x <= 103).override_failure_message("%s near the camp" % cell).is_false()
 
@@ -148,3 +148,20 @@ func test_cell_of_base_inverts_cell_base() -> void:
 		assert_vector(Vector2(BeachLayout.cell_of_base(BeachLayout.cell_base(cell)))).is_equal(Vector2(cell))
 	assert_vector(Vector2(BeachLayout.cell_of_base(Vector2(760, 161)))).is_equal(Vector2(47, 10))
 	assert_vector(Vector2(BeachLayout.cell_of_base(Vector2(767.5, 150)))).is_equal(Vector2(47, 9))
+
+## Saves name taken driftwood and shellfish by cell: moving one breaks saves, so it must fail here on purpose
+## and come with a save migration (docs/beach-authoring.md).
+func test_takeable_props_stay_where_saves_expect_them() -> void:
+	assert_array(BeachLayout.driftwood()).is_equal([Vector2i(30, 13), Vector2i(69, 12), Vector2i(88, 13), Vector2i(130, 13),
+		Vector2i(155, 12), Vector2i(19, 12), Vector2i(23, 12), Vector2i(37, 13), Vector2i(44, 13), Vector2i(50, 12),
+		Vector2i(53, 13), Vector2i(61, 13), Vector2i(64, 13), Vector2i(74, 12), Vector2i(80, 13), Vector2i(107, 13),
+		Vector2i(111, 13), Vector2i(116, 12), Vector2i(124, 13), Vector2i(137, 13), Vector2i(142, 12), Vector2i(152, 13),
+		Vector2i(161, 12), Vector2i(164, 12)])
+	assert_array(BeachLayout.shellfish()).is_equal([Vector2i(24, 14), Vector2i(51, 14), Vector2i(75, 14), Vector2i(96, 14),
+		Vector2i(116, 14), Vector2i(143, 14), Vector2i(160, 14)])
+
+func test_painted_map_starts_at_the_origin() -> void:
+	var beach := (load(BeachLayout.SCENE) as PackedScene).instantiate()
+	var used := (beach.get_node("%Ground") as TileMapLayer).get_used_rect()
+	beach.free()
+	assert_vector(Vector2(used.position)).is_equal(Vector2.ZERO)
