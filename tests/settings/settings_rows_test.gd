@@ -124,7 +124,7 @@ func test_board_geometry() -> void:
 	assert_that(panel.get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, floorf((Screen.HEIGHT - SettingsBoard.BOARD_H) / 2.0), SettingsBoard.BOARD_W, SettingsBoard.BOARD_H))
 	for r: String in ROWS:
 		assert_that(_row(r).size).is_equal(Vector2(200, 16))
-		assert_float(_row(r).position.x).is_equal(52.0)
+		assert_float(_row(r).position.x).is_equal(SettingsBoard.PLANK_X)
 	for i in ROWS.size():
 		await await_idle_frame()
 		var line := board.get_node("%Line") as Label

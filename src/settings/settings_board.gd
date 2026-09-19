@@ -11,10 +11,10 @@ signal resume_requested    # the Pause input, opened from the pause board: the o
 
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
-const BOARD_X := (Screen.WIDTH - 304.0) / 2.0   # the board centred; 304 is BOARD_W
-const BOARD_W := 304.0
+const BOARD_W := 312.0
+const BOARD_X := (Screen.WIDTH - BOARD_W) / 2.0   # the board centred
 const BOARD_H := 158.0          # heading, five rows, the two-line explaining line, bottom margin
-const PLANK_X := 52.0           # rows centred: (304 - 200) / 2
+const PLANK_X := 56.0           # rows centred: (312 - 200) / 2
 const PLANK_TOP := 28.0
 const PLANK_STEP := 20.0
 const PLANK_SIZE := Vector2(200, 16)
@@ -22,8 +22,8 @@ const ARROW_DIM := Color(0.627451, 0.501961, 0.376471, 1)   # #a08060, an end's 
 const FONT_SIZE := 8
 const LINE_SPACING := 2.0          # %Line's theme line_spacing
 const SCREEN_MARGIN := 2.0         # kept clear at each side of the screen, in board units
-const PANEL_SIDE := 4.0            # panel edge to a stacked plank
-const LINE_SIDE := 12.0            # panel edge to the line under the list
+const PANEL_SIDE := 8.0            # panel edge to a stacked plank: the rim (6) and 2
+const LINE_SIDE := 16.0            # panel edge to the line under the list
 const LINE_GAP := 8.0              # last plank's bottom to the line's top
 const BOTTOM_MARGIN := 8.0         # the line's bottom to the panel's bottom
 const PLANK_GAP := 4.0             # the gap below each plank (PLANK_STEP - PLANK_SIZE.y)

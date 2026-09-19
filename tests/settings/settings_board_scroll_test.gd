@@ -72,7 +72,7 @@ func test_normal_board_does_not_scroll() -> void:
 	assert_bool(board.shows_mark_above()).is_false()
 	assert_bool(board.shows_mark_below()).is_false()
 	assert_that(_node("Panel").get_rect()).is_equal(_centred(SettingsBoard.BOARD_H))
-	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, 0, 304, 158))
+	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, 0, 312, 158))
 	assert_that(_node("Content").position).is_equal(Vector2.ZERO)
 
 func test_largest_title_board_opens_at_the_top() -> void:
@@ -195,8 +195,8 @@ func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
 		.override_failure_message("%Marks has no draw handler, so no mark is ever drawn").is_greater(0)
 	# The centres _draw_marks draws on: the panel's horizontal centre, in the top and bottom mark rows
 	# of the 155-tall panel. Pinned as literals, so moving either mark out of its row fails here.
-	assert_that(board.mark_centre(true)).is_equal(Vector2(152, 5))
-	assert_that(board.mark_centre(false)).is_equal(Vector2(152, 150))
+	assert_that(board.mark_centre(true)).is_equal(Vector2(156, 5))
+	assert_that(board.mark_centre(false)).is_equal(Vector2(156, 150))
 	var font := load("res://assets/fonts/PressStart2P-Regular.ttf") as Font
-	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(true), true)).is_equal(Vector2(148, 9))
-	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(false), false)).is_equal(Vector2(148, 154))
+	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(true), true)).is_equal(Vector2(152, 9))
+	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(false), false)).is_equal(Vector2(152, 154))

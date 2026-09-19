@@ -74,25 +74,25 @@ func _planks_at(step: float, rect_of: Callable) -> void:
 # --- pure ---
 
 func test_panel_width_follows_the_scale() -> void:
-	assert_float(SettingsBoard.panel_width(2.0)).is_equal(304.0)
+	assert_float(SettingsBoard.panel_width(2.0)).is_equal(312.0)
 	assert_float(SettingsBoard.panel_width(3.0)).is_equal(209.0)   # floor(640 / 3 - 4)
 	assert_float(SettingsBoard.panel_width(4.0)).is_equal(156.0)   # 640 / 4 - 4
 
 func test_stacks_only_when_too_wide() -> void:
-	# widest + 8 against the panel, which is the smaller of the 304 board and the 640-wide picture at s
+	# widest + 16 against the panel, which is the smaller of the 312 board and the 640-wide picture at s
 	assert_bool(SettingsBoard.stacks(200, 2.0)).is_false()
-	assert_bool(SettingsBoard.stacks(200, 3.0)).is_false()
+	assert_bool(SettingsBoard.stacks(193, 3.0)).is_false()   # 209 against the 640-wide picture at 3
+	assert_bool(SettingsBoard.stacks(194, 3.0)).is_true()
 	assert_bool(SettingsBoard.stacks(200, 4.0)).is_true()
-	assert_bool(SettingsBoard.stacks(220, 3.0)).is_true()
 
 func test_a_row_one_unit_wider_than_the_board_fits_stacks() -> void:
-	# The board is 304 with 4 each side: a 296 row fits it, a 297 row does not, even at s 1 where the
+	# The board is 312 with 8 each side: a 296 row fits it, a 297 row does not, even at s 1 where the
 	# picture has room to spare.
 	assert_bool(SettingsBoard.stacks(297.0, 1.0)).is_true()
 	assert_bool(SettingsBoard.stacks(296.0, 1.0)).is_false()
 
 func test_at_text_largest_every_row_lies_inside_the_board(ui: int, test_parameters := [[0], [1]]) -> void:
-	# UI Normal and UI Large with Text Largest: rows about 360 wide against the 304 board. Across only:
+	# UI Normal and UI Large with Text Largest: rows about 360 wide against the 312 board. Across only:
 	# at UI Large the stacked board scrolls, so a plank below the band is out of view, not spilling.
 	_grow(ui, 2)
 	_title()
@@ -128,10 +128,10 @@ func test_normal_layout_is_unchanged() -> void:
 	await _open()
 	assert_bool(board.stacked).is_false()
 	assert_that(_node("Panel").get_rect()).is_equal(_centred(SettingsBoard.BOARD_H))
-	_planks_at(20, func(i: int) -> Rect2: return Rect2(52, 28 + 20 * i, 200, 16))
+	_planks_at(20, func(i: int) -> Rect2: return Rect2(SettingsBoard.PLANK_X, 28 + 20 * i, 200, 16))
 	assert_that(_node("UiSize/Row/Value").get_rect()).is_equal(Rect2(120, 0, 64, 12))
 	assert_that(_node("Controls/Row/Arrow").get_rect()).is_equal(Rect2(184, 0, 12, 12))
-	assert_that(_node("Line").position).is_equal(Vector2(12, 132))
+	assert_that(_node("Line").position).is_equal(Vector2(SettingsBoard.LINE_SIDE, 132))
 	assert_float(_node("Line").size.x).is_equal(280.0)
 
 func test_title_board_stacks_at_largest_inside_the_screen() -> void:
@@ -237,3 +237,19 @@ func test_pause_board_stacks_at_largest_inside_the_screen() -> void:
 	assert_float((panel.get_global_transform_with_canvas() * Vector2(panel.size.x, 0)).x).is_less_equal(Screen.WIDTH)
 	Pause.debug_tools = OS.is_debug_build()
 	get_tree().paused = false
+
+func test_every_row_and_the_line_clear_the_rim(ui: int, text: int,
+		test_parameters := [[0, 0], [0, 2], [1, 2], [2, 2], [2, 1]]) -> void:
+	# In content units: Content and Clip sit at x 0 in the panel.
+	_grow(ui, text)
+	_title()
+	await _open()
+	var w := board.rest_panel.size.x
+	for name: String in PLANKS:
+		var p := _node(name)
+		assert_float(p.position.x).override_failure_message("%s left" % name).is_greater_equal(HudFrame.RIM)
+		assert_float(p.position.x + p.size.x).override_failure_message("%s right" % name) \
+				.is_less_equal(w - HudFrame.RIM)
+	var line := _node("Line")
+	assert_float(line.position.x).is_greater_equal(HudFrame.RIM)
+	assert_float(line.position.x + line.size.x * line.scale.x).is_less_equal(w - HudFrame.RIM)
