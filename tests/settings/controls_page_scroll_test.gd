@@ -68,10 +68,42 @@ func _largest() -> void:
 	_size(2)
 	_text(2)
 
-# The view the page's band gives: the band less a mark row at each end.
+# The view the page's band gives: inside the board's rim, less a mark row at each end.
 func _band_view() -> Rect2:
 	var b := ScrollWindow.band(page.get_global_transform_with_canvas(), page.strip.screen_top())
-	return Rect2(0, b.x + ScrollWindow.MARK_ROW, Screen.WIDTH, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW)
+	var inset := HudFrame.RIM + ScrollWindow.MARK_ROW
+	return Rect2(page.board.position.x + HudFrame.RIM, b.x + inset,
+			page.board.size.x - 2.0 * HudFrame.RIM, b.y - b.x - 2.0 * inset)
+
+func test_normal_page_sits_on_its_board() -> void:
+	await _open_page()
+	await _settle()
+	assert_that(page.board).is_equal(page.layout.board_rect())
+	assert_that((page.get_node("%View") as Control).position).is_equal(Vector2.ZERO)
+	assert_that((page.get_node("%View") as Control).size).is_equal(Screen.SIZE)
+	assert_that((page.get_node("%ViewContent") as Control).position).is_equal(Vector2.ZERO)
+
+func test_largest_board_spans_the_band_and_the_view_sits_inside_the_rim() -> void:
+	_largest()
+	await _open_page()
+	await _settle()
+	var b := ScrollWindow.band(page.get_global_transform_with_canvas(), page.strip.screen_top())
+	var rest := page.layout.board_rect()
+	assert_that(page.board).is_equal(Rect2(rest.position.x, b.x, rest.size.x, b.y - b.x))
+	assert_that(page.view).is_equal(_band_view())
+	assert_bool(page.board.grow(-HudFrame.RIM).encloses(page.view)).is_true()
+	var v := page.get_node("%View") as Control
+	assert_that(Rect2(v.position, v.size)).is_equal(page.view)
+	assert_that((page.get_node("%ViewContent") as Control).position).is_equal(-page.view.position)
+
+func test_the_page_scrolls_when_its_board_does_not_fit() -> void:
+	await _open_page()
+	await _settle()
+	page.frame(ControlsPage.CONTENT_TOP, page.layout.content_bottom())
+	assert_bool(page.scrolls).is_true()   # the content fits, the board does not
+	page.frame(ControlsPage.CONTENT_TOP - 8.0, page.layout.content_bottom() + 8.0)
+	assert_bool(page.scrolls).is_false()
+	assert_int(page.offset).is_equal(0)
 
 func _span() -> Vector2i:
 	return ControlsPage.reset_span(page.layout, page.view.size.y)
@@ -109,14 +141,15 @@ func _down_to_next_row() -> void:
 
 # --- pure ---
 
-# UI 4: what UI Largest (2) was on the 320-wide picture; extents are from the content's top, so unchanged.
+# UI 4: what UI Largest (2) was on the 320-wide picture; extents are from the content's top. The stacked list is
+# the board's room (140) wide, so the Reset controller name takes three lines and the rows are 32 tall.
 func test_content_bottom_and_row_extent() -> void:
 	var stacked := ControlsLayout.make(true, 1.0, 4.0)
-	assert_float(stacked.content_bottom()).is_equal(273.0 + ControlsPage.TOP_SHIFT)
+	assert_float(stacked.content_bottom()).is_equal(378.0 + ControlsPage.TOP_SHIFT)
 	assert_float(ControlsLayout.make(false, 1.0, 1.0).content_bottom()).is_equal(ControlsPage.CONTENT_TOP + ControlsPage.CONTENT_H)
-	assert_that(stacked.row_extent(0)).is_equal(Vector2(0, 47))
-	assert_that(stacked.row_extent(1)).is_equal(Vector2(47, 69))
-	assert_that(stacked.row_extent(8)).is_equal(Vector2(201, 270))
+	assert_that(stacked.row_extent(0)).is_equal(Vector2(0, 72))
+	assert_that(stacked.row_extent(1)).is_equal(Vector2(72, 104))
+	assert_that(stacked.row_extent(8)).is_equal(Vector2(296, 375))
 	assert_that(ControlsLayout.make(false, 1.0, 1.0).row_extent(3)).is_equal(Vector2(58, 69))
 
 # --- title ---
@@ -310,14 +343,15 @@ func test_an_unknown_band_leaves_the_page_unscrolled() -> void:
 	assert_bool(page.scrolls).is_false()
 	assert_int(page.offset).is_equal(0)
 	assert_that(page.view).is_equal(Rect2(Vector2.ZERO, Screen.SIZE))
+	assert_that(page.board).is_equal(page.layout.board_rect())
 
 # --- the bottom of the page when it does not all fit (controls-bottom c) ---
 
 # UI 4 and Text Largest at UI 2: what UI Largest and Text Largest at UI Normal were on the 320-wide picture.
 # Spans are in content units, from the content's top, so unchanged.
 func test_reset_span_and_read_on() -> void:
-	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 54)).is_equal(Vector2i(201, 216))
-	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 32)).is_equal(Vector2i(201, 238))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 54)).is_equal(Vector2i(296, 321))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 32)).is_equal(Vector2i(296, 343))
 	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 2.0, 2.0), 100)).is_equal(Vector2i(345, 370))
 	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 2.0, 2.0), 200)).is_equal(Vector2i(270, 270))
 	assert_that(ControlsPage.reset_span(ControlsLayout.make(false, 1.0, 1.0), Screen.HEIGHT)).is_equal(Vector2i(0, 0))

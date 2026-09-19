@@ -73,10 +73,12 @@ func _largest() -> void:
 	_size(2)
 	_text(2)
 
-# The view the page's band gives: the band less a mark row at each end.
+# The view the page's band gives: inside the board's rim, less a mark row at each end.
 func _band_view() -> Rect2:
 	var b := ScrollWindow.band(page.get_global_transform_with_canvas(), page.strip.screen_top())
-	return Rect2(0, b.x + ScrollWindow.MARK_ROW, Screen.WIDTH, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW)
+	var inset := HudFrame.RIM + ScrollWindow.MARK_ROW
+	return Rect2(page.board.position.x + HudFrame.RIM, b.x + inset,
+			page.board.size.x - 2.0 * HudFrame.RIM, b.y - b.x - 2.0 * inset)
 
 # Row r's rectangle where it is drawn now.
 func _drawn(r: int) -> Rect2:
@@ -92,22 +94,24 @@ func test_largest_pause_page_stays_above_the_lifted_strip() -> void:
 	assert_bool(page.shows_mark_above()).is_false()
 	assert_bool(page.shows_mark_below()).is_true()
 	var t := page.get_global_transform_with_canvas()
-	assert_float((t * Vector2(0, page.view.position.y - ScrollWindow.MARK_ROW)).y).is_equal(ScrollWindow.EDGE)
-	assert_float((t * Vector2(0, page.view.end.y + ScrollWindow.MARK_ROW)).y).is_equal(page.strip.screen_top() - ScrollWindow.EDGE)
+	# The board's top and bottom (the view less the mark rows and the rim) are the band's.
+	var inset := ScrollWindow.MARK_ROW + HudFrame.RIM
+	assert_float((t * Vector2(0, page.view.position.y - inset)).y).is_equal(ScrollWindow.EDGE)
+	assert_float((t * Vector2(0, page.view.end.y + inset)).y).is_equal(page.strip.screen_top() - ScrollWindow.EDGE)
 	assert_bool(page.view.encloses(_drawn(0))).is_true()
 
 func test_largest_pause_page_scrolls_down_and_back() -> void:
 	_largest()
 	await _open_page()
 	assert_bool(page.scrolls).is_true()
-	# Row 1's bottom is 16 below the 101-unit view; each further row is one stacked row (38) lower.
-	for expected: int in [16, 54, 92, 130]:
+	# Row 1's bottom is 28 below the 89-unit view; each further row is one stacked row (38) lower.
+	for expected: int in [28, 66, 104, 142]:
 		await _tap(KEY_DOWN)
 		assert_int(page.offset).is_equal(expected)
 		assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 	await _tap(KEY_UP)
 	assert_int(page.rules.row).is_equal(3)
-	assert_int(page.offset).is_equal(130)   # row 3 is still wholly in the 101-unit view, so the page does not move
+	assert_int(page.offset).is_equal(142)   # row 3 is still wholly in the 89-unit view, so the page does not move
 	assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 
 func test_normal_pause_page_does_not_scroll() -> void:
@@ -136,15 +140,15 @@ func test_large_pause_page_scrolls_inside_its_band() -> void:
 	await _open_page()
 	assert_bool(page.stacked).is_true()
 	assert_bool(page.scrolls).is_true()
-	# The view is the band less one mark row at each end: on screen, 2 from the top of the screen
-	# and 2 above the strip, both inset by a mark row at this scale.
+	# The view is the band less the rim and one mark row at each end: on screen, 2 from the top of the screen
+	# and 2 above the strip, both inset by the rim and a mark row at this scale.
 	var t := page.get_global_transform_with_canvas()
 	var scale := t.get_scale().y
 	var top_on_screen := (t * Vector2(0, page.view.position.y)).y
 	var bottom_on_screen := (t * Vector2(0, page.view.end.y)).y
-	assert_float(top_on_screen).is_equal_approx(2.0 + ScrollWindow.MARK_ROW * scale, 1.0 + scale)
+	assert_float(top_on_screen).is_equal_approx(2.0 + (HudFrame.RIM + ScrollWindow.MARK_ROW) * scale, 1.0 + scale)
 	assert_float(bottom_on_screen).is_equal_approx(
-			page.strip.screen_top() - 2.0 - ScrollWindow.MARK_ROW * scale, 1.0 + scale)
+			page.strip.screen_top() - 2.0 - (HudFrame.RIM + ScrollWindow.MARK_ROW) * scale, 1.0 + scale)
 	assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 
 func test_largest_pause_reads_the_bottom_in_more_pushes() -> void:

@@ -2,12 +2,16 @@ class_name ControlsLayout
 extends RefCounted
 ## Where the Controls page draws its words, tabs, rows and slots at one UI scale and one Text size, in page units.
 ## Words grow by rel about their baseline-left; tabs, rows and the list grow around them in whole units.
+## It also says where the page's board lies: around all of that, centred, and never past the page's room.
 
 const FONT := preload("res://assets/fonts/PressStart2P-Regular.ttf")
 const ASCENT := 8.0          # a line of words' height above its baseline at Normal
 const PICTURE_GAP := 4.0     # between a word and a button picture on a line under the list
 const TAB_GAP := 4.0         # between the two tabs, across or down
 const STACKED_UI := 2.0      # the UI scale ControlsPage's static geometry answers for when stacked
+const BOARD_PAD := (SettingsBoard.BOARD_W - ControlsPage.LIST_W) / 2.0   # 12: the board's edge to its widest content while the page has room
+const BOARD_PAD_Y := 8.0     # the board's top to the heading's top, and the last fixed line's baseline to the board's bottom
+const EDGE := HudFrame.RIM + 2.0   # 8: the nearest content comes to the board's edge once the board is as wide as the page allows
 
 var stacked: bool
 var rel: float
@@ -21,12 +25,30 @@ var row_h: float
 var slot_top: float          # a row's top to its slots' top
 var no_key_lines: int        # lines kept for the no-key line: the most any action's line takes
 var fixed_lines: int         # lines kept under it for the fixed lines: the most either tab's take
+var widest: float            # the widest thing the board holds, in page units: tabs, list, stacked name lines, heading, lines under the list
+var _lines_w := 0.0          # the widest line under the list, over every block the page can show
 var _tabs: Array[Rect2] = []
 var _names := {}             # name String -> PackedStringArray, for every action name and both Reset names
 
-## True when the rows, with the screen margins, do not fit across at UI scale p_ui with words grown by p_rel.
+## The widest the board may be at UI scale p_ui: the units the page shows across, less SCREEN_MARGIN each side.
+static func board_cap(p_ui: float) -> float:
+	return floorf(Screen.WIDTH / p_ui) - 2.0 * ControlsPage.SCREEN_MARGIN
+
+## The widest the tabs, the list and the lines under the list may be at UI scale p_ui: the widest board less EDGE each side.
+static func room(p_ui: float) -> float:
+	return board_cap(p_ui) - 2.0 * EDGE
+
+## Where the board lies while the page does not scroll, in page units: centred across the page, BOARD_PAD wider than
+## its widest content each side (never narrower than the settings board, never wider than board_cap), from
+## BOARD_PAD_Y above the heading's top to BOARD_PAD_Y below the last fixed line's baseline.
+func board_rect() -> Rect2:
+	var w := minf(maxf(SettingsBoard.BOARD_W, widest + 2.0 * BOARD_PAD), board_cap(ui))
+	var top := ControlsPage.CONTENT_TOP - BOARD_PAD_Y
+	return Rect2(roundf((Screen.WIDTH - w) / 2.0), top, w, content_bottom() + BOARD_PAD_Y - top)
+
+## True when the rows do not fit the board's room at UI scale p_ui with words grown by p_rel.
 static func stacks(p_ui: float, p_rel: float) -> bool:
-	if (ControlsPage.LIST_W + 2.0 * ControlsPage.SCREEN_MARGIN) * p_ui > Screen.WIDTH:
+	if ControlsPage.LIST_W > room(p_ui):
 		return true
 	var action := 0.0
 	for a: int in Controls.Action.values():
@@ -114,6 +136,7 @@ static func make(p_stacked: bool, p_rel: float, p_ui: float) -> ControlsLayout:
 	else:
 		l._make_side_by_side_rows()
 	l._count_lines()
+	l._measure()
 	return l
 
 func _make_tabs() -> void:
@@ -122,13 +145,13 @@ func _make_tabs() -> void:
 	var top := ControlsPage.TAB_TOP + grow
 	var w0 := pad + ceilf(width(ControlsPage.TAB_NAMES[0]) * rel)
 	var w1 := pad + ceilf(width(ControlsPage.TAB_NAMES[1]) * rel)
-	# Equality is meant: stacked at Text Normal and UI 2x the sum is exactly the picture's width, which keeps today's stacked tabs side by side (controls_layout_test.gd::test_stacked_rows_at_text_normal_are_todays).
-	if (w0 + TAB_GAP + w1 + 2.0 * ControlsPage.SCREEN_MARGIN) * ui <= Screen.WIDTH:
+	# Equality is meant: at UI 2 and Text Largest the tabs are exactly room(2.0) (300) and stay side by side.
+	if w0 + TAB_GAP + w1 <= room(ui):
 		var x0 := roundf(Screen.CENTRE.x - (w0 + TAB_GAP + w1) / 2.0)
 		_tabs = [Rect2(x0, top, w0, h), Rect2(x0 + w0 + TAB_GAP, top, w1, h)]
 	else:
-		var a := TextScale.fit_width(w0, w0, ui)
-		var b := TextScale.fit_width(w1, w1, ui)
+		var a := minf(w0, room(ui))
+		var b := minf(w1, room(ui))
 		_tabs = [Rect2(roundf(Screen.CENTRE.x - a / 2.0), top, a, h),
 			Rect2(roundf(Screen.CENTRE.x - b / 2.0), top + h + TAB_GAP, b, h)]
 	list_top = _tabs[1].end.y + 3.0
@@ -143,13 +166,13 @@ func _make_side_by_side_rows() -> void:
 
 func _make_stacked_rows() -> void:
 	var normal := {}
-	var widest := 0.0
+	var widest_name := 0.0
 	for name: String in _every_name():
 		normal[name] = ControlsPage.name_lines(name, ControlsPage.NAME_WRAP_W, FONT)
 		for line: String in normal[name]:
-			widest = maxf(widest, width(line))
+			widest_name = maxf(widest_name, width(line))
 	var inset := ControlsPage.LIST_W_STACKED - ControlsPage.NAME_WRAP_W
-	list_w = TextScale.fit_width(ControlsPage.LIST_W_STACKED, ceilf(widest * rel) + inset, ui)
+	list_w = minf(maxf(ControlsPage.LIST_W_STACKED, ceilf(widest_name * rel) + inset), room(ui))
 	list_x = roundf((Screen.WIDTH - list_w) / 2.0)
 	var wrap := list_w - inset
 	for name: String in _every_name():
@@ -177,15 +200,39 @@ func _every_name() -> Array:
 	names.append_array(ControlsPage.RESET_NAMES)
 	return names
 
+# The A and B pictures are HintLine.HEIGHT wide for every pad family, so the Xbox lines stand for all of them.
 func _count_lines() -> void:
 	no_key_lines = 1
+	var lines_w := 0.0
 	for a: int in Controls.Action.values():
 		var text: String = ControlsMenu.HAS_NO_KEY % Controls.NAMES[a]
-		no_key_lines = maxi(no_key_lines, fit_lines(word_lines(text)).size())
+		var no_key := fit_lines(word_lines(text))
+		no_key_lines = maxi(no_key_lines, no_key.size())
+		lines_w = maxf(lines_w, _widest_line(no_key))
 	var kind := DeviceTracker.Kind.XBOX
 	var pa := DeviceHints.picture_for(ControlsPage.pad_button(JOY_BUTTON_A), kind)
 	var pb := DeviceHints.picture_for(ControlsPage.pad_button(JOY_BUTTON_B), kind)
-	fixed_lines = maxi(fit_lines(keyboard_lines()).size(), fit_lines(controller_lines(pa, pb)).size())
+	var keyboard := fit_lines(keyboard_lines())
+	var controller := fit_lines(controller_lines(pa, pb))
+	fixed_lines = maxi(keyboard.size(), controller.size())
+	lines_w = maxf(lines_w, maxf(_widest_line(keyboard), _widest_line(controller)))
+	_lines_w = lines_w
+
+func _widest_line(lines: Array) -> float:
+	var w := 0.0
+	for line: Array in lines:
+		w = maxf(w, line_width(line, rel))
+	return w
+
+# The widest thing the board holds: the list, the heading, the tabs, the lines under the list and any stacked name line.
+func _measure() -> void:
+	widest = maxf(list_w, ceilf(width("Controls") * rel))
+	widest = maxf(widest, _tabs[0].merge(_tabs[_tabs.size() - 1]).size.x)
+	widest = maxf(widest, _lines_w)
+	if stacked:
+		for name: String in _names:
+			for line: String in _names[name]:
+				widest = maxf(widest, ceilf(width(line) * rel))
 
 func tab_rect(i: int) -> Rect2:
 	return _tabs[i]
@@ -244,14 +291,14 @@ func tab_at(point: Vector2) -> int:
 			return i
 	return -1
 
-## A block of lines under the list: today's lines while the grown words fit, else re-broken at spaces.
+## A block of lines under the list: today's lines while the grown words fit the board's room, else re-broken at spaces.
 func fit_lines(lines: Array) -> Array:
 	var normal_w := 0.0
 	var grown_w := 0.0
 	for line: Array in lines:
 		normal_w = maxf(normal_w, line_width(line, 1.0))
 		grown_w = maxf(grown_w, line_width(line, rel))
-	var w := TextScale.fit_width(normal_w, grown_w, ui)
+	var w := minf(maxf(normal_w, grown_w), room(ui))
 	if grown_w <= w:
 		return lines
 	var items := []
