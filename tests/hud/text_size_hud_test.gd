@@ -58,8 +58,8 @@ func test_menu_strip_grown_by_text_lifts_above_the_bar() -> void:
 	Display.prefs.step(Setting.UI_SIZE, 1)
 	Display.prefs.step(Setting.TEXT_SIZE, 2)
 	await get_tree().process_frame
-	# the bar's top at 1.5x is Screen.HEIGHT - 1.5 * 23; the 21-tall strip, drawn 1.5x, sits GAP above it
-	var top := Screen.HEIGHT - 1.5 * 23 - HintLift.GAP - 1.5 * 21
+	# the bar's top at 1.5x is Screen.HEIGHT - 1.5 * 35; the 21-tall strip, drawn 1.5x, sits GAP above it
+	var top := Screen.HEIGHT - 1.5 * 35 - HintLift.GAP - 1.5 * 21
 	assert_vector(strip.get_global_transform_with_canvas().origin) \
 		.is_equal_approx(Vector2(MenuStrip.LEFT, top), Vector2(0.01, 0.01))
 	assert_float(strip.screen_top()).is_equal_approx(top, 0.01)

@@ -184,15 +184,15 @@ func test_lifts_above_a_grown_bar() -> void:
 	var s := _hosted_strip()
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 2)
 	await get_tree().process_frame
-	# the bar's top at 2x is Screen.HEIGHT - 2 * 23; the strip sits 2 above it, 2 * 12 tall
-	var lifted := Vector2(MenuStrip.LEFT, Screen.HEIGHT - 2 * 23 - 2 - 2 * KeyHint.HEIGHT)
+	# the bar's top at 2x is Screen.HEIGHT - 2 * 35; the strip sits 2 above it, 2 * 12 tall
+	var lifted := Vector2(MenuStrip.LEFT, Screen.HEIGHT - 2 * 35 - 2 - 2 * KeyHint.HEIGHT)
 	assert_vector(_origin(s)).is_equal_approx(lifted, Vector2(0.01, 0.01))
 	assert_vector(s.get_global_transform_with_canvas().get_scale()).is_equal_approx(Vector2(2, 2), Vector2(0.01, 0.01))
 	assert_float(s.screen_top()).is_equal_approx(lifted.y, 0.01)
 	Display.use_prefs(DisplayPrefs.new())
 	Display.prefs.step(DisplayPrefs.Setting.UI_SIZE, 1)
 	await get_tree().process_frame
-	assert_vector(_origin(s)).is_equal_approx(Vector2(MenuStrip.LEFT, Screen.HEIGHT - 1.5 * 23 - 2 - 1.5 * KeyHint.HEIGHT), Vector2(0.01, 0.01))
+	assert_vector(_origin(s)).is_equal_approx(Vector2(MenuStrip.LEFT, Screen.HEIGHT - 1.5 * 35 - 2 - 1.5 * KeyHint.HEIGHT), Vector2(0.01, 0.01))
 	_restore_root()
 
 func test_does_not_lift_at_normal() -> void:

@@ -3,7 +3,7 @@ extends Control
 ## The key hint band along the bottom while building, showing the device's pictures.
 ## Lifts above the item bar at larger sizes when it would cover it.
 
-const TOP := Screen.HEIGHT - 44.0
+const TOP := Screen.HEIGHT - 56.0
 const HEIGHT := 12.0
 const BAND := Color(0, 0, 0, 0.55)
 const TEXT := HudColours.PALE

@@ -100,14 +100,14 @@ func test_largest_pause_page_scrolls_down_and_back() -> void:
 	_largest()
 	await _open_page()
 	assert_bool(page.scrolls).is_true()
-	# Row 1's bottom is 4 below the 113-unit view; each further row is one stacked row (38) lower.
-	for expected: int in [4, 42, 80, 118]:
+	# Row 1's bottom is 16 below the 101-unit view; each further row is one stacked row (38) lower.
+	for expected: int in [16, 54, 92, 130]:
 		await _tap(KEY_DOWN)
 		assert_int(page.offset).is_equal(expected)
 		assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 	await _tap(KEY_UP)
 	assert_int(page.rules.row).is_equal(3)
-	assert_int(page.offset).is_equal(118)   # row 3 is still wholly in the 113-unit view, so the page does not move
+	assert_int(page.offset).is_equal(130)   # row 3 is still wholly in the 101-unit view, so the page does not move
 	assert_bool(page.view.encloses(_drawn(page.rules.row))).is_true()
 
 func test_normal_pause_page_does_not_scroll() -> void:

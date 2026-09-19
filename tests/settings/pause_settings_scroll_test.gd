@@ -71,23 +71,23 @@ func test_largest_pause_board_stays_above_the_lifted_strip() -> void:
 	await _open_settings()
 	assert_bool(board.scrolls).is_true()
 	assert_bool(board.scrolls).is_true()
-	# Drawn at 2 about the picture's centre, the band's on-screen 2 .. strip - 2 is board y 91 .. 224.
-	assert_that((board.get_node("%Panel") as Control).get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, 91, SettingsBoard.BOARD_W, 133))
-	assert_that((board.get_node("%Clip") as Control).get_rect()).is_equal(Rect2(0, ScrollWindow.MARK_ROW, SettingsBoard.BOARD_W, 133 - 2 * ScrollWindow.MARK_ROW))
-	assert_int(board.offset).is_equal(0)   # UI size, with the heading, fits the 113-tall clip
+	# Drawn at 2 about the picture's centre, the band's on-screen 2 .. strip - 2 is board y 91 .. 212.
+	assert_that((board.get_node("%Panel") as Control).get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, 91, SettingsBoard.BOARD_W, 121))
+	assert_that((board.get_node("%Clip") as Control).get_rect()).is_equal(Rect2(0, ScrollWindow.MARK_ROW, SettingsBoard.BOARD_W, 121 - 2 * ScrollWindow.MARK_ROW))
+	assert_int(board.offset).is_equal(0)   # UI size, with the heading, fits the 101-tall clip
 	assert_bool(board.shows_mark_above()).is_false()
 	assert_bool(board.shows_mark_below()).is_true()
 	assert_float(_screen("Panel").position.y).is_equal(2.0)
 	assert_float(_screen("Panel").end.y).is_equal(board.strip.screen_top() - 2.0)
-	assert_float(board.strip.screen_top()).is_equal(270.0)   # lifted above the item bar, words at Text Largest
+	assert_float(board.strip.screen_top()).is_equal(246.0)   # lifted above the item bar, words at Text Largest
 	assert_bool(_screen("Clip").encloses(_screen("UiSize"))).is_true()
 
 func test_largest_pause_board_scrolls_to_controls_and_back() -> void:
 	_grow(2, 2)
 	await _open_settings()
 	assert_bool(board.scrolls).is_true()
-	# Plank bottoms in the content: 72, 120, 168, 216; Controls with its line under the list ends 333, so 220; the clip 113.
-	for step: Array in [[7, "TextSize"], [55, "ColourCues"], [103, "Fullscreen"], [220, "Controls"]]:
+	# Plank bottoms in the content: 72, 120, 168, 216; Controls with its line under the list spans 220 .. 333, taller than the 101 clip, so its top, 220.
+	for step: Array in [[19, "TextSize"], [67, "ColourCues"], [115, "Fullscreen"], [220, "Controls"]]:
 		await _tap(KEY_DOWN)
 		assert_int(board.offset).override_failure_message("at %s" % step[1]).is_equal(step[0])
 		assert_bool(_screen("Clip").encloses(_screen(step[1] as String))) \

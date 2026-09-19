@@ -1,13 +1,14 @@
 class_name ItemBar
 extends Control
-## The always-shown wooden bar of 8 slots at the bottom centre, with a name plank on pointer rest.
+## The always-shown knobbed frame of 8 slots at the bottom centre, with a name plate on pointer rest.
 
-const PLANK_SIZE := Vector2(141, 22)    # 8 * 17 + 5
+const PLANK_SIZE := Vector2(204, 34)    # the knobbed frame: 8 slots of 22 at a 24 step, 7 in from each side, 6 from top and bottom
 const GROUP := &"item_bar"               # HintLift finds the drawn bar through it
-const TOP := Screen.HEIGHT - 23.0       # the plank's top, 23 above the bottom of the picture
-const NAME_HEIGHT := 13.0               # the name plank's Normal height
+const TOP := Screen.HEIGHT - 35.0       # the frame's top, 35 above the bottom of the picture
+const NAME_HEIGHT := 13.0               # the name plate's Normal height
 const SLOT_AT := Vector2(7, 6)          # slot 0's top-left
 const SLOT_STEP := 24.0                 # from one slot's left edge to the next
+const FRAME := preload("res://src/hud/frame.tres")
 const NAME_BOTTOM := -6.0               # its bottom edge above the bar, whatever its height
 
 var slots: Array[ItemSlot] = []
@@ -41,8 +42,7 @@ func _ready() -> void:
 		var w := name_plank.size.x
 		var h := name_plank.size.y
 		name_plank.draw_rect(Rect2(0, 0, w, h), HudColours.WOOD_DARK)
-		name_plank.draw_rect(Rect2(1, 1, w - 2, h - 2), HudColours.WOOD)
-		name_plank.draw_rect(Rect2(1, 1, w - 2, 1), HudColours.WOOD_LIGHT))
+		name_plank.draw_rect(Rect2(1, 1, w - 2, h - 2), HudColours.WOOD))
 	add_child(name_plank)
 	Display.changed.connect(_refit_name)
 	get_tree().root.size_changed.connect(_refit_name)
@@ -98,6 +98,4 @@ func _scale() -> float:
 	return UiScale.current(Display.prefs, get_tree().root) if is_inside_tree() else 1.0
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, PLANK_SIZE), HudColours.WOOD_DARK)
-	draw_rect(Rect2(1, 1, 139, 20), HudColours.WOOD)
-	draw_rect(Rect2(1, 1, 139, 1), HudColours.WOOD_LIGHT)
+	draw_style_box(FRAME, Rect2(Vector2.ZERO, PLANK_SIZE))

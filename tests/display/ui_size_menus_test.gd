@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 
 const EPS := Vector2(0.01, 0.01)
 ## Where a hint strip sits once lifted above the item bar at UI Largest: 72 above the picture's bottom.
-const LIFTED := Vector2(4, Screen.HEIGHT - 72)
+const LIFTED := Vector2(4, Screen.HEIGHT - 96)
 
 var _saved_size: Vector2i
 var _saved_mode: Window.ContentScaleMode
