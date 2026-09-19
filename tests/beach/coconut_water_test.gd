@@ -151,3 +151,13 @@ func test_take_fallen_coconut() -> void:
 	assert_int(inventory.count(K.COCONUT)).is_equal(1)
 	assert_str(_rising()).is_equal("+1 Coconut")
 	assert_int(_count(beach.get_node("%Decor"), "coconut.tscn")).is_equal(1)
+
+func test_leaning_palm_drops_under_its_crown() -> void:
+	var L := BeachLayout.cell_base(BeachLayout.palms()[5])
+	await _stand(L + Vector2(-10, 0), Walk.Facing.RIGHT)
+	await _press_e()
+	var drops := beach.get_node("%Decor").get_children().filter(func(n: Node) -> bool:
+		return n.scene_file_path.ends_with("coconut.tscn"))
+	assert_int(drops.size()).is_equal(2)
+	for j in drops.size():
+		assert_vector((drops[j] as Node2D).global_position).is_equal(L + Shake.DROPS[j] + Vector2(-35, 0))

@@ -1,8 +1,16 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/beach/palm.png" id="1_tex"]
-[ext_resource type="Texture2D" path="res://assets/beach/palm_coconuts.png" id="2_crown"]
+[ext_resource type="Texture2D" path="res://assets/beach/palms.png" id="1_tex"]
+[ext_resource type="Texture2D" path="res://assets/beach/palm_crowns.png" id="2_crown"]
 [ext_resource type="Script" path="res://src/interact/shake.gd" id="3_shake"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tree"]
+atlas = ExtResource("1_tex")
+region = Rect2(22, 16, 31, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_crown"]
+atlas = ExtResource("2_crown")
+region = Rect2(342, 16, 31, 56)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_base"]
 size = Vector2(6, 6)
@@ -10,8 +18,9 @@ size = Vector2(6, 6)
 [node name="Palm" type="StaticBody2D"]
 
 [node name="Sprite" type="Sprite2D" parent="."]
-offset = Vector2(0, -24)
-texture = ExtResource("1_tex")
+texture = SubResource("AtlasTexture_tree")
+centered = false
+offset = Vector2(-16, -52)
 
 [node name="Base" type="CollisionShape2D" parent="."]
 position = Vector2(0, -3)
@@ -19,7 +28,9 @@ shape = SubResource("RectangleShape2D_base")
 
 [node name="Crown" type="Sprite2D" parent="."]
 position = Vector2(0, -32)
-texture = ExtResource("2_crown")
+texture = SubResource("AtlasTexture_crown")
+centered = false
+offset = Vector2(-16, -20)
 
 [node name="Shake" type="Node2D" parent="." node_paths=PackedStringArray("crown", "tree_sprite")]
 script = ExtResource("3_shake")

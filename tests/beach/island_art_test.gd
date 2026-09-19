@@ -122,3 +122,88 @@ func test_outlined_pieces_are_shaded_like_the_pack() -> void:
 		var dark_edge := edge.filter(func(c: Color) -> bool: return darkest.has(c.to_html(false))).size()
 		assert_bool(dark_edge * 4 >= edge.size() * 3) \
 			.override_failure_message("%s: %d of %d edge pixels dark" % [path, dark_edge, edge.size()]).is_true()
+
+const PALM_SOURCE := "res://assets/farming_101/beach/palm trees.png"
+const PALMS := "res://assets/beach/palms.png"
+const PALM_CROWNS := "res://assets/beach/palm_crowns.png"
+
+func _rgba(path: String) -> Image:
+	var image := _image(path)
+	image.convert(Image.FORMAT_RGBA8)
+	return image
+
+## Two pixels are alike when both are fully transparent, or when they are equal.
+func _alike(a: Color, b: Color) -> bool:
+	return (a.a8 == 0 and b.a8 == 0) or a == b
+
+func test_palm_sheet_is_the_pack_sheet_with_warm_shadows() -> void:
+	assert_bool(ResourceLoader.exists(PALMS)).override_failure_message("%s missing" % PALMS).is_true()
+	if not ResourceLoader.exists(PALMS):
+		return
+	var src := _rgba(PALM_SOURCE)
+	var palms := _rgba(PALMS)
+	assert_vector(Vector2(palms.get_size())).is_equal(Vector2(src.get_size()))
+	var diff := ""
+	for y in src.get_height():
+		for x in src.get_width():
+			if diff != "":
+				break
+			var s := src.get_pixel(x, y)
+			var p := palms.get_pixel(x, y)
+			if s.a8 > 0 and s.a8 < 255:
+				var want := Color("#78190e")
+				want.a8 = s.a8
+				if p.to_html() != want.to_html():
+					diff = "shadow differs first at (%d, %d): %s" % [x, y, p.to_html()]
+			elif not _alike(s, p):
+				diff = "differs first at (%d, %d)" % [x, y]
+	assert_str(diff).is_empty()
+
+func test_crown_sheet_holds_only_the_coconuts() -> void:
+	assert_bool(ResourceLoader.exists(PALM_CROWNS)).override_failure_message("%s missing" % PALM_CROWNS).is_true()
+	if not ResourceLoader.exists(PALM_CROWNS):
+		return
+	var src := _rgba(PALM_SOURCE)
+	var crowns := _rgba(PALM_CROWNS)
+	assert_vector(Vector2(crowns.get_size())).is_equal(Vector2(src.get_size()))
+	var diff := ""
+	for y in src.get_height():
+		for x in src.get_width():
+			if diff != "":
+				break
+			var c := crowns.get_pixel(x, y)
+			var want := Color(0, 0, 0, 0)
+			if x >= 320 and not _alike(src.get_pixel(x, y), src.get_pixel(x - 320, y)):
+				want = src.get_pixel(x, y)
+			if not _alike(c, want):
+				diff = "differs first at (%d, %d)" % [x, y]
+	assert_str(diff).is_empty()
+
+func test_crown_over_bare_is_the_drawn_palm() -> void:
+	if not ResourceLoader.exists(PALMS) or not ResourceLoader.exists(PALM_CROWNS):
+		fail("palm sheets missing")
+		return
+	var palms := _rgba(PALMS)
+	var crowns := _rgba(PALM_CROWNS)
+	var diff := ""
+	for rect: Rect2i in BeachArt.PALM_SHAPES:
+		for y in range(rect.position.y, rect.end.y):
+			for x in range(rect.position.x, rect.end.x):
+				var c := crowns.get_pixel(x, y)
+				var drawn := c if c.a8 > 0 else palms.get_pixel(x - BeachArt.BARE_SHIFT, y)
+				if diff == "" and not _alike(drawn, palms.get_pixel(x, y)):
+					diff = "%s differs first at (%d, %d)" % [rect, x, y]
+	assert_str(diff).is_empty()
+
+func test_warm_shadow_on_dry_sand_is_c4805c() -> void:
+	assert_str(Color("#edb786").blend(Color("#78190e", 89.0 / 255.0)).to_html(false)).is_equal("c4805c")
+
+const COCONUTS := "res://assets/farming_101/beach/coconuts.png"
+const SHELLS := "res://assets/farming_101/beach/seashells.png"
+
+func test_coconut_and_shell_are_pack_crops() -> void:
+	_assert_crop("res://src/beach/props/coconut.tscn", COCONUTS, Rect2(3, 19, 10, 10), Vector2(-5, -10))
+	_assert_crop("res://src/beach/props/shellfish.tscn", SHELLS, Rect2(2, 2, 11, 12), Vector2(-5, -13))
+	for path in ["res://src/beach/props/coconut.tscn", "res://src/beach/props/shellfish.tscn"]:
+		var prop := auto_free((load(path) as PackedScene).instantiate()) as Node
+		assert_bool((prop.get_node("Sprite") as Sprite2D).centered).is_false()

@@ -1,6 +1,8 @@
 class_name PackPalette
 extends RefCounted
-## The game's palette: every colour of a fully opaque pixel in the pack sheets the game imports.
+## The Pixel Crawler palette: every colour of a fully opaque pixel in SHEETS. Our own repainted pieces, the HUD
+## and the man use only these. Farming 101 art keeps its own colours: a crop of a vendored sheet is checked as an
+## exact crop, and a sheet generated from one is checked pixel for pixel against its source and its named recolour.
 
 const SHEETS: Array[String] = [
 	"res://assets/pixel_crawler/Environment/Tilesets/Floors_Tiles.png",

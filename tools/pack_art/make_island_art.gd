@@ -15,6 +15,9 @@ const GROUND := [
 	[WATER, Vector2i(96, 192)],     # DEEP
 	[FLOORS, Vector2i(96, 160)],    # CLIFF
 ]
+const PALM_SOURCE := "res://assets/farming_101/beach/palm trees.png"
+const PALM_SHADOW := "#78190e"   # the pack's shadow #060608, warmed; same alpha
+const BARE_SHIFT := 320          # the bare palm group sits this far left of the brown-coconut group
 const SURF_EDGE := "#a3c8ee"
 const SURF := "#7baadb"
 ## Each piece: its grid, one string per row, "." transparent, and its legend of character -> colour.
@@ -169,7 +172,35 @@ func _init() -> void:
 	_save(_tiles(), "res://assets/beach/tiles.png")
 	for path: String in PIECES:
 		_save(_piece(PIECES[path]), path)
+	var palm_src := (load(PALM_SOURCE) as Texture2D).get_image()
+	palm_src.convert(Image.FORMAT_RGBA8)
+	_save(palms(palm_src), "res://assets/beach/palms.png")
+	_save(palm_crowns(palm_src), "res://assets/beach/palm_crowns.png")
 	quit()
+
+## The pack's palm sheet with every semi-transparent pixel (the shadows) recoloured PALM_SHADOW at its own alpha.
+static func palms(source: Image) -> Image:
+	var image := source.duplicate() as Image
+	for y in image.get_height():
+		for x in image.get_width():
+			var a := image.get_pixel(x, y).a8
+			if a > 0 and a < 255:
+				var warm := Color(PALM_SHADOW)
+				warm.a8 = a
+				image.set_pixel(x, y, warm)
+	return image
+
+## Same size as `source`: at x >= BARE_SHIFT, the source pixel wherever it differs from the one BARE_SHIFT to
+## its left; transparent everywhere else. Two pixels that are both alpha 0 never differ.
+static func palm_crowns(source: Image) -> Image:
+	var image := Image.create(source.get_width(), source.get_height(), false, Image.FORMAT_RGBA8)
+	for y in source.get_height():
+		for x in range(BARE_SHIFT, source.get_width()):
+			var here := source.get_pixel(x, y)
+			var bare := source.get_pixel(x - BARE_SHIFT, y)
+			if not (here.a8 == 0 and bare.a8 == 0) and here != bare:
+				image.set_pixel(x, y, here)
+	return image
 
 func _tiles() -> Image:
 	var tiles := Image.create(16 * GROUND.size(), 16, false, Image.FORMAT_RGBA8)
