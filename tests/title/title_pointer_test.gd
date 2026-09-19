@@ -97,3 +97,14 @@ func test_leaving_the_title_shows_the_pointer() -> void:
 	parent.remove_child(screen)
 	assert_bool(InputDevice.pointer.hidden).is_false()
 	parent.add_child(screen)
+
+func _words(unique: String) -> Color:
+	return (_plank(unique).get_node("Label/Words") as Label).get_theme_color("font_color")
+
+func test_the_highlighted_plank_has_ink_words_and_the_rest_cream() -> void:
+	assert_that(_words("NewGame")).is_equal(HudColours.INK)
+	assert_that(_words("Settings")).is_equal(HudColours.CREAM)
+	assert_that(_words("Quit")).is_equal(HudColours.CREAM)
+	_move_over(_plank("Quit"))
+	assert_that(_words("Quit")).is_equal(HudColours.INK)
+	assert_that(_words("NewGame")).is_equal(HudColours.CREAM)
