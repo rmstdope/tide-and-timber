@@ -70,6 +70,32 @@ func test_waves_match_the_drawing() -> void:
 				diff = "waves differ from the drawing first at (%d, %d)" % [x, y]
 	assert_str(diff).is_empty()
 
+func test_edge_tiles_are_sand_under_the_jungle_grass_edge() -> void:
+	var tiles := _rgba(TILES)
+	var floors := _rgba(FLOORS)
+	var diff := ""
+	for i in 3:
+		for y in 16:
+			for x in 16:
+				var kind := BeachLayout.Kind.JUNGLE if floors.get_pixel(16 + 16 * i + x, y).a8 == 255 else BeachLayout.Kind.SAND
+				var want := tiles.get_pixel(16 * kind + x, y)
+				if diff == "" and not _same(tiles.get_pixel(16 * (BeachLayout.EDGE_TILE + i) + x, y), want):
+					diff = "edge tile %d differs first at (%d, %d)" % [i, x, y]
+	assert_str(diff).is_empty()
+
+func test_edge_tiles_match_the_drawing() -> void:
+	var tiles := _rgba(TILES)
+	var drawn := _drawing("res://docs/ui/tr-cfq-beach/art/edge.png")
+	var diff := ""
+	for i in 3:
+		for y in 16:
+			for x in 16:
+				var d := drawn.get_pixel(16 * i + x, y)
+				var want := d if d.a8 > 0 else tiles.get_pixel(16 * BeachLayout.Kind.SAND + x, y)
+				if diff == "" and not _same(tiles.get_pixel(16 * (BeachLayout.EDGE_TILE + i) + x, y), want):
+					diff = "edge tile %d differs from the drawing first at (%d, %d)" % [i, x, y]
+	assert_str(diff).is_empty()
+
 func _assert_crop(scene_path: String, sheet: String, region: Rect2, offset: Vector2) -> void:
 	var prop := auto_free((load(scene_path) as PackedScene).instantiate()) as Node
 	var sprite := prop.get_node("Sprite") as Sprite2D

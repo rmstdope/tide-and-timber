@@ -37,7 +37,7 @@ func test_ground_matches_layout() -> void:
 	for y in BeachLayout.map_size().y:
 		for x in BeachLayout.map_size().x:
 			var cell := Vector2i(x, y)
-			if ground.get_cell_atlas_coords(cell) != Vector2i(BeachLayout.kind_at(cell), 0):
+			if ground.get_cell_atlas_coords(cell) != BeachLayout.tile_at(cell):
 				fail("ground at %s is %s" % [cell, ground.get_cell_atlas_coords(cell)])
 				return
 
