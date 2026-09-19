@@ -19,10 +19,10 @@ func test_box_fits() -> void:
 	for kind: DeviceTracker.Kind in [K.KEYBOARD, K.XBOX, K.PLAYSTATION, K.NINTENDO]:
 		for d: Controls.Device in D.values():
 			var ring_end := Screen.CENTRE.x + WaitingBox.hold_width(WaitingBox.hold_items(d, kind), font) / 2.0 + WaitingBox.RING_GAP + 10
-			assert_float(ring_end).is_less_equal(WaitingBox.PANEL.end.x - 4)
+			assert_float(ring_end).is_less_equal(WaitingBox.PANEL.end.x - WaitingBox.SIDE_PAD)
 	var texts: Array = Controls.NAMES.values() + [ControlsMenu.PRESS_KEY, ControlsMenu.PRESS_BUTTON]
 	for t: String in texts:
-		assert_float(_w(t)).override_failure_message(t).is_less_equal(WaitingBox.PANEL.size.x - 8)
+		assert_float(_w(t)).override_failure_message(t).is_less_equal(WaitingBox.PANEL.size.x - 2.0 * WaitingBox.SIDE_PAD)
 	assert_float(WaitingBox.PANEL.end.y).is_less_equal(Screen.HEIGHT)
 	assert_float(WaitingBox.HOLD_TOP + 10).is_less_equal(WaitingBox.PANEL.end.y - 4)
 
@@ -229,3 +229,7 @@ func test_no_rung_above_the_asked_for_size_is_drawn() -> void:
 				assert_float(l.rel).override_failure_message(case).is_less_equal(mult)
 				assert_float(l.rel).override_failure_message(case).is_greater_equal(1.0)
 				assert_bool(l.fits).override_failure_message(case).is_true()
+
+func test_the_box_is_the_knobbed_frame() -> void:
+	assert_bool(is_same(WaitingBox.FRAME_STYLE, load("res://src/hud/frame.tres"))).is_true()
+	assert_float(WaitingBox.SIDE_PAD).is_equal(BoxLayout.FRAME_EDGE)
