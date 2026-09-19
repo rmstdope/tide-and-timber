@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Running at the crab</title>
+<!-- Drawing for tr-1av. Open from the repository so the art paths resolve. -->
+<style>
+  :root { color-scheme: dark; }
+  body { background: #1d1a17; color: #ead9c0; font: 15px/1.5 system-ui, sans-serif; margin: 24px auto; max-width: 1296px; padding: 0 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; } p { color: #b9a88e; margin: 4px 0 14px; max-width: 80ch; }
+  canvas { image-rendering: pixelated; display: block; border: 1px solid #4a4035; width: 100%; max-width: 1280px; height: auto; }
+  #state { font: 13px ui-monospace, monospace; color: #d9b98a; margin-top: 6px; }
+</style>
+<h1>Running at it: he never stops</h1>
+<p>The man runs along the wet sand straight at the crab. He is faster than it can dig, so he reaches it with its claws still up. He passes over it, drawn in front, and is never stopped; it digs in once he is within two tiles as usual.</p>
+<canvas id="c" width="320" height="96"></canvas>
+<div id="state"></div>
+<p>Drawn four times the game's pixel size. The line under the picture is a note for you, not something the player sees. It loops every 18 seconds.</p>
+<script>window.V = {solid:false, path:"run"};</script>
+<script src="crab.js"></script>
