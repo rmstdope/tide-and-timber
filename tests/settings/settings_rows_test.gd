@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 const SCENE := "res://src/title/title_screen.tscn"
 const NO_SAVE := "user://test_saves/rows_none"   # never created
 const S := DisplayPrefs.Setting
-const ROWS := ["UiSize", "TextSize", "ColourCues", "Controls"]
+const ROWS := ["UiSize", "TextSize", "ColourCues", "Fullscreen", "Controls"]
 const LINE_UI := "Makes the clock, item bar, hints and menus bigger."
 
 var runner: GdUnitSceneRunner
@@ -81,19 +81,21 @@ func _highlighted(unique: String) -> void:
 			.override_failure_message("%s highlight wrong (want %s)" % [r, unique]).is_true()
 
 func _values() -> Array[String]:
-	return [_text("UiSize/Row/Value"), _text("TextSize/Row/Value"), _text("ColourCues/Row/Value")]
+	return [_text("UiSize/Row/Value"), _text("TextSize/Row/Value"), _text("ColourCues/Row/Value"),
+			_text("Fullscreen/Row/Value")]
 
-func test_four_rows_in_order_with_their_words() -> void:
+func test_five_rows_in_order_with_their_words() -> void:
 	await _open()
 	assert_str((board.get_node("%Heading") as Label).text).is_equal("Settings")
 	assert_str(_text("UiSize/Row/Label")).is_equal("UI size")
 	assert_str(_text("TextSize/Row/Label")).is_equal("Text size")
 	assert_str(_text("ColourCues/Row/Label")).is_equal("Colour cues")
+	assert_str(_text("Fullscreen/Row/Label")).is_equal("Fullscreen")
 	assert_str(_text("Controls/Row/Label")).is_equal("Controls")
 	for i in ROWS.size() - 1:
 		assert_float(_row(ROWS[i]).position.y).is_less(_row(ROWS[i + 1]).position.y)
 	assert_str(_text("Controls/Row/Arrow")).is_equal("›")
-	for r: String in ["UiSize", "TextSize", "ColourCues"]:
+	for r: String in ["UiSize", "TextSize", "ColourCues", "Fullscreen"]:
 		assert_str(_text(r + "/Row/Prev")).is_equal("◀")
 		assert_str(_text(r + "/Row/Next")).is_equal("▶")
 
@@ -101,7 +103,7 @@ func test_opens_on_ui_size_with_its_line() -> void:
 	await _open()
 	_highlighted("UiSize")
 	assert_str(_line_text()).is_equal(LINE_UI)
-	assert_array(_values()).is_equal(["Normal", "Normal", "Standard"])
+	assert_array(_values()).is_equal(["Normal", "Normal", "Standard", "Off"])
 
 func test_the_line_follows_the_highlight() -> void:
 	await _open()
@@ -109,6 +111,8 @@ func test_the_line_follows_the_highlight() -> void:
 	assert_str(_line_text()).is_equal("Makes every word bigger.")
 	await _tap(KEY_DOWN)
 	assert_str(_line_text()).is_equal("Adds shapes to warnings shown in colour.")
+	await _tap(KEY_DOWN)
+	assert_str(_line_text()).is_equal(board.line_for(SettingsMenu.Plank.FULLSCREEN))
 	await _tap(KEY_DOWN)
 	assert_str(_line_text()).is_equal("Change any key or controller button.")
 	await _tap(KEY_DOWN)
@@ -187,7 +191,7 @@ func test_pad_d_pad_and_stick_step_once_per_push() -> void:
 func test_enter_on_a_value_row_does_nothing() -> void:
 	await _open()
 	await _tap(KEY_ENTER)
-	assert_array(_values()).is_equal(["Normal", "Normal", "Standard"])
+	assert_array(_values()).is_equal(["Normal", "Normal", "Standard", "Off"])
 	_highlighted("UiSize")
 	assert_bool(board.visible).is_true()
 
@@ -196,7 +200,7 @@ func test_left_right_on_controls_do_nothing() -> void:
 	await _tap(KEY_UP)
 	await _tap(KEY_RIGHT)
 	await _tap(KEY_LEFT)
-	assert_array(_values()).is_equal(["Normal", "Normal", "Standard"])
+	assert_array(_values()).is_equal(["Normal", "Normal", "Standard", "Off"])
 	_highlighted("Controls")
 
 func test_clicking_arrows_steps_and_highlights() -> void:
@@ -244,6 +248,59 @@ func test_board_shows_the_prefs_it_opens_with() -> void:
 	p.step(S.CUES, 1)
 	Display.use_prefs(p)
 	await _open()
-	assert_array(_values()).is_equal(["Normal", "Largest", "Shapes"])
+	assert_array(_values()).is_equal(["Normal", "Largest", "Shapes", "Off"])
 	assert_that(_colour("TextSize/Row/Next")).is_equal(SettingsBoard.ARROW_DIM)
 	assert_that(_colour("ColourCues/Row/Next")).is_equal(SettingsBoard.ARROW_DIM)
+
+func _to_fullscreen() -> void:
+	await _open()
+	for i in 3:
+		await _tap(KEY_DOWN)
+	_highlighted("Fullscreen")
+
+func test_fullscreen_row_reads_off_with_left_arrow_dimmed() -> void:
+	await _to_fullscreen()
+	assert_str(_text("Fullscreen/Row/Value")).is_equal("Off")
+	assert_that(_colour("Fullscreen/Row/Prev")).is_equal(SettingsBoard.ARROW_DIM)
+	assert_that(_colour("Fullscreen/Row/Next")).is_equal(SettingsBoard.TEXT)
+	await _tap(KEY_LEFT)
+	assert_str(_text("Fullscreen/Row/Value")).is_equal("Off")
+	assert_bool(Display.prefs.fullscreen).is_false()
+
+func test_right_turns_it_on_and_dims_right() -> void:
+	await _to_fullscreen()
+	await _tap(KEY_RIGHT)
+	assert_str(_text("Fullscreen/Row/Value")).is_equal("On")
+	assert_bool(Display.prefs.fullscreen).is_true()
+	assert_that(_colour("Fullscreen/Row/Next")).is_equal(SettingsBoard.ARROW_DIM)
+	assert_that(_colour("Fullscreen/Row/Prev")).is_equal(SettingsBoard.TEXT)
+	_highlighted("Fullscreen")
+	await _tap(KEY_RIGHT)
+	assert_str(_text("Fullscreen/Row/Value")).is_equal("On")
+	await _tap(KEY_ENTER)
+	assert_bool(board.visible).is_true()
+	assert_bool(Display.prefs.fullscreen).is_true()
+
+func test_clicking_arrows_steps_it() -> void:
+	await _open()
+	_click(board.get_node("%Fullscreen/Row/Next") as Control)
+	_highlighted("Fullscreen")
+	assert_bool(Display.prefs.fullscreen).is_true()
+	_click(board.get_node("%Fullscreen/Row/Prev") as Control)
+	assert_bool(Display.prefs.fullscreen).is_false()
+	assert_str(_text("Fullscreen/Row/Value")).is_equal("Off")
+
+func test_line_names_the_shortcut_for_the_platform() -> void:
+	board.mac = true
+	assert_str(board.line_for(SettingsMenu.Plank.FULLSCREEN)).is_equal("Fills the whole screen. Cmd+Enter also switches.")
+	board.mac = false
+	assert_str(board.line_for(SettingsMenu.Plank.FULLSCREEN)).is_equal("Fills the whole screen. Alt+Enter also switches.")
+	assert_str(board.line_for(SettingsMenu.Plank.UI_SIZE)).is_equal(LINE_UI)
+	await _to_fullscreen()
+	assert_str(_line_text()).is_equal("Fills the whole screen. Alt+Enter also switches.")
+
+func test_the_controls_page_does_not_list_the_shortcut() -> void:
+	var page := board.get_node("%ControlsPage") as Node
+	for label: Node in page.find_children("*", "Label", true, false):
+		assert_str((label as Label).text).override_failure_message("%s lists it" % label.get_path()).not_contains("Fullscreen")
+		assert_str((label as Label).text).not_contains("Enter")

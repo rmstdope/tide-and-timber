@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 const TITLE := "res://src/title/title_screen.tscn"
 const NO_SAVE := "user://test_saves/text_size_none"   # never created
 const S := DisplayPrefs.Setting
-const PLANKS := ["UiSize", "TextSize", "ColourCues", "Controls"]
+const PLANKS := ["UiSize", "TextSize", "ColourCues", "Fullscreen", "Controls"]
 
 var runner: GdUnitSceneRunner
 var screen: TitleScreen
@@ -75,16 +75,17 @@ func test_large_text_rows_grow_side_by_side() -> void:
 	assert_bool(board.stacked).is_false()
 	assert_that(_node("UiSize").get_rect()).is_equal(Rect2(16, 32, 272, 20))
 	assert_that(_node("ColourCues").get_rect()).is_equal(Rect2(16, 80, 272, 20))
-	assert_that(_node("Controls").get_rect()).is_equal(Rect2(16, 104, 272, 20))
+	assert_that(_node("Fullscreen").get_rect()).is_equal(Rect2(16, 104, 272, 20))
+	assert_that(_node("Controls").get_rect()).is_equal(Rect2(16, 128, 272, 20))
 	assert_vector(_node("UiSize").get_node("Row/Value").get_combined_minimum_size()).is_equal(Vector2(96, 16))
 	assert_vector(_node("Heading").scale).is_equal(Vector2(1.5, 1.5))
 	var line := _node("Line")
 	assert_vector(line.scale).is_equal(Vector2(1.5, 1.5))
-	assert_vector(line.position).is_equal(Vector2(12, 132))
+	assert_vector(line.position).is_equal(Vector2(12, 156))
 	assert_float(line.size.y).is_equal(28.0)
-	# 182 tall, centred on the picture; it fits the 360-tall picture, so it does not scroll.
-	assert_that(board.rest_panel).is_equal(Rect2(SettingsBoard.BOARD_X, floorf((Screen.HEIGHT - 182.0) / 2.0),
-			SettingsBoard.BOARD_W, 182))
+	# 206 tall, centred on the picture; it fits the 360-tall picture, so it does not scroll.
+	assert_that(board.rest_panel).is_equal(Rect2(SettingsBoard.BOARD_X, floorf((Screen.HEIGHT - 206.0) / 2.0),
+			SettingsBoard.BOARD_W, 206))
 	assert_bool(board.scrolls).is_false()
 	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.UI_SIZE)
 

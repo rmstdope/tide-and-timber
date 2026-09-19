@@ -126,3 +126,17 @@ func test_while_the_box_waits_nothing_is_bound() -> void:
 	assert_bool(box.visible).is_true()
 	var slot := InputDevice.controls.slot(Controls.Action.WALK_UP, Controls.Device.KEYBOARD, 0) as InputEventKey
 	assert_int(slot.physical_keycode).is_equal(KEY_W)
+
+func test_on_the_settings_board_the_row_follows() -> void:
+	var screen := _title()
+	var board := screen.get_node("%SettingsBoard") as SettingsBoard
+	for key: Key in [KEY_DOWN, KEY_ENTER, KEY_DOWN, KEY_DOWN, KEY_DOWN]:   # Settings, then down to Fullscreen
+		await _send(key, true)
+		await _send(key, false)
+	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.FULLSCREEN)
+	await _alt_enter()
+	assert_bool(Display.prefs.fullscreen).is_true()
+	assert_str((board.get_node("%Fullscreen/Row/Value/Words") as Label).text).is_equal("On")
+	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.FULLSCREEN)
+	assert_bool(board.rules.is_open).is_true()
+	assert_bool(board.visible).is_true()

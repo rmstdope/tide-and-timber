@@ -24,9 +24,9 @@ color = Color(0.05, 0.04, 0.06, 0.45)
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 168.0
-offset_top = 111.0
+offset_top = 101.0
 offset_right = 472.0
-offset_bottom = 249.0
+offset_bottom = 259.0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_board")
 
@@ -34,7 +34,7 @@ theme_override_styles/panel = ExtResource("2_board")
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 304.0
-offset_bottom = 138.0
+offset_bottom = 158.0
 mouse_filter = 2
 clip_contents = true
 
@@ -42,7 +42,7 @@ clip_contents = true
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 304.0
-offset_bottom = 138.0
+offset_bottom = 158.0
 mouse_filter = 2
 
 [node name="Heading" type="Label" parent="Panel/Clip/Content"]
@@ -304,7 +304,7 @@ text = "▶"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Controls" type="PanelContainer" parent="Panel/Clip/Content"]
+[node name="Fullscreen" type="PanelContainer" parent="Panel/Clip/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 16)
 layout_mode = 0
@@ -312,6 +312,88 @@ offset_left = 52.0
 offset_top = 88.0
 offset_right = 252.0
 offset_bottom = 104.0
+focus_mode = 0
+mouse_filter = 0
+
+[node name="Row" type="HFlowContainer" parent="Panel/Clip/Content/Fullscreen"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+
+[node name="Pad" type="Control" parent="Panel/Clip/Content/Fullscreen/Row"]
+custom_minimum_size = Vector2(4, 12)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Control" parent="Panel/Clip/Content/Fullscreen/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(0, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/Fullscreen/Row/Label"]
+layout_mode = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "Fullscreen"
+vertical_alignment = 1
+
+[node name="Prev" type="Control" parent="Panel/Clip/Content/Fullscreen/Row"]
+layout_mode = 2
+mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/Fullscreen/Row/Prev"]
+layout_mode = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "◀"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Value" type="Control" parent="Panel/Clip/Content/Fullscreen/Row"]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_grown")
+normal_size = Vector2(64, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/Fullscreen/Row/Value"]
+layout_mode = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Next" type="Control" parent="Panel/Clip/Content/Fullscreen/Row"]
+layout_mode = 2
+mouse_filter = 0
+script = ExtResource("8_grown")
+normal_size = Vector2(12, 12)
+
+[node name="Words" type="Label" parent="Panel/Clip/Content/Fullscreen/Row/Next"]
+layout_mode = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.878431, 1)
+theme_override_font_sizes/font_size = 8
+text = "▶"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Controls" type="PanelContainer" parent="Panel/Clip/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 16)
+layout_mode = 0
+offset_left = 52.0
+offset_top = 108.0
+offset_right = 252.0
+offset_bottom = 124.0
 focus_mode = 0
 mouse_filter = 0
 
@@ -361,9 +443,9 @@ vertical_alignment = 1
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 12.0
-offset_top = 112.0
+offset_top = 132.0
 offset_right = 292.0
-offset_bottom = 130.0
+offset_bottom = 150.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.85098, 0.780392, 0.639216, 1)
 theme_override_constants/line_spacing = 2
@@ -375,7 +457,7 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 304.0
-offset_bottom = 138.0
+offset_bottom = 158.0
 mouse_filter = 2
 
 [node name="ControlsPage" parent="." instance=ExtResource("3_controls_page")]

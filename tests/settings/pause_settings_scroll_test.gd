@@ -86,8 +86,8 @@ func test_largest_pause_board_scrolls_to_controls_and_back() -> void:
 	_grow(2, 2)
 	await _open_settings()
 	assert_bool(board.scrolls).is_true()
-	# Plank bottoms in the content: 72, 120, 168, 216; content 280; the clip 113.
-	for step: Array in [[7, "TextSize"], [55, "ColourCues"], [167, "Controls"]]:
+	# Plank bottoms in the content: 72, 120, 168, 216; Controls with its line under the list ends 333, so 220; the clip 113.
+	for step: Array in [[7, "TextSize"], [55, "ColourCues"], [103, "Fullscreen"], [220, "Controls"]]:
 		await _tap(KEY_DOWN)
 		assert_int(board.offset).override_failure_message("at %s" % step[1]).is_equal(step[0])
 		assert_bool(_screen("Clip").encloses(_screen(step[1] as String))) \

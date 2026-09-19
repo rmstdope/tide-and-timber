@@ -72,14 +72,14 @@ func test_normal_board_does_not_scroll() -> void:
 	assert_bool(board.shows_mark_above()).is_false()
 	assert_bool(board.shows_mark_below()).is_false()
 	assert_that(_node("Panel").get_rect()).is_equal(_centred(SettingsBoard.BOARD_H))
-	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, 0, 304, 138))
+	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, 0, 304, 158))
 	assert_that(_node("Content").position).is_equal(Vector2.ZERO)
 
 func test_largest_title_board_opens_at_the_top() -> void:
 	_grow(2, 2)
 	_title()
 	await _open()
-	assert_that(board.rest_panel).is_equal(_centred(296))   # stacked, 296 tall: taller than the band
+	assert_that(board.rest_panel).is_equal(_centred(364))   # stacked, 364 tall: taller than the band
 	# Drawn at 2 about the picture's centre, the band's on-screen 2 .. strip - 2 is board y 91 .. 246.
 	assert_that(_node("Panel").get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, 91, SettingsBoard.BOARD_W, 155))
 	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, ScrollWindow.MARK_ROW, SettingsBoard.BOARD_W, 155 - 2 * ScrollWindow.MARK_ROW))
@@ -96,7 +96,7 @@ func test_moving_down_and_up_scrolls_to_the_highlight() -> void:
 	_title()
 	await _open()
 	assert_bool(board.scrolls).is_true()
-	# Content y of the planks: 28, 76, 124, 172 (44 tall); the clip is 135 tall; content 280, so at most 145.
+	# Content y of the planks: 28, 76, 124, 172, 220 (44 tall); the clip is 135 tall; content 348, so at most 213.
 	await _tap(KEY_DOWN)
 	assert_int(board.offset).is_equal(0)   # Text size is already wholly in the clip
 	assert_bool(board.shows_mark_above()).is_false()
@@ -107,10 +107,15 @@ func test_moving_down_and_up_scrolls_to_the_highlight() -> void:
 	assert_bool(board.shows_mark_above()).is_true()
 	assert_bool(_visible("ColourCues")).is_true()
 	await _tap(KEY_DOWN)
-	assert_int(board.offset).is_equal(145)   # Controls with the line under the list: the end of the content
+	assert_int(board.offset).is_equal(81)   # Fullscreen's bottom 216 - 135
+	assert_bool(_visible("Fullscreen")).is_true()
+	await _tap(KEY_DOWN)
+	assert_int(board.offset).is_equal(213)   # Controls with the line under the list: the end of the content
 	assert_bool(_visible("Controls")).is_true()
 	assert_bool(board.shows_mark_below()).is_false()
 	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.CONTROLS)
+	await _tap(KEY_UP)
+	assert_int(board.offset).is_equal(172)   # Fullscreen's top
 	await _tap(KEY_UP)
 	assert_int(board.offset).is_equal(124)   # Colour cues' top
 	await _tap(KEY_UP)
@@ -125,14 +130,13 @@ func test_large_title_board_scrolls_side_by_side() -> void:
 	_title()
 	await _open()
 	assert_bool(board.stacked).is_false()
-	assert_that(board.rest_panel).is_equal(_centred(182))
+	assert_that(board.rest_panel).is_equal(_centred(206))
 	# Drawn at 2: the band is board y 91 .. 250 (this strip sits 4 lower than the stacked board's).
 	assert_that(_node("Panel").get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, 91, SettingsBoard.BOARD_W, 159))
 	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, ScrollWindow.MARK_ROW, SettingsBoard.BOARD_W, 159 - 2 * ScrollWindow.MARK_ROW))
-	await _tap(KEY_DOWN)
-	await _tap(KEY_DOWN)
-	await _tap(KEY_DOWN)
-	assert_int(board.offset).is_equal(27)   # content 182 - 16 = 166, less the 139 clip
+	for i in 4:
+		await _tap(KEY_DOWN)
+	assert_int(board.offset).is_equal(51)   # content 206 - 16 = 190, less the 139 clip
 	assert_bool(board.shows_mark_above()).is_true()
 	assert_bool(board.shows_mark_below()).is_false()
 	assert_bool(_visible("Controls")).is_true()
@@ -175,7 +179,7 @@ func test_rows_are_clipped() -> void:
 	await _open()
 	var clip := _node("Clip")
 	assert_bool(clip.clip_contents).is_true()
-	for unique: String in ["Heading", "UiSize", "TextSize", "ColourCues", "Controls", "Line"]:
+	for unique: String in ["Heading", "UiSize", "TextSize", "ColourCues", "Fullscreen", "Controls", "Line"]:
 		assert_bool(clip.is_ancestor_of(_node(unique))) \
 			.override_failure_message("%s is not inside the clip" % unique).is_true()
 	assert_bool(clip.is_ancestor_of(_node("ControlsPage"))).is_false()

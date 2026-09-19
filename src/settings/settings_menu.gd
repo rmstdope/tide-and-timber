@@ -2,16 +2,17 @@ class_name SettingsMenu
 extends RefCounted
 ## The Settings board's rules, with no nodes: its planks and value rows, the one highlight, where it was opened from, and what a pick leads to.
 
-enum Plank { CONTROLS, UI_SIZE, TEXT_SIZE, COLOUR_CUES }
+enum Plank { CONTROLS, UI_SIZE, TEXT_SIZE, COLOUR_CUES, FULLSCREEN }
 enum Outcome { NONE, OPEN_CONTROLS, CLOSED, RESUME_PLAY }
 
 const SETTING_OF := {
 	Plank.UI_SIZE: DisplayPrefs.Setting.UI_SIZE,
 	Plank.TEXT_SIZE: DisplayPrefs.Setting.TEXT_SIZE,
 	Plank.COLOUR_CUES: DisplayPrefs.Setting.CUES,
+	Plank.FULLSCREEN: DisplayPrefs.Setting.FULLSCREEN,
 }
 
-var items: Array[Plank] = [Plank.UI_SIZE, Plank.TEXT_SIZE, Plank.COLOUR_CUES, Plank.CONTROLS]   # top to bottom
+var items: Array[Plank] = [Plank.UI_SIZE, Plank.TEXT_SIZE, Plank.COLOUR_CUES, Plank.FULLSCREEN, Plank.CONTROLS]   # top to bottom
 var is_open := false
 var from_pause := false                                  # opened from the Paused board, not the title
 var highlighted: Plank = Plank.UI_SIZE
