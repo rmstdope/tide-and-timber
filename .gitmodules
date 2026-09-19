@@ -1,3 +1,7 @@
 [submodule ".claude/cerebro"]
 	path = .claude/cerebro
 	url = https://github.com/rmstdope/cerebro.git
+[submodule "third_party/gd-agentic-skills"]
+	path = third_party/gd-agentic-skills
+	url = https://github.com/thedivergentai/gd-agentic-skills.git
+	update = none
