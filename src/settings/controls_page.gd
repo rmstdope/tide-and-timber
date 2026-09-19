@@ -1,10 +1,10 @@
 class_name ControlsPage
 extends Control
-## The Controls page: draws a ControlsMenu over the whole screen and turns input into its moves.
+## The Controls page: draws a ControlsMenu on a board in the knobbed frame and turns input into its moves.
 ## Instanced by settings_board.tscn.
 ## At a scale where its rows no longer fit across the screen, every row goes onto two lines: the name, then its slots.
-## When its content is taller than the screen above its strip, it scrolls to the highlighted row, with ▲ / ▼ where content is hidden.
-## Its words grow with Text size; the tabs, rows and list grow around them, and the lines under the list break at spaces once they would pass the screen's edges.
+## When its board is taller than the room above its strip, the board spans that room and the content scrolls to the highlighted row inside the rim, with ▲ / ▼ where content is hidden.
+## Its words grow with Text size; the tabs, rows, list and board grow around them, and the lines under the list break at spaces once they would pass the board's room.
 ## At the largest sizes, Down on the Reset row reads on through the lines under the list, one line a push, before it wraps to the top.
 
 signal closed              # Back or Leave: the board takes input again on Controls
@@ -12,7 +12,7 @@ signal resume_requested    # Start or Leave-after-Start, opened from the pause b
 
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
-const BACKGROUND := Color("#2c1d16")
+const BOARD_STYLE := HudFrame.STYLE   # the shared knobbed frame the page's board is drawn with
 const TEXT := Color("#fff6e0")
 const QUIET := HudColours.DIM         # the fixed line and an ordinary empty slot's dash
 const ORANGE := HudColours.WARN       # a dash in a row with no key on this tab, and the no-key line
@@ -44,6 +44,7 @@ var rules: ControlsMenu
 var offset := 0                          # whole units the content is scrolled up; 0 while it fits. Owned by frame().
 var scrolls := false                     # the content is not wholly inside the band; derived by frame(), never set elsewhere
 var view := Rect2(Vector2.ZERO, Screen.SIZE)   # where content shows, in page units; the whole page while it fits
+var board := Rect2()   # where the board is drawn, in page units; set by frame(), never elsewhere
 var stacked := false                     # derived by _restack, never set elsewhere; always layout.stacked
 var layout := ControlsLayout.make(false, 1.0, 1.0)   # where every word, tab, row and slot goes; derived by _restack
 var strip: MenuStrip
@@ -74,8 +75,8 @@ func _ready() -> void:
 			_refresh())
 	gui_input.connect(_on_gui_input)
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
-	InputDevice.changed.connect(queue_redraw)
-	Display.changed.connect(queue_redraw)
+	InputDevice.changed.connect(_redraw)
+	Display.changed.connect(_redraw)
 	Display.changed.connect(_restack_later)
 	get_tree().root.size_changed.connect(_restack_later)
 	Display.changed.connect(_fit_box)
@@ -83,6 +84,7 @@ func _ready() -> void:
 	Display.changed.connect(_frame_box_later)
 	get_tree().root.size_changed.connect(_frame_box_later)
 	_box_panel().get_node("Marks").draw.connect(_draw_box_marks)
+	(%ViewContent as Control).draw.connect(_draw_content)
 	_fit_box()
 	_refresh()
 
@@ -146,7 +148,7 @@ func _restack() -> void:
 	if ui != layout.ui or rel != layout.rel:   # Display.changed already queued a redraw; a second would draw twice
 		layout = ControlsLayout.make(ControlsLayout.stacks(ui, rel), rel, ui)
 		stacked = layout.stacked
-		queue_redraw()
+		_redraw()
 	if rules.is_open:   # a size or window change re-follows the highlight even when stacked did not change
 		_frame()
 
@@ -193,21 +195,25 @@ func shift() -> float:
 func to_page(point: Vector2) -> Vector2:
 	return point + Vector2(0, shift())
 
-## Decides whether the content scrolls in the band [band_top, band_bottom] (page units), sets view and
-## follows the highlighted row. Reads stacked and rules.row; sets offset, scrolls and view.
+## Decides whether the board fits the band [band_top, band_bottom] (page units) or the content scrolls, sets board and view and follows the highlighted row. Reads stacked and rules.row; sets offset, scrolls, board and view.
 func frame(band_top: float, band_bottom: float) -> void:
 	var was_scrolls := scrolls
 	var was_offset := offset
 	var was_view := view
+	var was_board := board
 	var bottom := layout.content_bottom()
-	if CONTENT_TOP >= band_top and bottom <= band_bottom:
+	var rest := layout.board_rect()
+	if rest.position.y >= band_top and rest.end.y <= band_bottom:
 		scrolls = false
 		offset = 0
+		board = rest
 		view = Rect2(Vector2.ZERO, Screen.SIZE)
 	else:
 		scrolls = true
-		view = Rect2(0, band_top + ScrollWindow.MARK_ROW, Screen.WIDTH,
-				band_bottom - band_top - 2.0 * ScrollWindow.MARK_ROW)
+		board = Rect2(rest.position.x, band_top, rest.size.x, band_bottom - band_top)
+		var inset := HudFrame.RIM + ScrollWindow.MARK_ROW
+		view = Rect2(board.position.x + HudFrame.RIM, band_top + inset,
+				board.size.x - 2.0 * HudFrame.RIM, band_bottom - band_top - 2.0 * inset)
 		var content := bottom - CONTENT_TOP
 		if rules.row == ControlsMenu.RESET_ROW:
 			# Clamped, never followed: landing shows the row from its top, and a read-down offset is kept.
@@ -222,8 +228,20 @@ func frame(band_top: float, band_bottom: float) -> void:
 			# A third, so a row taller than the view still shows its highlighted slot.
 			var c := layout.slot_rect(rules.row, rules.slot)
 			offset = ScrollWindow.follow(content, view.size.y, c.position.y - CONTENT_TOP, c.end.y - CONTENT_TOP, offset)
-	if scrolls != was_scrolls or offset != was_offset or view != was_view:
-		queue_redraw()   # only on a change: _refresh redraws anyway, and _restack must not draw twice
+	_place_view()
+	if scrolls != was_scrolls or offset != was_offset or view != was_view or board != was_board:
+		_redraw()   # only on a change: _refresh redraws anyway, and _restack must not draw twice
+
+# The clip follows view, and the content under it stays in page units.
+func _place_view() -> void:
+	(%View as Control).position = view.position
+	(%View as Control).size = view.size
+	(%ViewContent as Control).position = -view.position
+
+# The page and the content it clips, redrawn together: the board and the marks are the page's, everything else the content's.
+func _redraw() -> void:
+	queue_redraw()
+	(%ViewContent as Control).queue_redraw()
 
 ## True while ▲ is drawn.
 func shows_mark_above() -> bool:
@@ -233,11 +251,12 @@ func shows_mark_above() -> bool:
 func shows_mark_below() -> bool:
 	return scrolls and ScrollWindow.hidden_below(offset, layout.content_bottom() - CONTENT_TOP, view.size.y)
 
-# Frames against the page's band on screen. With no tree or strip yet the band is unknown, so the content's
+# Frames against the page's band on screen. With no tree or strip yet the band is unknown, so the board's
 # own extent is passed and the page is left unscrolled rather than scrolled against a band that is not the real one.
 func _frame() -> void:
 	if not is_inside_tree() or strip == null:
-		frame(CONTENT_TOP, layout.content_bottom())
+		var rest := layout.board_rect()
+		frame(rest.position.y, rest.end.y)
 		return
 	var b := ScrollWindow.band(get_global_transform_with_canvas(), strip.screen_top())
 	frame(b.x, b.y)
@@ -481,30 +500,46 @@ func _refresh() -> void:
 	if box_up:
 		_frame_box()
 	_box_was_up = box_up
-	queue_redraw()
+	_redraw()
 
 func _exit_tree() -> void:
 	InputDevice.set_menu_open(self, false)
 
+# The board, and the marks in the rows just outside the view. The content is drawn by _draw_content on %ViewContent.
 func _draw() -> void:
 	if rules == null or not rules.is_open:
 		return
-	draw_rect(Rect2(Vector2.ZERO, Screen.SIZE), BACKGROUND)
-	draw_set_transform(Vector2(0, shift()))
-	_centred_words("Controls", Screen.CENTRE.x, layout.heading_baseline, TEXT)
+	draw_style_box(BOARD_STYLE, board)
+	if not scrolls:
+		return
+	# The mark rows sit just outside the view, one MARK_ROW deep above it and one below, inside the rim.
+	var rows := Rect2(view.position - Vector2(0, ScrollWindow.MARK_ROW),
+			view.size + Vector2(0, 2.0 * ScrollWindow.MARK_ROW))
+	if shows_mark_above():
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, true), true)
+	if shows_mark_below():
+		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, false), false)
+
+# Everything the view shows, drawn on %ViewContent in page units so %View clips what is scrolled out.
+func _draw_content() -> void:
+	if rules == null or not rules.is_open:
+		return
+	var c: Control = %ViewContent
+	c.draw_set_transform(Vector2(0, shift()))
+	_centred_words(c, "Controls", Screen.CENTRE.x, layout.heading_baseline, TEXT)
 	for i in layout.tab_count():
 		var rect := layout.tab_rect(i)
-		draw_style_box(PLANK_HIGHLIGHT_STYLE if rules.device == i else PLANK_STYLE, rect)
-		_centred_words(TAB_NAMES[i], rect.get_center().x, layout.tab_baseline(i), Plate.words(rules.device == i))
+		c.draw_style_box(PLANK_HIGHLIGHT_STYLE if rules.device == i else PLANK_STYLE, rect)
+		_centred_words(c, TAB_NAMES[i], rect.get_center().x, layout.tab_baseline(i), Plate.words(rules.device == i))
 	var keyboard := rules.device == Controls.Device.KEYBOARD
 	var kind := DeviceTracker.Kind.KEYBOARD if keyboard else pad_kind()
 	for r in ControlsMenu.ROWS:
 		if r == rules.row:
-			draw_style_box(PLANK_HIGHLIGHT_STYLE, layout.row_rect(r))
+			c.draw_style_box(PLANK_HIGHLIGHT_STYLE, layout.row_rect(r))
 		var lines := layout.name_lines(r, rules.device)
 		var origin := layout.name_origin(r)
 		for j in lines.size():
-			_words(lines[j], Vector2(layout.name_x(lines[j]), origin.y + j * layout.name_step()),
+			_words(c, lines[j], Vector2(layout.name_x(lines[j]), origin.y + j * layout.name_step()),
 					Plate.words(r == rules.row))
 		if r == ControlsMenu.RESET_ROW:
 			continue
@@ -514,51 +549,40 @@ func _draw() -> void:
 			var e := rules.controls.slot(r as Controls.Action, rules.device, s)
 			if e != null:
 				var p := DeviceHints.picture_for(e, kind)
-				HintLine.draw_picture(self, p, (centre - Vector2(HintLine.picture_width(p) / 2.0, 4.5)).round())
+				HintLine.draw_picture(c, p, (centre - Vector2(HintLine.picture_width(p) / 2.0, 4.5)).round())
 			else:
 				var orange := rules.is_orange(r)
 				var mark := empty_slot_mark(orange, Display.prefs.cues)
-				_glyphs(mark, empty_slot_at(cell, mark, layout.rel), ORANGE if orange else QUIET)
+				_glyphs(c, mark, empty_slot_at(cell, mark, layout.rel), ORANGE if orange else QUIET)
 			if r == rules.row and s == rules.slot:
-				draw_rect(cell, SLOT_OUTLINE, false, 1.0)
+				c.draw_rect(cell, SLOT_OUTLINE, false, 1.0)
 	if rules.no_key_line != "":
-		_lines(layout.fit_lines(ControlsLayout.word_lines(rules.no_key_line)), layout.no_key_baseline(), ORANGE)
+		_lines(c, layout.fit_lines(ControlsLayout.word_lines(rules.no_key_line)), layout.no_key_baseline(), ORANGE)
 	if keyboard:
-		_lines(layout.fit_lines(ControlsLayout.keyboard_lines()), layout.fixed_baseline(), QUIET)
+		_lines(c, layout.fit_lines(ControlsLayout.keyboard_lines()), layout.fixed_baseline(), QUIET)
 	else:
 		var a := DeviceHints.picture_for(pad_button(JOY_BUTTON_A), kind)
 		var b := DeviceHints.picture_for(pad_button(JOY_BUTTON_B), kind)
-		_lines(layout.fit_lines(ControlsLayout.controller_lines(a, b)), layout.fixed_baseline(), QUIET)
-	draw_set_transform(Vector2.ZERO)
-	if not scrolls:
-		return
-	draw_rect(Rect2(0, 0, Screen.WIDTH, view.position.y), BACKGROUND)                   # covers content scrolled above the view
-	draw_rect(Rect2(0, view.end.y, Screen.WIDTH, Screen.HEIGHT - view.end.y), BACKGROUND)       # and below it, strip gap included
-	# The mark rows sit just outside the view, one MARK_ROW deep above it and one below.
-	var rows := Rect2(view.position - Vector2(0, ScrollWindow.MARK_ROW),
-			view.size + Vector2(0, 2.0 * ScrollWindow.MARK_ROW))
-	if shows_mark_above():
-		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, true), true)
-	if shows_mark_below():
-		ScrollWindow.draw_mark(self, ScrollWindow.mark_centre(rows, false), false)
+		_lines(c, layout.fit_lines(ControlsLayout.controller_lines(a, b)), layout.fixed_baseline(), QUIET)
+	c.draw_set_transform(Vector2.ZERO)
 
 # Words with their baseline-left at `at`, grown by layout.rel; the scroll shift is restored after.
-func _words(text: String, at: Vector2, colour: Color) -> void:
-	draw_set_transform(at + Vector2(0, shift()), 0.0, Vector2.ONE * layout.rel)
-	draw_string(ControlsLayout.FONT, Vector2.ZERO, text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, colour)
-	draw_set_transform(Vector2(0, shift()))
+func _words(c: Control, text: String, at: Vector2, colour: Color) -> void:
+	c.draw_set_transform(at + Vector2(0, shift()), 0.0, Vector2.ONE * layout.rel)
+	c.draw_string(ControlsLayout.FONT, Vector2.ZERO, text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, colour)
+	c.draw_set_transform(Vector2(0, shift()))
 
 # Glyphs with their top-left at `at`, grown by layout.rel.
-func _glyphs(text: String, at: Vector2, colour: Color) -> void:
-	draw_set_transform(at + Vector2(0, shift()), 0.0, Vector2.ONE * layout.rel)
-	Glyphs.draw(self, text, Vector2.ZERO, colour)
-	draw_set_transform(Vector2(0, shift()))
+func _glyphs(c: Control, text: String, at: Vector2, colour: Color) -> void:
+	c.draw_set_transform(at + Vector2(0, shift()), 0.0, Vector2.ONE * layout.rel)
+	Glyphs.draw(c, text, Vector2.ZERO, colour)
+	c.draw_set_transform(Vector2(0, shift()))
 
-func _centred_words(text: String, centre_x: float, baseline: float, colour: Color) -> void:
-	_words(text, Vector2(roundf(centre_x - ceilf(ControlsLayout.width(text) * layout.rel) / 2.0), baseline), colour)
+func _centred_words(c: Control, text: String, centre_x: float, baseline: float, colour: Color) -> void:
+	_words(c, text, Vector2(roundf(centre_x - ceilf(ControlsLayout.width(text) * layout.rel) / 2.0), baseline), colour)
 
 # Lines of items (words and button pictures), each centred on the picture, the first baseline at `first`.
-func _lines(lines: Array, first: float, colour: Color) -> void:
+func _lines(c: Control, lines: Array, first: float, colour: Color) -> void:
 	for j in lines.size():
 		var line: Array = lines[j]
 		var y := first + j * layout.line_step()
@@ -567,9 +591,9 @@ func _lines(lines: Array, first: float, colour: Color) -> void:
 			if k > 0:
 				x += ControlsLayout.gap(line[k - 1], line[k], layout.rel)
 			if line[k] is DeviceHints.Picture:
-				HintLine.draw_picture(self, line[k], Vector2(x, y - 8))
+				HintLine.draw_picture(c, line[k], Vector2(x, y - 8))
 			else:
-				_words(line[k], Vector2(x, y), colour)
+				_words(c, line[k], Vector2(x, y), colour)
 			x += ControlsLayout.item_width(line[k], layout.rel)
 
 static func pad_button(index: JoyButton) -> InputEventJoypadButton:

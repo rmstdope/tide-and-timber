@@ -68,10 +68,42 @@ func _largest() -> void:
 	_size(2)
 	_text(2)
 
-# The view the page's band gives: the band less a mark row at each end.
+# The view the page's band gives: inside the board's rim, less a mark row at each end.
 func _band_view() -> Rect2:
 	var b := ScrollWindow.band(page.get_global_transform_with_canvas(), page.strip.screen_top())
-	return Rect2(0, b.x + ScrollWindow.MARK_ROW, Screen.WIDTH, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW)
+	var inset := HudFrame.RIM + ScrollWindow.MARK_ROW
+	return Rect2(page.board.position.x + HudFrame.RIM, b.x + inset,
+			page.board.size.x - 2.0 * HudFrame.RIM, b.y - b.x - 2.0 * inset)
+
+func test_normal_page_sits_on_its_board() -> void:
+	await _open_page()
+	await _settle()
+	assert_that(page.board).is_equal(page.layout.board_rect())
+	assert_that((page.get_node("%View") as Control).position).is_equal(Vector2.ZERO)
+	assert_that((page.get_node("%View") as Control).size).is_equal(Screen.SIZE)
+	assert_that((page.get_node("%ViewContent") as Control).position).is_equal(Vector2.ZERO)
+
+func test_largest_board_spans_the_band_and_the_view_sits_inside_the_rim() -> void:
+	_largest()
+	await _open_page()
+	await _settle()
+	var b := ScrollWindow.band(page.get_global_transform_with_canvas(), page.strip.screen_top())
+	var rest := page.layout.board_rect()
+	assert_that(page.board).is_equal(Rect2(rest.position.x, b.x, rest.size.x, b.y - b.x))
+	assert_that(page.view).is_equal(_band_view())
+	assert_bool(page.board.grow(-HudFrame.RIM).encloses(page.view)).is_true()
+	var v := page.get_node("%View") as Control
+	assert_that(Rect2(v.position, v.size)).is_equal(page.view)
+	assert_that((page.get_node("%ViewContent") as Control).position).is_equal(-page.view.position)
+
+func test_the_page_scrolls_when_its_board_does_not_fit() -> void:
+	await _open_page()
+	await _settle()
+	page.frame(ControlsPage.CONTENT_TOP, page.layout.content_bottom())
+	assert_bool(page.scrolls).is_true()   # the content fits, the board does not
+	page.frame(ControlsPage.CONTENT_TOP - 8.0, page.layout.content_bottom() + 8.0)
+	assert_bool(page.scrolls).is_false()
+	assert_int(page.offset).is_equal(0)
 
 func _span() -> Vector2i:
 	return ControlsPage.reset_span(page.layout, page.view.size.y)
@@ -311,6 +343,7 @@ func test_an_unknown_band_leaves_the_page_unscrolled() -> void:
 	assert_bool(page.scrolls).is_false()
 	assert_int(page.offset).is_equal(0)
 	assert_that(page.view).is_equal(Rect2(Vector2.ZERO, Screen.SIZE))
+	assert_that(page.board).is_equal(page.layout.board_rect())
 
 # --- the bottom of the page when it does not all fit (controls-bottom c) ---
 
