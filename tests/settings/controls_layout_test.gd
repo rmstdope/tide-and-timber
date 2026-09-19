@@ -66,21 +66,21 @@ func test_stacked_rows_at_text_normal_are_todays() -> void:
 func test_lines_under_the_list_at_large_ui() -> void:
 	var l := ControlsLayout.make(true, 1.0, 3.0)
 	assert_int(l.no_key_lines).is_equal(1)
-	assert_int(l.fixed_lines).is_equal(2)
+	assert_int(l.fixed_lines).is_equal(3)
 	assert_float(l.no_key_baseline()).is_equal(236.0 + O.y)
 	assert_float(l.fixed_baseline()).is_equal(246.0 + O.y)
-	assert_float(l.content_bottom()).is_equal(255.0 + O.y)
+	assert_float(l.content_bottom()).is_equal(264.0 + O.y)
 	assert_array(_words(l.fit_lines(ControlsLayout.keyboard_lines()))).is_equal(
-		[["Menus", "always", "use", "the", "arrow"], ["keys,", "Enter", "and", "Esc"]])
+		[["Menus", "always", "use", "the"], ["arrow", "keys,", "Enter", "and"], ["Esc"]])
 
 # UI 4: what UI Largest (2) was on the 320-wide picture.
 func test_lines_under_the_list_wrap_at_largest_ui() -> void:
 	var l := ControlsLayout.make(true, 1.0, 4.0)
 	assert_int(l.no_key_lines).is_equal(2)
 	assert_int(l.fixed_lines).is_equal(3)
-	assert_float(l.no_key_baseline()).is_equal(236.0 + O.y)
-	assert_float(l.fixed_baseline()).is_equal(255.0 + O.y)
-	assert_float(l.content_bottom()).is_equal(273.0 + O.y)
+	assert_float(l.no_key_baseline()).is_equal(341.0 + O.y)
+	assert_float(l.fixed_baseline()).is_equal(360.0 + O.y)
+	assert_float(l.content_bottom()).is_equal(378.0 + O.y)
 	assert_array(_words(l.fit_lines(ControlsLayout.keyboard_lines()))).is_equal(
 		[["Menus", "always", "use"], ["the", "arrow", "keys,"], ["Enter", "and", "Esc"]])
 	var controller := l.fit_lines(ControlsLayout.controller_lines(_xbox(JOY_BUTTON_A), _xbox(JOY_BUTTON_B)))
@@ -89,16 +89,15 @@ func test_lines_under_the_list_wrap_at_largest_ui() -> void:
 	assert_float(ControlsLayout.line_width(controller[1], 1.0)).is_equal(134.0)
 	assert_array(_words(l.fit_lines(ControlsLayout.word_lines("Walk right has no key")))).is_equal(
 		[["Walk", "right", "has", "no"], ["key"]])
-	assert_that(l.row_extent(0)).is_equal(Vector2(0, 47))
-	assert_that(l.row_extent(8)).is_equal(Vector2(201, 270))
+	assert_that(l.row_extent(0)).is_equal(Vector2(0, 72))
+	assert_that(l.row_extent(8)).is_equal(Vector2(296, 375))
 
 func test_stacks_measures_grown_names() -> void:
-	# The rows and their margins just fit across the picture at this UI scale (2.19...).
-	var fit := Screen.WIDTH / (ControlsPage.LIST_W + 2.0 * ControlsPage.SCREEN_MARGIN)
 	assert_bool(ControlsLayout.stacks(1.0, 1.0)).is_false()
 	assert_bool(ControlsLayout.stacks(2.0, 1.0)).is_false()   # UI Largest alone never stacks
-	assert_bool(ControlsLayout.stacks(fit, 1.0)).is_false()
-	assert_bool(ControlsLayout.stacks(fit + 0.01, 1.0)).is_true()
+	# the list and EDGE each side just fit the widest board
+	assert_bool(ControlsLayout.stacks(2.07, 1.0)).is_false()
+	assert_bool(ControlsLayout.stacks(2.08, 1.0)).is_true()
 	assert_bool(ControlsLayout.stacks(1.0, 1.25)).is_false()
 	assert_bool(ControlsLayout.stacks(1.0, 1.5)).is_true()
 
@@ -172,3 +171,60 @@ func test_grown_hit_and_tabs() -> void:
 func test_empty_slot_grows_about_the_dash() -> void:
 	assert_that(ControlsPage.empty_slot_at(Rect2(96, 71, 60, 9), "—", 2.0)).is_equal(Vector2(124, 72))
 	assert_that(ControlsPage.empty_slot_at(Rect2(96, 71, 60, 9), "! —", 2.0)).is_equal(Vector2(108, 72))
+
+func test_board_cap_and_room() -> void:
+	assert_float(ControlsLayout.board_cap(1.0)).is_equal(636.0)
+	assert_float(ControlsLayout.board_cap(2.0)).is_equal(316.0)
+	assert_float(ControlsLayout.room(2.0)).is_equal(300.0)
+	assert_float(ControlsLayout.room(1.0)).is_equal(620.0)
+	assert_float(ControlsLayout.EDGE).is_equal(HudFrame.RIM + 2.0)
+
+func test_normal_board_lies_where_the_settings_board_does() -> void:
+	var l := ControlsLayout.make(false, 1.0, 1.0)
+	assert_that(l.board_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, ControlsPage.CONTENT_TOP - 8.0,
+			SettingsBoard.BOARD_W, ControlsPage.CONTENT_H + 16.0))
+	assert_that(l.board_rect()).is_equal(Rect2(164, 95, 312, 169))
+	assert_float(l.widest).is_equal(ControlsPage.LIST_W)
+
+func test_board_grows_around_wide_lines() -> void:
+	var l := ControlsLayout.make(true, 2.0, 1.0)
+	assert_float(l.widest).is_greater_equal(ControlsLayout.line_width(ControlsLayout.keyboard_lines()[0], 2.0))
+	assert_float(l.board_rect().size.x).is_equal(l.widest + 2.0 * ControlsLayout.BOARD_PAD)
+	assert_float(absf(l.board_rect().get_center().x - Screen.CENTRE.x)).is_less_equal(0.5)
+
+func test_board_stops_at_the_page_edge() -> void:
+	var l := ControlsLayout.make(true, 2.0, 2.0)
+	assert_float(l.board_rect().size.x).is_equal(ControlsLayout.board_cap(2.0))
+	assert_float(l.list_w).is_less_equal(ControlsLayout.room(2.0))
+	for line: Array in l.fit_lines(ControlsLayout.keyboard_lines()):
+		assert_float(ControlsLayout.line_width(line, 2.0)).is_less_equal(ControlsLayout.room(2.0))
+
+func _inside(inner: Rect2, x: float, w: float) -> void:
+	assert_float(x).is_greater_equal(inner.position.x)
+	assert_float(x + w).is_less_equal(inner.end.x)
+
+func _lines_inside(l: ControlsLayout, inner: Rect2, lines: Array) -> void:
+	for line: Array in l.fit_lines(lines):
+		var w := ControlsLayout.line_width(line, l.rel)
+		_inside(inner, roundf(Screen.CENTRE.x - w / 2.0), w)
+
+func test_nothing_lies_under_the_rim(ui: float, rel: float, test_parameters := [[1.0, 1.0], [1.0, 1.5],
+		[1.0, 2.0], [1.5, 1.0], [1.5, 2.0], [2.0, 1.0], [2.0, 1.5], [2.0, 2.0], [3.0, 1.0], [4.0, 1.0]]) -> void:
+	var l := ControlsLayout.make(ControlsLayout.stacks(ui, rel), rel, ui)
+	var inner := l.board_rect().grow(-HudFrame.RIM)
+	for i in l.tab_count():
+		_inside(inner, l.tab_rect(i).position.x, l.tab_rect(i).size.x)
+	for r in ControlsMenu.ROWS:
+		_inside(inner, l.row_rect(r).position.x, l.row_rect(r).size.x)
+	_lines_inside(l, inner, ControlsLayout.keyboard_lines())
+	_lines_inside(l, inner, ControlsLayout.controller_lines(_xbox(JOY_BUTTON_A), _xbox(JOY_BUTTON_B)))
+	for a: int in Controls.Action.values():
+		_lines_inside(l, inner, ControlsLayout.word_lines(ControlsMenu.HAS_NO_KEY % Controls.NAMES[a]))
+	if l.stacked:
+		for r in ControlsMenu.ROWS:
+			for device: Controls.Device in [D.KEYBOARD, D.CONTROLLER]:
+				for line: String in l.name_lines(r, device):
+					_inside(inner, l.name_x(line), ceilf(ControlsLayout.width(line) * rel))
+	assert_float(l.board_rect().size.x).is_less_equal(ControlsLayout.board_cap(ui))
+	assert_float(l.board_rect().position.y).is_equal(ControlsPage.CONTENT_TOP - 8.0)
+	assert_float(l.board_rect().end.y).is_equal(l.content_bottom() + 8.0)

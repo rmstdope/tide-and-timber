@@ -109,14 +109,15 @@ func _down_to_next_row() -> void:
 
 # --- pure ---
 
-# UI 4: what UI Largest (2) was on the 320-wide picture; extents are from the content's top, so unchanged.
+# UI 4: what UI Largest (2) was on the 320-wide picture; extents are from the content's top. The stacked list is
+# the board's room (140) wide, so the Reset controller name takes three lines and the rows are 32 tall.
 func test_content_bottom_and_row_extent() -> void:
 	var stacked := ControlsLayout.make(true, 1.0, 4.0)
-	assert_float(stacked.content_bottom()).is_equal(273.0 + ControlsPage.TOP_SHIFT)
+	assert_float(stacked.content_bottom()).is_equal(378.0 + ControlsPage.TOP_SHIFT)
 	assert_float(ControlsLayout.make(false, 1.0, 1.0).content_bottom()).is_equal(ControlsPage.CONTENT_TOP + ControlsPage.CONTENT_H)
-	assert_that(stacked.row_extent(0)).is_equal(Vector2(0, 47))
-	assert_that(stacked.row_extent(1)).is_equal(Vector2(47, 69))
-	assert_that(stacked.row_extent(8)).is_equal(Vector2(201, 270))
+	assert_that(stacked.row_extent(0)).is_equal(Vector2(0, 72))
+	assert_that(stacked.row_extent(1)).is_equal(Vector2(72, 104))
+	assert_that(stacked.row_extent(8)).is_equal(Vector2(296, 375))
 	assert_that(ControlsLayout.make(false, 1.0, 1.0).row_extent(3)).is_equal(Vector2(58, 69))
 
 # --- title ---
@@ -316,8 +317,8 @@ func test_an_unknown_band_leaves_the_page_unscrolled() -> void:
 # UI 4 and Text Largest at UI 2: what UI Largest and Text Largest at UI Normal were on the 320-wide picture.
 # Spans are in content units, from the content's top, so unchanged.
 func test_reset_span_and_read_on() -> void:
-	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 54)).is_equal(Vector2i(201, 216))
-	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 32)).is_equal(Vector2i(201, 238))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 54)).is_equal(Vector2i(296, 321))
+	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 1.0, 4.0), 32)).is_equal(Vector2i(296, 343))
 	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 2.0, 2.0), 100)).is_equal(Vector2i(345, 370))
 	assert_that(ControlsPage.reset_span(ControlsLayout.make(true, 2.0, 2.0), 200)).is_equal(Vector2i(270, 270))
 	assert_that(ControlsPage.reset_span(ControlsLayout.make(false, 1.0, 1.0), Screen.HEIGHT)).is_equal(Vector2i(0, 0))

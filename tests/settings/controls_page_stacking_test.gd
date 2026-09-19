@@ -98,11 +98,11 @@ func _motion(control: Control, at: Vector2) -> void:
 # --- pure ---
 
 func test_stacks_at() -> void:
-	var fit := Screen.WIDTH / (ControlsPage.LIST_W + 2.0 * ControlsPage.SCREEN_MARGIN)   # 2.19...
 	assert_bool(ControlsPage.stacks_at(1.0)).is_false()
 	assert_bool(ControlsPage.stacks_at(2.0)).is_false()   # UI Largest alone never stacks
-	assert_bool(ControlsPage.stacks_at(fit)).is_false()
-	assert_bool(ControlsPage.stacks_at(fit + 0.01)).is_true()
+	# the list and EDGE each side just fit the widest board
+	assert_bool(ControlsPage.stacks_at(2.07)).is_false()
+	assert_bool(ControlsPage.stacks_at(2.08)).is_true()
 	assert_bool(ControlsPage.stacks_at(1.0, 1.5)).is_true()   # Text Large does
 
 func test_stacked_rows_and_slots() -> void:
