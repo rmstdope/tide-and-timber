@@ -28,12 +28,13 @@ props, set the 2D editor's grid step to 16x16 with offset (8, 0).
 
 - **Driftwood and shellfish are in saves.** A save lists the pieces the player took by cell.
   Moving or deleting one makes existing saves that took it fail to load (`Beach.can_restore`), so
-  do that only together with a save migration. Adding new pieces is safe.
+  do that only together with a save migration. Adding new pieces is safe for saves; add their cells to the literal lists in
+  `test_takeable_props_stay_where_saves_expect_them` too.
 - **The layout tests pin rules a layout must keep**: `tests/beach/beach_layout_test.gd` checks
   that props stand on walkable ground, both headlands can be reached, shellfish lie on wet sand, and
   so on; `test_takeable_props_stay_where_saves_expect_them` pins every driftwood and shellfish cell,
-and `test_painted_map_starts_at_the_origin` fails if anything is painted left of or above (0, 0).
-A deliberate terrain change may need their sample cells updated.
+  and `test_painted_map_starts_at_the_origin` fails if anything is painted left of or above (0, 0).
+  A deliberate terrain change may need their sample cells updated.
 
 ## Reading a layout change in review
 
