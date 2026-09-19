@@ -5,7 +5,7 @@ extends Control
 signal closed              # Esc / B: the pause board takes input again on Debug
 signal resume_requested    # Start, or a row's RESUME: the pause board resumes play
 
-const BOARD_STYLE := preload("res://src/pause/board.tres")
+const BOARD_STYLE := HudFrame.STYLE
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
 const PANEL_RECT := Rect2(Screen.WIDTH - 144.0, 0, 144, 164)   # flush with the right edge

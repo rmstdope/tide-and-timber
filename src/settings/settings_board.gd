@@ -11,10 +11,10 @@ signal resume_requested    # the Pause input, opened from the pause board: the o
 
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
-const BOARD_X := (Screen.WIDTH - 304.0) / 2.0   # the board centred; 304 is BOARD_W
-const BOARD_W := 304.0
+const BOARD_W := 312.0
+const BOARD_X := (Screen.WIDTH - BOARD_W) / 2.0   # the board centred
 const BOARD_H := 158.0          # heading, five rows, the two-line explaining line, bottom margin
-const PLANK_X := 52.0           # rows centred: (304 - 200) / 2
+const PLANK_X := 56.0           # rows centred: (312 - 200) / 2
 const PLANK_TOP := 28.0
 const PLANK_STEP := 20.0
 const PLANK_SIZE := Vector2(200, 16)
@@ -22,8 +22,8 @@ const ARROW_DIM := Color(0.627451, 0.501961, 0.376471, 1)   # #a08060, an end's 
 const FONT_SIZE := 8
 const LINE_SPACING := 2.0          # %Line's theme line_spacing
 const SCREEN_MARGIN := 2.0         # kept clear at each side of the screen, in board units
-const PANEL_SIDE := 4.0            # panel edge to a stacked plank
-const LINE_SIDE := 12.0            # panel edge to the line under the list
+const PANEL_SIDE := 8.0            # panel edge to a stacked plank: the rim (6) and 2
+const LINE_SIDE := 16.0            # panel edge to the line under the list
 const LINE_GAP := 8.0              # last plank's bottom to the line's top
 const BOTTOM_MARGIN := 8.0         # the line's bottom to the panel's bottom
 const PLANK_GAP := 4.0             # the gap below each plank (PLANK_STEP - PLANK_SIZE.y)
@@ -183,7 +183,8 @@ func frame(band_top: float, band_bottom: float) -> void:
 		(%Content as Control).position = Vector2.ZERO
 	else:
 		scrolls = true
-		var view_h := band_h - 2.0 * ScrollWindow.MARK_ROW
+		var inset := HudFrame.RIM + ScrollWindow.MARK_ROW
+		var view_h := band_h - 2.0 * inset
 		var e := _item_extent(rules.highlighted)
 		offset = ScrollWindow.follow(_content_height(), view_h, e.x, e.y, offset)
 		# The plank itself is made wholly visible, in case its extent was taller than the view.
@@ -192,11 +193,11 @@ func frame(band_top: float, band_bottom: float) -> void:
 				p.position.y - HEADING_TOP, p.position.y + p.size.y - HEADING_TOP, offset)
 		%Panel.position = Vector2(rest_panel.position.x, band_top)
 		%Panel.size = Vector2(w, band_h)
-		(%Clip as Control).position = Vector2(0, ScrollWindow.MARK_ROW)
+		(%Clip as Control).position = Vector2(0, inset)
 		(%Clip as Control).size = Vector2(w, view_h)
 		(%Content as Control).position = Vector2(0, -(HEADING_TOP + offset))
-	(%Marks as Control).position = Vector2.ZERO
-	(%Marks as Control).size = (%Panel as Control).size
+	(%Marks as Control).position = Vector2(0, HudFrame.RIM)
+	(%Marks as Control).size = (%Panel as Control).size - Vector2(0, 2.0 * HudFrame.RIM)
 	%Marks.queue_redraw()
 
 ## True while ▲ is drawn: scrolling, with content hidden above.
@@ -227,7 +228,7 @@ func _frame() -> void:
 	frame(b.x, b.y)
 
 ## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
-## mark row kept at the panel's top or bottom.
+## mark row kept just inside the rim at the panel's top or bottom.
 func mark_centre(up: bool) -> Vector2:
 	return ScrollWindow.mark_centre(Rect2(Vector2.ZERO, (%Marks as Control).size), up)
 

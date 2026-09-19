@@ -86,7 +86,10 @@ func test_dev_tag_shows_on_the_board() -> void:
 	var tag := _node("DevTag") as Control
 	assert_bool(tag.is_visible_in_tree()).is_true()
 	assert_str(DevTag.WORD).is_equal("DEV")
-	assert_bool((_node("Panel") as Control).get_global_rect().encloses(tag.get_global_rect())).is_true()
+	# Inside the board and clear of its rim: the rim is RIM board units, s screen units each.
+	var board := _node("Panel") as Control
+	var s := board.get_global_transform().get_scale().x
+	assert_bool(board.get_global_rect().grow(-HudFrame.RIM * s).encloses(tag.get_global_rect())).is_true()
 
 func test_enter_on_debug_opens_the_panel_on_time() -> void:
 	await _open_panel()
