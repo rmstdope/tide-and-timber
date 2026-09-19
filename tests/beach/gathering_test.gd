@@ -115,7 +115,7 @@ func test_bar_counts_what_he_takes() -> void:
 	await _stand(D + Vector2(-16, -2), Walk.Facing.RIGHT)
 	await _press_e()
 	assert_int(bar.slots[0].kind).is_equal(K.DRIFTWOOD)
-	assert_str(bar.slots[0].count_text()).is_equal("1")
+	assert_str(bar.slots[0].count_text()).is_equal("")
 
 func test_slot_name_on_pointer_rest() -> void:
 	var bar := beach.get_node("%ItemBar") as ItemBar

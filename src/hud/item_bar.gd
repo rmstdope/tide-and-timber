@@ -6,6 +6,8 @@ const PLANK_SIZE := Vector2(141, 22)    # 8 * 17 + 5
 const GROUP := &"item_bar"               # HintLift finds the drawn bar through it
 const TOP := Screen.HEIGHT - 23.0       # the plank's top, 23 above the bottom of the picture
 const NAME_HEIGHT := 13.0               # the name plank's Normal height
+const SLOT_AT := Vector2(7, 6)          # slot 0's top-left
+const SLOT_STEP := 24.0                 # from one slot's left edge to the next
 const NAME_BOTTOM := -6.0               # its bottom edge above the bar, whatever its height
 
 var slots: Array[ItemSlot] = []
@@ -21,7 +23,7 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	for i in Inventory.SLOT_COUNT:
 		var slot := ItemSlot.new()
-		slot.position = Vector2(3 + i * 17, 3)
+		slot.position = SLOT_AT + Vector2(i * SLOT_STEP, 0)
 		slot.mouse_entered.connect(_on_slot_entered.bind(i))
 		slot.mouse_exited.connect(_on_slot_exited.bind(i))
 		add_child(slot)
@@ -76,7 +78,7 @@ func _show_name(i: int) -> void:
 	var h := NAME_HEIGHT + TextScale.extra(HintLine.FONT_SIZE, rel)
 	name_label.scale = Vector2.ONE * rel
 	name_plank.size = Vector2(w, h)
-	var centre := 3 + i * 17 + 8
+	var centre := SLOT_AT.x + i * SLOT_STEP + ItemSlot.SIZE.x / 2.0
 	var half := Screen.WIDTH / 2.0 / _scale()
 	var left := Screen.WIDTH / 2.0 - half + 2 - position.x
 	var right := Screen.WIDTH / 2.0 + half - 2 - position.x - w
