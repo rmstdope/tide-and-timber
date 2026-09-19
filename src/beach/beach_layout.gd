@@ -4,19 +4,50 @@ extends RefCounted
 
 enum Kind { JUNGLE, SAND, WET_SAND, FOAM, SHALLOWS, DEEP, CLIFF }   # also the x of each tile in tiles.png
 const TILE := 16
-const MAP_SIZE := Vector2i(184, 26)
+const _MAP_SIZE := Vector2i(184, 26)
 const SPAWN_CELL := Vector2i(92, 11)
-const PALMS: Array[Vector2i] = [Vector2i(20, 9), Vector2i(33, 9), Vector2i(47, 9), Vector2i(58, 9), Vector2i(71, 9), Vector2i(84, 9), Vector2i(101, 9), Vector2i(113, 9), Vector2i(126, 9), Vector2i(139, 9), Vector2i(150, 9), Vector2i(163, 9)]
-const ROCKS: Array[Vector2i] = [Vector2i(26, 12), Vector2i(40, 13), Vector2i(55, 11), Vector2i(66, 14), Vector2i(78, 12), Vector2i(99, 13), Vector2i(108, 11), Vector2i(121, 14), Vector2i(134, 12), Vector2i(147, 13), Vector2i(158, 11)]
-const BOULDERS: Array[Vector2i] = [Vector2i(17, 10), Vector2i(17, 15), Vector2i(62, 10), Vector2i(118, 10), Vector2i(166, 10), Vector2i(166, 15)]
-const DRIFTWOOD: Array[Vector2i] = [Vector2i(30, 13), Vector2i(69, 12), Vector2i(88, 13), Vector2i(130, 13), Vector2i(155, 12),
+const _PALMS: Array[Vector2i] = [Vector2i(20, 9), Vector2i(33, 9), Vector2i(47, 9), Vector2i(58, 9), Vector2i(71, 9), Vector2i(84, 9), Vector2i(101, 9), Vector2i(113, 9), Vector2i(126, 9), Vector2i(139, 9), Vector2i(150, 9), Vector2i(163, 9)]
+const _ROCKS: Array[Vector2i] = [Vector2i(26, 12), Vector2i(40, 13), Vector2i(55, 11), Vector2i(66, 14), Vector2i(78, 12), Vector2i(99, 13), Vector2i(108, 11), Vector2i(121, 14), Vector2i(134, 12), Vector2i(147, 13), Vector2i(158, 11)]
+const _BOULDERS: Array[Vector2i] = [Vector2i(17, 10), Vector2i(17, 15), Vector2i(62, 10), Vector2i(118, 10), Vector2i(166, 10), Vector2i(166, 15)]
+const _DRIFTWOOD: Array[Vector2i] = [Vector2i(30, 13), Vector2i(69, 12), Vector2i(88, 13), Vector2i(130, 13), Vector2i(155, 12),
 	Vector2i(19, 12), Vector2i(23, 12), Vector2i(37, 13), Vector2i(44, 13), Vector2i(50, 12), Vector2i(53, 13), Vector2i(61, 13),
 	Vector2i(64, 13), Vector2i(74, 12), Vector2i(80, 13), Vector2i(107, 13), Vector2i(111, 13), Vector2i(116, 12), Vector2i(124, 13),
 	Vector2i(137, 13), Vector2i(142, 12), Vector2i(152, 13), Vector2i(161, 12), Vector2i(164, 12)]
-const SHELLFISH: Array[Vector2i] = [Vector2i(24, 14), Vector2i(51, 14), Vector2i(75, 14), Vector2i(96, 14), Vector2i(116, 14), Vector2i(143, 14), Vector2i(160, 14)]
-const SPRINGS: Array[Vector2i] = [Vector2i(96, 9)]
-const BUSHES: Array[Vector2i] = [Vector2i(14, 8), Vector2i(27, 8), Vector2i(40, 8), Vector2i(52, 8), Vector2i(65, 8), Vector2i(77, 8), Vector2i(90, 8), Vector2i(106, 8), Vector2i(119, 8), Vector2i(132, 8), Vector2i(145, 8), Vector2i(157, 8), Vector2i(170, 8), Vector2i(5, 14), Vector2i(178, 14)]
-const TUFTS: Array[Vector2i] = [Vector2i(22, 8), Vector2i(46, 8), Vector2i(71, 8), Vector2i(98, 8), Vector2i(125, 8), Vector2i(151, 8), Vector2i(9, 11), Vector2i(175, 11)]
+const _SHELLFISH: Array[Vector2i] = [Vector2i(24, 14), Vector2i(51, 14), Vector2i(75, 14), Vector2i(96, 14), Vector2i(116, 14), Vector2i(143, 14), Vector2i(160, 14)]
+const _SPRINGS: Array[Vector2i] = [Vector2i(96, 9)]
+const _BUSHES: Array[Vector2i] = [Vector2i(14, 8), Vector2i(27, 8), Vector2i(40, 8), Vector2i(52, 8), Vector2i(65, 8), Vector2i(77, 8), Vector2i(90, 8), Vector2i(106, 8), Vector2i(119, 8), Vector2i(132, 8), Vector2i(145, 8), Vector2i(157, 8), Vector2i(170, 8), Vector2i(5, 14), Vector2i(178, 14)]
+const _TUFTS: Array[Vector2i] = [Vector2i(22, 8), Vector2i(46, 8), Vector2i(71, 8), Vector2i(98, 8), Vector2i(125, 8), Vector2i(151, 8), Vector2i(9, 11), Vector2i(175, 11)]
+
+static func map_size() -> Vector2i:
+	return _MAP_SIZE
+
+static func palms() -> Array[Vector2i]:
+	return _PALMS
+
+static func rocks() -> Array[Vector2i]:
+	return _ROCKS
+
+static func boulders() -> Array[Vector2i]:
+	return _BOULDERS
+
+static func driftwood() -> Array[Vector2i]:
+	return _DRIFTWOOD
+
+static func shellfish() -> Array[Vector2i]:
+	return _SHELLFISH
+
+static func springs() -> Array[Vector2i]:
+	return _SPRINGS
+
+static func bushes() -> Array[Vector2i]:
+	return _BUSHES
+
+static func tufts() -> Array[Vector2i]:
+	return _TUFTS
+
+## The cell whose cell_base is `base`: the inverse of cell_base, for any base inside the cell.
+static func cell_of_base(base: Vector2) -> Vector2i:
+	return Vector2i(floori(base.x / TILE), ceili(base.y / TILE) - 1)
 
 static func kind_at(cell: Vector2i) -> Kind:
 	if cell.y <= 8:
@@ -52,4 +83,4 @@ static func cell_base(cell: Vector2i) -> Vector2:
 
 ## The whole painted map in px, its origin at (0, 0): the rectangle the view may never leave.
 static func world_rect() -> Rect2:
-	return Rect2(Vector2.ZERO, Vector2(MAP_SIZE * TILE))
+	return Rect2(Vector2.ZERO, Vector2(map_size() * TILE))

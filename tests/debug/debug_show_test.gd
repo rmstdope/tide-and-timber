@@ -68,7 +68,7 @@ func test_readout_lines_draw_in_glyphs() -> void:
 
 func test_cells_in_clamps_to_the_map() -> void:
 	assert_object(DebugShow.cells_in(Rect2(-10, -10, 40, 20))).is_equal(Rect2i(0, 0, 2, 1))
-	assert_object(DebugShow.cells_in(Rect2(2900, 400, 320, 180)).end).is_equal(BeachLayout.MAP_SIZE)
+	assert_object(DebugShow.cells_in(Rect2(2900, 400, 320, 180)).end).is_equal(BeachLayout.map_size())
 
 func test_tile_edges_outline_a_solid_block() -> void:
 	var solid := func(c: Vector2i) -> bool: return c == Vector2i(1, 1) or c == Vector2i(2, 1)
@@ -85,7 +85,7 @@ func test_tile_edges_outline_a_solid_block() -> void:
 
 func test_tile_edges_off_map_neighbour_is_open() -> void:
 	var solid := func(c: Vector2i) -> bool: \
-		return c == Vector2i.ZERO or not Rect2i(Vector2i.ZERO, BeachLayout.MAP_SIZE).has_point(c)   # off-map asks true; the guard must ignore it
+		return c == Vector2i.ZERO or not Rect2i(Vector2i.ZERO, BeachLayout.map_size()).has_point(c)   # off-map asks true; the guard must ignore it
 	assert_int(DebugShow.tile_edges(Rect2i(0, 0, 1, 1), solid).size()).is_equal(8)
 
 func test_solid_rects_include_shapes_under_world() -> void:

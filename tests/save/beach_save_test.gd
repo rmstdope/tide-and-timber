@@ -35,14 +35,14 @@ func test_fresh_beach_captures_nothing_taken() -> void:
 	assert_int(d.player_facing).is_equal(Walk.Facing.DOWN)
 
 func test_taken_prop_is_captured() -> void:
-	_take(beach, Beach.DRIFTWOOD, BeachLayout.DRIFTWOOD[2])
+	_take(beach, Beach.DRIFTWOOD, BeachLayout.driftwood()[2])
 	var d := beach.capture()
-	assert_array(d.taken["driftwood"]).is_equal([BeachLayout.DRIFTWOOD[2]])
+	assert_array(d.taken["driftwood"]).is_equal([BeachLayout.driftwood()[2]])
 	assert_dict(d.inventory_slots[0]).is_equal({"kind": Item.Kind.DRIFTWOOD, "count": 1})
 
 func test_restore_into_a_fresh_beach() -> void:
-	_take(beach, Beach.DRIFTWOOD, BeachLayout.DRIFTWOOD[1])
-	_take(beach, Beach.SHELLFISH, BeachLayout.SHELLFISH[0])
+	_take(beach, Beach.DRIFTWOOD, BeachLayout.driftwood()[1])
+	_take(beach, Beach.SHELLFISH, BeachLayout.shellfish()[0])
 	_player(beach).global_position = Vector2(400, 200)
 	_player(beach).facing = Walk.Facing.UP
 	var data := beach.capture()
@@ -54,8 +54,8 @@ func test_restore_into_a_fresh_beach() -> void:
 	assert_array(again.inventory_slots).is_equal(data.inventory_slots)
 	assert_dict(again.taken).is_equal(data.taken)
 	await await_idle_frame()
-	assert_int(_count(b, "driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size() - 1)
-	assert_int(_count(b, "shellfish.tscn")).is_equal(BeachLayout.SHELLFISH.size() - 1)
+	assert_int(_count(b, "driftwood.tscn")).is_equal(BeachLayout.driftwood().size() - 1)
+	assert_int(_count(b, "shellfish.tscn")).is_equal(BeachLayout.shellfish().size() - 1)
 
 func test_restore_refuses_unknown_prop_or_cell_unchanged() -> void:
 	var none: Array[Vector2i] = []
@@ -70,12 +70,12 @@ func test_restore_refuses_unknown_prop_or_cell_unchanged() -> void:
 		assert_vector(_player(beach).global_position).is_equal(BeachLayout.cell_centre(BeachLayout.SPAWN_CELL))
 		assert_int(beach.inventory.slot_kind(0)).is_equal(Inventory.EMPTY)
 		await await_idle_frame()
-		assert_int(_count(beach, "driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
+		assert_int(_count(beach, "driftwood.tscn")).is_equal(BeachLayout.driftwood().size())
 
 func test_restore_refuses_bad_inventory_unchanged() -> void:
 	var data := beach.capture()
 	data.player_position = Vector2(400, 200)
-	var cells: Array[Vector2i] = [BeachLayout.DRIFTWOOD[0]]
+	var cells: Array[Vector2i] = [BeachLayout.driftwood()[0]]
 	data.taken = {"driftwood": cells}
 	var twice: Array[Dictionary] = [{"kind": Item.Kind.DRIFTWOOD, "count": 1}, {"kind": Item.Kind.DRIFTWOOD, "count": 2}, {}, {}, {}, {}, {}, {}]
 	data.inventory_slots = twice
@@ -83,7 +83,7 @@ func test_restore_refuses_bad_inventory_unchanged() -> void:
 	assert_vector(_player(beach).global_position).is_equal(BeachLayout.cell_centre(BeachLayout.SPAWN_CELL))
 	assert_int(beach.inventory.slot_kind(0)).is_equal(Inventory.EMPTY)
 	await await_idle_frame()
-	assert_int(_count(beach, "driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
+	assert_int(_count(beach, "driftwood.tscn")).is_equal(BeachLayout.driftwood().size())
 
 func test_restore_does_not_raise_a_gain_line() -> void:
 	var data := beach.capture()
@@ -105,7 +105,7 @@ func _empty_slots(n: int) -> Array[Dictionary]:
 	return slots
 
 func test_can_restore() -> void:
-	var first: Array[Vector2i] = [BeachLayout.DRIFTWOOD[0]]
+	var first: Array[Vector2i] = [BeachLayout.driftwood()[0]]
 	var none: Array[Vector2i] = []
 	var origin: Array[Vector2i] = [Vector2i(0, 0)]
 	assert_bool(Beach.can_restore(_data(_empty_slots(8), {"driftwood": first, "shellfish": none}))).is_true()

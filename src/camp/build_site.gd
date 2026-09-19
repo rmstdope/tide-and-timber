@@ -66,14 +66,14 @@ static func footprint_rect(cells: Array[Vector2i]) -> Rect2:
 ## Vector2i -> true for every palm and rock cell, and every cell a boulder or the spring's base covers.
 static func prop_cells() -> Dictionary:
 	var cells := {}
-	for c in BeachLayout.PALMS:
+	for c in BeachLayout.palms():
 		cells[c] = true
-	for c in BeachLayout.ROCKS:
+	for c in BeachLayout.rocks():
 		cells[c] = true
-	for spring in BeachLayout.SPRINGS:    # its 28x10 base spans the cells either side
+	for spring in BeachLayout.springs():    # its 28x10 base spans the cells either side
 		for x in range(spring.x - 1, spring.x + 2):
 			cells[Vector2i(x, spring.y)] = true
-	for b in BeachLayout.BOULDERS:
+	for b in BeachLayout.boulders():
 		for y in range(b.y - 1, b.y + 1):
 			for x in range(b.x - 1, b.x + 2):
 				cells[Vector2i(x, y)] = true

@@ -111,8 +111,8 @@ func test_camp_constants_agree_with_building() -> void:
 	assert_float(FireLife.out_at(1170.0)).is_equal(StoryPoints.FIRE_OUT_AT)
 	var seen := {}
 	for cell in StoryPoints.DRIFTWOOD_BY_NIGHT:
-		assert_bool(cell in BeachLayout.DRIFTWOOD).is_true()
+		assert_bool(cell in BeachLayout.driftwood()).is_true()
 		seen[cell] = true
 	assert_int(seen.size()).is_equal(StoryPoints.DRIFTWOOD_BY_NIGHT.size())
 	for cell in StoryPoints.SHELLFISH_TAKEN:
-		assert_bool(cell in BeachLayout.SHELLFISH).is_true()
+		assert_bool(cell in BeachLayout.shellfish()).is_true()

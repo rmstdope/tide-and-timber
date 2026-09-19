@@ -11,7 +11,7 @@ var beach: Beach
 var player: Player
 var camera: LooseCamera
 var inventory: Inventory
-var D := BeachLayout.cell_base(BeachLayout.DRIFTWOOD[2])
+var D := BeachLayout.cell_base(BeachLayout.driftwood()[2])
 
 func before_test() -> void:
 	runner = scene_runner(SCENE)

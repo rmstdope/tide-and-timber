@@ -34,8 +34,8 @@ func test_wakes_in_the_middle_facing_down_still() -> void:
 
 func test_ground_matches_layout() -> void:
 	var ground := beach.get_node("%Ground") as TileMapLayer
-	for y in BeachLayout.MAP_SIZE.y:
-		for x in BeachLayout.MAP_SIZE.x:
+	for y in BeachLayout.map_size().y:
+		for x in BeachLayout.map_size().x:
 			var cell := Vector2i(x, y)
 			if ground.get_cell_atlas_coords(cell) != Vector2i(BeachLayout.kind_at(cell), 0):
 				fail("ground at %s is %s" % [cell, ground.get_cell_atlas_coords(cell)])
@@ -43,20 +43,20 @@ func test_ground_matches_layout() -> void:
 
 func test_props_are_placed() -> void:
 	var world := beach.get_node("%World")
-	assert_int(_count(world, "palm.tscn")).is_equal(BeachLayout.PALMS.size())
-	assert_int(_count(world, "rock.tscn")).is_equal(BeachLayout.ROCKS.size())
-	assert_int(_count(world, "boulder.tscn")).is_equal(BeachLayout.BOULDERS.size())
-	assert_int(_count(world, "spring.tscn")).is_equal(BeachLayout.SPRINGS.size())
-	assert_int(_count(beach.get_node("%Decor"), "driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
-	var base := BeachLayout.cell_base(BeachLayout.PALMS[0])
+	assert_int(_count(world, "palm.tscn")).is_equal(BeachLayout.palms().size())
+	assert_int(_count(world, "rock.tscn")).is_equal(BeachLayout.rocks().size())
+	assert_int(_count(world, "boulder.tscn")).is_equal(BeachLayout.boulders().size())
+	assert_int(_count(world, "spring.tscn")).is_equal(BeachLayout.springs().size())
+	assert_int(_count(beach.get_node("%Decor"), "driftwood.tscn")).is_equal(BeachLayout.driftwood().size())
+	var base := BeachLayout.cell_base(BeachLayout.palms()[0])
 	assert_bool(world.get_children().any(func(n: Node) -> bool:
 		return n.scene_file_path.ends_with("palm.tscn") and (n as Node2D).position == base)).is_true()
 
 func test_vegetation_is_placed() -> void:
 	var decor := beach.get_node("%Decor")
-	assert_int(_count(decor, "bush.tscn")).is_equal(BeachLayout.BUSHES.size())
-	assert_int(_count(decor, "tuft.tscn")).is_equal(BeachLayout.TUFTS.size())
-	var at := BeachLayout.cell_base(BeachLayout.BUSHES[0])
+	assert_int(_count(decor, "bush.tscn")).is_equal(BeachLayout.bushes().size())
+	assert_int(_count(decor, "tuft.tscn")).is_equal(BeachLayout.tufts().size())
+	var at := BeachLayout.cell_base(BeachLayout.bushes()[0])
 	assert_bool(_from(decor, "bush.tscn").any(func(n: Node) -> bool: return (n as Node2D).position == at)).is_true()
 
 func test_tall_things_sort_with_him() -> void:

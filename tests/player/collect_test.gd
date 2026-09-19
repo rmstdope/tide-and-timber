@@ -20,7 +20,7 @@ func _sprite() -> AnimatedSprite2D:
 	return player.get_node("%Sprite") as AnimatedSprite2D
 
 func _driftwood() -> Vector2:
-	return BeachLayout.cell_base(BeachLayout.DRIFTWOOD[2])
+	return BeachLayout.cell_base(BeachLayout.driftwood()[2])
 
 func _stand(at: Vector2, facing: Walk.Facing) -> void:
 	player.global_position = at

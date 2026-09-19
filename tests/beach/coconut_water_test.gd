@@ -9,10 +9,10 @@ var player: Player
 var camera: LooseCamera
 var inventory: Inventory
 var prompt: UsePrompt
-var P := BeachLayout.cell_base(BeachLayout.PALMS[6])
-var R := BeachLayout.cell_base(BeachLayout.ROCKS[5])
-var B := BeachLayout.cell_base(BeachLayout.BOULDERS[3])
-var W := BeachLayout.cell_base(BeachLayout.SPRINGS[0])
+var P := BeachLayout.cell_base(BeachLayout.palms()[6])
+var R := BeachLayout.cell_base(BeachLayout.rocks()[5])
+var B := BeachLayout.cell_base(BeachLayout.boulders()[3])
+var W := BeachLayout.cell_base(BeachLayout.springs()[0])
 
 func before_test() -> void:
 	runner = scene_runner(SCENE)
@@ -67,7 +67,7 @@ func test_crack_at_rock_turns_coconut_into_shell() -> void:
 	assert_int(inventory.count(K.EMPTY_SHELL)).is_equal(1)
 	assert_str(_rising()).is_equal("+1 Empty shell")
 	assert_bool(prompt.visible).is_false()
-	assert_int(_count(beach.get_node("%World"), "rock.tscn")).is_equal(BeachLayout.ROCKS.size())
+	assert_int(_count(beach.get_node("%World"), "rock.tscn")).is_equal(BeachLayout.rocks().size())
 
 func test_crack_at_boulder_uses_one_of_several() -> void:
 	inventory.add(K.COCONUT, 3)
