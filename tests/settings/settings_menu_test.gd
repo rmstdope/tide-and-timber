@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## The Settings board's rules: three value rows and Controls, where it was opened from, Back, Start and the Controls seam.
+## The Settings board's rules: four value rows and Controls, where it was opened from, Back, Start and the Controls seam.
 
 const P := SettingsMenu.Plank
 const O := SettingsMenu.Outcome
@@ -26,13 +26,37 @@ func test_open_twice_changes_nothing() -> void:
 	assert_bool(m.open(false)).is_false()
 	assert_bool(m.from_pause).is_true()
 
-func test_move_goes_down_the_four_rows_and_wraps() -> void:
+func test_items_are_five_with_fullscreen_before_controls() -> void:
+	assert_array(m.items).is_equal([P.UI_SIZE, P.TEXT_SIZE, P.COLOUR_CUES, P.FULLSCREEN, P.CONTROLS])
+
+func test_opens_on_ui_size() -> void:
+	m.open(true)
+	assert_int(m.highlighted).is_equal(P.UI_SIZE)
+
+func test_fullscreen_row_stops_at_off_and_on() -> void:
 	m.open(false)
-	assert_array(m.items).is_equal([P.UI_SIZE, P.TEXT_SIZE, P.COLOUR_CUES, P.CONTROLS])
+	assert_bool(m.change(P.FULLSCREEN, -1, prefs)).is_false()
+	assert_int(m.highlighted).is_equal(P.FULLSCREEN)
+	assert_bool(m.change(P.FULLSCREEN, 1, prefs)).is_true()
+	assert_bool(prefs.fullscreen).is_true()
+	assert_bool(m.change(P.FULLSCREEN, 1, prefs)).is_false()
+	assert_bool(m.change(P.FULLSCREEN, -1, prefs)).is_true()
+	assert_bool(prefs.fullscreen).is_false()
+
+func test_select_on_fullscreen_does_nothing() -> void:
+	m.open(false)
+	assert_int(m.pick(P.FULLSCREEN)).is_equal(O.NONE)
+	assert_int(m.highlighted).is_equal(P.FULLSCREEN)
+	assert_bool(m.is_open).is_true()
+
+func test_move_goes_down_the_five_rows_and_wraps() -> void:
+	m.open(false)
 	m.move(1)
 	assert_int(m.highlighted).is_equal(P.TEXT_SIZE)
 	m.move(1)
 	assert_int(m.highlighted).is_equal(P.COLOUR_CUES)
+	m.move(1)
+	assert_int(m.highlighted).is_equal(P.FULLSCREEN)
 	m.move(1)
 	assert_int(m.highlighted).is_equal(P.CONTROLS)
 	m.move(1)

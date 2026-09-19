@@ -12,8 +12,10 @@ var is_open := false
 var device: Controls.Device = Controls.Device.KEYBOARD
 var hold_progress := 0.0        # 0..1 while Esc (keyboard) or B (controller) is held
 var taken: InputEvent = null    # the event that went in; null after a cancel
+var mac := OS.get_name() == "macOS"   # off macOS a lone Alt is taken on release, so Alt+Enter never goes in
 
 var _holding := false
+var _alt_pending := false                 # off macOS: Alt is down and may yet start the fullscreen shortcut
 var _unarmed: Array[Vector2i] = []        # (axis, sign) held when the box opened, until back inside DEAD_ZONE
 var _draining := Vector2i(-1, -1)         # (pad device, axis) of a taken stick, until back inside DEAD_ZONE
 
@@ -24,6 +26,7 @@ func open(p_device: Controls.Device, held: Array[Vector2i] = []) -> void:
 	hold_progress = 0.0
 	taken = null
 	_holding = false
+	_alt_pending = false
 	_unarmed = held.duplicate()
 	_draining = Vector2i(-1, -1)
 
@@ -53,6 +56,7 @@ func advance(delta: float) -> Result:
 func close() -> void:
 	is_open = false
 	_holding = false
+	_alt_pending = false
 	hold_progress = 0.0
 	taken = null
 
@@ -78,9 +82,21 @@ static func held_axes_now() -> Array[Vector2i]:
 	return result
 
 func _read_key(k: InputEventKey) -> Result:
-	if k.echo or k.physical_keycode == KEY_NONE or k.physical_keycode == KEY_META:
+	if k.physical_keycode == KEY_NONE:
+		_alt_pending = false   # InputDevice blanked the fullscreen shortcut: its Alt is not a key to take
+		return Result.WAITING
+	if k.echo or k.physical_keycode == KEY_META:
+		return Result.WAITING
+	var alt := not mac and k.physical_keycode == WindowShortcut.modifier_key(false)
+	if alt:
+		if k.pressed:
+			_alt_pending = true
+			return Result.WAITING
+		if _alt_pending:
+			return _take(k)
 		return Result.WAITING
 	if k.pressed:
+		_alt_pending = false   # any other key pressed: a later Alt release is not a lone Alt
 		if k.physical_keycode == KEY_ESCAPE:
 			_start_hold()
 			return Result.WAITING
@@ -118,5 +134,6 @@ func _take(e: InputEvent) -> Result:
 	taken = e
 	is_open = false
 	_holding = false
+	_alt_pending = false
 	hold_progress = 0.0
 	return Result.TAKEN

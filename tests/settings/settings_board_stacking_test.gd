@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 const TITLE := "res://src/title/title_screen.tscn"
 const NO_SAVE := "user://test_saves/stacking_none"   # never created
 const S := DisplayPrefs.Setting
-const PLANKS := ["UiSize", "TextSize", "ColourCues", "Controls"]
+const PLANKS := ["UiSize", "TextSize", "ColourCues", "Fullscreen", "Controls"]
 
 var runner: GdUnitSceneRunner
 var screen: TitleScreen
@@ -131,7 +131,7 @@ func test_normal_layout_is_unchanged() -> void:
 	_planks_at(20, func(i: int) -> Rect2: return Rect2(52, 28 + 20 * i, 200, 16))
 	assert_that(_node("UiSize/Row/Value").get_rect()).is_equal(Rect2(120, 0, 64, 12))
 	assert_that(_node("Controls/Row/Arrow").get_rect()).is_equal(Rect2(184, 0, 12, 12))
-	assert_that(_node("Line").position).is_equal(Vector2(12, 112))
+	assert_that(_node("Line").position).is_equal(Vector2(12, 132))
 	assert_float(_node("Line").size.x).is_equal(280.0)
 
 func test_title_board_stacks_at_largest_inside_the_screen() -> void:
@@ -142,14 +142,14 @@ func test_title_board_stacks_at_largest_inside_the_screen() -> void:
 	# Text Largest draws the words at 2: the first plank moves down by the heading's growth (8), and each plank is
 	# 44 tall (two 20-tall lines of cells and the plank's 4) with the 4 gap below it.
 	var top := SettingsBoard.PLANK_TOP + 8.0
-	assert_that(board.rest_panel).is_equal(_centred(top + 3 * 48 + 44 + SettingsBoard.LINE_GAP + 56 + SettingsBoard.BOTTOM_MARGIN))   # the line: 3 lines (28) drawn at 2
+	assert_that(board.rest_panel).is_equal(_centred(top + 4 * 48 + 44 + SettingsBoard.LINE_GAP + 76 + SettingsBoard.BOTTOM_MARGIN))   # the line: the Fullscreen line's 4 lines (38) drawn at 2
 	var w := SettingsBoard.BOARD_W - 2.0 * SettingsBoard.PANEL_SIDE   # a stacked plank spans the panel
 	_planks_at(48, func(i: int) -> Rect2: return Rect2(SettingsBoard.PANEL_SIDE, top + 48 * i, w, 44))
 	assert_float(_node("UiSize/Row/Label").get_rect().position.y).is_equal(0.0)
 	assert_float(_node("UiSize/Row/Value").get_rect().position.y).is_greater(0.0)   # on the line below the name
 	assert_that(_node("UiSize/Row/Value").get_rect()).is_equal(Rect2(82, 20, 128, 20))   # the second line, centred between the arrows
 	assert_that(_node("Controls/Row/Arrow").get_rect()).is_equal(Rect2(w - 4.0 - 24.0, 0, 24, 20))   # › flush with the plank's inner right edge
-	assert_that(_node("Line").position).is_equal(Vector2(SettingsBoard.LINE_SIDE, top + 3 * 48 + 44 + SettingsBoard.LINE_GAP))
+	assert_that(_node("Line").position).is_equal(Vector2(SettingsBoard.LINE_SIDE, top + 4 * 48 + 44 + SettingsBoard.LINE_GAP))
 	assert_float(_node("Line").size.x * _node("Line").scale.x).is_equal(SettingsBoard.BOARD_W - 2.0 * SettingsBoard.LINE_SIDE)
 	var r := _node("Panel").get_global_rect()
 	assert_float(r.position.x).is_greater_equal(0.0)
@@ -162,7 +162,7 @@ func test_large_in_a_big_window_stays_side_by_side() -> void:
 	_title()
 	await _open()
 	assert_bool(board.stacked).is_false()
-	assert_that(board.rest_panel).is_equal(_centred(182))   # 32 + 3 * 24 + 20, the line's gap, 28 and margin
+	assert_that(board.rest_panel).is_equal(_centred(206))   # 32 + 4 * 24 + 20, the line's gap, 28 and margin
 	var widest := board.side_by_side_width()
 	# Text Large: words at 1.5, the heading 4 taller, planks 20 tall on a 24 step.
 	var top := SettingsBoard.PLANK_TOP + 4.0

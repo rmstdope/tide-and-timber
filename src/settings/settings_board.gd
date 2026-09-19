@@ -13,7 +13,7 @@ const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
 const BOARD_X := (Screen.WIDTH - 304.0) / 2.0   # the board centred; 304 is BOARD_W
 const BOARD_W := 304.0
-const BOARD_H := 138.0          # heading, four rows, the two-line explaining line, bottom margin
+const BOARD_H := 158.0          # heading, five rows, the two-line explaining line, bottom margin
 const PLANK_X := 52.0           # rows centred: (304 - 200) / 2
 const PLANK_TOP := 28.0
 const PLANK_STEP := 20.0
@@ -33,6 +33,7 @@ const VALUE_WORDS := {
 	DisplayPrefs.Setting.UI_SIZE: ["Normal", "Large", "Largest"],
 	DisplayPrefs.Setting.TEXT_SIZE: ["Normal", "Large", "Largest"],
 	DisplayPrefs.Setting.CUES: ["Standard", "Shapes"],
+	DisplayPrefs.Setting.FULLSCREEN: ["Off", "On"],
 }
 const LINES := {
 	SettingsMenu.Plank.UI_SIZE: "Makes the clock, item bar, hints and menus bigger.",
@@ -40,8 +41,14 @@ const LINES := {
 	SettingsMenu.Plank.COLOUR_CUES: "Adds shapes to warnings shown in colour.",
 	SettingsMenu.Plank.CONTROLS: "Change any key or controller button.",
 }
+## The Fullscreen row's line names the shortcut for this platform, so it is not in LINES.
+const FULLSCREEN_LINES := {
+	true: "Fills the whole screen. Cmd+Enter also switches.",    # macOS
+	false: "Fills the whole screen. Alt+Enter also switches.",   # Windows, Linux
+}
 
 var rules := SettingsMenu.new()
+var mac := OS.get_name() == "macOS"   # which shortcut the Fullscreen line names; tests set it before lay_out
 var strip: MenuStrip
 var open_controls: Callable = _open_controls   # tests replace it
 var stacked := false               # the rows are on two lines; derived by lay_out, never set elsewhere
@@ -142,7 +149,7 @@ func lay_out(s: float, retry: bool = true) -> void:
 	var line_w := panel_w - 2.0 * LINE_SIDE
 	var line := %Line as Label
 	var lines := 1
-	for text: String in LINES.values():
+	for text: String in LINES.values() + [FULLSCREEN_LINES[mac]]:
 		lines = maxi(lines, line_count(text, line_w / rel, line.get_theme_font("font"), FONT_SIZE))
 	var words_h := lines * FONT_SIZE + (lines - 1) * LINE_SPACING
 	line.scale = Vector2.ONE * rel
@@ -351,9 +358,13 @@ func _refresh() -> void:
 				"font_color", ARROW_DIM if v == 0 else TEXT)
 		(row.get_node("Row/Next") as GrownWords).words().add_theme_color_override(
 				"font_color", ARROW_DIM if v == DisplayPrefs.count(s) - 1 else TEXT)
-	%Line.text = LINES[rules.highlighted]
+	%Line.text = line_for(rules.highlighted)
 	if rules.is_open:
 		_frame()
+
+## The line under the list for item on this platform.
+func line_for(item: SettingsMenu.Plank) -> String:
+	return FULLSCREEN_LINES[mac] if item == SettingsMenu.Plank.FULLSCREEN else LINES[item]
 
 func _exit_tree() -> void:
 	InputDevice.set_menu_open(self, false)
@@ -366,6 +377,8 @@ func _plank(item: SettingsMenu.Plank) -> Control:
 			return %TextSize
 		SettingsMenu.Plank.COLOUR_CUES:
 			return %ColourCues
+		SettingsMenu.Plank.FULLSCREEN:
+			return %Fullscreen
 		SettingsMenu.Plank.CONTROLS:
 			return %Controls
 	assert(false, "no node for plank %d" % item)

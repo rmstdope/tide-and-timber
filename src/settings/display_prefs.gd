@@ -1,25 +1,28 @@
 class_name DisplayPrefs
 extends RefCounted
-## The three display settings, with no nodes: UI size, Text size, Colour cues. Saved apart from the island.
+## The four display settings, with no nodes: UI size, Text size, Colour cues, Fullscreen. Saved apart from the island.
 
 signal changed                      # after a mutation that changed a value, once it is saved
 
 enum Size { NORMAL, LARGE, LARGEST }
 enum Cues { STANDARD, SHAPES }
-enum Setting { UI_SIZE, TEXT_SIZE, CUES }
+enum Setting { UI_SIZE, TEXT_SIZE, CUES, FULLSCREEN }
 
 const PATH := "user://display.json"
 const VERSION := 1
-const KEYS := {Setting.UI_SIZE: "ui_size", Setting.TEXT_SIZE: "text_size", Setting.CUES: "cues"}
+const KEYS := {Setting.UI_SIZE: "ui_size", Setting.TEXT_SIZE: "text_size", Setting.CUES: "cues", Setting.FULLSCREEN: "fullscreen"}
 const FILE_WORDS := {
 	Setting.UI_SIZE: ["normal", "large", "largest"],
 	Setting.TEXT_SIZE: ["normal", "large", "largest"],
 	Setting.CUES: ["standard", "shapes"],
+	Setting.FULLSCREEN: ["off", "on"],
 }
+const OPTIONAL := [Setting.FULLSCREEN]   # missing from a file written before it existed: read as its first value
 
 var ui_size: Size = Size.NORMAL
 var text_size: Size = Size.NORMAL
 var cues: Cues = Cues.STANDARD
+var fullscreen := false
 var path: String                    # "" = never written (tests, and the gdUnit command-line run)
 
 ## Normal / Normal / Standard; writes nothing.
@@ -40,6 +43,9 @@ static func load_from(p_path: String) -> DisplayPrefs:
 		return p
 	var found := {}
 	for s: Setting in KEYS:
+		if s in OPTIONAL and not d.has(KEYS[s]):
+			found[s] = 0
+			continue
 		var word: Variant = d.get(KEYS[s])
 		if typeof(word) != TYPE_STRING or not (word as String) in FILE_WORDS[s]:
 			return p
@@ -47,6 +53,7 @@ static func load_from(p_path: String) -> DisplayPrefs:
 	p.ui_size = found[Setting.UI_SIZE]
 	p.text_size = found[Setting.TEXT_SIZE]
 	p.cues = found[Setting.CUES]
+	p.fullscreen = found[Setting.FULLSCREEN] == 1
 	return p
 
 ## How many values the setting has.
@@ -62,6 +69,8 @@ func value(s: Setting) -> int:
 			return text_size
 		Setting.CUES:
 			return cues
+		Setting.FULLSCREEN:
+			return 1 if fullscreen else 0
 	assert(false, "no value for setting %d" % s)
 	return 0
 
@@ -77,9 +86,15 @@ func step(s: Setting, delta: int) -> bool:
 			text_size = v as Size
 		Setting.CUES:
 			cues = v as Cues
+		Setting.FULLSCREEN:
+			fullscreen = v == 1
 	save()   # nothing is agreed for a failed write; the next change tries again
 	changed.emit()
 	return true
+
+## Sets Fullscreen on or off, saved and announced as step does. False, doing nothing, if it already is.
+func set_fullscreen(on: bool) -> bool:
+	return step(Setting.FULLSCREEN, (1 if on else 0) - value(Setting.FULLSCREEN))
 
 func to_dict() -> Dictionary:
 	var d := {"version": VERSION}

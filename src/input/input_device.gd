@@ -1,5 +1,6 @@
 extends Node
 ## The live device tracker and menu step: sees every event at the root window, before any handler can consume it.
+## It also catches the fixed fullscreen shortcut first, and blanks it so no handler takes it as a key.
 ## It also hides the mouse pointer while a menu is open and a key or pad was used last.
 
 signal changed
@@ -12,6 +13,7 @@ var _menu_step := MenuPush.Step.NONE
 var action_press: ActionPress
 var _press_event: InputEvent
 var pointer := PointerRule.new()
+var window_shortcut: WindowShortcut
 
 func _ready() -> void:
 	# The gdUnit command-line run gives the SceneTree a script: it starts at the defaults and never touches the file.
@@ -37,8 +39,9 @@ func use_controls(c: Controls) -> void:
 func _on_controls_changed() -> void:
 	changed.emit()
 
-## Starts over as at launch with these pads connected, and tells every hint. Tests call reset() for keyboard.
-func reset(pad_names: PackedStringArray = PackedStringArray()) -> void:
+## Starts over as at launch with these pads connected, on macOS's shortcut rules or not, and tells every hint. Tests call reset() for keyboard.
+func reset(pad_names: PackedStringArray = PackedStringArray(), mac := OS.get_name() == "macOS") -> void:
+	window_shortcut = WindowShortcut.new(mac)
 	tracker = DeviceTracker.new(pad_names)
 	menu_push = MenuPush.new()
 	_menu_event = null
@@ -50,6 +53,11 @@ func reset(pad_names: PackedStringArray = PackedStringArray()) -> void:
 	changed.emit()
 
 func _on_window_input(event: InputEvent) -> void:
+	var shortcut := window_shortcut.read(event)
+	if shortcut != WindowShortcut.Result.NONE:
+		WindowShortcut.blank(event as InputEventKey)
+		if shortcut == WindowShortcut.Result.TOGGLE:
+			Display.toggle_fullscreen()
 	var pad := event is InputEventJoypadButton or event is InputEventJoypadMotion
 	tracker.observe(event, Input.get_joy_name(event.device) if pad else "")
 	menu_step(event)
