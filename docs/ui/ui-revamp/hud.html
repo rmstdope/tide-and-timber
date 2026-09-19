@@ -1,0 +1,179 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>UI revamp proposals</title>
+<!-- Mockup only. The same play screen four times at the game's 640x360 base, drawn x2, over the beach
+     agreed as scene E of ../vendor-art-swap/beach.html. Sprites are read from assets/; the wood_*.png
+     files beside this page are Retro Inventory pieces with their seven colours swapped for HudColours.
+     Open from the repository so the paths resolve. -->
+<style>
+  @font-face { font-family: "PS2P"; src: url("../../../assets/fonts/PressStart2P-Regular.ttf"); }
+  body { background: #1d1a17; color: #ead9c0; font: 14px/1.5 system-ui, sans-serif; margin: 24px auto; max-width: 1280px; padding: 0 16px; }
+  h1 { font-size: 20px; } h2 { font-size: 15px; margin: 32px 0 6px; }
+  p, li { color: #b9a88e; max-width: 86ch; } p { margin: 4px 0 10px; }
+  canvas { width: 100%; display: block; border: 1px solid #4a4035; image-rendering: pixelated; }
+  table { border-collapse: collapse; margin: 8px 0 0; } td, th { border: 1px solid #4a4035; padding: 6px 10px; text-align: left; vertical-align: top; color: #b9a88e; }
+  th { color: #ead9c0; }
+</style>
+<h1>UI revamp: four ways to draw the same screen</h1>
+<p>Every picture holds the same things in the same places: the item bar with a selected coconut and its name, the day clock, a needs meter,
+and an open pack. <b>The needs meter and the pack do not exist in the game today</b> and the vision leaves needs undecided; they are here only
+so each style can be judged on the pieces it would have to carry. Item icons: today's 10x10 in A, Farming 101's 16x16 coconut and shell in B to D, where the slots have room for them.</p>
+
+<h2>A. Today: square wooden planks, cream slots, drawn in code</h2>
+<canvas id="a" width="1280" height="720"></canvas>
+<h2>B. Retro Inventory as shipped: charcoal and gold</h2>
+<p>Rounded 22 px slots in a knobbed frame, the heart-capped bar. Reads as dungeon gear; the darkest thing on a warm beach.</p>
+<canvas id="b" width="1280" height="720"></canvas>
+<h2>C. Retro Inventory's shapes in today's wood and cream</h2>
+<p>The same pieces with their seven colours swapped for the HUD's own: the rounded slots, the knobbed corners and the hearts stay, the dungeon goes.
+Needs five hearts from the pack's five-state heart.</p>
+<canvas id="c" width="1280" height="720"></canvas>
+<h2>D. Farming 101's tan tray and panel</h2>
+<p>The pack's 18 px slot tray (shipped with six slots, shown joined to eight), its soft-cornered tan panel and its 9x7 hearts. The lightest touch, closest in size to today.</p>
+<canvas id="d" width="1280" height="720"></canvas>
+
+<h2>What differs</h2>
+<table>
+  <tr><th></th><th>A. Today</th><th>B. Retro as shipped</th><th>C. Retro in wood</th><th>D. Farming 101 tan</th></tr>
+  <tr><th>Slot</th><td>16 px, square</td><td>22 px, rounded</td><td>22 px, rounded</td><td>18 px, soft square</td></tr>
+  <tr><th>Bar on screen</th><td>141 x 22</td><td>204 x 34</td><td>204 x 34</td><td>146 x 20</td></tr>
+  <tr><th>Fits a 16x16 icon</th><td>no</td><td>yes</td><td>yes</td><td>yes, tightly</td></tr>
+  <tr><th>Palette rule (HudColours)</th><td>holds</td><td>breaks</td><td>holds, by recolour</td><td>breaks unless recoloured</td></tr>
+  <tr><th>Credit owed</th><td>none</td><td>ElvGames</td><td>ElvGames</td><td>none</td></tr>
+  <tr><th>Scalable UI setting</th><td>code-drawn, scales freely</td><td colspan="3">bitmap: clean at whole multiples only; text size still scales</td></tr>
+</table>
+
+<script>
+const A = "../../../assets/", H = "";
+const SRC = {
+  tiles: A + "beach/tiles.png", driftwood: A + "beach/driftwood.png", spring: A + "beach/spring.png",
+  rocks: A + "pixel_crawler/Environment/Props/Static/Rocks.png", veg: A + "pixel_crawler/Environment/Props/Static/Vegetation.png",
+  floors: A + "pixel_crawler/Environment/Tilesets/Floors_Tiles.png", man: A + "man/idle.png",
+  waves: "../vendor-art-swap/waves_warm.png", fPalms: A + "farming_101/beach/palm trees.png", fShells: A + "farming_101/beach/seashells.png",
+  fGrass: A + "farming_101/beach/beach grass.png", fRocks: A + "farming_101/beach/ocean rocks.png", fCrab: A + "farming_101/beach/crab.png",
+  fCoconuts: A + "farming_101/beach/coconuts.png",
+  iCoconut: A + "items/coconut.png", iDrift: A + "items/driftwood.png", iShell: A + "items/shellfish.png", iWater: A + "items/fresh_water.png",
+  rSlot: A + "retro_inventory/Inventory_Slot_1.png", rFrame: A + "retro_inventory/Inventory_9Slices.png", rBar: A + "retro_inventory/Health_01.png",
+  rFill: A + "retro_inventory/Health_01_Bar01.png", rHeart: A + "retro_inventory/Health_04_Heart_Red.png",
+  wSlot: "wood_Inventory_Slot_1.png", wFrame: "wood_Inventory_9Slices.png", wHeart: "wood_Health_04_Heart_Red.png",
+  fTray: A + "farming_101/ui/item tray.png", fCanvas: A + "farming_101/ui/canvas.png",
+  fFull: A + "farming_101/ui/full heart.png", fHalf: A + "farming_101/ui/half heart.png", fEmpty: A + "farming_101/ui/empty heart.png",
+};
+const img = {};
+const enc = p => p.split("/").map(s => s == ".." ? s : encodeURIComponent(s)).join("/");
+Promise.all([document.fonts.load('8px "PS2P"'), ...Object.entries(SRC).map(([k, p]) => new Promise((ok, no) => {
+  const i = new Image(); i.onload = ok; i.onerror = () => no(p); i.src = enc(p); img[k] = i;
+}))]).then(() => ["a", "b", "c", "d"].forEach(screen))
+     .catch(p => document.body.insertAdjacentHTML("afterbegin", "<p style='color:#f88'>could not load " + p + "</p>"));
+
+// HudColours
+const WOOD_DARK = "#58351e", WOOD = "#865932", WOOD_LIGHT = "#b68c48", SLOT_FACE = "#fee0a1", SLOT_EDGE = "#fff6e4", INK = "#301d0e", PALE = "#fff6e4", CREAM = "#fee0a1", SUN = "#f6cc2b";
+
+function screen(id) {
+  const g = document.getElementById(id).getContext("2d");
+  g.imageSmoothingEnabled = false; g.scale(2, 2);
+  beach(g);
+  const S = STYLES[id];
+  // the item bar, bottom centre, slot 0 selected, with its name above
+  const items = [["coconut", 3], ["drift", 12], ["shell", 1], ["water", 2]];
+  const bw = S.barSize[0], bx = Math.round((640 - bw) / 2), by = 360 - S.barSize[1] - 1;
+  S.bar(g, bx, by);
+  for (let i = 0; i < 8; i++) { const [sx, sy] = S.barSlot(i); S.slot(g, bx + sx, by + sy, items[i], i == 0); }
+  const nw = 7 * 8 + 8; S.panel(g, bx + S.barSlot(0)[0] - 2, by - 6 - 13 - S.nameGrow, nw, 13 + S.nameGrow, true);
+  text(g, "Coconut", bx + S.barSlot(0)[0] + 2, by - 6 - 13 - S.nameGrow + 3 + S.nameGrow / 2, S.word);
+  // the clock, top left, as today: a name, a dotted arc, the sun on it
+  S.panel(g, 4, 4, 64, 54);
+  text(g, "Day 3", 4 + 12, 4 + 5, S.word);
+  for (let k = 0; k <= 64; k++) { const a = Math.PI * (1 - k / 64); if (k % 3 == 0) rect(g, 4 + 32 + Math.round(Math.cos(a) * 14), 4 + 14 + 24 - Math.round(Math.sin(a) * 14), 1, 1, S.arc); }
+  const a = Math.PI * (1 - 0.3); rect(g, 4 + 32 + Math.round(Math.cos(a) * 14) - 2, 4 + 38 - Math.round(Math.sin(a) * 14) - 2, 5, 5, SUN);
+  // a needs meter beside it: 3.5 of 5
+  S.meter(g, 74, 6);
+  // an open pack, right of the man: a title and 3 x 4 slots
+  const p = S.pitch, pw = 3 * p + S.packPad * 2, ph = 4 * p + S.packPad * 2 + 12;
+  S.panel(g, 470, 96, pw, ph);
+  text(g, "Pack", 470 + S.packPad + 1, 96 + S.packPad, S.word);
+  const packed = [["shell", 4], ["drift", 20], null, ["water", 1], ["coconut", 5]];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) S.slot(g, 470 + S.packPad + c * p, 96 + S.packPad + 12 + r * p, packed[r * 3 + c], false, [r, c]);
+}
+
+const rect = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+function text(g, s, x, y, c) { g.font = '8px "PS2P"'; g.textBaseline = "top"; g.fillStyle = c; g.fillText(s, x, y); }
+function count(g, n, x, y, c, halo) { if (n < 2) return; const s = String(n); g.font = '8px "PS2P"'; g.textBaseline = "top"; g.save(); g.translate(x - s.length * 5, y); g.scale(0.625, 0.625);
+  if (halo) { g.fillStyle = halo; for (const [dx, dy] of [[-1.6,0],[1.6,0],[0,-1.6],[0,1.6]]) g.fillText(s, dx, dy); } g.fillStyle = c; g.fillText(s, 0, 0); g.restore(); }
+function plank(g, x, y, w, h) { rect(g, x, y, w, h, WOOD_DARK); rect(g, x + 1, y + 1, w - 2, h - 2, WOOD); rect(g, x + 1, y + 1, w - 2, 1, WOOD_LIGHT); }
+// nine-slice with the middles tiled, not stretched, so the trim pattern keeps its pixels
+function nine(g, i, m, x, y, w, h, fill) {
+  const W = i.width, Hh = i.height, c = W - 2 * m, r = Hh - 2 * m;
+  rect(g, x + m, y + m, w - 2 * m, h - 2 * m, fill);
+  for (let dx = m; dx < w - m; dx += c) { const n = Math.min(c, w - m - dx); g.drawImage(i, m, 0, n, m, x + dx, y, n, m); g.drawImage(i, m, Hh - m, n, m, x + dx, y + h - m, n, m); }
+  for (let dy = m; dy < h - m; dy += r) { const n = Math.min(r, h - m - dy); g.drawImage(i, 0, m, m, n, x, y + dy, m, n); g.drawImage(i, W - m, m, m, n, x + w - m, y + dy, m, n); }
+  g.drawImage(i, 0, 0, m, m, x, y, m, m); g.drawImage(i, W - m, 0, m, m, x + w - m, y, m, m);
+  g.drawImage(i, 0, Hh - m, m, m, x, y + h - m, m, m); g.drawImage(i, W - m, Hh - m, m, m, x + w - m, y + h - m, m, m);
+}
+// Farming 101's canvas.png is a plus of 16 px tiles: its outer corners and edges make a panel
+function tanPanel(g, x, y, w, h) {
+  const t = img.fCanvas, T = (cx, cy, dx, dy, sw = 16, sh = 16) => g.drawImage(t, cx * 16, cy * 16, sw, sh, dx, dy, sw, sh);
+  rect(g, x + 4, y + 4, w - 8, h - 8, "#dba463");
+  for (let dx = 8; dx < w - 8; dx += 16) { const n = Math.min(16, w - 8 - dx); T(2, 0, x + dx, y, n, 8); g.drawImage(t, 32, 72, n, 8, x + dx, y + h - 8, n, 8); }
+  for (let dy = 8; dy < h - 8; dy += 16) { const n = Math.min(16, h - 8 - dy); T(0, 2, x, y + dy, 8, n); g.drawImage(t, 72, 32, 8, n, x + w - 8, y + dy, 8, n); }
+  g.drawImage(t, 16, 0, 8, 8, x, y, 8, 8); g.drawImage(t, 56, 0, 8, 8, x + w - 8, y, 8, 8);
+  g.drawImage(t, 16, 72, 8, 8, x, y + h - 8, 8, 8); g.drawImage(t, 56, 72, 8, 8, x + w - 8, y + h - 8, 8, 8);
+}
+function icon(g, item, x, y, box, big) {
+  if (!item) return;
+  const small = { coconut: img.iCoconut, drift: img.iDrift, shell: img.iShell, water: img.iWater }[item[0]];
+  const bigSrc = { coconut: [img.fCoconuts, 0, 16], shell: [img.fShells, 0, 16] }[item[0]];
+  if (big && bigSrc) g.drawImage(bigSrc[0], bigSrc[1], bigSrc[2], 16, 16, x + (box - 16) / 2, y + (box - 16) / 2, 16, 16);
+  else g.drawImage(small, x + Math.floor((box - 10) / 2), y + Math.floor((box - 10) / 2));
+}
+// image keys, not images: they resolve when drawn, after loading
+const retro = (slotKey, frameKey, heartKey, fill, word, countInk, halo, asShipped) => ({
+  barSize: [204, 34], pitch: 24, packPad: 8, nameGrow: 4, word, arc: word,
+  bar: (g, x, y) => nine(g, img[frameKey], 6, x, y, 204, 34, fill),
+  barSlot: i => [6 + i * 24, 6],
+  // the knobbed frame swallows a 13 px name plate, so that one is a plain two-colour plate
+  panel: (g, x, y, w, h, small) => small ? (rect(g, x, y, w, h, asShipped ? "#ca8611" : WOOD_DARK), rect(g, x + 1, y + 1, w - 2, h - 2, fill)) : nine(g, img[frameKey], 6, x, y, w, h, fill),
+  slot(g, x, y, item, on) { g.drawImage(img[slotKey], 5, 5, 22, 22, x, y, 22, 22); if (on) { g.strokeStyle = PALE; g.lineWidth = 1; g.strokeRect(x - 0.5, y - 0.5, 23, 23); } icon(g, item, x, y, 22, true); if (item) count(g, item[1], x + 21, y + 15, countInk, halo); },
+  meter(g, x, y) {
+    if (asShipped) { g.drawImage(img.rBar, x, y); g.drawImage(img.rFill, 0, 0, 16 + 48 * 0.7, 16, x, y, 16 + 48 * 0.7, 16); }
+    else [0, 0, 0, 2, 4].forEach((s, i) => g.drawImage(img[heartKey], s * 16, 0, 16, 16, x + i * 15, y, 16, 16));
+  },
+});
+const STYLES = {
+  a: { barSize: [141, 22], pitch: 17, packPad: 5, nameGrow: 0, word: CREAM, arc: CREAM,
+    bar: (g, x, y) => plank(g, x, y, 141, 22), barSlot: i => [3 + i * 17, 3], panel: plank,
+    slot(g, x, y, item, on) { rect(g, x, y, 16, 16, on ? PALE : WOOD_DARK); rect(g, x + 1, y + 1, 14, 14, SLOT_FACE); rect(g, x + 1, y + 1, 14, 1, SLOT_EDGE); icon(g, item, x, y, 16, false); if (item) count(g, item[1], x + 16, y + 10, INK); },
+    meter(g, x, y) { plank(g, x, y, 64, 11); rect(g, x + 2, y + 3, 60, 5, WOOD_DARK); rect(g, x + 2, y + 3, 42, 5, "#a70c21"); rect(g, x + 2, y + 3, 42, 1, "#f78b54"); } },
+  b: retro("rSlot", "rFrame", "rHeart", "#4c4449", "#febf4c", "#ffffff", "#000000", true),
+  c: retro("wSlot", "wFrame", "wHeart", WOOD, CREAM, INK, SLOT_EDGE, false),
+  d: { barSize: [146, 20], pitch: 18, packPad: 8, nameGrow: 2, word: "#71413b", arc: "#71413b",
+    bar(g, x, y) { g.drawImage(img.fTray, 0, 0, 73, 20, x, y, 73, 20); g.drawImage(img.fTray, 37, 0, 73, 20, x + 73, y, 73, 20); },
+    barSlot: i => [1 + i * 18, 1], panel: tanPanel,
+    slot(g, x, y, item, on, cell) { if (cell) g.drawImage(img.fTray, cell[1] == 2 ? 91 : 18, 0, 19, 20, x - 1, y - 1, 19, 20); if (on) { g.strokeStyle = "#71413b"; g.lineWidth = 1; g.strokeRect(x + 0.5, y + 0.5, 17, 17); } icon(g, item, x + 1, y + 1, 16, true); if (item) count(g, item[1], x + 18, y + 12, "#71413b", "#f4d29c"); },
+    meter(g, x, y) { [img.fFull, img.fFull, img.fFull, img.fHalf, img.fEmpty].forEach((h, i) => g.drawImage(h, x + i * 11, y + 2)); } },
+};
+// The beach agreed as scene E of the art mockup, one still frame.
+function beach(g) {
+  const cam = [92 * 16 + 8 - 320, 11 * 16 + 8 - 180];
+  const kind = (x, y) => y <= 8 ? 0 : y >= 18 ? 5 : y <= 13 ? 1 : y == 14 ? 2 : y == 15 ? 3 : 4;
+  for (let y = 0; y < 26; y++) for (let x = 70; x < 115; x++) {
+    const k = kind(x, y), px = x * 16 - cam[0], py = y * 16 - cam[1];
+    if (y == 8) { g.drawImage(img.tiles, 16, 0, 16, 16, px, py, 16, 16); g.drawImage(img.floors, 16 + (x % 3) * 16, 80, 16, 16, px, py, 16, 16); }
+    else if (k == 3) { g.drawImage(img.tiles, 64, 0, 16, 16, px, py, 16, 16); g.drawImage(img.waves, 32, 0, 16, 16, px, py, 16, 16); }
+    else g.drawImage(img.tiles, k * 16, 0, 16, 16, px, py, 16, 16);
+  }
+  const at = (c) => [c[0] * 16 + 8 - cam[0], (c[1] + 1) * 16 - cam[1]];
+  const reg = (i, r, c, foot, dy = 0) => { const [x, y] = at(c); g.drawImage(i, r[0], r[1], r[2], r[3], Math.round(x - (foot ?? r[2] / 2)), y - r[3] + dy, r[2], r[3]); };
+  [[77,8],[90,8],[106,8]].forEach(c => reg(img.veg, [0, 0, 32, 32], c));
+  reg(img.veg, [64, 144, 16, 16], [98, 8]);
+  [[74,9],[80,9],[88,9],[94,9],[104,9],[110,9]].forEach((c, n) => reg(img.fGrass, [[0,12,15,17],[16,10,15,20],[33,11,13,17],[50,13,11,15]][n % 4], c));
+  reg(img.fPalms, [432, 25, 64, 48], [84, 9], 60, 4); reg(img.fPalms, [342, 16, 31, 56], [101, 9], 16, 4);
+  { const [x, y] = at([96, 9]); g.drawImage(img.spring, x - 16, y - 14); }
+  [[78,12],[99,13],[108,11]].forEach(c => reg(img.rocks, [160, 16, 16, 16], c));
+  [[74,12],[80,13],[88,13],[107,13],[111,13]].forEach(c => { const [x, y] = at(c); g.drawImage(img.driftwood, x - 16, y - 8); });
+  reg(img.fShells, [2, 34, 12, 13], [75, 14]); reg(img.fShells, [2, 2, 11, 12], [96, 14]); reg(img.fCrab, [39, 12, 17, 11], [103, 14]);
+  reg(img.fCoconuts, [3, 19, 10, 10], [83, 10]); reg(img.fCoconuts, [3, 19, 10, 10], [85, 11]);
+  reg(img.fRocks, [3, 7, 27, 19], [79, 17]); reg(img.fRocks, [32, 1, 32, 14], [97, 16]); reg(img.fRocks, [33, 16, 14, 15], [106, 17]);
+  g.drawImage(img.man, 0, 0, 64, 64, 320 - 32, 12 * 16 - cam[1] - 48, 64, 64);
+}
+</script>
