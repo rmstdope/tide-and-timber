@@ -143,7 +143,7 @@ func test_list_stops_world_and_clock() -> void:
 	assert_int(dn.process_mode).is_equal(Node.PROCESS_MODE_PAUSABLE)
 
 func test_prompt_hidden_while_list_open() -> void:
-	player.global_position = BeachLayout.cell_base(BeachLayout.DRIFTWOOD[2]) + Vector2(-16, -2)
+	player.global_position = BeachLayout.cell_base(BeachLayout.driftwood()[2]) + Vector2(-16, -2)
 	player.facing = F.RIGHT
 	await await_millis(50)
 	assert_bool(_n("Prompt").visible).is_true()

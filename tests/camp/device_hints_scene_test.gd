@@ -85,7 +85,7 @@ func test_hidden_hint_stays_hidden_on_a_switch() -> void:
 	assert_bool(_hint().visible).is_false()
 
 func _stand_by_driftwood() -> void:
-	player.global_position = BeachLayout.cell_base(BeachLayout.DRIFTWOOD[2]) + Vector2(-16, -2)
+	player.global_position = BeachLayout.cell_base(BeachLayout.driftwood()[2]) + Vector2(-16, -2)
 	player.facing = F.RIGHT
 	(beach.get_node("%Camera") as LooseCamera).snap_to_target()
 	await await_millis(50)

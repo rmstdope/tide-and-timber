@@ -3,43 +3,25 @@ extends Node2D
 ## The long beach: ground, props and the spring, the man, the loose camera, and what he carries with its bar.
 ## Handles no input itself (clicks go to %ClickWalker; B, and Esc while building, to %Builder).
 
-const TILES := preload("res://assets/beach/tiles.png")
-const ROCK := preload("res://src/beach/props/rock.tscn")
-const BOULDER := preload("res://src/beach/props/boulder.tscn")
-const PALM := preload("res://src/beach/props/palm.tscn")
 const DRIFTWOOD := preload("res://src/beach/props/driftwood.tscn")
 const SHELLFISH := preload("res://src/beach/props/shellfish.tscn")
-const SPRING := preload("res://src/beach/props/spring.tscn")
-const BUSH := preload("res://src/beach/props/bush.tscn")
-const TUFT := preload("res://src/beach/props/tuft.tscn")
 const PUFF := preload("res://src/beach/marks/puff.tscn")
 const RIPPLE := preload("res://src/beach/marks/ripple.tscn")
 
-## The props that are taken for good, by the id a save uses, with their scene and layout cells.
-const TAKEABLE := {
-	"driftwood": {"scene": DRIFTWOOD, "cells": BeachLayout.DRIFTWOOD},
-	"shellfish": {"scene": SHELLFISH, "cells": BeachLayout.SHELLFISH},
-}
+## The props that are taken for good, by the id a save uses, with their scene; _cells gives their layout cells.
+const TAKEABLE := {"driftwood": DRIFTWOOD, "shellfish": SHELLFISH}
 const CELL_META := &"cell"
 
 var inventory := Inventory.new()
 var walk_grid: WalkGrid
 
 func _ready() -> void:
-	%Ground.tile_set = BeachTileSet.build(TILES)
-	for y in BeachLayout.MAP_SIZE.y:
-		for x in BeachLayout.MAP_SIZE.x:
-			var cell := Vector2i(x, y)
-			%Ground.set_cell(cell, 0, Vector2i(BeachLayout.kind_at(cell), 0))
-	_place(BUSH, BeachLayout.BUSHES, %Decor)
-	_place(TUFT, BeachLayout.TUFTS, %Decor)
-	for palm in _place(PALM, BeachLayout.PALMS, %World):
-		(palm.get_node("Shake") as Shake).drop_parent = %Decor
-	_place(ROCK, BeachLayout.ROCKS, %World)
-	_place(BOULDER, BeachLayout.BOULDERS, %World)
-	_place(SPRING, BeachLayout.SPRINGS, %World)
-	_place(DRIFTWOOD, BeachLayout.DRIFTWOOD, %Decor)
-	_place(SHELLFISH, BeachLayout.SHELLFISH, %Decor)
+	for parent: Node in [%Decor, %World]:
+		for child in parent.get_children():
+			if child.scene_file_path in BeachLayout.PROP_SCENES:
+				child.set_meta(CELL_META, BeachLayout.cell_of_base((child as Node2D).position))
+			if child.scene_file_path == BeachLayout.PALM:
+				(child.get_node("Shake") as Shake).drop_parent = %Decor
 	%Player.position = BeachLayout.cell_centre(BeachLayout.SPAWN_CELL)
 	%Player.facing = Walk.Facing.DOWN
 	%Player.is_wading_at = func(at: Vector2) -> bool:
@@ -51,7 +33,7 @@ func _ready() -> void:
 	%ItemBar.bind(inventory)
 	%Interactor.setup(%Player, inventory, %Prompt)
 	inventory.added.connect(_on_added)
-	walk_grid = WalkGrid.new(BeachLayout.MAP_SIZE, func(t: Vector2i) -> bool: return BeachLayout.is_solid(BeachLayout.kind_at(t)))
+	walk_grid = WalkGrid.new(BeachLayout.map_size(), func(t: Vector2i) -> bool: return BeachLayout.is_solid(BeachLayout.kind_at(t)))
 	%ClickWalker.setup(%Player, %Interactor, walk_grid, %Decor, _obstacles)
 	%Builder.setup(inventory)
 
@@ -88,16 +70,6 @@ func put_player(cell: Vector2i, facing: Walk.Facing) -> void:
 func _on_added(kind: Item.Kind, amount: int) -> void:
 	RisingLine.show_over(%Player, Item.gain_line(kind, amount))
 
-func _place(scene: PackedScene, cells: Array[Vector2i], parent: Node) -> Array[Node2D]:
-	var placed: Array[Node2D] = []
-	for cell in cells:
-		var prop := scene.instantiate() as Node2D
-		prop.position = BeachLayout.cell_base(cell)
-		prop.set_meta(CELL_META, cell)
-		parent.add_child(prop)
-		placed.append(prop)
-	return placed
-
 func _on_trail_mark(kind: StringName, at: Vector2) -> void:
 	# Under %Decor, not the y-sorted %World, so a mark at his heels never sorts over his feet.
 	var mark := (PUFF if kind == &"puff" else RIPPLE).instantiate() as Node2D
@@ -112,7 +84,7 @@ func capture() -> SaveData:
 	data.inventory_slots = inventory.to_slots()
 	for id: String in TAKEABLE:
 		var cells: Array[Vector2i] = []
-		for cell: Vector2i in TAKEABLE[id]["cells"]:
+		for cell: Vector2i in _cells(id):
 			if _live_prop(id, cell) == null:
 				cells.append(cell)
 		data.taken[id] = cells
@@ -145,17 +117,21 @@ func restore(data: SaveData) -> bool:
 static func can_restore(data: SaveData) -> bool:
 	return _taken_fits(data) and Builder.camp_fits(data) and Inventory.new().restore(data.inventory_slots)
 
+## The layout cells of the takeable prop `id` (a key of TAKEABLE).
+static func _cells(id: String) -> Array[Vector2i]:
+	return BeachLayout.driftwood() if id == "driftwood" else BeachLayout.shellfish()
+
 static func _taken_fits(data: SaveData) -> bool:
 	for id: String in data.taken:
 		if not TAKEABLE.has(id):
 			return false
 		for cell: Vector2i in data.taken[id]:
-			if not (TAKEABLE[id]["cells"] as Array).has(cell):
+			if not _cells(id).has(cell):
 				return false
 	return true
 
 func _live_prop(id: String, cell: Vector2i) -> Node:
-	var path: String = (TAKEABLE[id]["scene"] as PackedScene).resource_path
+	var path: String = (TAKEABLE[id] as PackedScene).resource_path
 	for prop in %Decor.get_children():
 		if prop.scene_file_path == path and prop.get_meta(CELL_META, null) == cell and not prop.is_queued_for_deletion():
 			return prop

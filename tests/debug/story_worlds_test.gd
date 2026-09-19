@@ -43,7 +43,7 @@ func _assert_camp() -> void:
 	assert_that(builder.fire.cell).is_equal(StoryPoints.CAMP_FIRE)
 	assert_float(builder.fire.out_at).is_equal(1860.0)
 	assert_bool(builder.in_firelight(game.player.global_position)).is_true()
-	assert_int(await _driftwood_left()).is_equal(BeachLayout.DRIFTWOOD.size() - 12)
+	assert_int(await _driftwood_left()).is_equal(BeachLayout.driftwood().size() - 12)
 	assert_int(beach.inventory.count(Item.Kind.DRIFTWOOD)).is_equal(0)
 
 func test_shipwreck_is_the_intro() -> void:
@@ -69,7 +69,7 @@ func test_first_day_loads_with_his_gatherings() -> void:
 	assert_object(builder.lean_to).is_null()
 	assert_vector(game.player.global_position).is_equal(BeachLayout.cell_centre(StoryPoints.CAMP_CELL))
 	assert_bool(game.player.control_enabled).is_true()
-	assert_int(await _driftwood_left()).is_equal(BeachLayout.DRIFTWOOD.size() - 6)
+	assert_int(await _driftwood_left()).is_equal(BeachLayout.driftwood().size() - 6)
 
 func test_first_night_loads_with_camp_lit_and_him_by_the_fire() -> void:
 	_load(P.FIRST_NIGHT)

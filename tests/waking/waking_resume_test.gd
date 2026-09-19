@@ -9,7 +9,7 @@ func _sample() -> SaveData:
 	var d := SaveData.new()
 	var slots: Array[Dictionary] = [{"kind": Item.Kind.DRIFTWOOD, "count": 3}, {}, {}, {}, {}, {}, {}, {}]
 	d.inventory_slots = slots
-	var first: Array[Vector2i] = [BeachLayout.DRIFTWOOD[0]]
+	var first: Array[Vector2i] = [BeachLayout.driftwood()[0]]
 	var none: Array[Vector2i] = []
 	d.taken = {"driftwood": first, "shellfish": none}
 	d.player_position = Vector2(400, 200)
@@ -45,7 +45,7 @@ func test_he_is_where_he_stood_with_his_things() -> void:
 	await await_idle_frame()
 	var driftwood := beach.get_node("%Decor").get_children().filter(func(n: Node) -> bool:
 		return n.scene_file_path == Beach.DRIFTWOOD.resource_path and not n.is_queued_for_deletion())
-	assert_int(driftwood.size()).is_equal(BeachLayout.DRIFTWOOD.size() - 1)
+	assert_int(driftwood.size()).is_equal(BeachLayout.driftwood().size() - 1)
 
 func test_the_clock_is_the_saved_dawn() -> void:
 	var day_night := _node("DayNight") as DayNight

@@ -171,7 +171,7 @@ func test_esc_goes_back_to_list_spending_nothing() -> void:
 
 func test_e_while_placing_does_not_take_things() -> void:
 	_driftwood(9)
-	player.global_position = BeachLayout.cell_base(BeachLayout.DRIFTWOOD[2]) + Vector2(-16, -2)
+	player.global_position = BeachLayout.cell_base(BeachLayout.driftwood()[2]) + Vector2(-16, -2)
 	player.facing = F.LEFT    # cell (87,13): the driftwood is still his E target (in reach), the outline on open sand
 	await await_millis(50)
 	assert_bool(_n("Prompt").visible).is_true()
@@ -184,7 +184,7 @@ func test_e_while_placing_does_not_take_things() -> void:
 	assert_int(inventory.count(Item.Kind.DRIFTWOOD)).is_equal(1)
 	var wood := _n("Decor").get_children().filter(func(n: Node) -> bool:
 		return n.scene_file_path.ends_with("driftwood.tscn"))
-	assert_int(wood.size()).is_equal(BeachLayout.DRIFTWOOD.size())
+	assert_int(wood.size()).is_equal(BeachLayout.driftwood().size())
 
 func after_test() -> void:
 	Display.use_prefs(DisplayPrefs.new())

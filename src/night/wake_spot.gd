@@ -11,4 +11,4 @@ static func beside_lean_to(anchor: Vector2i, first_woke: Vector2i) -> Vector2i:
 
 static func is_open(cell: Vector2i) -> bool:
 	return BuildSite.is_ground_ok(cell) and not BuildSite.prop_cells().has(cell) \
-		and not BeachLayout.SPRINGS.has(cell)
+		and not BeachLayout.springs().has(cell)

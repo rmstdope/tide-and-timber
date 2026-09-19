@@ -8,8 +8,8 @@ var beach: Beach
 var player: Player
 var camera: LooseCamera
 var inventory: Inventory
-var D := BeachLayout.cell_base(BeachLayout.DRIFTWOOD[2])
-var S := BeachLayout.cell_base(BeachLayout.SHELLFISH[3])
+var D := BeachLayout.cell_base(BeachLayout.driftwood()[2])
+var S := BeachLayout.cell_base(BeachLayout.shellfish()[3])
 
 func before_test() -> void:
 	runner = scene_runner(SCENE)
@@ -45,8 +45,8 @@ func _second_driftwood(at: Vector2) -> void:
 	beach.get_node("%Decor").add_child(extra)
 
 func test_new_game_has_full_beach_and_empty_inventory() -> void:
-	assert_int(_count("driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
-	assert_int(_count("shellfish.tscn")).is_equal(BeachLayout.SHELLFISH.size())
+	assert_int(_count("driftwood.tscn")).is_equal(BeachLayout.driftwood().size())
+	assert_int(_count("shellfish.tscn")).is_equal(BeachLayout.shellfish().size())
 	assert_bool(_all_empty()).is_true()
 	await await_millis(50)
 	assert_bool(beach.get_node("%Prompt").visible).is_false()
@@ -56,7 +56,7 @@ func test_e_takes_driftwood_he_faces() -> void:
 	await _press_e()
 	assert_int(inventory.count(K.DRIFTWOOD)).is_equal(1)
 	assert_int(inventory.slot_kind(0)).is_equal(K.DRIFTWOOD)
-	assert_int(_count("driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size() - 1)
+	assert_int(_count("driftwood.tscn")).is_equal(BeachLayout.driftwood().size() - 1)
 	assert_bool(beach.get_node("%Decor").get_children().any(func(n: Node) -> bool:
 		return n.scene_file_path.ends_with("driftwood.tscn") and (n as Node2D).position == D)).is_false()
 
@@ -64,13 +64,13 @@ func test_e_takes_shellfish() -> void:
 	await _stand(S + Vector2(-16, -2), Walk.Facing.RIGHT)
 	await _press_e()
 	assert_int(inventory.count(K.SHELLFISH)).is_equal(1)
-	assert_int(_count("shellfish.tscn")).is_equal(BeachLayout.SHELLFISH.size() - 1)
+	assert_int(_count("shellfish.tscn")).is_equal(BeachLayout.shellfish().size() - 1)
 
 func test_e_far_from_anything_does_nothing() -> void:
 	await _press_e()
 	assert_bool(_all_empty()).is_true()
-	assert_int(_count("driftwood.tscn")).is_equal(BeachLayout.DRIFTWOOD.size())
-	assert_int(_count("shellfish.tscn")).is_equal(BeachLayout.SHELLFISH.size())
+	assert_int(_count("driftwood.tscn")).is_equal(BeachLayout.driftwood().size())
+	assert_int(_count("shellfish.tscn")).is_equal(BeachLayout.shellfish().size())
 
 func test_holding_e_takes_one() -> void:
 	_second_driftwood(D + Vector2(-8, 0))

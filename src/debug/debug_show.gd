@@ -51,8 +51,8 @@ static func readout_lines(fps: float, clock: GameClock, time_scale: float, feet:
 ## The map cells a view rectangle (global px) touches, clamped to the map; empty Rect2i when none.
 static func cells_in(view: Rect2) -> Rect2i:
 	var t := float(BeachLayout.TILE)
-	var from := Vector2i((view.position / t).floor()).clamp(Vector2i.ZERO, BeachLayout.MAP_SIZE)
-	var to := Vector2i((view.end / t).ceil()).clamp(Vector2i.ZERO, BeachLayout.MAP_SIZE)
+	var from := Vector2i((view.position / t).floor()).clamp(Vector2i.ZERO, BeachLayout.map_size())
+	var to := Vector2i((view.end / t).ceil()).clamp(Vector2i.ZERO, BeachLayout.map_size())
 	if to.x <= from.x or to.y <= from.y:
 		return Rect2i()
 	return Rect2i(from, to - from)
@@ -60,7 +60,7 @@ static func cells_in(view: Rect2) -> Rect2i:
 ## The outline of the solid tiles among `cells`, as segment pairs in global px, inset 0.5 px into each cell.
 ## solid: (Vector2i) -> bool. A neighbour outside the map counts as not solid.
 static func tile_edges(cells: Rect2i, solid: Callable) -> PackedVector2Array:
-	var map := Rect2i(Vector2i.ZERO, BeachLayout.MAP_SIZE)
+	var map := Rect2i(Vector2i.ZERO, BeachLayout.map_size())
 	var is_solid := func(n: Vector2i) -> bool: return map.has_point(n) and solid.call(n)
 	var t := float(BeachLayout.TILE)
 	var pts := PackedVector2Array()

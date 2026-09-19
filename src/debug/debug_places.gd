@@ -9,7 +9,7 @@ const ON := "On"
 const OFF := "Off"
 const NAMES := ["Where he woke", "Wreck", "Beach", "Spring", "Camp"]   # index = Place
 const WRECK_CELL := Vector2i(92, 17)    # the last shallows row straight out from Waking.WAKE_CELL; no wreck is on the beach yet
-const SPRING_CELL := Vector2i(96, 10)   # the sand just below BeachLayout.SPRINGS[0], facing it
+const SPRING_CELL := Vector2i(96, 10)   # the sand just below BeachLayout.springs()[0], facing it
 const CAMP_CELL := Vector2i(86, 10)     # open sand; a lean-to built facing down from here fits (cells 85..87 x 11..12)
 
 ## The cell he is put on for `place`. has_lean_to/lean_to_anchor matter only for CAMP.
