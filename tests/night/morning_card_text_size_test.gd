@@ -65,8 +65,8 @@ func test_text_normal_is_todays_card() -> void:
 	assert_float(card.size.x).is_equal(160.0)
 	assert_float(card.size.y).is_equal(float(MorningCardView.height_for(2)))
 	assert_that(card.labels[0].scale).is_equal(Vector2.ONE)
-	assert_float(card.labels[0].position.y).is_equal(6.0)
-	assert_float(card.labels[1].position.y).is_equal(18.0)
+	assert_float(card.labels[0].position.y).is_equal(8.0)
+	assert_float(card.labels[1].position.y).is_equal(20.0)
 
 func test_a_size_change_while_the_card_shows_relays_it_out() -> void:
 	_show(["DAY 3", NightLoss.NOTHING])

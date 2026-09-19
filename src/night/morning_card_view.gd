@@ -4,11 +4,10 @@ extends Control
 
 const WIDTH := 160
 const LINE_HEIGHT := 12
-const PAD_TOP := 6
+const PAD_TOP := 8                  # the frame's 6 px rim and 2 of air above the first line
 const PAD_BOTTOM := 6
-const PAD_SIDE := 8                 # the slack the card has always kept each side of its words
-const BORDER := HudColours.WOOD_DARK
-const FILL := HudColours.WOOD
+const PAD_SIDE := 8                 # the frame's 6 px rim and 2 of air each side of the words
+const FRAME := preload("res://src/hud/frame.tres")   # the one knobbed frame; its WOOD centre is the fill
 const TEXT := HudColours.PALE
 const HEADING := HudColours.CREAM
 
@@ -73,5 +72,4 @@ func relayout() -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), BORDER)
-	draw_rect(Rect2(1, 1, size.x - 2, size.y - 2), FILL)
+	draw_style_box(FRAME, Rect2(Vector2.ZERO, size))
