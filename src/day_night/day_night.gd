@@ -19,10 +19,10 @@ const FRAME_EDGE := 6.0      # the knobbed frame's edge on every side, src/hud/f
 const PLANK_WIDTH := 64.0     # the frame's Normal width in day_night.tscn
 const PLANK_HEIGHT := 54.0
 const LABEL_HEIGHT := 8.0
-const DAY_TOP := 5.0
-const DIAL_TOP := 14.0
-const TIME_TOP := 43.0
-const PLANK_PAD := 4.0        # units of padding each side of the wider of day and time
+const DAY_TOP := 8.0
+const DIAL_TOP := 10.0
+const TIME_TOP := 39.0
+const PLANK_PAD := FRAME_EDGE + 1.0  # units from the frame's outside to the wider of day and time: the edge and 1 px of air
 
 var _fitted_day := ""
 var _fitted_time := ""
@@ -89,8 +89,8 @@ func set_minutes(total: float) -> void:
 	moved.emit()
 
 
-## Widens and heightens the plank to fit the day and time at the current Text size, growing right and
-## down from its top-left; the dial keeps its size and stays centred in the wider plank.
+## Widens and heightens the frame to fit the day and time at the current Text size, growing right and
+## down from its top-left; the dial keeps its size and stays centred in the wider frame.
 ## Resets both labels' scale to measure them, so never call it from a draw pass.
 func fit_clock() -> void:
 	var rel := TextScale.relative(Display.prefs, get_tree().root) if is_inside_tree() else 1.0

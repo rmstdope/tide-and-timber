@@ -102,32 +102,68 @@ func test_clock_plank_widens_and_grows_taller() -> void:
 	var dial := dn.get_node("%Dial") as Control
 	var time := dn.get_node("%TimeLabel") as Label
 	Display.prefs.step(Setting.TEXT_SIZE, 1)
-	assert_vector(plank.size).is_equal_approx(Vector2(68, 62), Vector2(0.01, 0.01))
+	assert_vector(plank.size).is_equal_approx(Vector2(74, 62), Vector2(0.01, 0.01))
 	assert_vector(day.scale).is_equal_approx(Vector2(1.5, 1.5), Vector2(0.01, 0.01))
-	assert_vector(day.position).is_equal_approx(Vector2(0, 5), Vector2(0.01, 0.01))
-	assert_vector(dial.position).is_equal_approx(Vector2(2, 18), Vector2(0.01, 0.01))
+	assert_vector(day.position).is_equal_approx(Vector2(0, 8), Vector2(0.01, 0.01))
+	assert_vector(dial.position).is_equal_approx(Vector2(5, 14), Vector2(0.01, 0.01))
 	assert_vector(dial.size).is_equal_approx(Vector2(64, 28), Vector2(0.01, 0.01))
-	assert_vector(time.position).is_equal_approx(Vector2(0, 47), Vector2(0.01, 0.01))
+	assert_vector(time.position).is_equal_approx(Vector2(0, 43), Vector2(0.01, 0.01))
 	assert_vector(time.scale).is_equal_approx(Vector2(1.5, 1.5), Vector2(0.01, 0.01))
 	Display.prefs.step(Setting.TEXT_SIZE, 1)
-	assert_vector(plank.size).is_equal_approx(Vector2(88, 70), Vector2(0.01, 0.01))
-	assert_vector(dial.position).is_equal_approx(Vector2(12, 22), Vector2(0.01, 0.01))
-	assert_float(time.position.y).is_equal_approx(51.0, 0.01)
+	assert_vector(plank.size).is_equal_approx(Vector2(94, 70), Vector2(0.01, 0.01))
+	assert_vector(dial.position).is_equal_approx(Vector2(15, 18), Vector2(0.01, 0.01))
+	assert_float(time.position.y).is_equal_approx(47.0, 0.01)
 	Display.use_prefs(DisplayPrefs.new())
 	assert_vector(plank.size).is_equal_approx(Vector2(64, 54), Vector2(0.01, 0.01))
-	assert_vector(dial.position).is_equal_approx(Vector2(0, 14), Vector2(0.01, 0.01))
-	assert_vector(time.position).is_equal_approx(Vector2(0, 43), Vector2(0.01, 0.01))
+	assert_vector(dial.position).is_equal_approx(Vector2(0, 10), Vector2(0.01, 0.01))
+	assert_vector(time.position).is_equal_approx(Vector2(0, 39), Vector2(0.01, 0.01))
 	assert_vector(day.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
 	assert_vector(time.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
 	assert_vector(plank.position).is_equal_approx(Vector2(4, 4), Vector2(0.01, 0.01))
 	assert_bool((dn.get_node("%Hud") as CanvasLayer).transform == Transform2D.IDENTITY).is_true()
+
+func _assert_clock_clears_the_frame(dn: Node, step: String) -> void:
+	var plank := dn.get_node("%Plank") as Control
+	var day := dn.get_node("%DayLabel") as Label
+	var dial := dn.get_node("%Dial") as Control
+	var time := dn.get_node("%TimeLabel") as Label
+	var e := DayNight.FRAME_EDGE
+	var inside := Rect2(Vector2(e, e), plank.size - Vector2(2 * e, 2 * e))
+	var boxes := {}
+	for pair: Array in [["day", day], ["time", time]]:
+		var label := pair[1] as Label
+		var w := label.get_minimum_size().x * label.scale.x
+		var ink := Rect2((plank.size.x - w) / 2.0, label.position.y, w, label.size.y * label.scale.y)
+		boxes[pair[0]] = ink
+		assert_bool(inside.encloses(ink)) \
+			.override_failure_message("%s %s is not inside the frame %s at %s" % [pair[0], ink, inside, step]) \
+			.is_true()
+	var r := ClockDial.ARC_RADIUS
+	var dial_ink := Rect2(dial.position + ClockDial.ARC_CENTER - Vector2(r + 3, r + 3), Vector2(2 * r + 7, r + 7))
+	assert_bool(inside.encloses(dial_ink)) \
+		.override_failure_message("dial %s is not inside the frame %s at %s" % [dial_ink, inside, step]).is_true()
+	assert_bool((boxes["day"] as Rect2).end.y <= dial_ink.position.y) \
+		.override_failure_message("day overlaps the dial at %s" % step).is_true()
+	assert_bool(dial_ink.end.y <= (boxes["time"] as Rect2).position.y) \
+		.override_failure_message("dial overlaps the time at %s" % step).is_true()
+
+func test_clock_words_and_dial_clear_the_frame_edge() -> void:
+	var dn := _scene("res://src/day_night/day_night.tscn")
+	_assert_clock_clears_the_frame(dn, "Normal")
+	Display.prefs.step(Setting.TEXT_SIZE, 1)
+	_assert_clock_clears_the_frame(dn, "Large")
+	Display.prefs.step(Setting.TEXT_SIZE, 1)
+	_assert_clock_clears_the_frame(dn, "Largest")
+	dn.set_minutes(GameClock.START_MINUTES + 9 * GameClock.MINUTES_PER_DAY)
+	_assert_clock_clears_the_frame(dn, "Largest, DAY 10")
+	Display.use_prefs(DisplayPrefs.new())
 
 func test_clock_refits_when_the_day_gets_a_digit() -> void:
 	var dn := _scene("res://src/day_night/day_night.tscn")
 	Display.prefs.step(Setting.TEXT_SIZE, 2)
 	dn.set_minutes(GameClock.START_MINUTES + 9 * GameClock.MINUTES_PER_DAY)
 	assert_str((dn.get_node("%DayLabel") as Label).text).is_equal("DAY 10")
-	assert_float((dn.get_node("%Plank") as Control).size.x).is_equal_approx(104.0, 0.01)
+	assert_float((dn.get_node("%Plank") as Control).size.x).is_equal_approx(110.0, 0.01)
 
 # --- the use prompt ---
 
