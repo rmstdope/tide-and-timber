@@ -4,7 +4,8 @@ extends GdUnitTestSuite
 ## Since tr-1o0.1 (640x360) the three-plank board a player sees fits at every UI size, Text size and window
 ## (pause_text_size_test.gd holds that), so this suite builds the four-plank debug board, the one that still
 ## scrolls: at UI Largest and Text Largest in the default 1280x720 window (k = 2) it rests 236x156 over a
-## 121-deep band, a 101-unit view over 136 of content, so it scrolls 35 units.
+## 121-deep band, an 89-unit view (the band less the rim and a mark row at each end) over 136 of content,
+## so it scrolls 47 units.
 
 const S := DisplayPrefs.Setting
 
@@ -105,7 +106,7 @@ func test_largest_board_is_framed_above_the_lifted_strip() -> void:
 	assert_that(b).is_equal(Vector2(91, 212))
 	assert_that(_node("Panel").get_rect()).is_equal(Rect2(pause.rest_panel.position.x, b.x, 236, b.y - b.x))
 	assert_that(_node("Clip").get_rect()).is_equal(
-			Rect2(0, ScrollWindow.MARK_ROW, 236, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW))
+			Rect2(0, (HudFrame.RIM + ScrollWindow.MARK_ROW), 236, b.y - b.x - 2.0 * (HudFrame.RIM + ScrollWindow.MARK_ROW)))
 	assert_int(pause.scroll_offset).is_equal(0)   # the first plank's extent reaches up to the content's top
 	assert_that(_node("Content").position).is_equal(Vector2(0, -Pause.HEADING_TOP))
 	assert_bool(pause.shows_mark_above()).is_false()
@@ -125,11 +126,11 @@ func test_moving_scrolls_to_the_highlight_and_wraps() -> void:
 	assert_bool(_shown("Settings")).is_true()
 	await _tap(KEY_DOWN)
 	assert_int(pause.rules.highlighted).is_equal(PauseMenu.Plank.DEBUG)
-	assert_int(pause.scroll_offset).is_equal(7)   # the Debug plank's bottom is 7 below the 101-unit view
+	assert_int(pause.scroll_offset).is_equal(19)   # the Debug plank's bottom 108 is 19 below the 89-unit view
 	assert_bool(_shown("Debug")).is_true()
 	await _tap(KEY_DOWN)
 	assert_int(pause.scroll_offset).is_equal(_max_offset())
-	assert_int(_max_offset()).is_equal(35)   # 156 - 8 heading - 12 margin - 101 view
+	assert_int(_max_offset()).is_equal(47)   # 156 - 8 heading - 12 margin - 89 view
 	assert_bool(_shown("QuitToTitle")).is_true()
 	assert_bool(pause.shows_mark_above()).is_true()
 	assert_bool(pause.shows_mark_below()).is_false()
@@ -148,13 +149,15 @@ func test_frame_with_a_taller_band() -> void:
 	assert_bool(pause.scrolls).override_failure_message("precondition: a 74-tall band scrolls the board").is_true()
 	var w := pause.rest_panel.size.x
 	assert_that(_node("Panel").get_rect()).is_equal(Rect2(pause.rest_panel.position.x, 46, w, 74))
-	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, 10, w, 54))
-	assert_int(pause.scroll_offset).is_equal(0)
+	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, 16, w, 42))
+	# Resume's extent (heading to its bottom, 0 .. 52) is taller than the 42 view, so the plank itself
+	# (28 .. 52) is brought wholly into view: its bottom at the view's.
+	assert_int(pause.scroll_offset).is_equal(10)
 	pause.rules.highlighted = PauseMenu.Plank.QUIT_TO_TITLE
 	pause.frame(46.0, 120.0)
-	# the last plank's extent runs to the content's end, so the view (54) sits flush with it
+	# the last plank's extent runs to the content's end, so the view (42) sits flush with it
 	assert_int(pause.scroll_offset).is_equal(
-			int(pause.rest_panel.size.y - Pause.HEADING_TOP - Pause.BOTTOM_MARGIN - 54.0))
+			int(pause.rest_panel.size.y - Pause.HEADING_TOP - Pause.BOTTOM_MARGIN - 42.0))
 
 func test_fitting_panel_moves_inside_the_band() -> void:
 	await _open()

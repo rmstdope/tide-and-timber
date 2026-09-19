@@ -23,7 +23,8 @@ const HEADING_TOP := 8.0        # panel top to the heading's top; the scrolled c
 const BOTTOM_MARGIN := 12.0     # last plank's bottom to the panel's bottom (96 - 84)
 const WORD_HEIGHT := 8.0        # one line of words at Normal: the heading's height
 const PLANK_GAP := 4.0          # PLANK_STEP - PLANK_SIZE.y, kept at every Text size
-const DEV_TAG_RIGHT := 20.0     # the DEV tag's left edge, from the board's right edge (144 - 124)
+const DEV_TAG_RIGHT := 22.0   # the DEV tag's left edge, from the board's right edge: the rim (6) plus the tag's 16
+const DEV_TAG_TOP := 8.0   # the DEV tag's top inside the board: level with the heading (HEADING_TOP), inside the rim
 
 @export var with_skip_story := false
 
@@ -234,7 +235,8 @@ func frame(band_top: float, band_bottom: float) -> void:
 		(%Content as Control).position = Vector2.ZERO
 	else:
 		scrolls = true
-		var view_h := band_h - 2.0 * ScrollWindow.MARK_ROW
+		var inset := HudFrame.RIM + ScrollWindow.MARK_ROW
+		var view_h := band_h - 2.0 * inset
 		var e := _item_extent(rules.highlighted)
 		scroll_offset = ScrollWindow.follow(_content_height(), view_h, e.x, e.y, scroll_offset)
 		# The plank itself is made wholly visible, in case its extent was taller than the view.
@@ -243,11 +245,11 @@ func frame(band_top: float, band_bottom: float) -> void:
 				p.position.y - HEADING_TOP, p.position.y + p.size.y - HEADING_TOP, scroll_offset)
 		%Panel.position = Vector2(rest_panel.position.x, band_top)
 		%Panel.size = Vector2(w, band_h)
-		(%Clip as Control).position = Vector2(0, ScrollWindow.MARK_ROW)
+		(%Clip as Control).position = Vector2(0, inset)
 		(%Clip as Control).size = Vector2(w, view_h)
 		(%Content as Control).position = Vector2(0, -(HEADING_TOP + scroll_offset))
-	(%Marks as Control).position = Vector2.ZERO
-	(%Marks as Control).size = (%Panel as Control).size
+	(%Marks as Control).position = Vector2(0, HudFrame.RIM)
+	(%Marks as Control).size = (%Panel as Control).size - Vector2(0, 2.0 * HudFrame.RIM)
 	%Marks.queue_redraw()
 
 ## True while ▲ is drawn: scrolling, with planks hidden above.
@@ -304,7 +306,7 @@ func lay_out(retry: bool = true) -> void:
 	# The tag is freed in _ready in a release board, and debug_tools may have changed since; ask the node.
 	var dev_tag := get_node_or_null("%DevTag") as Control
 	if dev_tag != null:
-		dev_tag.position.x = board_w - DEV_TAG_RIGHT
+		dev_tag.position = Vector2(board_w - DEV_TAG_RIGHT, DEV_TAG_TOP)
 	var h := top + (rules.items.size() - 1) * step + plank_h + BOTTOM_MARGIN
 	rest_panel = Rect2(floorf((Screen.WIDTH - board_w) / 2.0), floorf((Screen.HEIGHT - h) / 2.0), board_w, h)
 	(%Content as Control).size = rest_panel.size
@@ -328,7 +330,7 @@ func _frame_later() -> void:
 		_frame.call_deferred()
 
 ## The centre of the ▲ (up) or ▼ mark row, in %Marks' units: the panel's horizontal centre, in the
-## mark row kept at the panel's top or bottom.
+## mark row kept just inside the rim at the panel's top or bottom.
 func mark_centre(up: bool) -> Vector2:
 	return ScrollWindow.mark_centre(Rect2(Vector2.ZERO, (%Marks as Control).size), up)
 

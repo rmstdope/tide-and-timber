@@ -82,7 +82,7 @@ func test_largest_title_board_opens_at_the_top() -> void:
 	assert_that(board.rest_panel).is_equal(_centred(364))   # stacked, 364 tall: taller than the band
 	# Drawn at 2 about the picture's centre, the band's on-screen 2 .. strip - 2 is board y 91 .. 246.
 	assert_that(_node("Panel").get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, 91, SettingsBoard.BOARD_W, 155))
-	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, ScrollWindow.MARK_ROW, SettingsBoard.BOARD_W, 155 - 2 * ScrollWindow.MARK_ROW))
+	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, (HudFrame.RIM + ScrollWindow.MARK_ROW), SettingsBoard.BOARD_W, 155 - 2 * (HudFrame.RIM + ScrollWindow.MARK_ROW)))
 	assert_int(board.offset).is_equal(0)
 	assert_that(_node("Content").position).is_equal(Vector2(0, -8))
 	assert_bool(board.shows_mark_above()).is_false()
@@ -96,23 +96,25 @@ func test_moving_down_and_up_scrolls_to_the_highlight() -> void:
 	_title()
 	await _open()
 	assert_bool(board.scrolls).is_true()
-	# Content y of the planks: 28, 76, 124, 172, 220 (44 tall); the clip is 135 tall; content 348, so at most 213.
+	# Content y of the planks: 28, 76, 124, 172, 220 (44 tall); the clip is 123 tall; content 348.
 	await _tap(KEY_DOWN)
 	assert_int(board.offset).is_equal(0)   # Text size is already wholly in the clip
 	assert_bool(board.shows_mark_above()).is_false()
 	assert_bool(board.shows_mark_below()).is_true()
 	assert_bool(_visible("TextSize")).is_true()
 	await _tap(KEY_DOWN)
-	assert_int(board.offset).is_equal(33)   # Colour cues' bottom 168 - 135
+	assert_int(board.offset).is_equal(45)   # Colour cues' bottom 168 - 123
 	assert_bool(board.shows_mark_above()).is_true()
 	assert_bool(_visible("ColourCues")).is_true()
 	await _tap(KEY_DOWN)
-	assert_int(board.offset).is_equal(81)   # Fullscreen's bottom 216 - 135
+	assert_int(board.offset).is_equal(93)   # Fullscreen's bottom 216 - 123
 	assert_bool(_visible("Fullscreen")).is_true()
 	await _tap(KEY_DOWN)
-	assert_int(board.offset).is_equal(213)   # Controls with the line under the list: the end of the content
+	# Controls with the line under the list spans 220 .. 348, taller than the 123 clip, so its top, 220;
+	# the line's last 5 units stay below, and ▼ says so.
+	assert_int(board.offset).is_equal(220)
 	assert_bool(_visible("Controls")).is_true()
-	assert_bool(board.shows_mark_below()).is_false()
+	assert_bool(board.shows_mark_below()).is_true()
 	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.CONTROLS)
 	await _tap(KEY_UP)
 	assert_int(board.offset).is_equal(172)   # Fullscreen's top
@@ -133,10 +135,10 @@ func test_large_title_board_scrolls_side_by_side() -> void:
 	assert_that(board.rest_panel).is_equal(_centred(206))
 	# Drawn at 2: the band is board y 91 .. 250 (this strip sits 4 lower than the stacked board's).
 	assert_that(_node("Panel").get_rect()).is_equal(Rect2(SettingsBoard.BOARD_X, 91, SettingsBoard.BOARD_W, 159))
-	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, ScrollWindow.MARK_ROW, SettingsBoard.BOARD_W, 159 - 2 * ScrollWindow.MARK_ROW))
+	assert_that(_node("Clip").get_rect()).is_equal(Rect2(0, (HudFrame.RIM + ScrollWindow.MARK_ROW), SettingsBoard.BOARD_W, 159 - 2 * (HudFrame.RIM + ScrollWindow.MARK_ROW)))
 	for i in 4:
 		await _tap(KEY_DOWN)
-	assert_int(board.offset).is_equal(51)   # content 206 - 16 = 190, less the 139 clip
+	assert_int(board.offset).is_equal(63)   # content 206 - 16 = 190, less the 127 clip
 	assert_bool(board.shows_mark_above()).is_true()
 	assert_bool(board.shows_mark_below()).is_false()
 	assert_bool(_visible("Controls")).is_true()
@@ -150,7 +152,7 @@ func test_hovering_a_row_scrolls_to_it() -> void:
 	move.relative = Vector2(1, 0)
 	_node("ColourCues").gui_input.emit(move)
 	assert_int(board.rules.highlighted).is_equal(SettingsMenu.Plank.COLOUR_CUES)
-	assert_int(board.offset).is_equal(33)   # Colour cues' bottom 168 - the 135 clip
+	assert_int(board.offset).is_equal(45)   # Colour cues' bottom 168 - the 123 clip
 	assert_bool(_visible("ColourCues")).is_true()
 
 func test_size_change_refollows_and_back_to_normal_stops_scrolling() -> void:
@@ -160,7 +162,7 @@ func test_size_change_refollows_and_back_to_normal_stops_scrolling() -> void:
 	assert_bool(board.scrolls).is_true()
 	await _tap(KEY_DOWN)
 	await _tap(KEY_DOWN)
-	assert_int(board.offset).is_equal(33)   # Colour cues' bottom 168 - the 135 clip
+	assert_int(board.offset).is_equal(45)   # Colour cues' bottom 168 - the 123 clip
 	Display.prefs.step(S.UI_SIZE, -2)
 	Display.prefs.step(S.TEXT_SIZE, -2)
 	await _settle()
@@ -171,7 +173,7 @@ func test_size_change_refollows_and_back_to_normal_stops_scrolling() -> void:
 	_grow(2, 2)
 	await _settle()
 	assert_bool(board.scrolls).is_true()
-	assert_int(board.offset).is_equal(33)
+	assert_int(board.offset).is_equal(45)
 	assert_bool(_visible("ColourCues")).is_true()
 
 func test_rows_are_clipped() -> void:
@@ -190,13 +192,13 @@ func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
 	await _open()
 	assert_bool(board.scrolls).is_true()
 	var marks := _node("Marks")
-	assert_that(marks.get_rect()).is_equal(Rect2(0, 0, SettingsBoard.BOARD_W, 155))
+	assert_that(marks.get_rect()).is_equal(Rect2(0, HudFrame.RIM, SettingsBoard.BOARD_W, 155 - 2 * HudFrame.RIM))
 	assert_int(marks.get_signal_connection_list("draw").size()) \
 		.override_failure_message("%Marks has no draw handler, so no mark is ever drawn").is_greater(0)
 	# The centres _draw_marks draws on: the panel's horizontal centre, in the top and bottom mark rows
-	# of the 155-tall panel. Pinned as literals, so moving either mark out of its row fails here.
+	# just inside the rim of the 155-tall panel. Pinned as literals, so moving either mark out of its row fails here.
 	assert_that(board.mark_centre(true)).is_equal(Vector2(156, 5))
-	assert_that(board.mark_centre(false)).is_equal(Vector2(156, 150))
+	assert_that(board.mark_centre(false)).is_equal(Vector2(156, 138))
 	var font := load("res://assets/fonts/PressStart2P-Regular.ttf") as Font
 	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(true), true)).is_equal(Vector2(152, 9))
-	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(false), false)).is_equal(Vector2(152, 154))
+	assert_that(ScrollWindow.mark_origin(font, board.mark_centre(false), false)).is_equal(Vector2(152, 142))
