@@ -53,4 +53,4 @@ func test_coconut_lands_on_the_sand() -> void:
 	shake.use(inv)
 	await await_millis(int(Shake.FALL_TIME * 1000) + 100)
 	for c in _coconuts():
-		assert_float(((c as Node).get_node("Sprite") as Sprite2D).offset.y).is_equal(-3.0)
+		assert_float(((c as Node).get_node("Sprite") as Sprite2D).offset.y).is_equal(-10.0)

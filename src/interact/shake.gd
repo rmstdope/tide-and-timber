@@ -1,6 +1,6 @@
 class_name Shake
 extends Usable
-## A palm's coconuts: all fall to the sand at its foot on the first shake, then the palm is bare for good.
+## A palm's coconuts: all fall to the sand under its crown on the first shake, then the palm is bare for good.
 
 const COCONUT := preload("res://src/beach/props/coconut.tscn")
 const DROPS: Array[Vector2] = [Vector2(-12, 9), Vector2(18, 11)]   # where each coconut lands, from the palm's foot
@@ -29,7 +29,7 @@ func use(_inventory: Inventory) -> void:
 	for d in DROPS:
 		var c := COCONUT.instantiate() as Node2D
 		drop_parent.add_child(c)
-		c.global_position = global_position + d
+		c.global_position = global_position + d + Vector2(crown.position.x, 0)
 		var s := c.get_node("Sprite") as Sprite2D
 		var rest := s.offset.y
 		s.offset.y = crown.position.y - d.y
