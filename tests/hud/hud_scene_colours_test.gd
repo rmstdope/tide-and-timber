@@ -32,11 +32,11 @@ func test_every_in_play_line_is_pale() -> void:
 				.override_failure_message("%s in %s is #%s" % [node_path, path, colour.to_html(false)]) \
 				.is_true()
 
-func test_the_dawn_save_box_is_untouched() -> void:
+func test_the_dawn_save_box_is_the_knobbed_frame() -> void:
 	var root := _scene("res://src/autosave/autosave.tscn")
 	var box := root.get_node("BoxLayer/Box/Panel") as Control
-	var style := box.get_theme_stylebox(&"panel") as StyleBoxFlat
-	assert_str(style.resource_path).is_equal("res://src/title/plank.tres")
+	var style := box.get_theme_stylebox(&"panel")
+	assert_str(style.resource_path).is_equal("res://src/hud/frame.tres")
 
 func test_the_move_hint_words_are_pale() -> void:
 	var root := _scene("res://src/waking/waking.tscn")

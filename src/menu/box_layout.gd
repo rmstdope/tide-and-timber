@@ -8,6 +8,8 @@ extends RefCounted
 
 const SCREEN_MARGIN := 4.0          # kept clear on each side of a stacked box, in 320x180 units
 const LINE_STEP := 11.0             # one line of size-8 words, with the labels' line spacing: one push or wheel notch
+const FRAME_EDGE := 6.0            # the knobbed frame's edge (src/hud/frame.tres texture margins): nothing is drawn inside it
+const BUTTON_INSET := 8.0          # side-by-side buttons widened by their words keep the frame's edge and 2 of air from each side
 
 enum Side { LEFT, RIGHT }                                  # which button is highlighted; LEFT is the top one when stacked
 enum Push { UP, DOWN, LEFT, RIGHT, WHEEL_UP, WHEEL_DOWN }
@@ -111,8 +113,8 @@ func at(s: float, left_size: Vector2, right_size: Vector2, needed_height: Callab
 	if stacking:
 		need = maxf(need, 2.0 * left.position.x + maxf(left_size.x, right_size.x))
 	else:
-		# side by side the pair keeps only the screen margins: stacks_at already ensures it fits the screen
-		need = maxf(need, left_size.x + gap + right_size.x + 2.0 * SCREEN_MARGIN)
+		# side by side the pair keeps BUTTON_INSET inside the frame: stacks_at already ensures it fits the screen
+		need = maxf(need, left_size.x + gap + right_size.x + 2.0 * BUTTON_INSET)
 	var w := minf(maxf(panel.size.x, 2.0 * ceilf(need / 2.0)), widest(s))
 	for i in lines.size():
 		var line := Rect2()
@@ -169,6 +171,7 @@ func content_height() -> float:
 ## This laid-out box (from at(), or one_button()) framed to the band [band_top, band_bottom], in the panel's
 ## parent's units, with offset_now clamped. Returns a new BoxLayout: lines, left and right unchanged
 ## (they stay in Content's units, which are the unframed panel's), stacked and right_shown copied.
+## The clip keeps FRAME_EDGE and a MARK_ROW clear at the top and bottom.
 func framed(band_top: float, band_bottom: float, offset_now: int) -> BoxLayout:
 	var rest := panel
 	var band_h := band_bottom - band_top
@@ -186,9 +189,10 @@ func framed(band_top: float, band_bottom: float, offset_now: int) -> BoxLayout:
 		f.content = Rect2(Vector2.ZERO, rest.size)
 		return f
 	f.scrolls = true
-	var view_h := maxf(1.0, band_h - 2.0 * ScrollWindow.MARK_ROW)
+	var inset := FRAME_EDGE + ScrollWindow.MARK_ROW
+	var view_h := maxf(1.0, band_h - 2.0 * inset)
 	f.panel = Rect2(Vector2(rest.position.x, band_top), Vector2(rest.size.x, band_h))
-	f.clip = Rect2(Vector2(0, ScrollWindow.MARK_ROW), Vector2(rest.size.x, view_h))
+	f.clip = Rect2(Vector2(0, inset), Vector2(rest.size.x, view_h))
 	f.offset = clampi(offset_now, 0, maxi(0, ceili(content_height() - view_h)))
 	f.content = Rect2(Vector2(0, -(content_top() + f.offset)), rest.size)
 	return f
@@ -237,12 +241,12 @@ func pushed(push: Push, highlighted: BoxLayout.Side) -> Vector2i:
 			return Vector2i(highlighted, maxi(offset - int(LINE_STEP), 0))
 	return Vector2i(highlighted, mini(offset + int(LINE_STEP), _max_offset()))
 
-## Writes a framed layout's panel, clip and content to the nodes. Marks covers the whole panel and is redrawn.
+## Writes a framed layout's panel, clip and content to the nodes. Marks covers the panel inside the frame's edge and is redrawn.
 func place_frame(panel_node: Control, clip_node: Control, content_node: Control, marks_node: Control) -> void:
 	_put(panel_node, panel)
 	_put(clip_node, clip)
 	_put(content_node, content)
-	_put(marks_node, Rect2(Vector2.ZERO, panel.size))
+	_put(marks_node, Rect2(0, FRAME_EDGE, panel.size.x, panel.size.y - 2.0 * FRAME_EDGE))
 	marks_node.queue_redraw()
 
 ## That button's own rect as (top, bottom) in content units.

@@ -15,10 +15,10 @@ const GAP := 3                          # word to picture and picture to word
 const RING_GAP := 4                     # the line's end to the ring
 const HOLD := "Hold"
 const TO_CANCEL := "to cancel"
-const PLANK_STYLE := preload("res://src/title/plank.tres")
-const SIDE_PAD := 4.0                   # each side of the plank, outside the words
-const TOP_PAD := 8.0                    # plank top to the first word row's top
-const BOTTOM_PAD := 16.0                # the hold row's bottom to the plank bottom
+const FRAME_STYLE := preload("res://src/hud/frame.tres")
+const SIDE_PAD := BoxLayout.FRAME_EDGE  # each side of the frame, outside the words: its knobbed edge
+const TOP_PAD := 8.0                    # frame top to the first word row's top
+const BOTTOM_PAD := 16.0                # the hold row's bottom to the frame bottom
 const HOLD_GAP := 4.0                   # the last word row's bottom to the hold row's top
 const LINE_STEP := 16.0                 # a word row's height at Text size Normal
 const BASELINE_IN_ROW := 10.0           # a name/press row's top to its baseline
@@ -29,7 +29,7 @@ const FIT_EPSILON := 0.001       # name_lines wraps on area / rel; _fits multipl
 ## The whole measured layout in page units; the host layer multiplies by the UI scale.
 class Layout extends RefCounted:
 	var rel := 1.0                      # the words' scale inside the box; 1.0 at Text size Normal
-	var panel := Rect2()                # the plank, whole units, centred on the picture's centre
+	var panel := Rect2()                # the frame, whole units, centred on the picture's centre
 	var names := PackedStringArray()    # the action name, wrapped
 	var presses := PackedStringArray()  # "Press a new key" / "Press a new button", wrapped
 	var hold: Array = []                # 1 or 2 rows; each an Array of String and DeviceHints.Picture
@@ -103,7 +103,7 @@ func _draw() -> void:
 		return
 	var font := get_theme_default_font()
 	draw_rect(Rect2(Vector2.ZERO, Screen.SIZE), DIM)
-	draw_style_box(PLANK_STYLE, layout.panel)
+	draw_style_box(FRAME_STYLE, layout.panel)
 	var y := layout.panel.position.y + TOP_PAD
 	for line in layout.names:
 		_centred(font, line, y + ceilf(BASELINE_IN_ROW * layout.rel), layout.rel)
@@ -188,7 +188,7 @@ static func layout_at(p_lines: PackedStringArray, p_items: Array, rel: float, ui
 	l.fits = _fits(l, area, ui, font)
 	return l
 
-## The whole box is on screen, every row is inside the words area, and the ring is on the plank.
+## The whole box is on screen, every row is inside the words area, and the ring is on the frame.
 static func _fits(l: Layout, area: float, ui: float, font: Font) -> bool:
 	if l.panel.size.y * ui > Screen.HEIGHT - 2.0 * SpokenLine.SCREEN_MARGIN:
 		return false

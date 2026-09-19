@@ -141,7 +141,7 @@ func test_largest_opens_framed_at_the_top() -> void:
 	var rest := page._box_layout.panel
 	var b := _band()
 	assert_that(_rect(_panel())).is_equal(Rect2(rest.position.x, b.x, rest.size.x, b.y - b.x))
-	assert_that(_rect(_clip())).is_equal(Rect2(0, ScrollWindow.MARK_ROW, rest.size.x, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW))
+	assert_that(_rect(_clip())).is_equal(Rect2(0, BoxLayout.FRAME_EDGE + ScrollWindow.MARK_ROW, rest.size.x, b.y - b.x - 2.0 * (BoxLayout.FRAME_EDGE + ScrollWindow.MARK_ROW)))
 	assert_that(_rect(_content())).is_equal(Rect2(0, -_frame().content_top(), rest.size.x, rest.size.y))
 	assert_int(_offset()).is_equal(0)
 	assert_bool(_is_highlighted(_node("Safe"))).is_true()

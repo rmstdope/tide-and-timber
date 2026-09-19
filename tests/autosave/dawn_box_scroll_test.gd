@@ -83,7 +83,7 @@ func test_largest_opens_framed_at_the_top() -> void:
 	# the 312-wide box (BoxLayout.widest(2)) stays centred; it is framed to the band 91..246 above the strip
 	var w := BoxLayout.widest(UiScale.current(Display.prefs, get_tree().root))
 	assert_that(_rect(_panel())).is_equal(Rect2(Screen.CENTRE.x - w / 2.0, 91, w, 155))
-	assert_that(_rect(_clip())).is_equal(Rect2(0, ScrollWindow.MARK_ROW, w, 155 - 2 * ScrollWindow.MARK_ROW))
+	assert_that(_rect(_clip())).is_equal(Rect2(0, BoxLayout.FRAME_EDGE + ScrollWindow.MARK_ROW, w, 155 - 2.0 * (BoxLayout.FRAME_EDGE + ScrollWindow.MARK_ROW)))
 	# the unframed box is 204 tall; offset 0 shows it from its content top, 8
 	assert_that(_rect(_content())).is_equal(Rect2(0, -8, w, 204))
 	_highlighted("TryAgain")
@@ -94,15 +94,15 @@ func test_reads_down_then_moves_to_keep_playing() -> void:
 	_size_up()
 	await _fail_dawn()
 	_assert_scrolls()
-	for i in 3:
+	for i in 4:
 		await _key(KEY_DOWN)
-	# two whole LINE_STEPs (22), then the third push stops where Try again's bottom shows: offset 23, y -(8 + 23)
-	assert_float(_content().position.y).is_equal(-31.0)
+	# three whole LINE_STEPs (33), then the fourth push stops where Try again's bottom shows: offset 35, y -(8 + 35)
+	assert_float(_content().position.y).is_equal(-43.0)
 	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
 	await _key(KEY_DOWN)
 	assert_int(autosave.rules.selected).is_equal(B.KEEP_PLAYING)
-	# the last offset, 51 (content 186 tall less the 135 view), y -(8 + 51)
-	assert_float(_content().position.y).is_equal(-59.0)
+	# the last offset, 63 (content 186 tall less the 123 view), y -(8 + 63)
+	assert_float(_content().position.y).is_equal(-71.0)
 	assert_bool(_frame().shows_mark_above()).is_true()
 	assert_bool(_frame().shows_mark_below()).is_false()
 
@@ -111,11 +111,11 @@ func test_up_back_through_the_words() -> void:
 	await _fail_dawn()
 	_assert_scrolls()
 	await _key(KEY_RIGHT)
-	assert_int(autosave._box_offset).is_equal(51)   # the last offset: content 186 tall less the 135 view
+	assert_int(autosave._box_offset).is_equal(63)   # the last offset: content 186 tall less the 123 view
 	await _key(KEY_UP)
 	assert_int(autosave.rules.selected).is_equal(B.TRY_AGAIN)
-	assert_int(autosave._box_offset).is_equal(51)
-	for i in 5:   # ceil(51 / LINE_STEP)
+	assert_int(autosave._box_offset).is_equal(63)
+	for i in 6:   # ceil(63 / LINE_STEP)
 		await _key(KEY_UP)
 	assert_int(autosave._box_offset).is_equal(0)
 

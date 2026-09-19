@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://src/pause/pause.gd" id="1_pause"]
 [ext_resource type="StyleBox" path="res://src/pause/board.tres" id="2_board"]
-[ext_resource type="StyleBox" path="res://src/title/plank.tres" id="3_plank"]
+[ext_resource type="StyleBox" path="res://src/hud/frame.tres" id="3_frame"]
 [ext_resource type="PackedScene" path="res://src/settings/settings_board.tscn" id="4_settings"]
 [ext_resource type="Script" path="res://src/debug/dev_tag.gd" id="5_devtag"]
 [ext_resource type="Script" path="res://src/debug/debug_panel.gd" id="6_debugpanel"]
@@ -239,7 +239,7 @@ offset_top = 132.0
 offset_right = 468.0
 offset_bottom = 228.0
 mouse_filter = 2
-theme_override_styles/panel = ExtResource("3_plank")
+theme_override_styles/panel = ExtResource("3_frame")
 
 [node name="Clip" type="Control" parent="Board/QuitBox/Panel"]
 layout_mode = 0
