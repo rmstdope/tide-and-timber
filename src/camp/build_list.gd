@@ -7,26 +7,26 @@ extends Control
 signal row_hovered(thing: int)
 signal row_clicked(thing: int)
 
-const SIZE := Vector2(196, 41)
+const SIZE := Vector2(206, 51)
 const ROW_SIZE := Vector2(190, 11)
-const ROW_TOP: Array[int] = [14, 27]
-const STACKED_SIZE := Vector2(150, 61)
+const ROW_TOP: Array[int] = [19, 32]
+const STACKED_SIZE := Vector2(160, 71)
 const STACKED_ROW_SIZE := Vector2(144, 21)
-const STACKED_ROW_TOP: Array[int] = [14, 37]
+const STACKED_ROW_TOP: Array[int] = [19, 42]
 const LINE_HEIGHT := 9.0                # the cost line's top below the name line's top when stacked
 const COST_GAP := 8.0                   # the least space between a name and its cost, side by side
 const TEXT := HudColours.PALE
-const BORDER := HudColours.WOOD_DARK
-const FILL := HudColours.WOOD
+const FRAME := preload("res://src/hud/frame.tres")   # the one knobbed frame; its WOOD centre is the fill
 
 # The Normal geometry, named. Only words grow; every one of these keeps its UI-size scale.
 const TEXT_LINE := 8.0                  # one line of words, in list units, at Text size Normal
-const INSET := 3.0                      # the list's left/right inset, and the row's
-const WORDS_INSET := 12.0               # both insets on both sides: the list's width less its words'
-const TITLE_TOP := 3.0                  # the title's top
+const EDGE := 8.0                       # the list's edge to anything it holds: the frame's 6 px rim and 2 of air
+const INSET := 3.0                      # a row's words inset from the row's sides
+const WORDS_INSET := 22.0               # both EDGEs and both INSETs: the list's width less its words'
+const TITLE_TOP := EDGE                 # the title's top
 const TITLE_GAP := 3.0                  # the title's bottom to the first row's top
 const ROW_GAP := 2.0                    # one row's bottom to the next row's top
-const BOTTOM_MARGIN := 3.0              # the last row's bottom to the list's bottom
+const BOTTOM_MARGIN := EDGE             # the last row's bottom to the list's bottom
 const ROW_TOP_PAD := 2.0                # a row's top to its name
 const ROW_BOTTOM_PAD := 1.0             # the name's bottom to the row's bottom, side by side
 const NAME_GAP := 1.0                   # the name's bottom to the cost's top, stacked
@@ -86,8 +86,8 @@ static func stacks(side_by_side_width: float, s: float) -> bool:
 	return side_by_side_width * s > Screen.WIDTH
 
 ## The list's unscaled width with every row side by side for the words it shows now, grown by `rel`:
-## SIZE.x, or wider when a row's grown name, COST_GAP and cost, plus the 3-unit insets on both sides
-## of the row and of the list, need more.
+## SIZE.x, or wider when a row's grown name, COST_GAP and cost, plus the list's EDGE and the row's INSET
+## on both sides, need more.
 func side_by_side_width(rel := 1.0) -> float:
 	var widest := 0.0
 	for i in BuildMenu.LINE_COUNT:
@@ -136,7 +136,7 @@ func list_size() -> Vector2:
 func _row_size() -> Vector2:
 	var h := ROW_TOP_PAD + _text_height()
 	h += (NAME_GAP + _text_height() + STACKED_BOTTOM_PAD) if stacked else ROW_BOTTOM_PAD
-	return Vector2(list_width() - 2.0 * INSET, h)
+	return Vector2(list_width() - 2.0 * EDGE, h)
 
 func _row_tops() -> Array[float]:
 	var tops: Array[float] = []
@@ -156,7 +156,7 @@ func _layout() -> void:
 	title_label.size = Vector2(box.x / _rel, TEXT_LINE)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	for i in BuildMenu.LINE_COUNT:
-		rows[i].position = Vector2(INSET, tops[i])
+		rows[i].position = Vector2(EDGE, tops[i])
 		rows[i].size = row_size
 		name_labels[i].position = Vector2(INSET, ROW_TOP_PAD)
 		name_labels[i].scale = Vector2.ONE * _rel
@@ -190,7 +190,7 @@ func _ready() -> void:
 	content.draw.connect(_draw_rows)
 	clip.add_child(content)
 	title_label = _label("Build")
-	title_label.position = Vector2(0, 3)
+	title_label.position = Vector2(0, TITLE_TOP)
 	title_label.size = Vector2(SIZE.x, 8)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_color_override(&"font_color", TEXT)
@@ -224,14 +224,12 @@ func show_menu(menu: BuildMenu) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	var box := size
-	draw_rect(Rect2(Vector2.ZERO, box), BORDER)
-	draw_rect(Rect2(1, 1, box.x - 2, box.y - 2), FILL)
+	draw_style_box(FRAME, Rect2(Vector2.ZERO, size))
 
 ## Every row's plate, drawn on content under the rows' words.
 func _draw_rows() -> void:
 	for i in BuildMenu.LINE_COUNT:
-		content.draw_style_box(row_style(i), Rect2(Vector2(INSET, _row_tops()[i]), _row_size()))
+		content.draw_style_box(row_style(i), Rect2(Vector2(EDGE, _row_tops()[i]), _row_size()))
 
 ## The plate row i is drawn on: the chosen one when it is highlighted.
 func row_style(i: int) -> StyleBoxFlat:
