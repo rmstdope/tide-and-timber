@@ -3,7 +3,6 @@ extends Node2D
 ## The long beach: ground, props and the spring, the man, the loose camera, and what he carries with its bar.
 ## Handles no input itself (clicks go to %ClickWalker; B, and Esc while building, to %Builder).
 
-const TILES := preload("res://assets/beach/tiles.png")
 const ROCK := preload("res://src/beach/props/rock.tscn")
 const BOULDER := preload("res://src/beach/props/boulder.tscn")
 const PALM := preload("res://src/beach/props/palm.tscn")
@@ -23,7 +22,6 @@ var inventory := Inventory.new()
 var walk_grid: WalkGrid
 
 func _ready() -> void:
-	%Ground.tile_set = BeachTileSet.build(TILES)
 	for y in BeachLayout.map_size().y:
 		for x in BeachLayout.map_size().x:
 			var cell := Vector2i(x, y)

@@ -1,0 +1,28 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/beach/tiles.png" id="1_6yade"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_oyjoh"]
+texture = ExtResource("1_6yade")
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+1:0/0 = 0
+1:0/0/custom_data_0 = 1
+2:0/0 = 0
+2:0/0/custom_data_0 = 2
+3:0/0 = 0
+3:0/0/custom_data_0 = 3
+4:0/0 = 0
+4:0/0/custom_data_0 = 4
+5:0/0 = 0
+5:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+5:0/0/custom_data_0 = 5
+6:0/0 = 0
+6:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+6:0/0/custom_data_0 = 6
+
+[resource]
+physics_layer_0/collision_layer = 1
+custom_data_layer_0/name = "kind"
+custom_data_layer_0/type = 2
+sources/0 = SubResource("TileSetAtlasSource_oyjoh")

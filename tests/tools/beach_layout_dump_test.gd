@@ -10,7 +10,7 @@ func _unique(root: Node, node: Node, node_name: String) -> Node:
 func test_lines_give_size_rows_then_props() -> void:
 	var root := Node2D.new()
 	var ground := _unique(root, TileMapLayer.new(), "Ground") as TileMapLayer
-	ground.tile_set = BeachTileSet.build(preload("res://assets/beach/tiles.png"))
+	ground.tile_set = load("res://src/beach/beach_tiles.tres") as TileSet
 	ground.set_cell(Vector2i(0, 0), 0, Vector2i(1, 0))
 	ground.set_cell(Vector2i(1, 0), 0, Vector2i(5, 0))
 	ground.set_cell(Vector2i(1, 1), 0, Vector2i(6, 0))

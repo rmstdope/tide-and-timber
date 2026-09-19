@@ -14,12 +14,14 @@
 [ext_resource type="Script" path="res://src/camp/key_hint.gd" id="11_hint"]
 [ext_resource type="Script" path="res://src/display/ui_scale.gd" id="ui_scale"]
 [ext_resource type="Script" path="res://src/hud/spoken_line.gd" id="spoken_line"]
+[ext_resource type="TileSet" path="res://src/beach/beach_tiles.tres" id="beach_tiles"]
 
 [node name="Beach" type="Node2D"]
 script = ExtResource("1_beach")
 
 [node name="Ground" type="TileMapLayer" parent="."]
 unique_name_in_owner = true
+tile_set = ExtResource("beach_tiles")
 
 [node name="Decor" type="Node2D" parent="."]
 unique_name_in_owner = true
