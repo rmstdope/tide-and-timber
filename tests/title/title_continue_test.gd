@@ -297,8 +297,8 @@ func test_older_save_continues_with_nothing_said() -> void:
 
 func _assert_dimmed() -> void:
 	assert_bool(_visible("%Continue")).is_true()
-	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_DIMMED_STYLE)
-	assert_object((_node("MenuClip/Menu/Continue/Lines/Label/Words") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_DIMMED_COLOR)
+	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_STYLE)
+	assert_object((_node("MenuClip/Menu/Continue/Lines/Label/Words") as Label).get_theme_color("font_color")).is_equal(HudColours.DIM)
 	assert_bool(_visible("%DayLine")).is_false()
 	for plank: String in ["NewGame", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == "NewGame" else TitleScreen.PLANK_STYLE
@@ -330,7 +330,7 @@ func test_readable_save_has_no_reason() -> void:
 	_saved()
 	assert_bool(_visible("%Reason")).is_false()
 	assert_highlighted("Continue")
-	assert_object((_node("MenuClip/Menu/Continue/Lines/Label/Words") as Label).get_theme_color("font_color")).is_equal(TitleScreen.LABEL_COLOR)
+	assert_object((_node("MenuClip/Menu/Continue/Lines/Label/Words") as Label).get_theme_color("font_color")).is_equal(HudColours.INK)
 	assert_float((_node("%Menu") as Control).position.y).is_equal(TitleScreen.MENU_TOP_WITH_SAVE)
 
 func test_no_save_has_no_reason() -> void:
@@ -375,7 +375,7 @@ func _assert_menu_highlight(unique: String) -> void:
 	for plank: String in ["NewGame", "Quit"]:
 		var want := TitleScreen.PLANK_HIGHLIGHT_STYLE if plank == unique else TitleScreen.PLANK_STYLE
 		assert_object(_plank(plank).get_theme_stylebox("panel")).override_failure_message(plank).is_same(want)
-	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_DIMMED_STYLE)
+	assert_object(_plank("Continue").get_theme_stylebox("panel")).is_same(TitleScreen.PLANK_STYLE)
 
 func test_mouse_on_dimmed_continue_does_nothing() -> void:
 	_newer()

@@ -16,10 +16,8 @@ const STACKED_ROW_TOP: Array[int] = [14, 37]
 const LINE_HEIGHT := 9.0                # the cost line's top below the name line's top when stacked
 const COST_GAP := 8.0                   # the least space between a name and its cost, side by side
 const TEXT := HudColours.PALE
-const GREYED := HudColours.DIM
 const BORDER := HudColours.WOOD_DARK
 const FILL := HudColours.WOOD
-const HIGHLIGHT := HudColours.WOOD_LIGHT
 
 # The Normal geometry, named. Only words grow; every one of these keeps its UI-size scale.
 const TEXT_LINE := 8.0                  # one line of words, in list units, at Text size Normal
@@ -189,7 +187,7 @@ func _ready() -> void:
 	add_child(clip)
 	content = Control.new()
 	content.mouse_filter = MOUSE_FILTER_IGNORE
-	content.draw.connect(_draw_highlight)
+	content.draw.connect(_draw_rows)
 	clip.add_child(content)
 	title_label = _label("Build")
 	title_label.position = Vector2(0, 3)
@@ -218,7 +216,7 @@ func show_menu(menu: BuildMenu) -> void:
 		var thing := i as BuildMenu.Thing
 		name_labels[i].text = BuildMenu.NAMES[i]
 		cost_labels[i].text = menu.cost_text(thing)
-		var colour := TEXT if menu.can_build(thing) else GREYED
+		var colour := Plate.words(menu.highlighted == i, not menu.can_build(thing))
 		name_labels[i].add_theme_color_override(&"font_color", colour)
 		cost_labels[i].add_theme_color_override(&"font_color", colour)
 	_place()
@@ -230,10 +228,14 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, box), BORDER)
 	draw_rect(Rect2(1, 1, box.x - 2, box.y - 2), FILL)
 
-## The highlight line, drawn on content under the rows.
-func _draw_highlight() -> void:
-	if _menu and _menu.highlighted >= 0:
-		content.draw_rect(Rect2(Vector2(INSET, _row_tops()[_menu.highlighted]), _row_size()), HIGHLIGHT)
+## Every row's plate, drawn on content under the rows' words.
+func _draw_rows() -> void:
+	for i in BuildMenu.LINE_COUNT:
+		content.draw_style_box(row_style(i), Rect2(Vector2(INSET, _row_tops()[i]), _row_size()))
+
+## The plate row i is drawn on: the chosen one when it is highlighted.
+func row_style(i: int) -> StyleBoxFlat:
+	return Plate.style(_menu != null and _menu.highlighted == i)
 
 func _on_row_input(event: InputEvent, i: int) -> void:
 	var click := event as InputEventMouseButton

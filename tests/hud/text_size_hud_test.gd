@@ -147,3 +147,12 @@ func test_use_prompt_plank_grows_with_its_verb() -> void:
 	assert_int(prompt.width()).is_equal(49)
 	assert_vector(prompt.verb_label.position).is_equal_approx(Vector2(-10, -10), Vector2(0.01, 0.01))
 	assert_vector(prompt.verb_label.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
+
+func test_the_use_prompt_is_a_plain_plate() -> void:
+	var beach := _scene("res://src/beach/beach.tscn")
+	var prompt := beach.get_node("%Prompt") as UsePrompt
+	prompt.verb_label.text = "Take"
+	assert_that(prompt.plate_rect()).is_equal(Rect2(-24, -13, 49, 13))
+	Display.prefs.step(Setting.TEXT_SIZE, 2)
+	assert_that(prompt.plate_rect().size).is_equal(Vector2(81, 21))
+	Display.use_prefs(DisplayPrefs.new())

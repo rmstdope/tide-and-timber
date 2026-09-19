@@ -1,6 +1,6 @@
 class_name UsePrompt
 extends Node2D
-## The small wooden prompt in the world, the device's use button and the verb, its bottom-centre just
+## The small plain plate in the world, the device's use button and the verb, its bottom-centre just
 ## above the thing.
 
 const HEIGHT := 13
@@ -47,6 +47,10 @@ func show_for(usable: Usable) -> void:
 	_layout()
 	show()
 
+## The plate's rectangle, its bottom centre at the origin.
+func plate_rect() -> Rect2:
+	return Rect2(-width() / 2, -height(), width(), height())
+
 func width() -> int:
 	return 3 + _picture_room() + _words_width() + 3
 
@@ -68,13 +72,8 @@ func _on_device_changed() -> void:
 	_layout()
 
 func _draw() -> void:
-	var w := width()
-	var h := height()
-	var x0 := -w / 2
-	var y0 := -h
-	draw_rect(Rect2(x0, y0, w, h), HudColours.WOOD_DARK)
-	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, h - 2), HudColours.WOOD)
-	draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 1), HudColours.WOOD_LIGHT)
+	var plate := plate_rect()
+	draw_style_box(Plate.STYLE, plate)
 	var p := picture()
 	if p != null:
-		HintLine.draw_picture(self, p, Vector2(x0 + 3, y0 + 2 + floori((h - HEIGHT) / 2.0)))
+		HintLine.draw_picture(self, p, plate.position + Vector2(3, 2 + floori((plate.size.y - HEIGHT) / 2.0)))

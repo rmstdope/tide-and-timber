@@ -22,10 +22,7 @@ const WAVE_AMPLITUDE_PX := 4.0
 const WAVE_PERIOD_SECONDS := 3.0
 const PLANK_STYLE := preload("res://src/title/plank.tres")
 const PLANK_HIGHLIGHT_STYLE := preload("res://src/title/plank_highlight.tres")
-const PLANK_DIMMED_STYLE := preload("res://src/title/plank_dimmed.tres")
-const LABEL_COLOR := Color(1.0, 0.956863, 0.839216, 1)             # the plank label colour in the scene
 const MENU_STRIP_GAP := 2.0   # art px kept between the grown title menu and the top of the Select / Back strip
-const LABEL_DIMMED_COLOR := Color(0.737255, 0.658824, 0.560784, 1)  # #bca88f
 
 var menu := TitleMenu.new()
 var _time := 0.0
@@ -226,20 +223,18 @@ func _refresh() -> void:
 		_replace_offset = 0
 	_box_was = menu.box
 	%Continue.visible = TitleMenu.Choice.CONTINUE in menu.choices
-	%Continue.add_theme_stylebox_override("panel",
-			PLANK_DIMMED_STYLE if menu.continue_dimmed else _style_for(TitleMenu.Choice.CONTINUE))
-	(%Continue.get_node("Lines/Label") as GrownWords).words().add_theme_color_override("font_color",
-			LABEL_DIMMED_COLOR if menu.continue_dimmed else LABEL_COLOR)
-	%NewGame.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.NEW_GAME))
-	%Settings.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.SETTINGS))
-	%Quit.add_theme_stylebox_override("panel", _style_for(TitleMenu.Choice.QUIT))
+	Plate.paint(%Continue, not menu.continue_dimmed and menu.highlighted == TitleMenu.Choice.CONTINUE,
+			menu.continue_dimmed)
+	Plate.paint(%NewGame, menu.highlighted == TitleMenu.Choice.NEW_GAME)
+	Plate.paint(%Settings, menu.highlighted == TitleMenu.Choice.SETTINGS)
+	Plate.paint(%Quit, menu.highlighted == TitleMenu.Choice.QUIT)
 	%Dim.visible = menu.box != TitleMenu.Box.NONE
 	%StartOverBox.visible = menu.box == TitleMenu.Box.START_OVER
 	%ReplaceBox.visible = menu.box == TitleMenu.Box.REPLACE
-	%KeepMyIsland.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.KEEP_MY_ISLAND))
-	%StartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
-	%Cancel.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.CANCEL))
-	%ReplaceStartOver.add_theme_stylebox_override("panel", _box_style_for(TitleMenu.BoxButton.START_OVER))
+	Plate.paint(%KeepMyIsland, menu.box_selected == TitleMenu.BoxButton.KEEP_MY_ISLAND)
+	Plate.paint(%StartOver, menu.box_selected == TitleMenu.BoxButton.START_OVER)
+	Plate.paint(%Cancel, menu.box_selected == TitleMenu.BoxButton.CANCEL)
+	Plate.paint(%ReplaceStartOver, menu.box_selected == TitleMenu.BoxButton.START_OVER)
 	strip.show_hint(DeviceHints.Hint.SELECT_BACK if menu.box != TitleMenu.Box.NONE else DeviceHints.Hint.SELECT)
 	strip.visible = not menu.settings_open   # the board shows its own Select / Back strip
 	_frame_boxes()
@@ -371,10 +366,10 @@ func _place_menu() -> void:
 	m.position = Vector2(x, menu_top_at(_menu_top, height, s, _menu_normal_height, strip.screen_top()))
 
 func _box_style_for(button: TitleMenu.BoxButton) -> StyleBoxFlat:
-	return PLANK_HIGHLIGHT_STYLE if menu.box_selected == button else PLANK_STYLE
+	return Plate.style(menu.box_selected == button)
 
 func _style_for(choice: TitleMenu.Choice) -> StyleBoxFlat:
-	return PLANK_HIGHLIGHT_STYLE if menu.highlighted == choice else PLANK_STYLE
+	return Plate.style(menu.highlighted == choice)
 
 func _quit_game() -> void:
 	get_tree().quit()

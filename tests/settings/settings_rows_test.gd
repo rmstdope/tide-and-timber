@@ -144,7 +144,7 @@ func test_right_steps_and_stops_at_the_end() -> void:
 	await _tap(KEY_RIGHT)
 	assert_str(_text("UiSize/Row/Value")).is_equal("Largest")
 	assert_that(_colour("UiSize/Row/Next")).is_equal(SettingsBoard.ARROW_DIM)
-	assert_that(_colour("UiSize/Row/Prev")).is_equal(SettingsBoard.TEXT)
+	assert_that(_colour("UiSize/Row/Prev")).is_equal(Plate.words(true))
 
 func test_left_at_the_start_does_nothing_and_the_arrow_is_dim() -> void:
 	await _open()
@@ -152,7 +152,7 @@ func test_left_at_the_start_does_nothing_and_the_arrow_is_dim() -> void:
 	assert_str(_text("UiSize/Row/Value")).is_equal("Normal")
 	assert_dict(Display.prefs.to_dict()).is_equal(DisplayPrefs.new().to_dict())
 	assert_that(_colour("UiSize/Row/Prev")).is_equal(SettingsBoard.ARROW_DIM)
-	assert_that(_colour("UiSize/Row/Next")).is_equal(SettingsBoard.TEXT)
+	assert_that(_colour("UiSize/Row/Next")).is_equal(Plate.words(true))
 
 func test_d_and_a_step_too() -> void:
 	await _open()
@@ -168,7 +168,7 @@ func test_pad_d_pad_and_stick_step_once_per_push() -> void:
 	await _tap(KEY_DOWN)
 	await _pad(JOY_BUTTON_DPAD_RIGHT)
 	assert_str(_text("ColourCues/Row/Value")).is_equal("Shapes")
-	assert_that(_colour("ColourCues/Row/Prev")).is_equal(SettingsBoard.TEXT)
+	assert_that(_colour("ColourCues/Row/Prev")).is_equal(Plate.words(true))
 	assert_that(_colour("ColourCues/Row/Next")).is_equal(SettingsBoard.ARROW_DIM)
 	await _pad(JOY_BUTTON_DPAD_LEFT)
 	assert_str(_text("ColourCues/Row/Value")).is_equal("Standard")
@@ -262,7 +262,7 @@ func test_fullscreen_row_reads_off_with_left_arrow_dimmed() -> void:
 	await _to_fullscreen()
 	assert_str(_text("Fullscreen/Row/Value")).is_equal("Off")
 	assert_that(_colour("Fullscreen/Row/Prev")).is_equal(SettingsBoard.ARROW_DIM)
-	assert_that(_colour("Fullscreen/Row/Next")).is_equal(SettingsBoard.TEXT)
+	assert_that(_colour("Fullscreen/Row/Next")).is_equal(Plate.words(true))
 	await _tap(KEY_LEFT)
 	assert_str(_text("Fullscreen/Row/Value")).is_equal("Off")
 	assert_bool(Display.prefs.fullscreen).is_false()
@@ -273,7 +273,7 @@ func test_right_turns_it_on_and_dims_right() -> void:
 	assert_str(_text("Fullscreen/Row/Value")).is_equal("On")
 	assert_bool(Display.prefs.fullscreen).is_true()
 	assert_that(_colour("Fullscreen/Row/Next")).is_equal(SettingsBoard.ARROW_DIM)
-	assert_that(_colour("Fullscreen/Row/Prev")).is_equal(SettingsBoard.TEXT)
+	assert_that(_colour("Fullscreen/Row/Prev")).is_equal(Plate.words(true))
 	_highlighted("Fullscreen")
 	await _tap(KEY_RIGHT)
 	assert_str(_text("Fullscreen/Row/Value")).is_equal("On")
@@ -304,3 +304,11 @@ func test_the_controls_page_does_not_list_the_shortcut() -> void:
 	for label: Node in page.find_children("*", "Label", true, false):
 		assert_str((label as Label).text).override_failure_message("%s lists it" % label.get_path()).not_contains("Fullscreen")
 		assert_str((label as Label).text).not_contains("Enter")
+
+func test_the_chosen_row_has_ink_words_and_the_others_cream() -> void:
+	await _open()
+	_highlighted("UiSize")
+	assert_that(_colour("UiSize/Row/Label")).is_equal(HudColours.INK)
+	assert_that(_colour("UiSize/Row/Value")).is_equal(HudColours.INK)
+	assert_that(_colour("TextSize/Row/Label")).is_equal(HudColours.CREAM)
+	assert_that(_colour("TextSize/Row/Value")).is_equal(HudColours.CREAM)

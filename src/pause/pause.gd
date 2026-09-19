@@ -205,9 +205,9 @@ func _refresh() -> void:
 	%Board.visible = (rules.is_open and not rules.settings_open and not rules.debug_open) or rules.quitting
 	%QuitBox.visible = rules.box_open
 	for item: PauseMenu.Plank in rules.items:
-		_plank(item).add_theme_stylebox_override("panel", _style(rules.highlighted == item))
-	%Stay.add_theme_stylebox_override("panel", _style(rules.box_selected == PauseMenu.Choice.STAY))
-	%Quit.add_theme_stylebox_override("panel", _style(rules.box_selected == PauseMenu.Choice.QUIT))
+		Plate.paint(_plank(item), rules.highlighted == item)
+	Plate.paint(%Stay, rules.box_selected == PauseMenu.Choice.STAY)
+	Plate.paint(%Quit, rules.box_selected == PauseMenu.Choice.QUIT)
 	if rules.box_open:
 		%SecondLine.text = PauseMenu.quit_warning(has_saved.call())
 		_fit_quit_box()
@@ -419,7 +419,7 @@ func _button(choice: PauseMenu.Choice) -> Control:
 	return %Stay if choice == PauseMenu.Choice.STAY else %Quit
 
 func _style(highlighted: bool) -> StyleBox:
-	return PLANK_HIGHLIGHT_STYLE if highlighted else PLANK_STYLE
+	return Plate.style(highlighted)
 
 func _is_left_press(event: InputEvent) -> bool:
 	var click := event as InputEventMouseButton
