@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Beach art, agreed</title>
+<!-- Drawing for tr-cfq. Open from the repository so the art paths resolve. -->
+<style>
+  :root { color-scheme: dark; }
+  body { background: #1d1a17; color: #ead9c0; font: 15px/1.5 system-ui, sans-serif; margin: 24px auto; max-width: 1296px; padding: 0 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; } p { color: #b9a88e; margin: 4px 0 14px; max-width: 80ch; }
+  h2 { font-size: 14px; margin: 22px 0 6px; color: #ead9c0; }
+  canvas { image-rendering: pixelated; display: block; border: 1px solid #4a4035; max-width: 100%; }
+  canvas.big { width: 100%; height: auto; } canvas.near { width: 100%; max-width: 1152px; height: auto; }
+  .strip { overflow-x: auto; border: 1px solid #4a4035; } .strip canvas { border: 0; max-width: none; width: 5888px; height: auto; }
+</style>
+<h1>The beach, as agreed</h1>
+<p>Scene E, with the packs' own colours, warm palm shadows and no lighter band under the jungle edge. Four shells mixed, the crab sits still,
+the rolling waves (every tile on the same frame) replace the foam line and today's wash. Beach grass, sea rocks and crabs run the whole beach,
+widely scattered: grass anywhere in the top three sand rows, every other crab on the dry sand just above the wet, sea rocks in the first row
+of shallows nudged a few pixels. Sea rocks and crabs are solid at their base: the man passes behind and in front, never through.</p>
+<h2>At the spawn, as the player sees it (640×360, doubled)</h2>
+<canvas class="scene big" id="s" width="640" height="360"></canvas>
+<h2>The whole beach, headland to headland, doubled (scroll sideways)</h2>
+<div class="strip"><canvas class="scene" id="w" width="2944" height="192" data-cam="[0,112]"></canvas></div>
+<h2>Close up, ×6: the man wading behind a sea rock — he passes, the rock hides his legs</h2>
+<canvas class="scene near" id="n1" width="192" height="112" data-cam="[1520,192]" data-man="[40,70]"></canvas>
+<h2>Close up, ×6: the man wading in front of the same rock — he passes, drawn over it</h2>
+<canvas class="scene near" id="n2" width="192" height="112" data-cam="[1520,192]" data-man="[40,100]"></canvas>
+<h2>Close up, ×6: walking straight into it — he stops at its base, never overlapping it</h2>
+<canvas class="scene near" id="n3" width="192" height="112" data-cam="[1520,192]" data-man="[20,84]"></canvas>
+<h2>Close up, ×6: the man stopped beside the crab — he walks round it</h2>
+<canvas class="scene near" id="n4" width="192" height="112" data-cam="[1520,192]" data-man="[116,34]"></canvas>
+<script>window.V = {spread:"wide"};</script>
+<script src="scene.js"></script>
