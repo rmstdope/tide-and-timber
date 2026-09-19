@@ -140,15 +140,15 @@ func test_framed_scrolls_when_taller_than_the_band() -> void:
 	var f := _at(0)
 	assert_bool(f.scrolls).is_true()
 	assert_that(f.panel).is_equal(Rect2(_largest().panel.position.x, BAND_TOP, 152, 52))
-	assert_that(f.clip).is_equal(Rect2(0, 10, 152, 32))
+	assert_that(f.clip).is_equal(Rect2(0, 16, 152, 20))
 	assert_that(f.content).is_equal(Rect2(0, -8, 152, 124))
 	assert_int(f.offset).is_equal(0)
 	assert_that(f.left).is_equal(Rect2(24, 66, 104, 20))
 	assert_that(f.right).is_equal(Rect2(24, 94, 104, 20))
 
 func test_framed_clamps_the_offset() -> void:
-	assert_int(_at(500).offset).is_equal(74)
-	assert_that(_at(500).content).is_equal(Rect2(0, -82, 152, 124))
+	assert_int(_at(500).offset).is_equal(86)
+	assert_that(_at(500).content).is_equal(Rect2(0, -94, 152, 124))
 	assert_int(_at(-3).offset).is_equal(0)
 
 func test_framed_fits_unchanged() -> void:
@@ -169,23 +169,24 @@ func test_marks() -> void:
 	assert_bool(_at(0).shows_mark_below()).is_true()
 	assert_bool(_at(30).shows_mark_above()).is_true()
 	assert_bool(_at(30).shows_mark_below()).is_true()
-	assert_bool(_at(74).shows_mark_above()).is_true()
-	assert_bool(_at(74).shows_mark_below()).is_false()
+	assert_bool(_at(86).shows_mark_above()).is_true()
+	assert_bool(_at(86).shows_mark_below()).is_false()
 	assert_bool(_normal().framed(2, Screen.HEIGHT - 18, 0).shows_mark_above()).is_false()
 	assert_bool(_normal().framed(2, Screen.HEIGHT - 18, 0).shows_mark_below()).is_false()
 
 func test_down_scrolls_a_line_towards_a_hidden_button() -> void:
 	assert_that(_at(0).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 11))
-	assert_that(_at(44).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 46))
+	assert_that(_at(44).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 55))
+	assert_that(_at(50).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
 
 func test_down_on_a_shown_top_button_moves_to_the_bottom_one() -> void:
-	assert_that(_at(46).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
+	assert_that(_at(58).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 86))
 
 func test_down_on_the_bottom_button_in_view_does_nothing() -> void:
-	assert_that(_at(74).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
+	assert_that(_at(86).pushed(BoxLayout.Push.DOWN, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 86))
 
 func test_up_on_the_bottom_button_in_view_moves_to_the_top_one() -> void:
-	assert_that(_at(74).pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
+	assert_that(_at(86).pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
 
 func test_up_on_the_top_button_scrolls_back_to_the_words() -> void:
 	assert_that(_at(58).pushed(BoxLayout.Push.UP, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 47))
@@ -203,7 +204,7 @@ func test_a_button_taller_than_the_view_is_scrolled_up_to() -> void:
 	var l := _largest()
 	l.right = Rect2(24, 94, 104, 60)
 	var f := l.framed(BAND_TOP, BAND_BOTTOM, 100)
-	assert_float(f.clip.size.y).is_equal(32.0)
+	assert_float(f.clip.size.y).is_equal(20.0)
 	assert_int(f.offset).is_equal(100)
 	assert_that(f.pushed(BoxLayout.Push.UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 89))
 	# Within one line-step of its top (86): the push stops there rather than scrolling past it.
@@ -211,12 +212,12 @@ func test_a_button_taller_than_the_view_is_scrolled_up_to() -> void:
 		.is_equal(Vector2i(BoxLayout.Side.RIGHT, 86))
 
 func test_left_right_move_and_show_just_enough() -> void:
-	assert_that(_at(0).pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 74))
-	assert_that(_at(74).pushed(BoxLayout.Push.LEFT, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
+	assert_that(_at(0).pushed(BoxLayout.Push.RIGHT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 86))
+	assert_that(_at(86).pushed(BoxLayout.Push.LEFT, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
 	assert_that(_at(60).pushed(BoxLayout.Push.LEFT, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 58))
 
 func test_wheel_scrolls_a_line_and_keeps_the_highlight() -> void:
-	assert_that(_at(70).pushed(BoxLayout.Push.WHEEL_DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 74))
+	assert_that(_at(80).pushed(BoxLayout.Push.WHEEL_DOWN, BoxLayout.Side.LEFT)).is_equal(Vector2i(BoxLayout.Side.LEFT, 86))
 	assert_that(_at(5).pushed(BoxLayout.Push.WHEEL_UP, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 0))
 	assert_that(_at(20).pushed(BoxLayout.Push.WHEEL_DOWN, BoxLayout.Side.RIGHT)).is_equal(Vector2i(BoxLayout.Side.RIGHT, 31))
 
@@ -318,3 +319,28 @@ func test_label_heights_scales_by_rel() -> void:
 	var two: float = BoxLayout.label_heights(labels, 2.0).call(0, 296.0)
 	assert_float(two).is_equal(2.0 * one)
 	label.free()
+
+func test_the_frame_edge_is_the_frame_arts_margin() -> void:
+	var f := load("res://src/hud/frame.tres") as StyleBoxTexture
+	assert_float(f.texture_margin_left).is_equal(BoxLayout.FRAME_EDGE)
+	assert_float(f.texture_margin_top).is_equal(BoxLayout.FRAME_EDGE)
+	assert_float(f.texture_margin_right).is_equal(BoxLayout.FRAME_EDGE)
+	assert_float(f.texture_margin_bottom).is_equal(BoxLayout.FRAME_EDGE)
+	assert_float(BoxLayout.BUTTON_INSET).is_equal(BoxLayout.FRAME_EDGE + 2.0)
+
+func test_a_scrolling_box_keeps_its_view_and_marks_inside_the_frame() -> void:
+	var f := _at(0)
+	assert_that(f.clip).is_equal(Rect2(0, 16, 152, 20))
+	var panel := auto_free(Control.new()) as Control
+	var clip := auto_free(Control.new()) as Control
+	var content := auto_free(Control.new()) as Control
+	var marks := auto_free(Control.new()) as Control
+	f.place_frame(panel, clip, content, marks)
+	assert_that(marks.get_rect()).is_equal(Rect2(0, 6, 152, 40))
+
+func test_side_by_side_buttons_keep_clear_of_the_frame() -> void:
+	var l := _normal().at(1.0, Vector2(150, 20), Vector2(150, 20), fake)
+	assert_bool(l.stacked).is_false()
+	assert_float(l.panel.size.x).is_equal(324.0)
+	assert_float(l.left.position.x).is_equal(8.0)
+	assert_float(l.right.end.x).is_equal(316.0)

@@ -151,10 +151,16 @@ func _framed(w: float) -> Rect2:
 	var b := _band()
 	return Rect2(Screen.CENTRE.x - w / 2.0, b.x, w, b.y - b.x)
 
-## The clip inside a framed panel: a mark row kept above and below.
+## The clip inside a framed panel: the frame's edge and a mark row kept above and below.
 func _framed_clip(w: float) -> Rect2:
 	var b := _band()
-	return Rect2(0, ScrollWindow.MARK_ROW, w, b.y - b.x - 2.0 * ScrollWindow.MARK_ROW)
+	var inset := BoxLayout.FRAME_EDGE + ScrollWindow.MARK_ROW
+	return Rect2(0, inset, w, b.y - b.x - 2.0 * inset)
+
+## The Marks node: the framed panel inside the frame's edge.
+func _framed_marks(w: float) -> Rect2:
+	var f := _framed(w)
+	return Rect2(0, BoxLayout.FRAME_EDGE, f.size.x, f.size.y - 2.0 * BoxLayout.FRAME_EDGE)
 
 func _hover(c: Control) -> void:
 	runner.simulate_mouse_move(screen.get_viewport().get_final_transform() * c.get_global_rect().get_center())
@@ -177,7 +183,7 @@ func test_largest_opens_framed_at_the_top() -> void:
 	assert_that(Rect2(_clip("StartOverBox").position, _clip("StartOverBox").size)).is_equal(_framed_clip(312))
 	# content top 8 above the clip, the rest panel's size
 	assert_that(Rect2(_content("StartOverBox").position, _content("StartOverBox").size)).is_equal(Rect2(0, -8, 312, 182))
-	assert_vector(_marks("StartOverBox").size).is_equal(_framed(312).size)
+	assert_vector(_marks("StartOverBox").size).is_equal(_framed_marks(312).size)
 	assert_that(screen._start_over_box.panel).is_equal(_centred(312, 182))
 	_box_highlighted("KeepMyIsland")
 	assert_bool(screen._start_over_frame.shows_mark_below()).is_true()
@@ -238,8 +244,8 @@ func test_replace_box_scrolls_at_largest() -> void:
 	assert_bool(screen._replace_frame.shows_mark_below()).is_true()
 	await _press(KEY_RIGHT)
 	_box_highlighted("ReplaceStartOver")
-	# content top 6 plus the most it scrolls: ceil(174 content - 135 clip) = 39
-	assert_float(_content("ReplaceBox").position.y).is_equal(-45.0)
+	# content top 6 plus the most it scrolls: ceil(174 content - 123 clip) = 51
+	assert_float(_content("ReplaceBox").position.y).is_equal(-57.0)
 	assert_bool(screen._replace_frame.shows_mark_above()).is_true()
 	assert_bool(screen._replace_frame.shows_mark_below()).is_false()
 
@@ -248,14 +254,17 @@ func test_down_reads_the_words_then_moves_to_start_over() -> void:
 	_largest()
 	await get_tree().process_frame
 	_assert_scrolls("StartOverBox")
-	# Keep my island (content 116..136) ends one unit below the 135-tall view: one push reads it in
+	# Keep my island (content 116..136) ends 13 units below the 123-tall view: a line, then the rest, reads it in
 	await _press(KEY_DOWN)
-	assert_float(_content("StartOverBox").position.y).is_equal(-9.0)   # content top 8 + offset 1
+	assert_float(_content("StartOverBox").position.y).is_equal(-19.0)   # content top 8 + offset 11
+	_box_highlighted("KeepMyIsland")
+	await _press(KEY_DOWN)
+	assert_float(_content("StartOverBox").position.y).is_equal(-21.0)   # content top 8 + offset 13
 	_box_highlighted("KeepMyIsland")
 	await _press(KEY_DOWN)
 	_box_highlighted("StartOver")
-	# content top 8 + the most it scrolls: ceil(164 content - 135 clip) = 29
-	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
+	# content top 8 + the most it scrolls: ceil(164 content - 123 clip) = 41
+	assert_float(_content("StartOverBox").position.y).is_equal(-49.0)
 	assert_bool(screen._start_over_frame.shows_mark_above()).is_true()
 	assert_bool(screen._start_over_frame.shows_mark_below()).is_false()
 
@@ -265,10 +274,10 @@ func test_up_returns_to_the_words() -> void:
 	await get_tree().process_frame
 	_assert_scrolls("StartOverBox")
 	await _press(KEY_RIGHT)
-	assert_int(screen._start_over_offset).is_equal(29)   # ceil(164 content - 135 clip)
+	assert_int(screen._start_over_offset).is_equal(41)   # ceil(164 content - 123 clip)
 	await _press(KEY_UP)
 	_box_highlighted("KeepMyIsland")
-	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
+	assert_float(_content("StartOverBox").position.y).is_equal(-49.0)
 	for i in 6:
 		await _press(KEY_UP)
 	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
@@ -283,10 +292,10 @@ func test_left_and_right_show_the_button_they_pick() -> void:
 	_assert_scrolls("StartOverBox")
 	await _press(KEY_RIGHT)
 	_box_highlighted("StartOver")
-	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
+	assert_float(_content("StartOverBox").position.y).is_equal(-49.0)
 	await _press(KEY_LEFT)
 	_box_highlighted("KeepMyIsland")
-	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
+	assert_float(_content("StartOverBox").position.y).is_equal(-49.0)
 
 func test_wheel_scrolls_and_keeps_the_highlight() -> void:
 	await _open_start_over_box()
@@ -320,7 +329,7 @@ func test_reopening_starts_at_the_top() -> void:
 	await get_tree().process_frame
 	_assert_scrolls("StartOverBox")
 	await _press(KEY_RIGHT)
-	assert_int(screen._start_over_offset).is_equal(29)   # ceil(164 content - 135 clip)
+	assert_int(screen._start_over_offset).is_equal(41)   # ceil(164 content - 123 clip)
 	await _press(KEY_ESCAPE)
 	await _press(KEY_ENTER)
 	await get_tree().process_frame
@@ -333,7 +342,7 @@ func test_size_change_while_up_refits_and_keeps_the_highlight() -> void:
 	await get_tree().process_frame
 	_assert_scrolls("StartOverBox")
 	await _press(KEY_DOWN)
-	assert_int(screen._start_over_offset).is_equal(1)   # Keep my island ends one unit below the view
+	assert_int(screen._start_over_offset).is_equal(11)   # one line towards Keep my island's end, 13 below the view
 	Display.use_prefs(DisplayPrefs.new())
 	await get_tree().process_frame
 	assert_that(_rect("%StartOverBox")).is_equal(_centred(296, 96))
@@ -347,16 +356,16 @@ func test_hover_lands_only_on_the_drawn_part() -> void:
 	_largest()
 	await get_tree().process_frame
 	_assert_scrolls("StartOverBox")
-	# At the top Start over (content 144..164) is wholly below the 135-tall view: out of the pointer's reach.
+	# At the top Start over (content 144..164) is wholly below the 123-tall view: out of the pointer's reach.
 	assert_int(screen._start_over_offset).is_equal(0)
 	await _hover(_control("%StartOver"))
 	_box_highlighted("KeepMyIsland")
 	assert_float(_content("StartOverBox").position.y).is_equal(-8.0)
 	await _wheel(MOUSE_BUTTON_WHEEL_DOWN, 6)
-	assert_int(screen._start_over_offset).is_equal(29)   # ceil(164 content - 135 clip)
+	assert_int(screen._start_over_offset).is_equal(41)   # ceil(164 content - 123 clip)
 	await _hover(_control("%StartOver"))
 	_box_highlighted("StartOver")
-	assert_float(_content("StartOverBox").position.y).is_equal(-37.0)
+	assert_float(_content("StartOverBox").position.y).is_equal(-49.0)
 
 func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
 	await _open_start_over_box()
@@ -365,12 +374,12 @@ func test_the_marks_are_wired_and_centred_in_their_rows() -> void:
 	_assert_scrolls("StartOverBox")
 	for box: String in ["StartOverBox", "ReplaceBox"]:
 		var marks := _marks(box)
-		assert_that(marks.get_rect()).is_equal(Rect2(Vector2.ZERO, _framed(312).size))
+		assert_that(marks.get_rect()).is_equal(_framed_marks(312))
 		assert_int(marks.get_signal_connection_list("draw").size()) \
 			.override_failure_message("%s/Marks has no draw handler, so no mark is ever drawn" % box).is_greater(0)
 	# The centres _draw_marks draws on: the box's horizontal centre, in the top and bottom mark rows
-	# of the 155-tall, 312-wide framed panel. Pinned as literals, so moving either mark out of its row fails here.
+	# of the Marks node, the 155-tall, 312-wide framed panel inside its 6 edge (143 tall). Pinned as literals, so moving either mark out of its row fails here.
 	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, true)).is_equal(Vector2(156, 5))
-	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, false)).is_equal(Vector2(156, 150))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.START_OVER, false)).is_equal(Vector2(156, 138))
 	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, true)).is_equal(Vector2(156, 5))
-	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, false)).is_equal(Vector2(156, 150))
+	assert_that(screen.box_mark_centre(TitleMenu.Box.REPLACE, false)).is_equal(Vector2(156, 138))
