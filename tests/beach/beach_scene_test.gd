@@ -41,6 +41,24 @@ func test_ground_matches_layout() -> void:
 				fail("ground at %s is %s" % [cell, ground.get_cell_atlas_coords(cell)])
 				return
 
+func test_layout_is_in_the_scene_before_it_runs() -> void:
+	var scene := (load(BeachLayout.SCENE) as PackedScene).instantiate()
+	assert_object((scene.get_node("%Ground") as TileMapLayer).get_used_rect()).is_equal(Rect2i(Vector2i.ZERO, BeachLayout.map_size()))
+	var expected := {
+		"Decor": [[BeachLayout.BUSH, BeachLayout.bushes()], [BeachLayout.TUFT, BeachLayout.tufts()],
+			[BeachLayout.DRIFTWOOD, BeachLayout.driftwood()], [BeachLayout.SHELLFISH, BeachLayout.shellfish()]],
+		"World": [[BeachLayout.PALM, BeachLayout.palms()], [BeachLayout.ROCK, BeachLayout.rocks()],
+			[BeachLayout.BOULDER, BeachLayout.boulders()], [BeachLayout.SPRING, BeachLayout.springs()]],
+	}
+	for parent_name: String in expected:
+		for pair: Array in expected[parent_name]:
+			var cells: Array[Vector2i] = []
+			for child in scene.get_node("%" + parent_name).get_children():
+				if child.scene_file_path == pair[0]:
+					cells.append(BeachLayout.cell_of_base((child as Node2D).position))
+			assert_array(cells).override_failure_message("%s in %s" % [pair[0], parent_name]).is_equal(pair[1])
+	scene.free()
+
 func test_props_are_placed() -> void:
 	var world := beach.get_node("%World")
 	assert_int(_count(world, "palm.tscn")).is_equal(BeachLayout.palms().size())

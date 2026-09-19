@@ -5,6 +5,17 @@ extends RefCounted
 enum Kind { JUNGLE, SAND, WET_SAND, FOAM, SHALLOWS, DEEP, CLIFF }   # also the x of each tile in tiles.png
 const TILE := 16
 const _MAP_SIZE := Vector2i(184, 26)
+const SCENE := "res://src/beach/beach.tscn"
+const PALM := "res://src/beach/props/palm.tscn"
+const ROCK := "res://src/beach/props/rock.tscn"
+const BOULDER := "res://src/beach/props/boulder.tscn"
+const DRIFTWOOD := "res://src/beach/props/driftwood.tscn"
+const SHELLFISH := "res://src/beach/props/shellfish.tscn"
+const SPRING := "res://src/beach/props/spring.tscn"
+const BUSH := "res://src/beach/props/bush.tscn"
+const TUFT := "res://src/beach/props/tuft.tscn"
+## Every prop scene a beach layout places, flat ones (under %Decor) first.
+const PROP_SCENES: Array[String] = [BUSH, TUFT, PALM, ROCK, BOULDER, SPRING, DRIFTWOOD, SHELLFISH]
 const SPAWN_CELL := Vector2i(92, 11)
 const _PALMS: Array[Vector2i] = [Vector2i(20, 9), Vector2i(33, 9), Vector2i(47, 9), Vector2i(58, 9), Vector2i(71, 9), Vector2i(84, 9), Vector2i(101, 9), Vector2i(113, 9), Vector2i(126, 9), Vector2i(139, 9), Vector2i(150, 9), Vector2i(163, 9)]
 const _ROCKS: Array[Vector2i] = [Vector2i(26, 12), Vector2i(40, 13), Vector2i(55, 11), Vector2i(66, 14), Vector2i(78, 12), Vector2i(99, 13), Vector2i(108, 11), Vector2i(121, 14), Vector2i(134, 12), Vector2i(147, 13), Vector2i(158, 11)]

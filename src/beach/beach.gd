@@ -3,14 +3,8 @@ extends Node2D
 ## The long beach: ground, props and the spring, the man, the loose camera, and what he carries with its bar.
 ## Handles no input itself (clicks go to %ClickWalker; B, and Esc while building, to %Builder).
 
-const ROCK := preload("res://src/beach/props/rock.tscn")
-const BOULDER := preload("res://src/beach/props/boulder.tscn")
-const PALM := preload("res://src/beach/props/palm.tscn")
 const DRIFTWOOD := preload("res://src/beach/props/driftwood.tscn")
 const SHELLFISH := preload("res://src/beach/props/shellfish.tscn")
-const SPRING := preload("res://src/beach/props/spring.tscn")
-const BUSH := preload("res://src/beach/props/bush.tscn")
-const TUFT := preload("res://src/beach/props/tuft.tscn")
 const PUFF := preload("res://src/beach/marks/puff.tscn")
 const RIPPLE := preload("res://src/beach/marks/ripple.tscn")
 
@@ -22,19 +16,12 @@ var inventory := Inventory.new()
 var walk_grid: WalkGrid
 
 func _ready() -> void:
-	for y in BeachLayout.map_size().y:
-		for x in BeachLayout.map_size().x:
-			var cell := Vector2i(x, y)
-			%Ground.set_cell(cell, 0, Vector2i(BeachLayout.kind_at(cell), 0))
-	_place(BUSH, BeachLayout.bushes(), %Decor)
-	_place(TUFT, BeachLayout.tufts(), %Decor)
-	for palm in _place(PALM, BeachLayout.palms(), %World):
-		(palm.get_node("Shake") as Shake).drop_parent = %Decor
-	_place(ROCK, BeachLayout.rocks(), %World)
-	_place(BOULDER, BeachLayout.boulders(), %World)
-	_place(SPRING, BeachLayout.springs(), %World)
-	_place(DRIFTWOOD, BeachLayout.driftwood(), %Decor)
-	_place(SHELLFISH, BeachLayout.shellfish(), %Decor)
+	for parent: Node in [%Decor, %World]:
+		for child in parent.get_children():
+			if child.scene_file_path in BeachLayout.PROP_SCENES:
+				child.set_meta(CELL_META, BeachLayout.cell_of_base((child as Node2D).position))
+			if child.scene_file_path == BeachLayout.PALM:
+				(child.get_node("Shake") as Shake).drop_parent = %Decor
 	%Player.position = BeachLayout.cell_centre(BeachLayout.SPAWN_CELL)
 	%Player.facing = Walk.Facing.DOWN
 	%Player.is_wading_at = func(at: Vector2) -> bool:
@@ -82,16 +69,6 @@ func put_player(cell: Vector2i, facing: Walk.Facing) -> void:
 
 func _on_added(kind: Item.Kind, amount: int) -> void:
 	RisingLine.show_over(%Player, Item.gain_line(kind, amount))
-
-func _place(scene: PackedScene, cells: Array[Vector2i], parent: Node) -> Array[Node2D]:
-	var placed: Array[Node2D] = []
-	for cell in cells:
-		var prop := scene.instantiate() as Node2D
-		prop.position = BeachLayout.cell_base(cell)
-		prop.set_meta(CELL_META, cell)
-		parent.add_child(prop)
-		placed.append(prop)
-	return placed
 
 func _on_trail_mark(kind: StringName, at: Vector2) -> void:
 	# Under %Decor, not the y-sorted %World, so a mark at his heels never sorts over his feet.
