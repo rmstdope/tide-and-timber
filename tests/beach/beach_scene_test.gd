@@ -62,7 +62,7 @@ func test_layout_is_in_the_scene_before_it_runs() -> void:
 func test_props_are_placed() -> void:
 	var world := beach.get_node("%World")
 	assert_int(_count(world, "palm.tscn")).is_equal(BeachLayout.palms().size())
-	assert_int(_count(world, "rock.tscn")).is_equal(BeachLayout.rocks().size())
+	assert_int(_count(world, "/rock.tscn")).is_equal(BeachLayout.rocks().size())
 	assert_int(_count(world, "boulder.tscn")).is_equal(BeachLayout.boulders().size())
 	assert_int(_count(world, "spring.tscn")).is_equal(BeachLayout.springs().size())
 	assert_int(_count(beach.get_node("%Decor"), "driftwood.tscn")).is_equal(BeachLayout.driftwood().size())
@@ -334,3 +334,94 @@ func test_focus_loss_releases_shift() -> void:
 	player.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	await await_millis(100)
 	assert_bool(Input.is_action_pressed(&"run")).is_false()
+
+func _at(suffix: String, at: Vector2) -> Node2D:
+	for n in _from(beach.get_node("%World"), suffix):
+		if (n as Node2D).position == at:
+			return n as Node2D
+	return null
+
+func _region(prop: Node) -> Rect2:
+	return ((prop.get_node("Sprite") as Sprite2D).texture as AtlasTexture).region
+
+func test_beach_grass_is_placed_and_never_blocks() -> void:
+	var world := beach.get_node("%World")
+	assert_int(_count(world, "beach_grass.tscn")).is_equal(24)
+	var bases := BeachLayout.grass_bases()
+	for i in bases.size():
+		var grass := _at("beach_grass.tscn", bases[i])
+		assert_object(grass).is_not_null()
+		assert_bool(_region(grass) == Rect2(BeachArt.GRASS_SHAPES[i % 4])).override_failure_message("grass %d" % i).is_true()
+	for grass in _from(world, "beach_grass.tscn"):
+		assert_bool(grass is CollisionObject2D).is_false()
+		assert_array(grass.get_children().filter(func(n: Node) -> bool: return n is CollisionShape2D)).is_empty()
+	for rect in (beach as Beach)._obstacles():
+		for base in bases:
+			assert_bool(rect.has_point(base)).override_failure_message("grass %s is in %s" % [base, rect]).is_false()
+
+func test_sea_rocks_are_placed_and_solid_at_their_base() -> void:
+	assert_int(_count(beach.get_node("%World"), "sea_rock.tscn")).is_equal(12)
+	var obstacles := (beach as Beach)._obstacles()
+	var bases := BeachLayout.sea_rock_bases()
+	for i in bases.size():
+		var o := bases[i]
+		var w: float = BeachArt.SEA_ROCK_BASE_WIDTHS[i % 3]
+		var rock := _at("sea_rock.tscn", o)
+		assert_object(rock).is_not_null()
+		assert_bool(_region(rock) == Rect2(BeachArt.SEA_ROCK_SHAPES[i % 3])).override_failure_message("rock %d" % i).is_true()
+		assert_bool(obstacles.has(Rect2(o.x - w / 2.0, o.y - 8, w, 8))).override_failure_message("rock %d base" % i).is_true()
+	assert_bool(obstacles.has(Rect2(1264.5, 264, 23, 8))).is_true()
+
+func test_sea_rock_stops_him_at_its_base() -> void:
+	player.global_position = Vector2(1276, 248)
+	camera.snap_to_target()
+	runner.simulate_action_press("move_down")
+	await await_millis(800)
+	runner.simulate_action_release("move_down")
+	assert_float(player.global_position.y).is_equal_approx(264.0, 0.5)
+
+func test_passes_behind_and_in_front_of_a_sea_rock() -> void:
+	player.global_position = Vector2(1250, 252)
+	camera.snap_to_target()
+	runner.simulate_action_press("move_right")
+	await await_millis(1000)
+	runner.simulate_action_release("move_right")
+	assert_float(player.global_position.x).is_greater(1290.0)
+	assert_float(player.global_position.y).is_equal_approx(252.0, 0.5)
+	assert_float(player.global_position.y).is_less(272.0)
+	await await_millis(100)
+	player.global_position = Vector2(1250, 284)
+	camera.snap_to_target()
+	runner.simulate_action_press("move_right")
+	await await_millis(2000)
+	runner.simulate_action_release("move_right")
+	assert_float(player.global_position.x).is_greater(1290.0)
+	assert_float(player.global_position.y).is_equal_approx(284.0, 0.5)
+	assert_bool(player.wading).is_true()
+
+func test_crabs_are_placed_still_and_solid() -> void:
+	var world := beach.get_node("%World")
+	assert_int(_count(world, "crab.tscn")).is_equal(5)
+	var crabs: Array[Node2D] = []
+	for base in BeachLayout.crab_bases():
+		var crab := _at("crab.tscn", base)
+		assert_object(crab).is_not_null()
+		if crab == null:
+			return
+		crabs.append(crab)
+		assert_bool(crab is StaticBody2D).is_true()
+		var sprite := crab.get_node("Sprite")
+		assert_bool(sprite is Sprite2D and not sprite is AnimatedSprite2D).is_true()
+		assert_bool(_region(crab) == Rect2(32, 0, 32, 32)).is_true()
+	await await_millis(300)
+	for i in crabs.size():
+		assert_vector(crabs[i].position).is_equal(BeachLayout.crab_bases()[i])
+		assert_bool(_region(crabs[i]) == Rect2(32, 0, 32, 32)).is_true()
+
+func test_crab_stops_him_at_its_base() -> void:
+	player.global_position = Vector2(1657, 200)
+	camera.snap_to_target()
+	runner.simulate_action_press("move_down")
+	await await_millis(800)
+	runner.simulate_action_release("move_down")
+	assert_float(player.global_position.y).is_equal_approx(216.0, 0.5)

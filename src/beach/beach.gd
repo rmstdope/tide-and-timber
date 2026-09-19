@@ -18,6 +18,8 @@ var walk_grid: WalkGrid
 func _ready() -> void:
 	var palms := BeachLayout.palms()
 	var shells := BeachLayout.shellfish()
+	var grass := BeachLayout.grass_bases()
+	var sea_rocks := BeachLayout.sea_rock_bases()
 	for parent: Node in [%Decor, %World]:
 		for child in parent.get_children():
 			if child.scene_file_path in BeachLayout.PROP_SCENES:
@@ -28,6 +30,10 @@ func _ready() -> void:
 				(child.get_node("Shake") as Shake).drop_parent = %Decor
 			elif child.scene_file_path == BeachLayout.SHELLFISH:
 				BeachArt.dress_shellfish(child, shells.find(child.get_meta(CELL_META)) % BeachArt.SHELL_SHAPES.size())
+			elif child.scene_file_path == BeachLayout.BEACH_GRASS:
+				BeachArt.dress_grass(child, grass.find((child as Node2D).position) % BeachArt.GRASS_SHAPES.size())
+			elif child.scene_file_path == BeachLayout.SEA_ROCK:
+				BeachArt.dress_sea_rock(child, sea_rocks.find((child as Node2D).position) % BeachArt.SEA_ROCK_SHAPES.size())
 	%Player.position = BeachLayout.cell_centre(BeachLayout.SPAWN_CELL)
 	%Player.facing = Walk.Facing.DOWN
 	%Player.is_wading_at = func(at: Vector2) -> bool:

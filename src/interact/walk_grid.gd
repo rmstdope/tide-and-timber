@@ -47,7 +47,8 @@ func refresh(obstacles: Array[Rect2]) -> void:
 		for y in range(lo.y, hi.y + 1):
 			for x in range(lo.x, hi.x + 1):
 				var p := Vector2i(x, y)
-				if _box_meets(centre(p), rect):
+				# Touching blocks a point: feet flush on a base can't slide round its corner (a nudged crab's does).
+				if _box_meets(centre(p), rect, true):
 					astar.set_point_solid(p, true)
 
 func centre(p: Vector2i) -> Vector2:
@@ -148,5 +149,5 @@ func _tile_blocks(at: Vector2) -> bool:
 				return true
 	return false
 
-func _box_meets(at: Vector2, rect: Rect2) -> bool:
-	return Rect2(at + FEET.position, FEET.size).intersects(rect)
+func _box_meets(at: Vector2, rect: Rect2, touching := false) -> bool:
+	return Rect2(at + FEET.position, FEET.size).intersects(rect, touching)

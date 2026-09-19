@@ -165,3 +165,66 @@ func test_painted_map_starts_at_the_origin() -> void:
 	var used := (beach.get_node("%Ground") as TileMapLayer).get_used_rect()
 	beach.free()
 	assert_vector(Vector2(used.position)).is_equal(Vector2.ZERO)
+
+const GRASS_AT: Array[Vector2] = [Vector2(1190, 190), Vector2(1291, 194), Vector2(1414, 175), Vector2(1515, 174),
+		Vector2(1674, 190), Vector2(1768, 194), Vector2(424, 193), Vector2(518, 192), Vector2(619, 191), Vector2(713, 190),
+		Vector2(807, 194), Vector2(901, 193), Vector2(1002, 192), Vector2(1096, 191), Vector2(1573, 191), Vector2(1862, 193),
+		Vector2(1963, 192), Vector2(2057, 191), Vector2(2151, 190), Vector2(2245, 194), Vector2(2346, 193), Vector2(2440, 192),
+		Vector2(2534, 175), Vector2(2635, 190)]
+const SEA_ROCKS_AT: Array[Vector2] = [Vector2(1276, 272), Vector2(1557, 269), Vector2(1703, 274), Vector2(355, 275),
+		Vector2(572, 275), Vector2(778, 275), Vector2(984, 275), Vector2(1396, 275), Vector2(1819, 275), Vector2(2025, 275),
+		Vector2(2231, 275), Vector2(2437, 275)]
+const CRABS_AT: Array[Vector2] = [Vector2(1657, 222), Vector2(550, 244), Vector2(1012, 226), Vector2(2164, 226),
+		Vector2(2521, 222)]
+
+func test_decoration_is_where_the_drawing_puts_it() -> void:
+	assert_array(BeachLayout.grass_bases()).is_equal(GRASS_AT)
+	assert_array(BeachLayout.sea_rock_bases()).is_equal(SEA_ROCKS_AT)
+	assert_array(BeachLayout.crab_bases()).is_equal(CRABS_AT)
+
+func test_beach_grass_is_in_the_top_sand_rows() -> void:
+	assert_int(BeachLayout.grass_bases().size()).is_equal(24)
+	for base in BeachLayout.grass_bases():
+		assert_float(base.y).is_between(157.0, 195.0)
+		_expect(BeachLayout.cell_at(base - Vector2(0, 8)), K.SAND)
+
+func test_sea_rocks_sit_on_the_first_shallows_row_with_room_round_them() -> void:
+	assert_int(BeachLayout.sea_rock_bases().size()).is_equal(12)
+	for base in BeachLayout.sea_rock_bases():
+		var cell := BeachLayout.cell_at(base - Vector2(0, 4))
+		assert_int(cell.y).is_equal(16)
+		_expect(cell, K.SHALLOWS)
+		assert_bool(base.y - 8 - 6 >= 240).override_failure_message("no room behind %s" % base).is_true()
+		_expect(BeachLayout.cell_at(base + Vector2(0, 6)), K.SHALLOWS)
+
+func test_crabs_alternate_dry_and_wet() -> void:
+	var kinds: Array[int] = []
+	for base in BeachLayout.crab_bases():
+		kinds.append(BeachLayout.kind_at(BeachLayout.cell_at(base - Vector2(0, 6))))
+	assert_array(kinds).is_equal([K.SAND, K.WET_SAND, K.SAND, K.SAND, K.SAND] as Array[int])
+	for base in BeachLayout.crab_bases():
+		var r := Rect2(base + BuildSite.CRAB_BASE.position, BuildSite.CRAB_BASE.size)
+		for y in range(floori(r.position.y / BeachLayout.TILE), ceili(r.end.y / BeachLayout.TILE)):
+			for x in range(floori(r.position.x / BeachLayout.TILE), ceili(r.end.x / BeachLayout.TILE)):
+				assert_bool(BeachLayout.is_solid(BeachLayout.kind_at(Vector2i(x, y)))).is_false()
+
+func test_new_decoration_is_clear_of_other_props() -> void:
+	var cells: Array[Vector2i] = []
+	for g in BeachLayout.grass_bases():
+		cells.append(BeachLayout.cell_at(g - Vector2(0, 8)))
+	for r in BeachLayout.sea_rock_bases():
+		cells.append(BeachLayout.cell_at(r - Vector2(0, 4)))
+	for c in BeachLayout.crab_bases():
+		cells.append(BeachLayout.cell_at(c - Vector2(0, 3)))
+	assert_int(cells.size()).is_equal(41)
+	var taken := {}
+	for c in _all_props() + BeachLayout.bushes() + BeachLayout.tufts():
+		taken[c] = true
+	for c in BeachLayout.boulders() + BeachLayout.springs():
+		taken[c + Vector2i(-1, 0)] = true
+		taken[c + Vector2i(1, 0)] = true
+	var seen := {}
+	for c in cells:
+		assert_bool(taken.has(c)).override_failure_message("%s is on another prop" % c).is_false()
+		assert_bool(seen.has(c)).override_failure_message("%s is repeated" % c).is_false()
+		seen[c] = true

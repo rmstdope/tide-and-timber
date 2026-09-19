@@ -23,6 +23,9 @@
 [ext_resource type="PackedScene" path="res://src/beach/props/rock.tscn" id="prop_rock"]
 [ext_resource type="PackedScene" path="res://src/beach/props/boulder.tscn" id="prop_boulder"]
 [ext_resource type="PackedScene" path="res://src/beach/props/spring.tscn" id="prop_spring"]
+[ext_resource type="PackedScene" path="res://src/beach/props/beach_grass.tscn" id="prop_beach_grass"]
+[ext_resource type="PackedScene" path="res://src/beach/props/sea_rock.tscn" id="prop_sea_rock"]
+[ext_resource type="PackedScene" path="res://src/beach/props/crab.tscn" id="prop_crab"]
 
 [node name="Beach" type="Node2D"]
 script = ExtResource("1_beach")
@@ -293,6 +296,129 @@ position = Vector2(2664, 256)
 
 [node name="Spring01" parent="World" instance=ExtResource("prop_spring")]
 position = Vector2(1544, 160)
+
+[node name="BeachGrass01" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1190, 190)
+
+[node name="BeachGrass02" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1291, 194)
+
+[node name="BeachGrass03" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1414, 175)
+
+[node name="BeachGrass04" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1515, 174)
+
+[node name="BeachGrass05" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1674, 190)
+
+[node name="BeachGrass06" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1768, 194)
+
+[node name="BeachGrass07" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(424, 193)
+
+[node name="BeachGrass08" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(518, 192)
+
+[node name="BeachGrass09" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(619, 191)
+
+[node name="BeachGrass10" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(713, 190)
+
+[node name="BeachGrass11" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(807, 194)
+
+[node name="BeachGrass12" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(901, 193)
+
+[node name="BeachGrass13" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1002, 192)
+
+[node name="BeachGrass14" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1096, 191)
+
+[node name="BeachGrass15" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1573, 191)
+
+[node name="BeachGrass16" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1862, 193)
+
+[node name="BeachGrass17" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(1963, 192)
+
+[node name="BeachGrass18" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(2057, 191)
+
+[node name="BeachGrass19" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(2151, 190)
+
+[node name="BeachGrass20" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(2245, 194)
+
+[node name="BeachGrass21" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(2346, 193)
+
+[node name="BeachGrass22" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(2440, 192)
+
+[node name="BeachGrass23" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(2534, 175)
+
+[node name="BeachGrass24" parent="World" instance=ExtResource("prop_beach_grass")]
+position = Vector2(2635, 190)
+
+[node name="SeaRock01" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(1276, 272)
+
+[node name="SeaRock02" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(1557, 269)
+
+[node name="SeaRock03" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(1703, 274)
+
+[node name="SeaRock04" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(355, 275)
+
+[node name="SeaRock05" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(572, 275)
+
+[node name="SeaRock06" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(778, 275)
+
+[node name="SeaRock07" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(984, 275)
+
+[node name="SeaRock08" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(1396, 275)
+
+[node name="SeaRock09" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(1819, 275)
+
+[node name="SeaRock10" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(2025, 275)
+
+[node name="SeaRock11" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(2231, 275)
+
+[node name="SeaRock12" parent="World" instance=ExtResource("prop_sea_rock")]
+position = Vector2(2437, 275)
+
+[node name="Crab01" parent="World" instance=ExtResource("prop_crab")]
+position = Vector2(1657, 222)
+
+[node name="Crab02" parent="World" instance=ExtResource("prop_crab")]
+position = Vector2(550, 244)
+
+[node name="Crab03" parent="World" instance=ExtResource("prop_crab")]
+position = Vector2(1012, 226)
+
+[node name="Crab04" parent="World" instance=ExtResource("prop_crab")]
+position = Vector2(2164, 226)
+
+[node name="Crab05" parent="World" instance=ExtResource("prop_crab")]
+position = Vector2(2521, 222)
 
 [node name="Ghost" type="Node2D" parent="."]
 unique_name_in_owner = true

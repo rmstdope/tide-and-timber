@@ -93,3 +93,18 @@ func test_fire_only_in_front_of_lean_to() -> void:
 	assert_bool(BuildSite.can_place(T.FIRE, spot, {}, feet, true, Vector2i(92, 13))).is_true()
 	assert_bool(BuildSite.can_place(T.FIRE, wrong, {}, feet, true, Vector2i(92, 13))).is_false()
 	assert_bool(BuildSite.can_place(T.FIRE, spot, {}, feet, false, Vector2i(92, 13))).is_false()
+
+func test_prop_cells_cover_crabs() -> void:
+	var cells := BuildSite.prop_cells()
+	for c: Vector2i in [Vector2i(103, 13), Vector2i(33, 14), Vector2i(34, 14), Vector2i(33, 15), Vector2i(34, 15),
+			Vector2i(62, 13), Vector2i(63, 13), Vector2i(62, 14), Vector2i(63, 14), Vector2i(134, 13), Vector2i(135, 13),
+			Vector2i(134, 14), Vector2i(135, 14), Vector2i(157, 13)]:
+		assert_bool(cells.has(c)).override_failure_message("%s is not covered" % c).is_true()
+	for c: Vector2i in [Vector2i(104, 13), Vector2i(158, 13), Vector2i(79, 16), Vector2i(74, 11)]:
+		assert_bool(cells.has(c)).override_failure_message("%s is covered" % c).is_false()
+
+func test_crab_base_matches_the_scene() -> void:
+	var crab := auto_free((load("res://src/beach/props/crab.tscn") as PackedScene).instantiate()) as Node
+	var base := crab.get_node("Base") as CollisionShape2D
+	var size := (base.shape as RectangleShape2D).size
+	assert_bool(Rect2(base.position - size / 2, size) == BuildSite.CRAB_BASE).is_true()

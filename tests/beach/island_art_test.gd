@@ -207,3 +207,11 @@ func test_coconut_and_shell_are_pack_crops() -> void:
 	for path in ["res://src/beach/props/coconut.tscn", "res://src/beach/props/shellfish.tscn"]:
 		var prop := auto_free((load(path) as PackedScene).instantiate()) as Node
 		assert_bool((prop.get_node("Sprite") as Sprite2D).centered).is_false()
+
+func test_beach_extras_are_pack_crops() -> void:
+	_assert_crop("res://src/beach/props/beach_grass.tscn", "res://assets/farming_101/beach/beach grass.png", Rect2(0, 12, 15, 17), Vector2(-7, -17))
+	_assert_crop("res://src/beach/props/sea_rock.tscn", "res://assets/farming_101/beach/ocean rocks.png", Rect2(3, 7, 27, 19), Vector2(-13, -19))
+	_assert_crop("res://src/beach/props/crab.tscn", "res://assets/farming_101/beach/crab.png", Rect2(32, 0, 32, 32), Vector2(-16, -23))
+	for path in ["res://src/beach/props/beach_grass.tscn", "res://src/beach/props/sea_rock.tscn", "res://src/beach/props/crab.tscn"]:
+		var prop := auto_free((load(path) as PackedScene).instantiate()) as Node
+		assert_bool((prop.get_node("Sprite") as Sprite2D).centered).is_false()

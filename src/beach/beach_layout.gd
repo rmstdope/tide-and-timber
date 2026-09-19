@@ -14,8 +14,11 @@ const SHELLFISH := "res://src/beach/props/shellfish.tscn"
 const SPRING := "res://src/beach/props/spring.tscn"
 const BUSH := "res://src/beach/props/bush.tscn"
 const TUFT := "res://src/beach/props/tuft.tscn"
+const BEACH_GRASS := "res://src/beach/props/beach_grass.tscn"
+const SEA_ROCK := "res://src/beach/props/sea_rock.tscn"
+const CRAB := "res://src/beach/props/crab.tscn"
 ## Every prop scene a beach layout places, flat ones (under %Decor) first.
-const PROP_SCENES: Array[String] = [BUSH, TUFT, PALM, ROCK, BOULDER, SPRING, DRIFTWOOD, SHELLFISH]
+const PROP_SCENES: Array[String] = [BUSH, TUFT, PALM, ROCK, BOULDER, SPRING, DRIFTWOOD, SHELLFISH, BEACH_GRASS, SEA_ROCK, CRAB]
 const SPAWN_CELL := Vector2i(92, 11)
 
 static var _cached: BeachMap
@@ -46,6 +49,17 @@ static func bushes() -> Array[Vector2i]:
 
 static func tufts() -> Array[Vector2i]:
 	return _map().cells_of(TUFT)
+
+## The beach grass, sea rocks and crabs sit a few px off their cells on purpose, so they are known by
+## their base positions, in the order beach.tscn lists them. Never by cell: a nudge can cross a cell edge.
+static func grass_bases() -> Array[Vector2]:
+	return _map().bases_of(BEACH_GRASS)
+
+static func sea_rock_bases() -> Array[Vector2]:
+	return _map().bases_of(SEA_ROCK)
+
+static func crab_bases() -> Array[Vector2]:
+	return _map().bases_of(CRAB)
 
 ## The cell whose cell_base is `base`: the inverse of cell_base, for any base inside the cell.
 static func cell_of_base(base: Vector2) -> Vector2i:

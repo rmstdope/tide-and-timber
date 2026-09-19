@@ -19,10 +19,12 @@ Each prop is an instance of a scene in `src/beach/props/`, named `<Kind><nn>` (`
 `Driftwood24`...).
 
 - Under `Decor` (flat, drawn under the man): bush, tuft, driftwood, shellfish.
-- Under `World` (y-sorted with the man): palm, rock, boulder, spring.
+- Under `World` (y-sorted with the man): palm, rock, boulder, spring, beach grass, sea rock, crab.
 
 A prop's cell is worked out from its position: its origin is the bottom centre of its cell. To snap
 props, set the 2D editor's grid step to 16x16 with offset (8, 0).
+
+Beach grass, sea rocks and crabs are the exception: each sits a few pixels off its cell on purpose, as the drawing (`docs/ui/tr-cfq-beach/beach.html`) places it, and the game knows them by position, not by cell (`BeachLayout.grass_bases()` and its neighbours). Do not snap them. Their order under `World` decides each grass clump's and sea rock's look, and `test_decoration_is_where_the_drawing_puts_it` pins every position.
 
 ## What to be careful with
 

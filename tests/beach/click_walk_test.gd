@@ -144,3 +144,10 @@ func test_goal_gone_before_arrival_shows_nothing() -> void:
 	await assert_signal(walker).wait_until(200).is_not_emitted("cant_reach")
 	assert_str(_line_text()).is_equal("")
 	assert_int(inventory.count(Item.Kind.DRIFTWOOD)).is_equal(0)
+
+func test_click_goes_round_crab() -> void:
+	await _stand(Vector2(1630, 219))
+	await _click(Vector2(1684, 219))
+	await await_millis(2500)
+	assert_float(player.global_position.distance_to(Vector2(1684, 219))).is_less_equal(2.0)
+	assert_str(_line_text()).is_equal("")

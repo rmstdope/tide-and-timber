@@ -90,3 +90,9 @@ func test_route_into_reach_walled_off_is_short() -> void:
 	var r := g.route_into_reach(Vector2(12, 12), Vector2(56, 20), 18.0)
 	assert_bool(r.short).is_true()
 	assert_float(r.waypoints[-1].x).is_less_equal(27.0)
+
+func test_a_point_whose_feet_touch_a_base_is_blocked() -> void:
+	var g := _grid()
+	g.refresh([Rect2(32, 14, 8, 8)])   # its bottom, y 22, is the top of the feet of the point centred (36, 28)
+	assert_bool(g.is_free(Vector2i(4, 3))).is_false()
+	assert_bool(g.is_clear(Vector2(36, 28))).is_true()   # standing flush is still clear

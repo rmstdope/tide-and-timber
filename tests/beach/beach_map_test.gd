@@ -43,3 +43,35 @@ func test_cell_lists_are_read_only() -> void:
 		assert_bool(map.cells_of(path).is_read_only()).is_true()
 	assert_bool(map.cells_of("res://nothing.tscn").is_read_only()).is_true()
 	assert_array(map.cells_of("res://nothing.tscn")).is_empty()
+
+func test_bases_are_prop_positions_in_scene_order() -> void:
+	var beach := _beach()
+	var map := BeachMap.from_scene(beach)
+	beach.free()
+	assert_array(map.bases_of(BeachLayout.SPRING)).is_equal([Vector2(1544, 160)])
+	var bases := map.bases_of(BeachLayout.DRIFTWOOD)
+	var cells := map.cells_of(BeachLayout.DRIFTWOOD)
+	assert_int(bases.size()).is_equal(cells.size())
+	for i in bases.size():
+		assert_vector(Vector2(BeachLayout.cell_of_base(bases[i]))).is_equal(Vector2(cells[i]))
+
+func test_bases_follow_a_moved_prop() -> void:
+	var beach := _beach()
+	var before := BeachMap.from_scene(beach).bases_of(BeachLayout.DRIFTWOOD)
+	for child in beach.get_node("%Decor").get_children():
+		if child.scene_file_path == BeachLayout.DRIFTWOOD:
+			(child as Node2D).position += Vector2(3, 5)
+			break
+	var after := BeachMap.from_scene(beach).bases_of(BeachLayout.DRIFTWOOD)
+	beach.free()
+	assert_vector(after[0]).is_equal(before[0] + Vector2(3, 5))
+	assert_array(after.slice(1)).is_equal(before.slice(1))
+
+func test_base_lists_are_read_only() -> void:
+	var beach := _beach()
+	var map := BeachMap.from_scene(beach)
+	beach.free()
+	for path: String in BeachLayout.PROP_SCENES:
+		assert_bool(map.bases_of(path).is_read_only()).is_true()
+	assert_bool(map.bases_of("res://nothing.tscn").is_read_only()).is_true()
+	assert_array(map.bases_of("res://nothing.tscn")).is_empty()

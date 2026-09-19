@@ -3,6 +3,7 @@ extends RefCounted
 ## Where a lean-to or fire would go, and whether it may. Cells are on the 16 px grid.
 
 const FEET_SIZE := Vector2(10, 6)       # the Player's Feet box (player.tscn: 10x6 at (0,-3))
+const CRAB_BASE := Rect2(-8, -6, 14, 6)   # crab.tscn's Base (14x6 at (-1,-3)) relative to its origin
 
 static func cell_of(at: Vector2) -> Vector2i:
 	return Vector2i((at / BeachLayout.TILE).floor())
@@ -63,7 +64,7 @@ static func footprint_rect(cells: Array[Vector2i]) -> Rect2:
 		hi = hi.max(c)
 	return Rect2(Vector2(lo * BeachLayout.TILE), Vector2((hi - lo + Vector2i.ONE) * BeachLayout.TILE))
 
-## Vector2i -> true for every palm and rock cell, and every cell a boulder or the spring's base covers.
+## Vector2i -> true for every palm and rock cell, every cell a boulder or the spring's base covers, and every cell a crab's base overlaps.
 static func prop_cells() -> Dictionary:
 	var cells := {}
 	for c in BeachLayout.palms():
@@ -76,6 +77,11 @@ static func prop_cells() -> Dictionary:
 	for b in BeachLayout.boulders():
 		for y in range(b.y - 1, b.y + 1):
 			for x in range(b.x - 1, b.x + 2):
+				cells[Vector2i(x, y)] = true
+	for base in BeachLayout.crab_bases():
+		var r := Rect2(base + CRAB_BASE.position, CRAB_BASE.size)
+		for y in range(floori(r.position.y / BeachLayout.TILE), ceili(r.end.y / BeachLayout.TILE)):
+			for x in range(floori(r.position.x / BeachLayout.TILE), ceili(r.end.x / BeachLayout.TILE)):
 				cells[Vector2i(x, y)] = true
 	return cells
 

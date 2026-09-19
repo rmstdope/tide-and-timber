@@ -6,7 +6,9 @@ extends RefCounted
 var _size: Vector2i
 var _kinds: PackedByteArray   # row-major over _size
 var _cells := {}               # scene path -> read-only Array[Vector2i]
+var _bases := {}               # scene path -> read-only Array[Vector2]
 static var _none: Array[Vector2i] = _read_only([])
+static var _no_bases: Array[Vector2] = _read_only_bases([])
 
 ## Reads `beach` (a Beach scene root, in the tree or not): %Ground's cells and every
 ## instanced child of %Decor and %World whose scene is one of BeachLayout.PROP_SCENES.
@@ -20,14 +22,18 @@ static func from_scene(beach: Node) -> BeachMap:
 			var data := ground.get_cell_tile_data(Vector2i(x, y))
 			map._kinds[y * map._size.x + x] = BeachLayout.Kind.DEEP if data == null else int(data.get_custom_data("kind"))
 	var found := {}
+	var bases := {}
 	for parent_name: String in ["Decor", "World"]:
 		for child in beach.get_node("%" + parent_name).get_children():
 			if child.scene_file_path in BeachLayout.PROP_SCENES:
 				if not found.has(child.scene_file_path):
 					found[child.scene_file_path] = [] as Array[Vector2i]
+					bases[child.scene_file_path] = [] as Array[Vector2]
+				(bases[child.scene_file_path] as Array[Vector2]).append((child as Node2D).position)
 				(found[child.scene_file_path] as Array[Vector2i]).append(BeachLayout.cell_of_base((child as Node2D).position))
 	for path: String in found:
 		map._cells[path] = _read_only(found[path])
+		map._bases[path] = _read_only_bases(bases[path])
 	return map
 
 ## The painted map's size in cells: %Ground.get_used_rect().end (the map starts at (0, 0)).
@@ -45,6 +51,15 @@ func kind_at(cell: Vector2i) -> int:
 ## first, then %World's), each BeachLayout.cell_of_base(position). Read-only; empty if none.
 func cells_of(scene_path: String) -> Array[Vector2i]:
 	return _cells.get(scene_path, _none)
+
+## The base positions (each prop's own position) of the props instanced from `scene_path`, in
+## scene-tree order (%Decor's children first, then %World's). Read-only; empty if none.
+func bases_of(scene_path: String) -> Array[Vector2]:
+	return _bases.get(scene_path, _no_bases)
+
+static func _read_only_bases(bases: Array[Vector2]) -> Array[Vector2]:
+	bases.make_read_only()
+	return bases
 
 static func _read_only(cells: Array[Vector2i]) -> Array[Vector2i]:
 	cells.make_read_only()
