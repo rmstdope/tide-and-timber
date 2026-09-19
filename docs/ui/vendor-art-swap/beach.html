@@ -1,0 +1,158 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Beach art swap mockup</title>
+<!-- Mockup only. Redraws BeachLayout's real cells around the spawn at the game's 640x360 base,
+     x2, reading the sprites straight from assets/. Open from the repository so the paths resolve. -->
+<style>
+  body { background: #1d1a17; color: #ead9c0; font: 14px/1.5 system-ui, sans-serif; margin: 24px auto; max-width: 1280px; padding: 0 16px; }
+  h1 { font-size: 20px; } h2 { font-size: 15px; margin: 28px 0 6px; }
+  p { color: #b9a88e; margin: 4px 0 10px; max-width: 80ch; }
+  canvas { image-rendering: pixelated; width: 100%; display: block; border: 1px solid #4a4035; }
+  .pairs { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 12px; }
+  .pair { background: #2a2520; padding: 10px; border: 1px solid #4a4035; }
+  .pair canvas { width: auto; border: 0; background: #e9b184; }
+  .pair div { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; }
+  .pair small { color: #b9a88e; display: block; margin-top: 6px; }
+</style>
+<h1>Beach art: today vs. Farming 101</h1>
+<p>Same layout, same camera (spawn cell 92,11), same Pixel Crawler rocks, bushes and tufts in all three.
+Only the palms, coconuts and shellfish change. Two loose coconuts are placed by hand under the palm left of the spring.</p>
+
+<h2>A. Today</h2>
+<canvas id="a" width="640" height="360"></canvas>
+<h2>B. Palms, coconuts and shells from Farming 101</h2>
+<p>Six palm shapes cycled along the tree line, their own ground shadows, brown coconuts in the crown. Shellfish cycle through four shells.</p>
+<canvas id="b" width="640" height="360"></canvas>
+<h2>C. B plus things the beach does not have yet</h2>
+<p>Beach grass at the jungle edge, ocean rocks in the shallows, a crab on the wet sand. Not replacements: shown to judge whether the pack's extras sit well here.</p>
+<canvas id="c" width="640" height="360"></canvas>
+
+<h2>D. C plus Farming 101 sand and water</h2>
+<p>The pack's pebbled sand, its two flat water blues, and its nine-frame wave strip animated along the shoreline in place of the wet-sand and foam rows.
+The jungle tile is unchanged. The pack's sand is greyer than today's peach, and the waves have that sand colour baked in, so the two come as a pair.</p>
+<canvas id="d" width="640" height="360"></canvas>
+
+<h2>E. Suggested: C, today's sand and water, warm waves, ragged jungle edge</h2>
+<p>Today's peach sand and textured water stay. The Farming 101 wave strip is recoloured (its sand to today's wet-sand colour, its water made see-through
+over today's shallows tile) and replaces the foam row. The last jungle row uses Pixel Crawler's ragged grass-edge tiles over sand, so the tree line stops being ruler-straight.</p>
+<canvas id="e" width="640" height="360"></canvas>
+
+<h2>Close up, x6</h2>
+<div class="pairs" id="pairs"></div>
+
+<script>
+const A = "../../../assets/";
+const SRC = {
+  tiles: "beach/tiles.png", palm: "beach/palm.png", crown: "beach/palm_coconuts.png", coconut: "beach/coconut.png",
+  shellfish: "beach/shellfish.png", driftwood: "beach/driftwood.png", spring: "beach/spring.png",
+  rocks: "pixel_crawler/Environment/Props/Static/Rocks.png", veg: "pixel_crawler/Environment/Props/Static/Vegetation.png",
+  man: "man/idle.png",
+  iCoconut: "items/coconut.png", iShellfish: "items/shellfish.png", iShell: "items/empty_shell.png",
+  fPalms: "farming_101/beach/palm trees.png", fCoconuts: "farming_101/beach/coconuts.png", fShells: "farming_101/beach/seashells.png",
+  fTiles: "farming_101/tileset/tileset.png", fWaves: "farming_101/tileset/sliced waves animation/bottom_waves.png",
+  warmWaves: "../docs/ui/vendor-art-swap/waves_warm.png", floors: "pixel_crawler/Environment/Tilesets/Floors_Tiles.png",
+  fGrass: "farming_101/beach/beach grass.png", fRocks: "farming_101/beach/ocean rocks.png", fCrab: "farming_101/beach/crab.png",
+};
+// BeachLayout, copied.
+const PALMS = [[20,9],[33,9],[47,9],[58,9],[71,9],[84,9],[101,9],[113,9],[126,9],[139,9],[150,9],[163,9]];
+const ROCKS = [[26,12],[40,13],[55,11],[66,14],[78,12],[99,13],[108,11],[121,14],[134,12],[147,13],[158,11]];
+const BOULDERS = [[17,10],[17,15],[62,10],[118,10],[166,10],[166,15]];
+const DRIFTWOOD = [[30,13],[69,12],[88,13],[130,13],[155,12],[19,12],[23,12],[37,13],[44,13],[50,12],[53,13],[61,13],[64,13],[74,12],[80,13],[107,13],[111,13],[116,12],[124,13],[137,13],[142,12],[152,13],[161,12],[164,12]];
+const SHELLFISH = [[24,14],[51,14],[75,14],[96,14],[116,14],[143,14],[160,14]];
+const SPRINGS = [[96,9]];
+const BUSHES = [[14,8],[27,8],[40,8],[52,8],[65,8],[77,8],[90,8],[106,8],[119,8],[132,8],[145,8],[157,8],[170,8],[5,14],[178,14]];
+const TUFTS = [[22,8],[46,8],[71,8],[98,8],[125,8],[151,8],[9,11],[175,11]];
+const COCONUTS = [[83,10],[85,11]];
+const GRASS = [[74,9],[80,9],[88,9],[94,9],[104,9],[110,9]];
+const SEA_ROCKS = [[79,17],[97,16],[106,17]];
+const CRABS = [[103,14]];
+function kind(x, y) {
+  if (y <= 8) return 0; if (y >= 18) return 5;
+  if (x <= 11 || x >= 172) return y <= 14 ? 0 : 5;
+  if (x <= 15 || x >= 168) return 6;
+  if (y <= 13) return 1; if (y == 14) return 2; if (y == 15) return 3; return 4;
+}
+// Farming 101 regions, [x, y, w, h], found by bounding the opaque pixels.
+const F_PALMS = [[22,16,31,56],[69,18,36,54],[22,83,34,53],[71,82,33,54],[115,87,37,50],[112,25,64,48]];
+const F_PALM_FOOT = [16, 18, 16, 18, 20, 60];   // x of the trunk's foot inside each region
+const F_SHELLS = [[2,2,11,12],[0,18,14,11],[2,34,12,13],[18,2,11,12]];
+const F_COCONUT = [3,19,10,10];
+const F_GRASS = [[0,12,15,17],[16,10,15,20],[33,11,13,17],[50,13,11,15]];
+const F_SEA_ROCKS = [[3,7,27,19],[32,1,32,14],[33,16,14,15]];
+const F_CRAB = [39,12,17,11];
+
+const img = {};
+Promise.all(Object.entries(SRC).map(([k, p]) => new Promise((ok, no) => {
+  const i = new Image(); i.onload = ok; i.onerror = () => no(p); i.src = A + p.split("/").map(encodeURIComponent).join("/"); img[k] = i;
+}))).then(() => { scene("a", 0); scene("b", 1); scene("c", 2); closeups();
+  let f = 0; scene("d", 3, 0); setInterval(() => { f = (f + 1) % 9; scene("d", 3, f); scene("e", 4, f); }, 160); scene("e", 4, 0); })
+    .catch(p => document.body.insertAdjacentHTML("afterbegin", "<p style='color:#f88'>could not load " + p + " (open this file from the repository)</p>"));
+
+function scene(id, mode, frame = 0) {
+  const g = document.getElementById(id).getContext("2d");
+  g.imageSmoothingEnabled = false;
+  const cam = [92 * 16 + 8 - 320, 11 * 16 + 8 - 180];
+  for (let y = 0; y < 26; y++) for (let x = 60; x < 125; x++)
+    ground(g, mode, frame, kind(x, y), x, y, x * 16 - cam[0], y * 16 - cam[1]);
+  // Everything that stands on a cell, y-sorted by its base like the game does.
+  const things = [];
+  const put = (cells, draw) => cells.forEach((c, n) => things.push({ x: c[0] * 16 + 8 - cam[0], y: (c[1] + 1) * 16 - cam[1], n, draw }));
+  // whole image, or a region, bottom-centred on the base; dy is the Sprite2D's extra lift
+  const whole = (i, dy = 0) => t => g.drawImage(i, Math.round(t.x - i.width / 2), t.y - i.height + dy);
+  const region = (i, r, dy = 0, foot = null) => t => g.drawImage(i, r[0], r[1], r[2], r[3], Math.round(t.x - (foot ?? r[2] / 2)), t.y - r[3] + dy, r[2], r[3]);
+  put(BUSHES, region(img.veg, [0, 0, 32, 32]));
+  put(TUFTS, region(img.veg, [64, 144, 16, 16]));
+  put(ROCKS, region(img.rocks, [160, 16, 16, 16]));
+  put(BOULDERS, region(img.rocks, [128, 16, 32, 32]));
+  put(DRIFTWOOD, whole(img.driftwood));
+  put(SPRINGS, whole(img.spring, 10));
+  if (mode == 0) {
+    put(PALMS, t => { whole(img.palm)(t); g.drawImage(img.crown, t.x - 5, t.y - 34); });
+    put(SHELLFISH, whole(img.shellfish));
+    put(COCONUTS, whole(img.coconut));
+  } else {
+    put(PALMS, t => { const v = t.n % 6, r = F_PALMS[v].slice(); r[0] += 320; region(img.fPalms, r, 4, F_PALM_FOOT[v])(t); });
+    put(SHELLFISH, t => region(img.fShells, F_SHELLS[t.n % 4], -1)(t));
+    put(COCONUTS, region(img.fCoconuts, F_COCONUT));
+  }
+  if (mode >= 2) {
+    put(GRASS, t => region(img.fGrass, F_GRASS[t.n % 4])(t));
+    put(SEA_ROCKS, t => region(img.fRocks, F_SEA_ROCKS[t.n % 3])(t));
+    put(CRABS, region(img.fCrab, F_CRAB));
+  }
+  things.push({ x: 320, y: 12 * 16 - cam[1], draw: t => g.drawImage(img.man, 0, 0, 64, 64, t.x - 32, t.y - 48, 64, 64) });
+  things.sort((p, q) => p.y - q.y).forEach(t => t.draw(t));
+}
+
+function ground(g, mode, frame, k, x, y, px, py) {
+  if (mode == 4) {
+    if (k == 0 && y == 8 && x > 11 && x < 172) { g.drawImage(img.tiles, 16, 0, 16, 16, px, py, 16, 16); return g.drawImage(img.floors, 16 + (x % 3) * 16, 80, 16, 16, px, py, 16, 16); }
+    if (k == 3) { g.drawImage(img.tiles, 64, 0, 16, 16, px, py, 16, 16); return g.drawImage(img.warmWaves, ((frame + x * 4) % 9) * 16, 0, 16, 16, px, py, 16, 16); }
+    return g.drawImage(img.tiles, k * 16, 0, 16, 16, px, py, 16, 16);
+  }
+  if (mode < 3 || k == 0 || k == 6) return g.drawImage(img.tiles, k * 16, 0, 16, 16, px, py, 16, 16);
+  if (k <= 2) return g.drawImage(img.fTiles, 432 + (x % 3) * 16, 112 + (y % 3) * 16, 16, 16, px, py, 16, 16);
+  if (k == 3) return g.drawImage(img.fWaves, ((frame + x * 4) % 9) * 16, 0, 16, 16, px, py, 16, 16);
+  g.fillStyle = k == 4 ? "#249fde" : "#285cc4"; g.fillRect(px, py, 16, 16);
+}
+
+function closeups() {
+  const Z = 6, host = document.getElementById("pairs");
+  const pair = (label, was, now) => {
+    const box = document.createElement("div"); box.className = "pair";
+    const row = document.createElement("div"); box.append(row);
+    [was, ...now].forEach(([i, r]) => {
+      r = r || [0, 0, i.width, i.height];
+      const c = document.createElement("canvas"); c.width = r[2] * Z; c.height = r[3] * Z;
+      const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+      g.drawImage(i, r[0], r[1], r[2], r[3], 0, 0, r[2] * Z, r[3] * Z); row.append(c);
+    });
+    box.insertAdjacentHTML("beforeend", "<small>" + label + "</small>"); host.append(box);
+  };
+  pair("Coconut on the sand: today, then brown / green / opened", [img.coconut], [[img.fCoconuts, F_COCONUT], [img.fCoconuts, [2,2,10,11]], [img.fCoconuts, [3,36,11,10]]]);
+  pair("Coconut item icon (10x10 today; the new one would need a 16x16 slot)", [img.iCoconut], [[img.fCoconuts, [0,16,16,16]], [img.fCoconuts, [0,32,16,16]]]);
+  pair("Shellfish on the sand: today, then four shells", [img.shellfish], F_SHELLS.map(r => [img.fShells, r]));
+  pair("Shellfish and empty shell icons: today, then candidates", [img.iShellfish], [[img.iShell], [img.fShells, [0,16,16,16]], [img.fShells, [0,32,16,16]]]);
+  pair("Palm: today, then two of the six shapes", [img.palm], [[img.fPalms, [342,16,31,56]], [img.fPalms, [435,87,37,50]]]);
+}
+</script>
